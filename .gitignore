@@ -1,0 +1,92 @@
+# Visual Studio 2019 核心忽略规则
+
+##外部依赖
+/Extern
+
+## 用户特定文件
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+*.cachefile
+
+## 编译生成文件
+[Dd]ebug/
+[Rr]elease/
+[Rr]eleases/
+[Xx]64/
+[Xx]86/
+[Ww][Ii][Nn]32/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+[Bb]uild/
+[Oo]bj/
+[Ll]og/
+
+## 中间文件
+*.ilk
+*.meta
+*.obj
+*.pch
+*.pdb
+*.ipch
+*.iobj
+*.ipdb
+*.db
+*.idb
+*.exp
+*.lib
+*.map
+*.res
+*.tlog
+
+## 可执行文件
+*.exe
+*.dll
+*.app
+*.so
+*.dylib
+*.bin
+
+## 打包目录
+bld/
+[Bb]in/
+[Oo]ut/
+
+## 预编译头
+*.pch
+
+## 其他生成文件
+*.aps
+*.ncb
+*.opensdf
+*.sdf
+*.tlog
+*.log
+*.vspscc
+*.vssscc
+*.tmp
+*.unsuccessfulbuild
+
+## VS 2019 特定目录
+.vs/
+.vscode/
+ipch/
+*.VC.db
+*.VC.VC.opendb
+
+## CMake 生成文件
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+install_manifest.txt
+*.cmake
+Makefile
+
+## 项目文件自动生成
+*.autosave
+
+# 系统文件
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini

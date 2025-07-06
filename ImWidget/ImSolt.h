@@ -1,0 +1,25 @@
+#pragma once
+#include <imgui.h>
+#include <string>
+
+namespace ImGuiWidget
+{
+	class ImWidget;
+	class ImSlot
+	{
+	protected:
+		ImWidget* Content;
+		bool bAutoSize = true;
+	public:
+		float PaddingTop = 1.f;
+		float PaddingBottom = 1.f;
+		float PaddingLeft = 4.f;
+		float PaddingRight = 4.f;
+		ImSlot():Content(nullptr) {}
+		ImSlot(ImWidget* Content):Content(Content){}
+		ImWidget* GetContent() { return Content; }
+		virtual void ApplyLayout(const ImVec2& containerPos, const ImVec2& containerSize){}
+		bool GetIfAutoSize() { return bAutoSize; }
+		void SetIfAutoSize(bool Value) { bAutoSize = Value; }
+	};
+}
