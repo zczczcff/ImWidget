@@ -56,7 +56,7 @@ public:
         m_Box->AddChildToVerticalBox(button2)->SetIfAutoSize(false);
         Box1->AddChildToVerticalBox(button3);
         Box1->AddChildToVerticalBox(button4);
-        button4->SetChild(TextBlock0);
+        button4->SetContent(TextBlock0);
         Box1->AddChildToVerticalBox(InPutText0);
         //Box1->AddChildToVerticalBox(TextBlock0);
         //m_Box->AddChildToVerticalBox(Box1);

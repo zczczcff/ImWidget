@@ -5,6 +5,10 @@ VisualStudioVersion = 16.0.35229.62
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImWidget", "ImWidget.vcxproj", "{B56D0F89-F712-4BC2-9F42-A67EE693F365}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ButtonTest", "Test\Test0\Test0.vcxproj", "{5F2C2C29-69F7-4706-B80F-52127975CE19}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{C522C7A5-75A0-414A-AA4A-15E19C4DCEE0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,9 +25,20 @@ Global
 		{B56D0F89-F712-4BC2-9F42-A67EE693F365}.Release|x64.Build.0 = Release|x64
 		{B56D0F89-F712-4BC2-9F42-A67EE693F365}.Release|x86.ActiveCfg = Release|Win32
 		{B56D0F89-F712-4BC2-9F42-A67EE693F365}.Release|x86.Build.0 = Release|Win32
+		{5F2C2C29-69F7-4706-B80F-52127975CE19}.Debug|x64.ActiveCfg = Debug|x64
+		{5F2C2C29-69F7-4706-B80F-52127975CE19}.Debug|x64.Build.0 = Debug|x64
+		{5F2C2C29-69F7-4706-B80F-52127975CE19}.Debug|x86.ActiveCfg = Debug|Win32
+		{5F2C2C29-69F7-4706-B80F-52127975CE19}.Debug|x86.Build.0 = Debug|Win32
+		{5F2C2C29-69F7-4706-B80F-52127975CE19}.Release|x64.ActiveCfg = Release|x64
+		{5F2C2C29-69F7-4706-B80F-52127975CE19}.Release|x64.Build.0 = Release|x64
+		{5F2C2C29-69F7-4706-B80F-52127975CE19}.Release|x86.ActiveCfg = Release|Win32
+		{5F2C2C29-69F7-4706-B80F-52127975CE19}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{5F2C2C29-69F7-4706-B80F-52127975CE19} = {C522C7A5-75A0-414A-AA4A-15E19C4DCEE0}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {D251272A-E4EE-4388-8679-A44746FA9955}

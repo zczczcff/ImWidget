@@ -15,7 +15,7 @@ namespace ImGuiWidget
 		ImGuiButtonFlags m_ButtonFlag = 0;
 	public:
 		ImButton(const std::string& WidgetName) :ImPanelWidget(WidgetName) {}
-		void SetChild(ImWidget* child)
+		void SetContent(ImWidget* child)
 		{
 			ImSlot* newslot = new ImSlot(child);
 			if (m_Slots.size() == 1)
