@@ -18,13 +18,16 @@ public:
     void Init()
     {
         m_Canvas = new ImGuiWidget::ImCanvasPanel("Canvas0");
-        ImGuiWidget::ImTextBlock* ButtonTestDisplayText = new ImGuiWidget::ImTextBlock("ButtonTestDisplayText");
+        ImGuiWidget::ImTextBlock* Header = new ImGuiWidget::ImTextBlock("ButtonTestDisplayText");
+        Header->SetText("ExpandableBoxTest");
+        
         ImGuiWidget::ImButton* button0 = new ImGuiWidget::ImButton("button0");
         ImGuiWidget::ImButton* button1 = new ImGuiWidget::ImButton("button1");
         ImGuiWidget::ImButton* button2 = new ImGuiWidget::ImButton("button2");
 
         ImGuiWidget::ImExpandableBox* ExpandableBox0 = new ImGuiWidget::ImExpandableBox("ExpandableBox0");
-
+        ExpandableBox0->SetHead(Header);
+        ExpandableBox0->SetBody(button0);
         //m_Canvas->AddChildToCanvasPanel(ResizableBox0)->SetSlotPosAndSize(ImVec2(400, 400), ImVec2(400, 400));
         m_Canvas->AddChildToCanvasPanel(ExpandableBox0)->SetSlotPosAndSize(ImVec2(10, 10), ImVec2(100, 20));
 

@@ -26,7 +26,10 @@ namespace ImGuiWidget
         TextAlignment_Vertical valign = TextAlignment_Vertical::Center;
 	public:
         ImTextBlock(const std::string& WidgetName):ImWidget(WidgetName){}
-        virtual ImVec2 GetMinSize() { return ImVec2(0, 16.f); }
+        virtual ImVec2 GetMinSize() 
+        { 
+            return ImVec2(ImGui::CalcTextSize(m_Text.c_str()).x, 16.f);//需根据字体计算，待修改
+        }
 		void SetText(const std::string& Text)
 		{
 			m_Text = Text;
