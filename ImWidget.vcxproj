@@ -78,7 +78,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>E:\project\ImWidget\Extern\imgui-master\backends;E:\project\ImWidget\Extern\imgui-master;$(IncludePath)</IncludePath>
+    <IncludePath>./Extern\imgui-master\backends;./Extern\imgui-master;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
