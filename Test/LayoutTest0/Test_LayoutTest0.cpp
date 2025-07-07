@@ -8,6 +8,7 @@
 #include "ImWidget/ImSlider.h"
 #include "ImWidget/ImScrollBox.h"
 #include "ImWidget/ImResizableBox.h"
+#include "ImWidget/ImExpandableBox.h"
 class MyApp : public Application
 {
 public:
@@ -21,35 +22,15 @@ public:
         ImGuiWidget::ImButton* button0 = new ImGuiWidget::ImButton("button0");
         ImGuiWidget::ImButton* button1 = new ImGuiWidget::ImButton("button1");
         ImGuiWidget::ImButton* button2 = new ImGuiWidget::ImButton("button2");
-        button0->SetOnPressed([ButtonTestDisplayText]() 
-            {
-                ButtonTestDisplayText->SetText("button0pressed");
-            });
-        button0->SetOnReleased([ButtonTestDisplayText]() 
-            {
-                ButtonTestDisplayText->SetText("");
-            });
-        button1->SetOnPressed([ButtonTestDisplayText]()
-            {
-                ButtonTestDisplayText->SetText("button1pressed");
-            });
-        button1->SetOnReleased([ButtonTestDisplayText]()
-            {
-                ButtonTestDisplayText->SetText("");
-            });
-        button2->SetOnPressed([ButtonTestDisplayText]()
-            {
-                ButtonTestDisplayText->SetText("button2pressed");
-            });
-        button2->SetOnReleased([ButtonTestDisplayText]()
-            {
-                ButtonTestDisplayText->SetText("");
-            });
+
+        ImGuiWidget::ImExpandableBox* ExpandableBox0 = new ImGuiWidget::ImExpandableBox("ExpandableBox0");
+
         //m_Canvas->AddChildToCanvasPanel(ResizableBox0)->SetSlotPosAndSize(ImVec2(400, 400), ImVec2(400, 400));
-        m_Canvas->AddChildToCanvasPanel(button0)->SetSlotPosAndSize(ImVec2(10, 10), ImVec2(100, 20));
-        m_Canvas->AddChildToCanvasPanel(button1)->SetSlotPosAndSize(ImVec2(10, 32), ImVec2(100, 20));
-        m_Canvas->AddChildToCanvasPanel(button2)->SetSlotPosAndSize(ImVec2(10, 54), ImVec2(100, 20));
-        m_Canvas->AddChildToCanvasPanel(ButtonTestDisplayText)->SetSlotPosAndSize(ImVec2(10, 76), ImVec2(100, 20));
+        m_Canvas->AddChildToCanvasPanel(ExpandableBox0)->SetSlotPosAndSize(ImVec2(10, 10), ImVec2(100, 20));
+
+        //m_Canvas->AddChildToCanvasPanel(button1)->SetSlotPosAndSize(ImVec2(10, 32), ImVec2(100, 20));
+        //m_Canvas->AddChildToCanvasPanel(button2)->SetSlotPosAndSize(ImVec2(10, 54), ImVec2(100, 20));
+        //m_Canvas->AddChildToCanvasPanel(ButtonTestDisplayText)->SetSlotPosAndSize(ImVec2(10, 76), ImVec2(100, 20));
     }
     void Render() override
     {

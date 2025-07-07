@@ -99,6 +99,9 @@
     <ClInclude Include="ImWidget\ImHorizontalBox.h">
       <Filter>ImWidget</Filter>
     </ClInclude>
+    <ClInclude Include="ImWidget\ImExpandableBox.h">
+      <Filter>ImWidget</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
