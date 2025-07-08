@@ -109,7 +109,7 @@ namespace ImGuiWidget
         ButtonStateStyle& GetHoveredStyle() { return m_HoveredStyle; }
         ButtonStateStyle& GetPressedStyle() { return m_PressedStyle; }
 
-        virtual ImVec2 GetMinSize() { return ImVec2(10.f, 30.f); }
+        virtual ImVec2 GetMinSize() { return ImVec2(30, 10); }
 
         virtual void Render()
         {
