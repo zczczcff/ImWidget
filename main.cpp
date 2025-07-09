@@ -15,6 +15,7 @@ public:
     ImGuiWidget::ImVerticalBox* m_Box;
     ImGuiWidget::ImHorizontalSplitter* m_Splitter;
     ImGuiWidget::ImCanvasPanel* m_Canvas;
+    ImTextureID TestTexture;
     void Init()
     {
         m_Box = new ImGuiWidget::ImVerticalBox("Box0");
@@ -70,6 +71,8 @@ public:
         m_Canvas->AddChildToCanvasPanel(ScrollBox0)->SetSlotPosAndSize(ImVec2(100, 100), ImVec2(400, 400));
     
         m_Canvas->AddChildToCanvasPanel(ResizableBox0)->SetSlotPosAndSize(ImVec2(400, 400), ImVec2(400, 400));
+
+        TestTexture = LoadTextureFromFile("./Resource/preview.jpg");
     }
     void Render() override
     {
@@ -80,6 +83,7 @@ public:
         //m_Splitter->Render();
         //ImGui::EndChild();
         //ImGui::End();
+        ImGui::Image((void*)TestTexture, ImVec2(600, 600));
         m_Canvas->Render();
         
     }
@@ -88,10 +92,10 @@ public:
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
     MyApp app(hInstance, nCmdShow);
-    app.Init();
+    
     if (!app.Initialize())
         return 1;
-
+    app.Init();
     app.Run();
     return 0;
 }

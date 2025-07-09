@@ -2,6 +2,8 @@
 
 ##外部依赖
 /Extern
+##资源文件
+/Resource
 
 ## 用户特定文件
 *.user
