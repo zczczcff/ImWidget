@@ -79,12 +79,12 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>../../Extern\imgui-master;../../Extern\imgui-master\backends;$(IncludePath)</IncludePath>
+    <IncludePath>../../Extern\stb_image;../../Extern\imgui-master;../../Extern\imgui-master\backends;$(IncludePath)</IncludePath>
     <ExternalIncludePath>../../;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>../../Extern\imgui-master;../../Extern\imgui-master\backends;$(IncludePath)</IncludePath>
+    <IncludePath>../../Extern\stb_image;../../Extern\imgui-master;../../Extern\imgui-master\backends;$(IncludePath)</IncludePath>
     <ExternalIncludePath>../../;$(ExternalIncludePath)</ExternalIncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
@@ -148,6 +148,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\Application\ImApplication.cpp" />
     <ClCompile Include="..\..\Extern\imgui-master\backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="..\..\Extern\imgui-master\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="..\..\Extern\imgui-master\imgui.cpp" />
@@ -158,6 +159,7 @@
     <ClCompile Include="Test_LayoutTest0.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\Application\ImApplication.h" />
     <ClInclude Include="..\..\Extern\imgui-master\backends\imgui_impl_dx11.h" />
     <ClInclude Include="..\..\Extern\imgui-master\backends\imgui_impl_win32.h" />
     <ClInclude Include="..\..\Extern\imgui-master\imconfig.h" />

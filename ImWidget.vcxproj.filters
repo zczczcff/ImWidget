@@ -102,6 +102,9 @@
     <ClInclude Include="ImWidget\ImExpandableBox.h">
       <Filter>ImWidget</Filter>
     </ClInclude>
+    <ClInclude Include="ImWidget\ImImage.h">
+      <Filter>ImWidget</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -127,6 +130,9 @@
     </ClCompile>
     <ClCompile Include="Extern\imgui-master\backends\imgui_impl_win32.cpp">
       <Filter>Extern\backends</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\ImApplication.cpp">
+      <Filter>Application</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

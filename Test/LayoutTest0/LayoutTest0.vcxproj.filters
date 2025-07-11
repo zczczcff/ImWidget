@@ -22,6 +22,9 @@
     <Filter Include="Extern\Imgui">
       <UniqueIdentifier>{3d28d122-eba1-4a6c-a703-3653ac90bd6b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Application">
+      <UniqueIdentifier>{d756fc29-b099-4924-9040-4bec69505298}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\Extern\imgui-master\backends\imgui_impl_dx11.cpp">
@@ -48,6 +51,9 @@
     <ClCompile Include="Test_LayoutTest0.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\Application\ImApplication.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\Extern\imgui-master\backends\imgui_impl_dx11.h">
@@ -73,6 +79,9 @@
     </ClInclude>
     <ClInclude Include="..\..\Extern\imgui-master\imstb_truetype.h">
       <Filter>Extern\Imgui</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\Application\ImApplication.h">
+      <Filter>Application</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

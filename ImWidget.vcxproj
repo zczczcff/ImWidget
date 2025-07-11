@@ -159,6 +159,7 @@
     <ClInclude Include="ImWidget\ImExpandableBox.h" />
     <ClInclude Include="ImWidget\ImHorizontalBox.h" />
     <ClInclude Include="ImWidget\ImHorizontalSplitter.h" />
+    <ClInclude Include="ImWidget\ImImage.h" />
     <ClInclude Include="ImWidget\ImPanelWidget.h" />
     <ClInclude Include="ImWidget\ImScrollBox.h" />
     <ClInclude Include="ImWidget\ImSingleLineInputText.h" />
@@ -171,6 +172,7 @@
     <ClInclude Include="ImWidget\ImResizableBox.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Application\ImApplication.cpp" />
     <ClCompile Include="Extern\imgui-master\backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="Extern\imgui-master\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="Extern\imgui-master\imgui.cpp" />

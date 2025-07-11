@@ -8,6 +8,13 @@
 #include "ImWidget/ImSlider.h"
 #include "ImWidget/ImScrollBox.h"
 #include "ImWidget/ImResizableBox.h"
+#include "ImWidget/ImImage.h"
+
+namespace ImGuiWidget
+{
+    Application* GlobalApp;
+}
+
 class MyApp : public Application
 {
 public:
@@ -15,7 +22,7 @@ public:
     ImGuiWidget::ImVerticalBox* m_Box;
     ImGuiWidget::ImHorizontalSplitter* m_Splitter;
     ImGuiWidget::ImCanvasPanel* m_Canvas;
-    ImTextureID TestTexture;
+    //ImTextureID TestTexture;
     void Init()
     {
         m_Box = new ImGuiWidget::ImVerticalBox("Box0");
@@ -47,7 +54,8 @@ public:
         ImGuiWidget::ImButton* button7 = new ImGuiWidget::ImButton("button7");
 
         ImGuiWidget::ImResizableBox* ResizableBox0 = new ImGuiWidget::ImResizableBox("ResizableBox0");
-
+        ImGuiWidget::ImImage* Image0 = new ImGuiWidget::ImImage("Image0", "./Resource/preview.jpg");
+        Image0->SetAlpha(0.5);
         CanvasPanel1->AddChildToCanvasPanel(button6)->SetSlotPosAndSize(ImVec2(100.f, 100.f), ImVec2(20.f, 20.f));
         CanvasPanel1->AddChildToCanvasPanel(button7)->SetSlotPosAndSize(ImVec2(280.f, 290.f), ImVec2(20.f, 20.f));
 
@@ -71,8 +79,9 @@ public:
         m_Canvas->AddChildToCanvasPanel(ScrollBox0)->SetSlotPosAndSize(ImVec2(100, 100), ImVec2(400, 400));
     
         m_Canvas->AddChildToCanvasPanel(ResizableBox0)->SetSlotPosAndSize(ImVec2(400, 400), ImVec2(400, 400));
-
-        TestTexture = LoadTextureFromFile("./Resource/preview.jpg");
+        ResizableBox0->SetContent(Image0);
+        //m_Canvas->AddChildToCanvasPanel(Image0)->SetSlotPosAndSize(ImVec2(0, 0), ImVec2(400, 400));
+        //TestTexture = LoadTextureFromFile("./Resource/preview.jpg");
     }
     void Render() override
     {
@@ -83,7 +92,7 @@ public:
         //m_Splitter->Render();
         //ImGui::EndChild();
         //ImGui::End();
-        ImGui::Image((void*)TestTexture, ImVec2(600, 600));
+        //ImGui::Image((void*)TestTexture, ImVec2(600, 600));
         m_Canvas->Render();
         
     }
@@ -92,7 +101,7 @@ public:
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
 {
     MyApp app(hInstance, nCmdShow);
-    
+    ImGuiWidget::GlobalApp = &app;
     if (!app.Initialize())
         return 1;
     app.Init();
