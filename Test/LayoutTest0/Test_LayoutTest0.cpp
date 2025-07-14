@@ -9,6 +9,7 @@
 #include "ImWidget/ImScrollBox.h"
 #include "ImWidget/ImResizableBox.h"
 #include "ImWidget/ImExpandableBox.h"
+#include "ImWidget/ImComboBox.h"
 class MyApp : public Application
 {
 public:
@@ -26,11 +27,21 @@ public:
         ImGuiWidget::ImButton* button2 = new ImGuiWidget::ImButton("button2");
 
         ImGuiWidget::ImExpandableBox* ExpandableBox0 = new ImGuiWidget::ImExpandableBox("ExpandableBox0");
+        ImGuiWidget::ImTextBlock* TextBlock0 = new ImGuiWidget::ImTextBlock("TextBlock0");
+        TextBlock0->SetText("Test");
+        button0->SetContent(TextBlock0);
         ExpandableBox0->SetHead(Header);
         ExpandableBox0->SetBody(button0);
         //m_Canvas->AddChildToCanvasPanel(ResizableBox0)->SetSlotPosAndSize(ImVec2(400, 400), ImVec2(400, 400));
         m_Canvas->AddChildToCanvasPanel(ExpandableBox0)->SetSlotPosAndSize(ImVec2(10, 10), ImVec2(100, 20));
 
+        ImGuiWidget::ImComboBox* combo = new ImGuiWidget::ImComboBox("MyComboBox");
+        combo->SetItemHeight(16);
+        // Ìí¼ÓÑ¡Ïî
+        combo->AddItem("Option 1");
+        combo->AddItem("Option 2");
+        combo->AddItem("Option 3");
+        m_Canvas->AddChildToCanvasPanel(combo)->SetSlotPosAndSize(ImVec2(210, 10), ImVec2(100, 20));
         //m_Canvas->AddChildToCanvasPanel(button1)->SetSlotPosAndSize(ImVec2(10, 32), ImVec2(100, 20));
         //m_Canvas->AddChildToCanvasPanel(button2)->SetSlotPosAndSize(ImVec2(10, 54), ImVec2(100, 20));
         //m_Canvas->AddChildToCanvasPanel(ButtonTestDisplayText)->SetSlotPosAndSize(ImVec2(10, 76), ImVec2(100, 20));

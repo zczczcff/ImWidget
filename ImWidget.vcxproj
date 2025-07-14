@@ -156,6 +156,7 @@
     <ClInclude Include="Extern\imgui-master\imstb_truetype.h" />
     <ClInclude Include="ImWidget\ImButton.h" />
     <ClInclude Include="ImWidget\ImCanvasPanel.h" />
+    <ClInclude Include="ImWidget\ImComboBox.h" />
     <ClInclude Include="ImWidget\ImExpandableBox.h" />
     <ClInclude Include="ImWidget\ImHorizontalBox.h" />
     <ClInclude Include="ImWidget\ImHorizontalSplitter.h" />
