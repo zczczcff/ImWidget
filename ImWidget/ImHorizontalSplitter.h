@@ -4,7 +4,7 @@
 
 namespace ImGuiWidget
 {
-    struct ImSplitterStyle
+    struct ImHorizontalSplitterStyle
     {
         float BarWidth = 4.0f;
         ImU32 Color = IM_COL32(100, 100, 100, 255);
@@ -28,7 +28,7 @@ namespace ImGuiWidget
     class ImHorizontalSplitter : public ImPanelWidget
     {
     private:
-        ImSplitterStyle m_Style;
+        ImHorizontalSplitterStyle m_Style;
         int m_DraggingIndex = -1;
         float m_DragStartPos = 0.0f;
         float m_DragStartSplitterPos = 0.0f;
@@ -39,7 +39,7 @@ namespace ImGuiWidget
         {
         }
 
-        void SetSplitterStyle(const ImSplitterStyle& style) {
+        void SetSplitterStyle(const ImHorizontalSplitterStyle& style) {
             m_Style = style;
         }
 

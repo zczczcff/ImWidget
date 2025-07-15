@@ -1,7 +1,9 @@
 #include "Application/ImApplication.h"
 #include "ImWidget/ImButton.h"
 #include "ImWidget/ImVerticalBox.h"
+#include "ImWidget/ImVerticalSplitter.h"
 #include "ImWidget/ImHorizontalSplitter.h"
+#include "ImWidget/ImHorizontalBox.h"
 #include "ImWidget/ImTextBlock.h"
 #include "ImWidget/ImSingleLineInputText.h"
 #include "ImWidget/ImCanvasPanel.h"
@@ -21,12 +23,16 @@ public:
     using Application::Application;
     ImGuiWidget::ImVerticalBox* m_Box;
     ImGuiWidget::ImHorizontalSplitter* m_Splitter;
+    ImGuiWidget::ImVerticalSplitter* m_VSplitter;
     ImGuiWidget::ImCanvasPanel* m_Canvas;
+    ImGuiWidget::ImHorizontalBox* m_MenuList;
+    ImGuiWidget::ImVerticalBox* m_MainBox;
     //ImTextureID TestTexture;
     void Init()
     {
         m_Box = new ImGuiWidget::ImVerticalBox("Box0");
         m_Splitter = new ImGuiWidget::ImHorizontalSplitter("Splitter0");
+       // m_VSplitter = new ImGuiWidget::ImVerticalSplitter("VSplitter0");
         m_Canvas = new ImGuiWidget::ImCanvasPanel("Canvas0");
 
         m_Canvas->SetPosition(ImVec2(0, 0));
@@ -87,7 +93,10 @@ public:
     }
     void Render() override
     {
-        m_Canvas->Render();
+        m_Splitter->SetPosition(ImVec2(0.f, 0.f));
+        m_Splitter->SetSize(ImGui::GetWindowSize());
+        m_Splitter->Render();
+        //m_Canvas->Render();
     }
 };
 
