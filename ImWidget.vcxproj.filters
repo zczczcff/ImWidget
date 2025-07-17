@@ -28,6 +28,9 @@
     <Filter Include="ImWidget">
       <UniqueIdentifier>{c4c6cc1d-0083-4ce6-a901-5feb1e784db3}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ImWindows">
+      <UniqueIdentifier>{352ccc9f-eda1-42ef-a421-8bcff40569b0}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Application\ImApplication.h">
@@ -110,6 +113,9 @@
     </ClInclude>
     <ClInclude Include="ImWidget\ImMenuButton.h">
       <Filter>ImWidget</Filter>
+    </ClInclude>
+    <ClInclude Include="ImWindows\ImMenuButton.h">
+      <Filter>ImWindows</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
