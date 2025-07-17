@@ -171,6 +171,7 @@
     <ClInclude Include="ImWidget\ImHorizontalBox.h" />
     <ClInclude Include="ImWidget\ImHorizontalSplitter.h" />
     <ClInclude Include="ImWidget\ImImage.h" />
+    <ClInclude Include="ImWidget\ImMenuButton.h" />
     <ClInclude Include="ImWidget\ImPanelWidget.h" />
     <ClInclude Include="ImWidget\ImScrollBox.h" />
     <ClInclude Include="ImWidget\ImSingleLineInputText.h" />

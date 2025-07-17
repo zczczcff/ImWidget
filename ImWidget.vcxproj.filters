@@ -108,6 +108,9 @@
     <ClInclude Include="ImWidget\ImComboBox.h">
       <Filter>ImWidget</Filter>
     </ClInclude>
+    <ClInclude Include="ImWidget\ImMenuButton.h">
+      <Filter>ImWidget</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

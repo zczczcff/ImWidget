@@ -93,7 +93,7 @@ void Application::Run()
         ImGui::End();
         // äÖÈ¾
         ImGui::Render();
-        const float clear_color[4] = { 0.45f, 0.55f, 0.60f, 1.00f };
+        const float clear_color[4] = { 1.f, 1.f, 1.f, 1.00f };
         m_pd3dDeviceContext->OMSetRenderTargets(1, &m_mainRenderTargetView, nullptr);
         m_pd3dDeviceContext->ClearRenderTargetView(m_mainRenderTargetView, clear_color);
         ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());

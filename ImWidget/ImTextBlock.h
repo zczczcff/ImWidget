@@ -22,10 +22,12 @@ namespace ImGuiWidget
 		};
 	protected:
 		std::string m_Text;
+        ImU32 m_TextColor;
         TextAlignment_Horizontal halign = TextAlignment_Horizontal::Center;
         TextAlignment_Vertical valign = TextAlignment_Vertical::Center;
 	public:
-        ImTextBlock(const std::string& WidgetName):ImWidget(WidgetName){}
+        ImTextBlock(const std::string& WidgetName):ImWidget(WidgetName), m_TextColor(IM_COL32(0, 0, 0, 255))
+        {}
         virtual ImVec2 GetMinSize() 
         { 
             return ImVec2(ImGui::CalcTextSize(m_Text.c_str()).x, 16.f);//需根据字体计算，待修改
@@ -34,7 +36,10 @@ namespace ImGuiWidget
 		{
 			m_Text = Text;
 		}
-
+        void SetTextColor(ImU32 Color)
+        {
+            m_TextColor = Color;
+        }
 		virtual void Render() 
 		{
             ImGuiContext& g = *GImGui;
@@ -70,7 +75,7 @@ namespace ImGuiWidget
             }
 
             // 绘制文本（不限制绘制区域）
-            window->DrawList->AddText(textPos, ImGui::GetColorU32(ImGuiCol_Text), m_Text.c_str());
+            window->DrawList->AddText(textPos, m_TextColor, m_Text.c_str());
 		}
 	};
 }

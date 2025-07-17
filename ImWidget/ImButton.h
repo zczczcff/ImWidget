@@ -55,24 +55,24 @@ namespace ImGuiWidget
 
             m_NormalStyle = {
                 IM_COL32(0, 102, 204, 255),
-                5.f,
-                true,
+                0.f,
+                false,
                 1.0f,
                 IM_COL32(255, 255, 255, 255)
             };
 
             m_HoveredStyle = {
                 IM_COL32(51, 153, 255, 255),
-                5.f,
-                true,
+                0.f,
+                false,
                 1.0f,
                 IM_COL32(255, 255, 255, 255)
             };
 
             m_PressedStyle = {
                 IM_COL32(0, 51, 153, 255),
-                5.f,
-                true,
+                0.f,
+                false,
                 1.0f,
                 IM_COL32(255, 255, 255, 255)
             };

@@ -32,7 +32,22 @@ namespace ImGuiWidget
                 slot->GetContent()->Render();
             }
         }
+        virtual ImVec2 GetMinSize()
+        {
+            float minheight = 0.f;
+            float minlength = 0.f;
+            for (auto& child : m_Slots)
+            {
+                ImVec2 childminsize = child->GetContent()->GetMinSize();
+                float childminheight = child->PaddingTop + child->PaddingBottom + childminsize.y;
+                minheight = ImMax(minheight, childminheight);
+                minlength += child->PaddingLeft;
+                minlength += child->PaddingRight;
+                minlength += childminsize.x;
+            }
 
+            return ImVec2(minlength, minheight);
+        }
     private:
         // 重新布局子控件（水平方向）
         void ReLayOut()
@@ -45,7 +60,7 @@ namespace ImGuiWidget
             for (auto& slot : m_Slots)
             {
                 ImHorizontalBoxSlot* HSlot = static_cast<ImHorizontalBoxSlot*>(slot);
-                if (slot->GetIfAutoSize())
+                if (!slot->GetIfAutoSize())
                 {
                     ImVec2 minSize = slot->GetContent()->GetMinSize();
                     requiredWidth += (minSize.x + HSlot->PaddingLeft + HSlot->PaddingRight);
@@ -71,7 +86,7 @@ namespace ImGuiWidget
                         currentPos.y + HSlot->PaddingTop
                     ));
 
-                    if (slot->GetIfAutoSize())
+                    if (!slot->GetIfAutoSize())
                     {
                         // 自动大小控件：使用最小宽度，高度填满
                         ImVec2 minSize = slot->GetContent()->GetMinSize();
@@ -105,7 +120,7 @@ namespace ImGuiWidget
                         currentPos.y + HSlot->PaddingTop
                     ));
 
-                    if (slot->GetIfAutoSize())
+                    if (!slot->GetIfAutoSize())
                     {
                         // 自动大小控件：使用最小宽度
                         ImVec2 minSize = slot->GetContent()->GetMinSize();

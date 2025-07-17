@@ -35,6 +35,26 @@ namespace ImGuiWidget
 			}
 
 		}
+
+		virtual ImVec2 GetMinSize()
+		{
+			float minheight = 0.f;
+			float minlength = 0.f;
+			for (auto& child : m_Slots)
+			{
+				ImVec2 childminsize = child->GetContent()->GetMinSize();
+				float childminwidth = child->PaddingLeft + child->PaddingRight+ childminsize.x;
+				minlength = ImMax(minlength, childminwidth);
+				minheight += child->PaddingBottom;
+				minheight += child->PaddingTop;
+				minheight += childminsize.y;
+			}
+
+			return ImVec2(minlength, minheight);
+		}
+
+
+
 		void ReLayOut()
 		{
 			float RequiredHight = 0.f;
@@ -46,7 +66,7 @@ namespace ImGuiWidget
 			for (auto& slot : m_Slots)
 			{
 				ImVerticalBoxSlot* VSlot = (ImVerticalBoxSlot*)slot;
-				if (slot->GetIfAutoSize())
+				if (!slot->GetIfAutoSize())
 				{
 					ImVec2 MinSize = slot->GetContent()->GetMinSize();
 					RequiredHight += (MinSize.y + VSlot->PaddingTop + VSlot->PaddingBottom);
@@ -66,7 +86,7 @@ namespace ImGuiWidget
 				{
 					ImVerticalBoxSlot* VSlot = (ImVerticalBoxSlot*)slot;
 					slot->GetContent()->SetPosition(ImVec2(CurrentPos.x + VSlot->PaddingLeft, CurrentPos.y + VSlot->PaddingTop));
-					if (slot->GetIfAutoSize())
+					if (!slot->GetIfAutoSize())
 					{
 						CurrentPos.y += (slot->GetContent()->GetMinSize().y + VSlot->PaddingTop + VSlot->PaddingBottom);
 					}
@@ -84,7 +104,7 @@ namespace ImGuiWidget
 				{
 					ImVerticalBoxSlot* VSlot = (ImVerticalBoxSlot*)slot;
 					slot->GetContent()->SetPosition(ImVec2(CurrentPos.x + VSlot->PaddingLeft, CurrentPos.y + VSlot->PaddingTop));
-					if (slot->GetIfAutoSize())
+					if (!slot->GetIfAutoSize())
 					{
 						CurrentPos.y += (slot->GetContent()->GetMinSize().y + VSlot->PaddingTop + VSlot->PaddingBottom);
 					}
