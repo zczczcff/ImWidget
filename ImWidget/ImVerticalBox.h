@@ -29,6 +29,8 @@ namespace ImGuiWidget
 
 			ReLayOut();
 
+			RenderBackGround();
+
 			for (auto& slot : m_Slots)
 			{
 				slot->GetContent()->Render();

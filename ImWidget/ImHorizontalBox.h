@@ -14,6 +14,7 @@ namespace ImGuiWidget
 
     class ImHorizontalBox : public ImPanelWidget
     {
+
     public:
         ImHorizontalBox(const std::string& WidgetName) : ImPanelWidget(WidgetName) {}
 
@@ -25,6 +26,8 @@ namespace ImGuiWidget
         virtual void Render() override
         {
             ReLayOut(); // 重新布局子控件
+            
+            RenderBackGround();
 
             // 渲染所有子控件
             for (auto& slot : m_Slots)

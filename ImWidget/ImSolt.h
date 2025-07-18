@@ -11,10 +11,10 @@ namespace ImGuiWidget
 		ImWidget* Content;
 		bool bAutoSize = true;
 	public:
-		float PaddingTop = 1.f;
-		float PaddingBottom = 1.f;
-		float PaddingLeft = 4.f;
-		float PaddingRight = 4.f;
+		float PaddingTop = 0.f;
+		float PaddingBottom = 0.f;
+		float PaddingLeft = 0.f;
+		float PaddingRight = 0.f;
 		ImSlot():Content(nullptr) {}
 		ImSlot(ImWidget* Content):Content(Content){}
 		ImWidget* GetContent() { return Content; }

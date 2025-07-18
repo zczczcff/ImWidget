@@ -37,23 +37,40 @@ public:
     ImWindows::ImMenuButton* m_MenuButton_Project;
     ImWindows::ImMenuButton* m_MenuButton_Project_History;
     ImWindows::ImMenuButton* m_MenuButton_Project_History1;
-    bool bRenderMenu_ProjectMenu = false;
-    //ImTextureID TestTexture;
+    ImGuiWidget::ImVerticalBox* m_WidgetList;
+    ImGuiWidget::ImCanvasPanel* m_CenterPanel;
+    ImGuiWidget::ImVerticalBox* m_DetailList;
     void Init()
     {
         m_Box = new ImGuiWidget::ImVerticalBox("Box0");
         m_MiddleSplitter = new ImGuiWidget::ImHorizontalSplitter("Splitter0");
         m_VSplitter = new ImGuiWidget::ImVerticalSplitter("VSplitter0");
         m_MainBox = new ImGuiWidget::ImVerticalBox("MainBox");
+
         m_MiddleBox= new ImGuiWidget::ImVerticalBox("MiddleBox");
         m_MiddleBox->AddChildToVerticalBox(m_MiddleSplitter);
+
+        m_WidgetList = new ImGuiWidget::ImVerticalBox("WidgetList");
+        m_CenterPanel = new ImGuiWidget::ImCanvasPanel("CenterPanel");
+        m_DetailList= new ImGuiWidget::ImVerticalBox("DetailList");
+        m_MiddleSplitter->AddPart(m_WidgetList);
+        m_MiddleSplitter->AddPart(m_CenterPanel)->Ratio = 5.0f;
+        m_MiddleSplitter->AddPart(m_DetailList);
+
         m_BottomBox=new ImGuiWidget::ImVerticalBox("BottomBox");
-        m_VSplitter->AddPart(m_MiddleBox);
+        m_VSplitter->AddPart(m_MiddleBox)->Ratio = 4.0f;
         m_VSplitter->AddPart(m_BottomBox);
+
         m_MenuList = new ImGuiWidget::ImHorizontalBox("m_MenuList");
+        m_MenuList->SetBackGroundColor(IM_COL32(50, 50, 230, 255));
         //Button_Project = new ImGuiWidget::ImMenuButton("Button_Project");
 
         m_MenuButton_Project = new ImWindows::ImMenuButton("MenuButton_Project");
+
+        m_MenuButton_Project->GetNormalStyle().BackgroundColor = IM_COL32(210, 180, 150, 120);
+        m_MenuButton_Project->GetHoveredStyle().BackgroundColor = IM_COL32(230, 200, 170, 120);
+        m_MenuButton_Project->GetPressedStyle().BackgroundColor = IM_COL32(250, 220, 190, 120);
+
         m_MenuButton_Project_History = new ImWindows::ImMenuButton("MenuButton_Project_History");
         m_MenuButton_Project_History->SetDockDirection(ImWindows::MenuDockDirection::Dock_Right);
         m_MenuButton_Project_History1 = new ImWindows::ImMenuButton("MenuButton_Project_History1");
@@ -151,8 +168,8 @@ public:
     }
     void Render() override
     {
-        m_MainBox->SetPosition(ImVec2(0.f, 0.f));
-        m_MainBox->SetSize(ImGui::GetWindowSize());
+        m_MainBox->SetPosition(ImVec2(1.f, 1.f));
+        m_MainBox->SetSize(ImGui::GetWindowSize()-ImVec2(2.f,2.f));
         m_MainBox->Render();
 
         //if (bRenderMenu_ProjectMenu)
