@@ -178,6 +178,7 @@
     <ClInclude Include="ImWidget\ImSlider.h" />
     <ClInclude Include="ImWidget\ImSolt.h" />
     <ClInclude Include="ImWidget\ImTextBlock.h" />
+    <ClInclude Include="ImWidget\ImUserWidget.h" />
     <ClInclude Include="ImWidget\ImVerticalSplitter.h" />
     <ClInclude Include="ImWidget\ImWidget.h" />
     <ClInclude Include="ImWidget\ImVerticalBox.h" />

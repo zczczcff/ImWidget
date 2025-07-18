@@ -18,8 +18,8 @@ namespace ImGuiWidget
 		{
 
 		}
-		void SetPosition(ImVec2 Pos) { Position = Pos; }
-		void SetSize(ImVec2 size) { Size = size; }
+		virtual void SetPosition(ImVec2 Pos) { Position = Pos; }
+		virtual void SetSize(ImVec2 size) { Size = size; }
 		ImVec2 GetPosition() { return Position; }
 		ImVec2 GetSize() { return Size; }
 		virtual void Render(){}
