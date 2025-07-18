@@ -129,7 +129,7 @@ namespace ImGuiWidget
             const ImGuiID id = window->GetID(m_WidgetName.c_str());
             ImRect bb(Position, Position + Size);
 
-            ImGui::ItemSize(Size, g.Style.FramePadding.y);
+            //ImGui::ItemSize(Size, g.Style.FramePadding.y);
             if (!ImGui::ItemAdd(bb, id)) return;
 
             // ¼ì²â°´Å¥ÐÐÎª
