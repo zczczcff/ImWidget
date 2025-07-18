@@ -13,6 +13,8 @@
 #include "ImWidget/ImImage.h"
 #include "ImWidget/ImMenuButton.h"
 
+#include "ImWindows/ImMenuButton.h"
+
 namespace ImGuiWidget
 {
     Application* GlobalApp;
@@ -30,9 +32,11 @@ public:
     ImGuiWidget::ImVerticalBox* m_MainBox;
     ImGuiWidget::ImVerticalBox* m_MiddleBox;
     ImGuiWidget::ImVerticalBox* m_BottomBox;
-    ImGuiWidget::ImMenuButton* Button_Project;
-    ImGuiWidget::ImVerticalBox* m_Menu_ProjectMenu;
-
+    //ImGuiWidget::ImMenuButton* Button_Project;
+    //ImGuiWidget::ImVerticalBox* m_Menu_ProjectMenu;
+    ImWindows::ImMenuButton* m_MenuButton_Project;
+    ImWindows::ImMenuButton* m_MenuButton_Project_History;
+    ImWindows::ImMenuButton* m_MenuButton_Project_History1;
     bool bRenderMenu_ProjectMenu = false;
     //ImTextureID TestTexture;
     void Init()
@@ -47,26 +51,46 @@ public:
         m_VSplitter->AddPart(m_MiddleBox);
         m_VSplitter->AddPart(m_BottomBox);
         m_MenuList = new ImGuiWidget::ImHorizontalBox("m_MenuList");
-        Button_Project = new ImGuiWidget::ImMenuButton("Button_Project");
+        //Button_Project = new ImGuiWidget::ImMenuButton("Button_Project");
+
+        m_MenuButton_Project = new ImWindows::ImMenuButton("MenuButton_Project");
+        m_MenuButton_Project_History = new ImWindows::ImMenuButton("MenuButton_Project_History");
+        m_MenuButton_Project_History->SetDockDirection(ImWindows::MenuDockDirection::Dock_Right);
+        m_MenuButton_Project_History1 = new ImWindows::ImMenuButton("MenuButton_Project_History1");
+        m_MenuButton_Project_History1->SetDockDirection(ImWindows::MenuDockDirection::Dock_Right);
         ImGuiWidget::ImTextBlock* Button_Project_Text = new ImGuiWidget::ImTextBlock("Button_Project_Text");
         Button_Project_Text->SetText("Project");
         
-        Button_Project->SetContent(Button_Project_Text);
+        m_MenuButton_Project->SetContent(Button_Project_Text);
         
 
-        m_MenuList->AddChildToHorizontalBox(Button_Project)->SetIfAutoSize(false);
+        m_MenuList->AddChildToHorizontalBox(m_MenuButton_Project)->SetIfAutoSize(false);
         m_MainBox->AddChildToVerticalBox(m_MenuList)->SetIfAutoSize(false);
         m_MainBox->AddChildToVerticalBox(m_VSplitter);
 
-        m_Menu_ProjectMenu = new ImGuiWidget::ImVerticalBox("Menu_ProjectMenu");
-        Button_Project->SetMenu(m_Menu_ProjectMenu);
+
+        m_MenuButton_Project->AddMenuOption(m_MenuButton_Project_History);
+        m_MenuButton_Project->AddMenuOption(m_MenuButton_Project_History1);
+        //m_Menu_ProjectMenu = new ImGuiWidget::ImVerticalBox("Menu_ProjectMenu");
+        //Button_Project->SetMenu(m_Menu_ProjectMenu);
 		ImGuiWidget::ImButton* button0 = new ImGuiWidget::ImButton("button0");
 		ImGuiWidget::ImButton* button1 = new ImGuiWidget::ImButton("button1");
 		ImGuiWidget::ImButton* button2 = new ImGuiWidget::ImButton("button2");
 
-        m_Menu_ProjectMenu->AddChildToVerticalBox(button0);
-        m_Menu_ProjectMenu->AddChildToVerticalBox(button1);
-        m_Menu_ProjectMenu->AddChildToVerticalBox(button2);
+        ImGuiWidget::ImButton* button3 = new ImGuiWidget::ImButton("button0");
+        ImGuiWidget::ImButton* button4 = new ImGuiWidget::ImButton("button1");
+        ImGuiWidget::ImButton* button5 = new ImGuiWidget::ImButton("button2");
+
+        m_MenuButton_Project_History->AddMenuOption(button0);
+        m_MenuButton_Project_History->AddMenuOption(button1);
+        m_MenuButton_Project_History->AddMenuOption(button2);
+
+        m_MenuButton_Project_History1->AddMenuOption(button3);
+        m_MenuButton_Project_History1->AddMenuOption(button4);
+        m_MenuButton_Project_History1->AddMenuOption(button5);
+        //m_Menu_ProjectMenu->AddChildToVerticalBox(button0);
+        //m_Menu_ProjectMenu->AddChildToVerticalBox(button1);
+        //m_Menu_ProjectMenu->AddChildToVerticalBox(button2);
         //Button_Project->SetOnPressed([this]()
         //    {
         //        bRenderMenu_ProjectMenu = !bRenderMenu_ProjectMenu;

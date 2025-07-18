@@ -103,10 +103,10 @@ namespace ImWindows
 			if (m_IsMenuOpen)
 			{
 				//通知父项子项还在活跃状态
-				if (Parents)
-				{
-					Parents->m_HaveChildActived = true;
-				}
+				//if (Parents)
+				//{
+				//	Parents->m_HaveChildActived = true;
+				//}
 
 				// 计算菜单位置
 				ImVec2 menuPos = CalculateMenuPosition();
@@ -160,6 +160,15 @@ namespace ImWindows
 
 				// 重置刚刚打开标记
 				m_JustOpened = false;
+			}
+
+			if (m_IsMenuOpen)
+			{
+				//通知父项子项还在活跃状态
+				if (Parents)
+				{
+					Parents->m_HaveChildActived = true;
+				}
 			}
 		}
 	};
