@@ -10,7 +10,7 @@ namespace ImGuiWidget
         std::string HandleType;
 		ImVec2 FromPos;
 		ImWidget* Preview;
-		ImUserWidget* FromWidget;
+		class ImUserWidget* FromWidget;
 		virtual ~ImDragHandle(){}
 	};
 
@@ -24,7 +24,9 @@ namespace ImGuiWidget
 		bool m_IsDragging = false;
 		bool m_IsDragSource = false;
 		bool m_IsDragTarget = false;
-		
+		//允许拖拽动作
+		bool bAllowDrag = false;//允许被拖拽
+		bool bAllowDragOn = false;//允许拖拽放置此处
         ImDragHandle* m_CurrentDragHandle = nullptr;
 	protected:
 		//拖拽相关回调
@@ -69,6 +71,16 @@ namespace ImGuiWidget
 			}
 		}
 
+		void SetAllowDrag(bool NewSetting)
+		{
+			bAllowDrag = NewSetting;
+		}
+
+		void SetAllowDragOn(bool NewSetting)
+		{
+			bAllowDragOn = NewSetting;
+		}
+
 		virtual void Render() 
 		{
 			if (m_RootWidget)
@@ -76,74 +88,122 @@ namespace ImGuiWidget
 				m_RootWidget->Render();
 			}
 
-			ImGuiWindow* window = ImGui::GetCurrentWindow();
-			const ImGuiID id = window->GetID(m_WidgetName.c_str());
-			const ImRect bb(Position, Position + Size);
-			if (!ImGui::ItemAdd(bb, id)) return;
+			if (bAllowDrag || bAllowDragOn)
+			{
+				ImGuiWindow* window = ImGui::GetCurrentWindow();
+				const ImGuiID id = window->GetID(m_WidgetName.c_str());
+				const ImRect bb(Position, Position + Size);
+				if (!ImGui::ItemAdd(bb, id)) return;
 
-            // ================= 拖拽源处理 =================
-            if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_None))
-            {
-                m_IsDragSource = true;
+				bool hovered, held;
+				bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, 0);
 
-                // 拖拽开始，创建拖拽句柄
-                m_CurrentDragHandle = OnDragBegin();
-                m_CurrentDragHandle->FromPos = Position;
-                m_CurrentDragHandle->FromWidget = this;
+				if (bAllowDrag)
+				{
+					// ================= 拖拽源处理 =================
+					if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceNoPreviewTooltip))
+					{
+						if (!m_IsDragSource && !m_CurrentDragHandle)
+						{
+							// 拖拽开始，创建拖拽句柄
+							m_CurrentDragHandle = OnDragBegin();
+							m_CurrentDragHandle->FromPos = Position;
+							m_CurrentDragHandle->FromWidget = this;
+						}
+						m_IsDragSource = true;
 
-                // 设置拖拽payload
-                ImGui::SetDragDropPayload("ImUserWidget_DragDrop",
-                    &m_CurrentDragHandle,
-                    sizeof(ImDragHandle*));
+						// 设置拖拽payload
+						ImGui::SetDragDropPayload("ImUserWidget_DragDrop",
+							&m_CurrentDragHandle,
+							sizeof(ImDragHandle*));
 
-                // 显示拖拽预览
-                if (m_CurrentDragHandle->Preview)
-                {
-                    ImVec2 mousePos = ImGui::GetMousePos();
-                    m_CurrentDragHandle->Preview->SetPosition(mousePos);
-                    m_CurrentDragHandle->Preview->Render();
-                }
 
-                ImGui::EndDragDropSource();
-            }
-            else
-            {
-                m_IsDragSource = false;
-            }
+						//ImGui::Text("Dragging %s", m_WidgetName.c_str());
 
-            // ================= 拖拽目标处理 =================
-            if (ImGui::BeginDragDropTarget())
-            {
-                m_IsDragTarget = true;
+						ImGui::EndDragDropSource();
+					}
+					else
+					{
+						m_IsDragSource = false;
+					}
 
-                // 接受拖拽payload
-                if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ImUserWidget_DragDrop"))
-                {
-                    IM_ASSERT(payload->DataSize == sizeof(ImDragHandle*));
-                    ImDragHandle* dragHandle = *(ImDragHandle**)payload->Data;
+					if (m_IsDragSource)
+					{
 
-                    // 触发拖拽完成回调
-					OnDragOn(dragHandle);
+						// 显示拖拽预览
+						if (m_CurrentDragHandle->Preview)
+						{
+							ImVec2 mousePos = ImGui::GetMousePos();
+							ImVec2 PreviewWidgetSize = m_CurrentDragHandle->Preview->GetMinSize();
+							// 设置子窗口位置和大小（单位：像素）
+							ImGui::SetNextWindowPos(mousePos, 0);
+							ImGui::SetNextWindowSize(PreviewWidgetSize, ImGuiCond_FirstUseEver);
 
-					//通知源控件
-					dragHandle->FromWidget->OnDragComplete();
-                }
+							// 组合窗口标志
+							ImGuiWindowFlags flags =
+								ImGuiWindowFlags_NoTitleBar |
+								ImGuiWindowFlags_NoBackground |
+								//ImGuiWindowFlags_NoBorder |
+								ImGuiWindowFlags_NoResize;   // 可选：固定大小
+							ImGuiWindowFlags_NoMove;      // 可选：固定位置
 
-                ImGui::EndDragDropTarget();
-            }
-            else
-            {
-                m_IsDragTarget = false;
-            }
+						// 开始创建窗口
+							if (ImGui::Begin("Invisible Window", nullptr, flags))
+							{
+								// 添加内容（无背景，确保内容可见）
+								m_CurrentDragHandle->Preview->SetPosition(mousePos);
+								m_CurrentDragHandle->Preview->SetSize(PreviewWidgetSize);
+								m_CurrentDragHandle->Preview->Render();
+								ImGui::End();
+							}
 
-            // ================= 拖拽取消处理 =================
-            if (!m_IsDragSource && m_IsDragging)
-            {
-				OnDragCancel();
-                m_CurrentDragHandle = nullptr;
-            }
 
-            m_IsDragging = m_IsDragSource;
+						}
+					}
+
+					// ================= 拖拽取消处理 =================
+					if (!m_IsDragSource && m_IsDragging)
+					{
+						OnDragCancel();
+						m_CurrentDragHandle = nullptr;
+					}
+
+					m_IsDragging = m_IsDragSource;
+				}
+				
+				if (bAllowDragOn)
+				{
+					// ================= 拖拽目标处理 =================
+					if (ImGui::BeginDragDropTarget())
+					{
+						m_IsDragTarget = true;
+
+						// 接受拖拽payload
+						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ImUserWidget_DragDrop"))
+						{
+							IM_ASSERT(payload->DataSize == sizeof(ImDragHandle*));
+							ImDragHandle* dragHandle = *(ImDragHandle**)payload->Data;
+
+							// 触发拖拽完成回调
+							OnDragOn(dragHandle);
+
+							//通知源控件
+							dragHandle->FromWidget->OnDragComplete();
+						}
+
+						ImGui::EndDragDropTarget();
+					}
+					else
+					{
+						m_IsDragTarget = false;
+					}
+				}
+				
+
+
+			}
+
+			
 		}
 
 		void SetRootWidget(ImWidget* RootWidget)
