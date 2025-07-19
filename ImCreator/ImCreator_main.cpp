@@ -17,6 +17,7 @@
 
 
 #include "ImExampleWidget.h"
+#include "ImDesignPanel.h"
 namespace ImGuiWidget
 {
     Application* GlobalApp;
@@ -40,7 +41,7 @@ public:
     ImWindows::ImMenuButton* m_MenuButton_Project_History;
     ImWindows::ImMenuButton* m_MenuButton_Project_History1;
     ImGuiWidget::ImVerticalBox* m_WidgetList;
-    ImGuiWidget::ImCanvasPanel* m_CenterPanel;
+    DesiginPanel* m_CenterPanel;
     ImGuiWidget::ImVerticalBox* m_DetailList;
 
     ExampleWidget* m_Example_Button;
@@ -55,7 +56,7 @@ public:
         m_MiddleBox->AddChildToVerticalBox(m_MiddleSplitter);
 
         m_WidgetList = new ImGuiWidget::ImVerticalBox("WidgetList");
-        m_CenterPanel = new ImGuiWidget::ImCanvasPanel("CenterPanel");
+        m_CenterPanel = new DesiginPanel("CenterPanel");
         m_DetailList= new ImGuiWidget::ImVerticalBox("DetailList");
         m_MiddleSplitter->AddPart(m_WidgetList);
         m_MiddleSplitter->AddPart(m_CenterPanel)->Ratio = 5.0f;

@@ -148,6 +148,7 @@
     <ClCompile Include="ImCreator_main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ImDesignPanel.h" />
     <ClInclude Include="ImExampleWidget.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

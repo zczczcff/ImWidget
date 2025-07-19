@@ -23,5 +23,8 @@
     <ClInclude Include="ImExampleWidget.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="ImDesignPanel.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -30,10 +30,15 @@ namespace ImGuiWidget
         ImDragHandle* m_CurrentDragHandle = nullptr;
 	protected:
 		//拖拽相关回调
-		virtual ImDragHandle* OnDragBegin() { return nullptr; };
-		virtual void OnDragOn(ImDragHandle* OriginalHandle) {};
-		virtual void OnDragComplete() {};
-		virtual void OnDragCancel() {};
+		virtual ImDragHandle* OnDragBegin() { return nullptr; }
+		virtual void OnDragOn(ImDragHandle* OriginalHandle) {}
+		virtual void OnDragComplete() {}
+		virtual void OnDragCancel() {}
+		void HandleDragFinish()
+		{
+			delete m_CurrentDragHandle;
+			m_CurrentDragHandle = nullptr;
+		}
 	public:
 		ImUserWidget(const std::string& WidgetName) :ImWidget(WidgetName),m_RootWidget(nullptr) {}
 		ImUserWidget(const std::string& WidgetName, ImWidget* RootWidget) :ImWidget(WidgetName) 
@@ -80,20 +85,15 @@ namespace ImGuiWidget
 		{
 			bAllowDragOn = NewSetting;
 		}
-
-		virtual void Render() 
+		//处理交互
+		void HandleInteraction()
 		{
-			if (m_RootWidget)
-			{
-				m_RootWidget->Render();
-			}
-
 			if (bAllowDrag || bAllowDragOn)
 			{
 				ImGuiWindow* window = ImGui::GetCurrentWindow();
 				const ImGuiID id = window->GetID(m_WidgetName.c_str());
 				const ImRect bb(Position, Position + Size);
-				if (!ImGui::ItemAdd(bb, id)) return;
+				if (!ImGui::ItemAdd(bb, id)) {}
 
 				bool hovered, held;
 				bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, 0);
@@ -133,10 +133,11 @@ namespace ImGuiWidget
 						// 显示拖拽预览
 						if (m_CurrentDragHandle->Preview)
 						{
-							ImVec2 mousePos = ImGui::GetMousePos();
+							ImVec2 WindowPos = ImGui::GetMousePos();
 							ImVec2 PreviewWidgetSize = m_CurrentDragHandle->Preview->GetMinSize();
+							WindowPos.y -= PreviewWidgetSize.y;
 							// 设置子窗口位置和大小（单位：像素）
-							ImGui::SetNextWindowPos(mousePos, 0);
+							ImGui::SetNextWindowPos(WindowPos, 0);
 							ImGui::SetNextWindowSize(PreviewWidgetSize, ImGuiCond_FirstUseEver);
 
 							// 组合窗口标志
@@ -147,11 +148,11 @@ namespace ImGuiWidget
 								ImGuiWindowFlags_NoResize;   // 可选：固定大小
 							ImGuiWindowFlags_NoMove;      // 可选：固定位置
 
-						// 开始创建窗口
+														  // 开始创建窗口
 							if (ImGui::Begin("Invisible Window", nullptr, flags))
 							{
 								// 添加内容（无背景，确保内容可见）
-								m_CurrentDragHandle->Preview->SetPosition(mousePos);
+								m_CurrentDragHandle->Preview->SetPosition(WindowPos);
 								m_CurrentDragHandle->Preview->SetSize(PreviewWidgetSize);
 								m_CurrentDragHandle->Preview->Render();
 								ImGui::End();
@@ -165,12 +166,13 @@ namespace ImGuiWidget
 					if (!m_IsDragSource && m_IsDragging)
 					{
 						OnDragCancel();
+						HandleDragFinish();
 						m_CurrentDragHandle = nullptr;
 					}
 
 					m_IsDragging = m_IsDragSource;
 				}
-				
+
 				if (bAllowDragOn)
 				{
 					// ================= 拖拽目标处理 =================
@@ -178,6 +180,8 @@ namespace ImGuiWidget
 					{
 						m_IsDragTarget = true;
 
+
+						bool test = ImGui::IsMouseDown(0);
 						// 接受拖拽payload
 						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ImUserWidget_DragDrop"))
 						{
@@ -186,9 +190,10 @@ namespace ImGuiWidget
 
 							// 触发拖拽完成回调
 							OnDragOn(dragHandle);
-
+							
 							//通知源控件
 							dragHandle->FromWidget->OnDragComplete();
+							dragHandle->FromWidget->HandleDragFinish();
 						}
 
 						ImGui::EndDragDropTarget();
@@ -198,12 +203,21 @@ namespace ImGuiWidget
 						m_IsDragTarget = false;
 					}
 				}
-				
+
 
 
 			}
+		}
 
-			
+		virtual void Render() 
+		{
+			if (m_RootWidget)
+			{
+				m_RootWidget->Render();
+			}
+
+			HandleInteraction();
+
 		}
 
 		void SetRootWidget(ImWidget* RootWidget)
