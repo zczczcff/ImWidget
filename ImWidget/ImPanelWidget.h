@@ -31,7 +31,7 @@ namespace ImGuiWidget
 		}
 		virtual void Render() override
 		{
-
+			
 		}
 
 		void RenderBackGround()

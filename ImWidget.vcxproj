@@ -185,6 +185,7 @@
     <ClInclude Include="ImWidget\ImVerticalBox.h" />
     <ClInclude Include="ImWidget\ImResizableBox.h" />
     <ClInclude Include="ImWindows\ImMenuButton.h" />
+    <ClInclude Include="ImWindows\ImPageManager.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Application\ImApplication.cpp" />

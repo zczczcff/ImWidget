@@ -14,7 +14,7 @@
 #include "ImWidget/ImMenuButton.h"
 
 #include "ImWindows/ImMenuButton.h"
-
+#include "ImWindows/ImPageManager.h"
 
 #include "ImExampleWidget.h"
 #include "ImDesignPanel.h"
@@ -40,6 +40,7 @@ public:
     ImWindows::ImMenuButton* m_MenuButton_Project;
     ImWindows::ImMenuButton* m_MenuButton_Project_History;
     ImWindows::ImMenuButton* m_MenuButton_Project_History1;
+    ImWindows::ImPageManager* m_CenterPageManager;
     ImGuiWidget::ImVerticalBox* m_WidgetList;
     DesiginPanel* m_CenterPanel;
     ImGuiWidget::ImVerticalBox* m_DetailList;
@@ -58,12 +59,19 @@ public:
         m_WidgetList = new ImGuiWidget::ImVerticalBox("WidgetList");
         m_CenterPanel = new DesiginPanel("CenterPanel");
         m_DetailList= new ImGuiWidget::ImVerticalBox("DetailList");
+
+        m_CenterPageManager = new ImWindows::ImPageManager("CenterPageManager");
+        m_CenterPageManager->AddPage("test", m_CenterPanel);
+
+
         m_MiddleSplitter->AddPart(m_WidgetList);
-        m_MiddleSplitter->AddPart(m_CenterPanel)->Ratio = 5.0f;
+        m_MiddleSplitter->AddPart(m_CenterPageManager)->Ratio = 5.0f;
         m_MiddleSplitter->AddPart(m_DetailList);
 
         m_Example_Button = new ExampleWidget("Example_Button", "Button");
         m_WidgetList->AddChildToVerticalBox(m_Example_Button);
+
+        
 
 
         m_BottomBox=new ImGuiWidget::ImVerticalBox("BottomBox");
