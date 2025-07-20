@@ -1,7 +1,7 @@
 #pragma once
 #include <imgui.h>
 #include <string>
-
+#include <imgui_internal.h>
 
 
 namespace ImGuiWidget
@@ -18,10 +18,12 @@ namespace ImGuiWidget
 		{
 
 		}
+		
 		virtual void SetPosition(ImVec2 Pos) { Position = Pos; }
 		virtual void SetSize(ImVec2 size) { Size = size; }
 		ImVec2 GetPosition() { return Position; }
 		ImVec2 GetSize() { return Size; }
+		ImRect GetRect() { return ImRect(Position, Position + Size); }
 		virtual void Render(){}
 		virtual ImVec2 GetMinSize() { return ImVec2(-1.f, -1.f); }
 	};

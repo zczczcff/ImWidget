@@ -16,10 +16,6 @@ namespace ImGuiWidget
 		}
 	};
 
-
-
-
-
 	class ImCanvasPanel :public ImPanelWidget
 	{
 	private:

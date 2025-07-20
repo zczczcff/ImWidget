@@ -48,5 +48,9 @@ namespace ImGuiWidget
 
 		void SetBorderColor(ImU32 color) { BorderColor = color; }
 
+
+		int GetChildNum() { return m_Slots.size(); }
+
+		ImSlot* GetSlot(int Index) { return m_Slots[Index]; }
 	};
 }
