@@ -24,6 +24,7 @@ namespace ImGuiWidget
 		bool m_IsDragging = false;
 		bool m_IsDragSource = false;
 		bool m_IsDragTarget = false;
+		bool bDragFinishedLastTick = false;
 		//允许拖拽动作
 		bool bAllowDrag = false;//允许被拖拽
 		bool bAllowDragOn = false;//允许拖拽放置此处
@@ -144,7 +145,7 @@ namespace ImGuiWidget
 							ImGuiWindowFlags flags =
 								ImGuiWindowFlags_NoTitleBar |
 								ImGuiWindowFlags_NoBackground |
-								//ImGuiWindowFlags_NoBorder |
+								ImGuiWindowFlags_NoInputs |
 								ImGuiWindowFlags_NoResize;   // 可选：固定大小
 							ImGuiWindowFlags_NoMove;      // 可选：固定位置
 
@@ -163,11 +164,20 @@ namespace ImGuiWidget
 					}
 
 					// ================= 拖拽取消处理 =================
+					if (bDragFinishedLastTick)//判断上一帧是否发生了拖拽结束
+					{
+						if (m_CurrentDragHandle)//判断拖拽结束是否为取消事件
+						{
+							OnDragCancel();
+							HandleDragFinish();
+						}
+
+						bDragFinishedLastTick = false;
+					}
+
 					if (!m_IsDragSource && m_IsDragging)
 					{
-						OnDragCancel();
-						HandleDragFinish();
-						m_CurrentDragHandle = nullptr;
+						bDragFinishedLastTick = true;
 					}
 
 					m_IsDragging = m_IsDragSource;
@@ -181,7 +191,6 @@ namespace ImGuiWidget
 						m_IsDragTarget = true;
 
 
-						bool test = ImGui::IsMouseDown(0);
 						// 接受拖拽payload
 						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ImUserWidget_DragDrop"))
 						{
@@ -200,6 +209,10 @@ namespace ImGuiWidget
 					}
 					else
 					{
+						if (m_IsDragTarget)
+						{
+							printf("test");
+						}
 						m_IsDragTarget = false;
 					}
 				}
