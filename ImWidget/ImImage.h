@@ -20,7 +20,7 @@ namespace ImGuiWidget
 		{
 			LoadImageFromFile(FilePath);
 		}
-
+		void SetTextureID(ImTextureID TextureID) { m_TextureID = TextureID; }
 		bool LoadImageFromFile(const std::string& FilePath)
 		{
 			if (m_TextureID != 0)

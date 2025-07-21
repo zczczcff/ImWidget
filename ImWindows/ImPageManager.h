@@ -3,6 +3,7 @@
 #include "ImWidget/ImVerticalBox.h"
 #include "ImWidget/ImButton.h"
 #include "ImWidget/ImTextBlock.h"
+#include "ImWidget/ImImage.h" // 添加图像支持
 #include <vector>
 #include <functional>
 
@@ -17,29 +18,54 @@ namespace ImWindows
         Right
     };
 
-    // 选项卡控件（包含标题文本和关闭按钮）
+    // 选项卡控件（包含图标、标题文本和关闭按钮）
     class ImTabItem : public ImGuiWidget::ImWidget
     {
     private:
-        ImGuiWidget::ImTextBlock* m_TextBlock;
-        ImGuiWidget::ImButton* m_CloseButton;
+        ImGuiWidget::ImImage* m_Image = nullptr;    // 图标
+        ImGuiWidget::ImTextBlock* m_TextBlock;       // 标题
+        ImGuiWidget::ImButton* m_CloseButton;        // 关闭按钮
         std::function<void()> m_OnClose;
         bool m_IsVerticalLayout;
 
+        // 可见性控制
+        bool m_ShowImage = true;
+        bool m_ShowText = true;
+        bool m_ShowCloseButton = true;
+        float m_IconSize = 16.0f; // 图标大小
+
     public:
-        ImTabItem(const std::string& title, bool isVerticalLayout)
+        ImTabItem(const std::string& title, bool isVerticalLayout, ImTextureID iconID = 0)
             : ImWidget("TabItem_" + title),
             m_IsVerticalLayout(isVerticalLayout)
         {
+            // 创建图标
+            if (iconID != 0) {
+                m_Image = new ImGuiWidget::ImImage("Image_" + title);
+                m_Image->SetTextureID(iconID);
+            }
+
             // 创建标题文本
             m_TextBlock = new ImGuiWidget::ImTextBlock("TextBlock_" + title);
             m_TextBlock->SetText(title);
             m_TextBlock->SetTextColor(IM_COL32(255, 255, 255, 255));
             m_TextBlock->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Left);
+
             // 创建关闭按钮
             m_CloseButton = new ImGuiWidget::ImButton("CloseButton_" + title);
+            SetupCloseButtonStyle();
+        }
 
-            // 设置关闭按钮样式
+        virtual ~ImTabItem()
+        {
+            delete m_Image;
+            delete m_TextBlock;
+            delete m_CloseButton;
+        }
+
+        // 设置关闭按钮样式
+        void SetupCloseButtonStyle()
+        {
             ImGuiWidget::ButtonStateStyle closeNormalStyle;
             closeNormalStyle.BackgroundColor = IM_COL32(200, 50, 50, 150);
             closeNormalStyle.Rounding = 2.0f;
@@ -63,70 +89,145 @@ namespace ImWindows
                 });
         }
 
-        virtual ~ImTabItem()
-        {
-            delete m_TextBlock;
-            delete m_CloseButton;
-        }
-
+        // 设置关闭回调
         void SetOnClose(std::function<void()> callback) { m_OnClose = callback; }
+
+        // 设置图标大小
+        void SetIconSize(float size) { m_IconSize = size; }
+
+        // 设置选项卡内容可见性
+        void SetShowImage(bool show) { m_ShowImage = show; }
+        void SetShowText(bool show) { m_ShowText = show; }
+        void SetShowCloseButton(bool show) { m_ShowCloseButton = show; }
+
+        // 设置图标纹理
+        void SetIconTexture(ImTextureID textureID)
+        {
+            if (!m_Image) {
+                m_Image = new ImGuiWidget::ImImage("Image_" + m_WidgetName);
+            }
+            m_Image->SetTextureID(textureID);
+        }
 
         virtual ImVec2 GetMinSize() override
         {
-            ImVec2 textSize = m_TextBlock->GetMinSize();
-            ImVec2 buttonSize = { 16.0f, 16.0f }; // 关闭按钮固定大小
+            ImVec2 size(0, 0);
+            float spacing = 4.0f; // 元素间距
+
+            // 计算图标尺寸
+            ImVec2 imageSize(0, 0);
+            if (m_ShowImage && m_Image) {
+                imageSize = ImVec2(m_IconSize, m_IconSize);
+            }
+
+            // 计算文本尺寸
+            ImVec2 textSize(0, 0);
+            if (m_ShowText && m_TextBlock) {
+                textSize = m_TextBlock->GetMinSize();
+            }
+
+            // 计算关闭按钮尺寸
+            ImVec2 buttonSize(0, 0);
+            if (m_ShowCloseButton && m_CloseButton) {
+                buttonSize = ImVec2(16.0f, 16.0f);
+            }
 
             if (m_IsVerticalLayout)
             {
-                // 垂直布局：文本在上，关闭按钮在下
-                return ImVec2(
-                    ImMax(textSize.x, buttonSize.x),
-                    textSize.y + buttonSize.y + 4.0f // 4.0f为间距
-                );
+                // 垂直布局：图标、文本、关闭按钮垂直排列
+                size.x = ImMax(ImMax(imageSize.x, textSize.x), buttonSize.x);
+                size.y = (m_ShowImage ? imageSize.y + spacing : 0) +
+                    (m_ShowText ? textSize.y + spacing : 0) +
+                    (m_ShowCloseButton ? buttonSize.y : 0);
+
+                // 移除多余的间距
+                if (size.y > 0) size.y -= spacing;
             }
             else
             {
-                // 水平布局：文本在左，关闭按钮在右
-                return ImVec2(
-                    textSize.x + buttonSize.x + 4.0f+6.f, // 4.0f为间距,6.f为左右padding
-                    ImMax(textSize.y, buttonSize.y)
-                );
+                // 水平布局：图标、文本、关闭按钮水平排列
+                size.x = (m_ShowImage ? imageSize.x + spacing : 0) +
+                    (m_ShowText ? textSize.x + spacing : 0) +
+                    (m_ShowCloseButton ? buttonSize.x : 0);
+                size.y = ImMax(ImMax(imageSize.y, textSize.y), buttonSize.y);
+
+                // 移除多余的间距
+                if (size.x > 0) size.x -= spacing;
             }
+
+            // 添加内边距
+            size.x += 6.0f; // 左右内边距
+            size.y += 4.0f;  // 上下内边距
+
+            return size;
         }
 
         virtual void Render() override
         {
-            ImVec2 textSize = m_TextBlock->GetMinSize();
-            float buttonwidth = min(Size.x, Size.y) * 0.6f;
-            ImVec2 buttonSize = { buttonwidth, buttonwidth };
+            ImVec2 currentPos = Position + ImVec2(3.0f, 2.0f); // 起始位置带内边距
+
+            float buttonSize = min(Size.x, Size.y) * 0.6f;
+            //ImVec2 buttonSize = { buttonwidth, buttonwidth };
+
+            float spacing = 4.0f; // 元素间距
 
             if (m_IsVerticalLayout)
             {
-                // 垂直布局：文本在上，关闭按钮在下
-                m_TextBlock->SetPosition(Position);
-                m_TextBlock->SetSize(ImVec2(Size.x, textSize.y));
+                // 垂直布局：图标 -> 文本 -> 关闭按钮
+                if (m_ShowImage && m_Image) {
+                    m_Image->SetPosition(currentPos + ImVec2((Size.x - 6.0f - m_IconSize) * 0.5f, 0));
+                    m_Image->SetSize(ImVec2(m_IconSize, m_IconSize));
+                    m_Image->Render();
+                    currentPos.y += m_IconSize + spacing;
+                }
 
-                m_CloseButton->SetPosition(ImVec2(
-                    Position.x + (Size.x - buttonSize.x) / 2.0f,
-                    Position.y + textSize.y + 4.0f
-                ));
-                m_CloseButton->SetSize(buttonSize);
+                if (m_ShowText && m_TextBlock) {
+                    m_TextBlock->SetPosition(currentPos);
+                    m_TextBlock->SetSize(ImVec2(Size.x - 6.0f, Size.y - currentPos.y));
+                    m_TextBlock->Render();
+                    currentPos.y += m_TextBlock->GetMinSize().y + spacing;
+                }
+
+                if (m_ShowCloseButton && m_CloseButton) {
+                    //float buttonSize = 16.0f;
+                    m_CloseButton->SetPosition(ImVec2(
+                        Position.x + (Size.x - buttonSize) * 0.5f,
+                        currentPos.y
+                    ));
+                    m_CloseButton->SetSize(ImVec2(buttonSize, buttonSize));
+                    m_CloseButton->Render();
+                }
             }
             else
             {
-                // 水平布局：文本在左，关闭按钮在右
-                m_TextBlock->SetPosition(Position + ImVec2(3.f, 0.f));
-                m_TextBlock->SetSize(ImVec2(Size.x - buttonSize.x - 4.0f, Size.y));
+                // 水平布局：图标 -> 文本 -> 关闭按钮
+                if (m_ShowImage && m_Image) {
+                    m_Image->SetPosition(currentPos);
+                    m_Image->SetSize(ImVec2(m_IconSize, m_IconSize));
+                    m_Image->Render();
+                    currentPos.x += m_IconSize + spacing;
+                }
 
-                m_CloseButton->SetPosition(ImVec2(
-                    Position.x + Size.x - buttonSize.x-3.f,
-                    Position.y + (Size.y - buttonSize.y) / 2.0f
-                ));
-                m_CloseButton->SetSize(buttonSize);
+                if (m_ShowText && m_TextBlock) {
+                    float textWidth = Size.x - (currentPos.x-Position.x) - (m_ShowCloseButton ? 16.0f + spacing : 0) - 3.0f;
+                    if (textWidth > 0) {
+                        m_TextBlock->SetPosition(currentPos);
+                        m_TextBlock->SetSize(ImVec2(textWidth, Size.y - 4.0f));
+                        m_TextBlock->Render();
+                    }
+                    currentPos.x += textWidth + spacing;
+                }
+
+                if (m_ShowCloseButton && m_CloseButton) {
+                    //float buttonSize = 16.0f;
+                    m_CloseButton->SetPosition(ImVec2(
+                        Position.x + Size.x - buttonSize - 3.0f,
+                        Position.y + (Size.y - buttonSize) * 0.5f
+                    ));
+                    m_CloseButton->SetSize(ImVec2(buttonSize, buttonSize));
+                    m_CloseButton->Render();
+                }
             }
-
-            m_TextBlock->Render();
-            m_CloseButton->Render();
         }
     };
 
@@ -144,7 +245,6 @@ namespace ImWindows
 
         TabDockPosition m_DockPosition;
         ImPanelWidget* m_TabBar;
-        //ImPanelWidget* m_ContentArea;
         std::vector<Page> m_Pages;
         int m_ActivePageIndex = -1;
         float m_TabBarThickness = 30.0f; // 选项卡栏厚度
@@ -167,12 +267,8 @@ namespace ImWindows
                 m_TabBar = new ImGuiWidget::ImVerticalBox("TabBar");
             }
 
-            // 创建内容区域
-            //m_ContentArea = new ImPanelWidget("ContentArea");
-
             // 添加为子控件
             AddChild<ImGuiWidget::ImSlot>(m_TabBar);
-            //AddChild<ImGuiWidget::ImSlot>(m_ContentArea);
         }
 
         virtual ~ImPageManager()
@@ -185,16 +281,16 @@ namespace ImWindows
             }
         }
 
-        // 添加新页面
-        void AddPage(const std::string& title, ImWidget* content)
+        // 添加新页面（带图标）
+        void AddPage(const std::string& title, ImWidget* content, ImTextureID iconID = 0)
         {
             Page newPage;
             newPage.title = title;
             newPage.content = content;
 
-            // 创建选项卡项
+            // 创建选项卡项（传递图标）
             bool isVertical = (m_DockPosition == TabDockPosition::Left || m_DockPosition == TabDockPosition::Right);
-            newPage.tabItem = new ImTabItem(title, isVertical);
+            newPage.tabItem = new ImTabItem(title, isVertical, iconID);
 
             // 创建选项卡按钮
             newPage.tabButton = new ImGuiWidget::ImButton("TabButton_" + title);
@@ -221,7 +317,8 @@ namespace ImWindows
             }
             else if (auto vbox = dynamic_cast<ImGuiWidget::ImVerticalBox*>(m_TabBar))
             {
-                vbox->AddChildToVerticalBox(newPage.tabButton);
+                auto vslot = vbox->AddChildToVerticalBox(newPage.tabButton);
+                vslot->SetIfAutoSize(false);
             }
 
             // 添加到页面列表
@@ -231,6 +328,46 @@ namespace ImWindows
             if (m_ActivePageIndex == -1)
             {
                 SetActivePage(0);
+            }
+        }
+
+        // 设置选项卡内容可见性
+        void SetTabItemVisibility(int index, bool showImage, bool showText, bool showCloseButton)
+        {
+            if (index >= 0 && index < static_cast<int>(m_Pages.size()))
+            {
+                m_Pages[index].tabItem->SetShowImage(showImage);
+                m_Pages[index].tabItem->SetShowText(showText);
+                m_Pages[index].tabItem->SetShowCloseButton(showCloseButton);
+            }
+        }
+
+        // 设置所有选项卡内容可见性
+        void SetAllTabItemsVisibility(bool showImage, bool showText, bool showCloseButton)
+        {
+            for (auto& page : m_Pages)
+            {
+                page.tabItem->SetShowImage(showImage);
+                page.tabItem->SetShowText(showText);
+                page.tabItem->SetShowCloseButton(showCloseButton);
+            }
+        }
+
+        // 设置选项卡图标
+        void SetTabItemIcon(int index, ImTextureID iconID)
+        {
+            if (index >= 0 && index < static_cast<int>(m_Pages.size()))
+            {
+                m_Pages[index].tabItem->SetIconTexture(iconID);
+            }
+        }
+
+        // 设置选项卡图标大小
+        void SetTabItemIconSize(int index, float size)
+        {
+            if (index >= 0 && index < static_cast<int>(m_Pages.size()))
+            {
+                m_Pages[index].tabItem->SetIconSize(size);
             }
         }
 
@@ -253,12 +390,10 @@ namespace ImWindows
                     if (auto hbox = dynamic_cast<ImGuiWidget::ImHorizontalBox*>(m_TabBar))
                     {
                         hbox->RemoveChildAt(index);
-                        //hbox->GetSlot(index)->GetContent()->SetVisibility(false);
                     }
                     else if (auto vbox = dynamic_cast<ImGuiWidget::ImVerticalBox*>(m_TabBar))
                     {
                         vbox->RemoveChildAt(index);
-                        //vbox->GetSlot(index)->GetContent()->SetVisibility(false);
                     }
 
                     // 删除资源
@@ -275,11 +410,6 @@ namespace ImWindows
                         if (!m_Pages.empty())
                         {
                             SetActivePage(index >= (int)m_Pages.size() ? m_Pages.size() - 1 : index);
-                        }
-                        else
-                        {
-                            // 没有页面时清空内容区域
-                            //m_ContentArea->SetSize(ImVec2(0, 0));
                         }
                     }
                     else if (index < m_ActivePageIndex)
@@ -304,9 +434,6 @@ namespace ImWindows
             {
                 UpdateButtonStyle(m_Pages[i].tabButton, i == index);
             }
-
-            // 更新内容区域
-            //m_ContentArea->SetContent(m_Pages[index].content);
         }
 
         // 设置页面关闭回调
@@ -321,29 +448,33 @@ namespace ImWindows
         virtual void Render() override
         {
             // 计算布局
-            ImVec2 tabBarSize, contentPos, contentSize;
+            ImVec2 tabPos, tabBarSize, contentPos, contentSize;
 
             switch (m_DockPosition)
             {
             case TabDockPosition::Top:
+                tabPos = Position;
                 tabBarSize = ImVec2(Size.x, m_TabBarThickness);
                 contentPos = ImVec2(Position.x, Position.y + m_TabBarThickness);
                 contentSize = ImVec2(Size.x, Size.y - m_TabBarThickness);
                 break;
 
             case TabDockPosition::Bottom:
+                tabPos = ImVec2(Position.x, Position.y + Size.y - m_TabBarThickness);
                 tabBarSize = ImVec2(Size.x, m_TabBarThickness);
                 contentPos = Position;
                 contentSize = ImVec2(Size.x, Size.y - m_TabBarThickness);
                 break;
 
             case TabDockPosition::Left:
+                tabPos = Position;
                 tabBarSize = ImVec2(m_TabBarThickness, Size.y);
                 contentPos = ImVec2(Position.x + m_TabBarThickness, Position.y);
                 contentSize = ImVec2(Size.x - m_TabBarThickness, Size.y);
                 break;
 
             case TabDockPosition::Right:
+                tabPos = ImVec2(Position.x + Size.x - m_TabBarThickness, Position.y);
                 tabBarSize = ImVec2(m_TabBarThickness, Size.y);
                 contentPos = Position;
                 contentSize = ImVec2(Size.x - m_TabBarThickness, Size.y);
@@ -351,9 +482,10 @@ namespace ImWindows
             }
 
             // 设置选项卡栏位置和大小
-            m_TabBar->SetPosition(Position);
+            m_TabBar->SetPosition(tabPos);
             m_TabBar->SetSize(tabBarSize);
             m_TabBar->Render();
+
             // 设置内容区域位置和大小
             if (m_ActivePageIndex >= 0)
             {
@@ -361,9 +493,6 @@ namespace ImWindows
                 m_Pages[m_ActivePageIndex].content->SetSize(contentSize);
                 m_Pages[m_ActivePageIndex].content->Render();
             }
-
-            // 渲染子控件
-            //ImPanelWidget::Render();
         }
 
     private:
@@ -408,6 +537,7 @@ namespace ImWindows
             button->SetHoveredStyle(hoveredStyle);
             button->SetPressedStyle(pressedStyle);
         }
+
         // 更新按钮样式（激活/非激活状态）
         void UpdateButtonStyle(ImGuiWidget::ImButton* button, bool isActive)
         {

@@ -60,7 +60,7 @@ public:
         m_CenterPanel = new DesiginPanel("CenterPanel");
         m_DetailList= new ImGuiWidget::ImVerticalBox("DetailList");
 
-        m_CenterPageManager = new ImWindows::ImPageManager("CenterPageManager");
+        m_CenterPageManager = new ImWindows::ImPageManager("CenterPageManager",ImWindows::TabDockPosition::Top);
         m_CenterPageManager->AddPage("test", m_CenterPanel);
         m_CenterPageManager->SetTabBarThickness(20.f);
 
