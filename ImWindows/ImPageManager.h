@@ -35,7 +35,7 @@ namespace ImWindows
             m_TextBlock = new ImGuiWidget::ImTextBlock("TextBlock_" + title);
             m_TextBlock->SetText(title);
             m_TextBlock->SetTextColor(IM_COL32(255, 255, 255, 255));
-
+            m_TextBlock->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Left);
             // 创建关闭按钮
             m_CloseButton = new ImGuiWidget::ImButton("CloseButton_" + title);
 
@@ -88,7 +88,7 @@ namespace ImWindows
             {
                 // 水平布局：文本在左，关闭按钮在右
                 return ImVec2(
-                    textSize.x + buttonSize.x + 4.0f, // 4.0f为间距
+                    textSize.x + buttonSize.x + 4.0f+6.f, // 4.0f为间距,6.f为左右padding
                     ImMax(textSize.y, buttonSize.y)
                 );
             }
@@ -97,7 +97,8 @@ namespace ImWindows
         virtual void Render() override
         {
             ImVec2 textSize = m_TextBlock->GetMinSize();
-            ImVec2 buttonSize = { 16.0f, 16.0f };
+            float buttonwidth = min(Size.x, Size.y) * 0.6f;
+            ImVec2 buttonSize = { buttonwidth, buttonwidth };
 
             if (m_IsVerticalLayout)
             {
@@ -114,11 +115,11 @@ namespace ImWindows
             else
             {
                 // 水平布局：文本在左，关闭按钮在右
-                m_TextBlock->SetPosition(Position);
+                m_TextBlock->SetPosition(Position + ImVec2(3.f, 0.f));
                 m_TextBlock->SetSize(ImVec2(Size.x - buttonSize.x - 4.0f, Size.y));
 
                 m_CloseButton->SetPosition(ImVec2(
-                    Position.x + Size.x - buttonSize.x,
+                    Position.x + Size.x - buttonSize.x-3.f,
                     Position.y + (Size.y - buttonSize.y) / 2.0f
                 ));
                 m_CloseButton->SetSize(buttonSize);
@@ -215,7 +216,8 @@ namespace ImWindows
             // 添加到选项卡栏
             if (auto hbox = dynamic_cast<ImGuiWidget::ImHorizontalBox*>(m_TabBar))
             {
-                hbox->AddChildToHorizontalBox(newPage.tabButton);
+                auto hslot = hbox->AddChildToHorizontalBox(newPage.tabButton);
+                hslot->SetIfAutoSize(false);
             }
             else if (auto vbox = dynamic_cast<ImGuiWidget::ImVerticalBox*>(m_TabBar))
             {
@@ -250,10 +252,12 @@ namespace ImWindows
                     // 从选项卡栏移除
                     if (auto hbox = dynamic_cast<ImGuiWidget::ImHorizontalBox*>(m_TabBar))
                     {
+                        hbox->RemoveChildAt(index);
                         //hbox->GetSlot(index)->GetContent()->SetVisibility(false);
                     }
                     else if (auto vbox = dynamic_cast<ImGuiWidget::ImVerticalBox*>(m_TabBar))
                     {
+                        vbox->RemoveChildAt(index);
                         //vbox->GetSlot(index)->GetContent()->SetVisibility(false);
                     }
 
@@ -367,38 +371,49 @@ namespace ImWindows
         void SetupButtonStyle(ImGuiWidget::ImButton* button)
         {
             ImGuiWidget::ButtonStateStyle normalStyle;
-            normalStyle.BackgroundColor = IM_COL32(355, 255, 255, 220);
+            normalStyle.BackgroundColor = IM_COL32(70, 70, 70, 220);
             normalStyle.Rounding = 4.0f;
             normalStyle.HasBorder = true;
             normalStyle.BorderThickness = 1.0f;
             normalStyle.BorderColor = IM_COL32(100, 100, 100, 200);
 
             ImGuiWidget::ButtonStateStyle hoveredStyle = normalStyle;
-            hoveredStyle.BackgroundColor = IM_COL32(355, 355, 255, 220);
+            hoveredStyle.BackgroundColor = IM_COL32(90, 90, 90, 220);
 
             ImGuiWidget::ButtonStateStyle pressedStyle = normalStyle;
-            pressedStyle.BackgroundColor = IM_COL32(20, 20, 20, 220);
+            pressedStyle.BackgroundColor = IM_COL32(50, 50, 50, 220);
 
             button->SetNormalStyle(normalStyle);
             button->SetHoveredStyle(hoveredStyle);
             button->SetPressedStyle(pressedStyle);
         }
 
+
+        void SetButtonActiveStyle(ImGuiWidget::ImButton* button)
+        {
+            ImGuiWidget::ButtonStateStyle normalStyle;
+            normalStyle.BackgroundColor = IM_COL32(70, 70, 100, 220);
+            normalStyle.Rounding = 4.0f;
+            normalStyle.HasBorder = true;
+            normalStyle.BorderThickness = 1.0f;
+            normalStyle.BorderColor = IM_COL32(100, 100, 100, 200);
+
+            ImGuiWidget::ButtonStateStyle hoveredStyle = normalStyle;
+            hoveredStyle.BackgroundColor = IM_COL32(90, 90, 120, 220);
+
+            ImGuiWidget::ButtonStateStyle pressedStyle = normalStyle;
+            pressedStyle.BackgroundColor = IM_COL32(50, 50, 80, 220);
+
+            button->SetNormalStyle(normalStyle);
+            button->SetHoveredStyle(hoveredStyle);
+            button->SetPressedStyle(pressedStyle);
+        }
         // 更新按钮样式（激活/非激活状态）
         void UpdateButtonStyle(ImGuiWidget::ImButton* button, bool isActive)
         {
             if (isActive)
             {
-                ImGuiWidget::ButtonStateStyle activeStyle;
-                activeStyle.BackgroundColor = IM_COL32(50, 120, 200, 220);
-                activeStyle.Rounding = 4.0f;
-                activeStyle.HasBorder = true;
-                activeStyle.BorderThickness = 1.0f;
-                activeStyle.BorderColor = IM_COL32(100, 180, 255, 220);
-
-                button->SetNormalStyle(activeStyle);
-                button->SetHoveredStyle(activeStyle);
-                button->SetPressedStyle(activeStyle);
+                SetButtonActiveStyle(button);
             }
             else
             {

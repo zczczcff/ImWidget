@@ -38,7 +38,7 @@ namespace ImGuiWidget
         std::function<void(void)> OnHoverBegin;
         std::function<void(void)> OnHoverEnd;
 
-        ImGuiButtonFlags m_ButtonFlag = 0;
+        ImGuiButtonFlags m_ButtonFlag = ImGuiButtonFlags_AllowOverlap;
 
         // 分别存储三种状态的样式
         ButtonStateStyle m_NormalStyle;
@@ -166,6 +166,10 @@ namespace ImGuiWidget
             }
             else if (hovered) 
             {
+                if (m_WidgetName == "CloseButton_test")
+                {
+                    printf("test");
+                }
                 currentStyle = &m_HoveredStyle;
             }
 

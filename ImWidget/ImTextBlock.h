@@ -77,5 +77,15 @@ namespace ImGuiWidget
             // 绘制文本（不限制绘制区域）
             window->DrawList->AddText(textPos, m_TextColor, m_Text.c_str());
 		}
+
+        void SetHorizontalAlignment(TextAlignment_Horizontal NewSetting)
+        {
+            halign = NewSetting;
+        }
+
+        void SetVerticalAlignment(TextAlignment_Vertical NewSetting)
+        {
+            valign = NewSetting;
+        }
 	};
 }

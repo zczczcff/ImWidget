@@ -62,7 +62,7 @@ public:
 
         m_CenterPageManager = new ImWindows::ImPageManager("CenterPageManager");
         m_CenterPageManager->AddPage("test", m_CenterPanel);
-
+        m_CenterPageManager->SetTabBarThickness(20.f);
 
         m_MiddleSplitter->AddPart(m_WidgetList);
         m_MiddleSplitter->AddPart(m_CenterPageManager)->Ratio = 5.0f;

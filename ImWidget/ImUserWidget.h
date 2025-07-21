@@ -20,6 +20,7 @@ namespace ImGuiWidget
 	private:
 		ImWidget* m_RootWidget;
 
+		ImGuiButtonFlags m_ButtonFlag = ImGuiButtonFlags_AllowOverlap;
 		// ÍÏ×§×´Ì¬±äÁ¿
 		bool m_IsDragging = false;
 		bool m_IsDragSource = false;
@@ -97,7 +98,7 @@ namespace ImGuiWidget
 				if (!ImGui::ItemAdd(bb, id)) {}
 
 				bool hovered, held;
-				bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, 0);
+				bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, m_ButtonFlag);
 
 				if (bAllowDrag)
 				{
