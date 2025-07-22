@@ -12,6 +12,7 @@
 #include "ImWidget/ImResizableBox.h"
 #include "ImWidget/ImImage.h"
 #include "ImWidget/ImMenuButton.h"
+#include "ImWidget/ImMultiLineTextBlock.h"
 
 #include "ImWindows/ImMenuButton.h"
 #include "ImWindows/ImPageManager.h"
@@ -44,7 +45,8 @@ public:
     ImGuiWidget::ImVerticalBox* m_WidgetList;
     DesiginPanel* m_CenterPanel;
     ImGuiWidget::ImVerticalBox* m_DetailList;
-
+    ImGuiWidget::ImMultiLineTextBlock* m_LogText;
+    ImGuiWidget::ImMultiLineTextBlock* m_LogText2;
     ExampleWidget* m_Example_Button;
     void Init()
     {
@@ -77,7 +79,12 @@ public:
         m_BottomBox=new ImGuiWidget::ImVerticalBox("BottomBox");
         m_VSplitter->AddPart(m_MiddleBox)->Ratio = 4.0f;
         m_VSplitter->AddPart(m_BottomBox);
-
+        m_LogText = new  ImGuiWidget::ImMultiLineTextBlock("LogText");
+        m_LogText2=new ImGuiWidget::ImMultiLineTextBlock("LogText2");
+        m_BottomBox->AddChildToVerticalBox(m_LogText)->SetIfAutoSize(false);
+        m_BottomBox->AddChildToVerticalBox(m_LogText2)->SetIfAutoSize(false);
+        m_LogText->SetText("abcde fghij klmn opq rst uvw xyz");
+        m_LogText2->SetText("abcde fghij klmn opq rst uvw xyz");
         m_MenuList = new ImGuiWidget::ImHorizontalBox("m_MenuList");
         m_MenuList->SetBackGroundColor(IM_COL32(50, 50, 230, 255));
         //Button_Project = new ImGuiWidget::ImMenuButton("Button_Project");

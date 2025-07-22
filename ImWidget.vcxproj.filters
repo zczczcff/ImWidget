@@ -126,6 +126,9 @@
     <ClInclude Include="ImWindows\ImPageManager.h">
       <Filter>ImWindows</Filter>
     </ClInclude>
+    <ClInclude Include="ImWidget\ImMultiLineTextBlock.h">
+      <Filter>ImWidget</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
