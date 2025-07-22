@@ -47,6 +47,8 @@ public:
     ImGuiWidget::ImVerticalBox* m_DetailList;
     ImGuiWidget::ImMultiLineTextBlock* m_LogText;
     ImGuiWidget::ImMultiLineTextBlock* m_LogText2;
+
+    ImGuiWidget::ImScrollBox* m_LogBox;
     ExampleWidget* m_Example_Button;
     void Init()
     {
@@ -80,11 +82,15 @@ public:
         m_VSplitter->AddPart(m_MiddleBox)->Ratio = 4.0f;
         m_VSplitter->AddPart(m_BottomBox);
         m_LogText = new  ImGuiWidget::ImMultiLineTextBlock("LogText");
-        m_LogText2=new ImGuiWidget::ImMultiLineTextBlock("LogText2");
-        m_BottomBox->AddChildToVerticalBox(m_LogText)->SetIfAutoSize(false);
-        m_BottomBox->AddChildToVerticalBox(m_LogText2)->SetIfAutoSize(false);
-        m_LogText->SetText("abcde fghij klmn opq rst uvw xyz");
-        m_LogText2->SetText("abcde fghij klmn opq rst uvw xyz");
+        //m_LogText2=new ImGuiWidget::ImMultiLineTextBlock("LogText2");
+        m_LogBox = new ImGuiWidget::ImScrollBox("LogBox");
+        m_LogBox->SetContent(m_LogText);
+        m_BottomBox->AddChildToVerticalBox(m_LogBox)->SetIfAutoSize(true);
+
+
+        //m_BottomBox->AddChildToVerticalBox(m_LogText2)->SetIfAutoSize(false);
+        m_LogText->SetText("abcde fghij klmn opq rst uvw xyzabcde fghij klmn opq rst uvw xyzabcde fghij klmn opq rst uvw xyzabcde fghij klmn opq rst uvw xyzabcde fghij klmn opq rst uvw xyzabcde fghij klmn opq rst uvw xyzabcde fghij klmn opq rst uvw xyzabcde fghij klmn opq rst uvw xyzabcde fghij klmn opq rst uvw xyzabcde fghij klmn opq rst uvw xyz");
+        //m_LogText2->SetText("abcde fghij klmn opq rst uvw xyz");
         m_MenuList = new ImGuiWidget::ImHorizontalBox("m_MenuList");
         m_MenuList->SetBackGroundColor(IM_COL32(50, 50, 230, 255));
         //Button_Project = new ImGuiWidget::ImMenuButton("Button_Project");
@@ -153,7 +159,7 @@ public:
         //ImGuiWidget::ImScrollBox* ScrollBox0 = new ImGuiWidget::ImScrollBox("ScrollBox0");
         //ScrollBox0->SetSize(ImVec2(500.f, 500.f));
         //ImGuiWidget::ImCanvasPanel* CanvasPanel1 = new ImGuiWidget::ImCanvasPanel("CanvasPanel1");
-        //ScrollBox0->SetChild(CanvasPanel1);
+        //ScrollBox0->SetContent(CanvasPanel1);
         //CanvasPanel1->SetSize(ImVec2(300.f, 300.f));
         //ImGuiWidget::ImButton* button6 = new ImGuiWidget::ImButton("button6");
         //ImGuiWidget::ImButton* button7 = new ImGuiWidget::ImButton("button7");

@@ -48,7 +48,7 @@
 //        ImGuiWidget::ImScrollBox* ScrollBox0 = new ImGuiWidget::ImScrollBox("ScrollBox0");
 //        ScrollBox0->SetSize(ImVec2(500.f, 500.f));
 //        ImGuiWidget::ImCanvasPanel* CanvasPanel1 = new ImGuiWidget::ImCanvasPanel("CanvasPanel1");
-//        ScrollBox0->SetChild(CanvasPanel1);
+//        ScrollBox0->SetContent(CanvasPanel1);
 //        CanvasPanel1->SetSize(ImVec2(300.f, 300.f));
 //        ImGuiWidget::ImButton* button6 = new ImGuiWidget::ImButton("button6");
 //        ImGuiWidget::ImButton* button7 = new ImGuiWidget::ImButton("button7");
