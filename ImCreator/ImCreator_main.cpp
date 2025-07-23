@@ -85,6 +85,7 @@ public:
         //m_LogText2=new ImGuiWidget::ImMultiLineTextBlock("LogText2");
         m_LogBox = new ImGuiWidget::ImScrollBox("LogBox");
         m_LogBox->SetContent(m_LogText);
+        m_LogBox->EnableHorizontalScroll(false);
         m_BottomBox->AddChildToVerticalBox(m_LogBox)->SetIfAutoSize(true);
 
 
