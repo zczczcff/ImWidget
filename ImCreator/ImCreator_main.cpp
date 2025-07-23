@@ -13,6 +13,7 @@
 #include "ImWidget/ImImage.h"
 #include "ImWidget/ImMenuButton.h"
 #include "ImWidget/ImMultiLineTextBlock.h"
+#include "ImWidget/ImScrollingTextList.h"
 
 #include "ImWindows/ImMenuButton.h"
 #include "ImWindows/ImPageManager.h"
@@ -48,7 +49,9 @@ public:
     ImGuiWidget::ImMultiLineTextBlock* m_LogText;
     ImGuiWidget::ImMultiLineTextBlock* m_LogText2;
 
-    ImGuiWidget::ImScrollBox* m_LogBox;
+    ImGuiWidget::ImScrollingTextList* m_LogList;
+
+    //ImGuiWidget::ImScrollBox* m_LogBox;
     ExampleWidget* m_Example_Button;
     void Init()
     {
@@ -82,11 +85,17 @@ public:
         m_VSplitter->AddPart(m_MiddleBox)->Ratio = 4.0f;
         m_VSplitter->AddPart(m_BottomBox);
         m_LogText = new  ImGuiWidget::ImMultiLineTextBlock("LogText");
+        m_LogList = new ImGuiWidget::ImScrollingTextList("LogList");
+        for (int i = 0; i < 20; i++)
+        {
+            m_LogList->AddItem("abcdesafsafefa tesrt skanf isf nin aifn ansifasf nia fni asfaf");
+        }
+        
         //m_LogText2=new ImGuiWidget::ImMultiLineTextBlock("LogText2");
-        m_LogBox = new ImGuiWidget::ImScrollBox("LogBox");
-        m_LogBox->SetContent(m_LogText);
-        m_LogBox->EnableHorizontalScroll(false);
-        m_BottomBox->AddChildToVerticalBox(m_LogBox)->SetIfAutoSize(true);
+        //m_LogBox = new ImGuiWidget::ImScrollBox("LogBox");
+       // m_LogBox->SetContent(m_LogText);
+        //m_LogBox->EnableHorizontalScroll(false);
+        m_BottomBox->AddChildToVerticalBox(m_LogList)->SetIfAutoSize(true);
 
 
         //m_BottomBox->AddChildToVerticalBox(m_LogText2)->SetIfAutoSize(false);

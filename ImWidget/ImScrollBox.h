@@ -6,7 +6,7 @@ namespace ImGuiWidget
 
     class ImScrollBox : public ImPanelWidget
     {
-    private:
+    protected:
         ImVec2 m_ScrollPosition = { 0, 0 };         // 当前滚动位置
         ImVec2 m_ContentSize = { 0, 0 };            // 内容区域大小
         bool m_HorizontalScrollEnabled = true;     // 水平滚动是否启用
@@ -187,7 +187,7 @@ namespace ImGuiWidget
             }
         }
 
-    private:
+    protected:
         // 确保滚动位置在有效范围内
         void ClampScrollPosition()
         {

@@ -129,6 +129,9 @@
     <ClInclude Include="ImWidget\ImMultiLineTextBlock.h">
       <Filter>ImWidget</Filter>
     </ClInclude>
+    <ClInclude Include="ImWidget\ImScrollingTextList.h">
+      <Filter>ImWidget</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

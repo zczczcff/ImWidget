@@ -176,6 +176,7 @@
     <ClInclude Include="ImWidget\ImMultiLineTextBlock.h" />
     <ClInclude Include="ImWidget\ImPanelWidget.h" />
     <ClInclude Include="ImWidget\ImScrollBox.h" />
+    <ClInclude Include="ImWidget\ImScrollingTextList.h" />
     <ClInclude Include="ImWidget\ImSingleLineInputText.h" />
     <ClInclude Include="ImWidget\ImSlider.h" />
     <ClInclude Include="ImWidget\ImSolt.h" />

@@ -1,6 +1,5 @@
 #pragma once
 
-#pragma once
 #include "ImWidget.h"
 #include <imgui_internal.h>
 #include <vector>
@@ -15,6 +14,7 @@ namespace ImGuiWidget
 {
     class ImMultiLineTextBlock : public ImWidget
     {
+        friend class ImScrollingTextList;
     public:
         ImMultiLineTextBlock(const std::string& WidgetName);
         virtual ~ImMultiLineTextBlock() = default;
@@ -39,6 +39,14 @@ namespace ImGuiWidget
             Size = size;
             m_TextDirty = true;
         }
+
+        void SetSelection(int startindex, int endindex)
+        {
+            m_SelectionStart = startindex;
+            m_SelectionEnd = endindex;
+            m_IsSelecting = true;
+        }
+
         void ClearSelection()
         {
             m_SelectionStart = -1;
