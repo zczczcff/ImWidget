@@ -55,6 +55,13 @@ public:
     ExampleWidget* m_Example_Button;
     void Init()
     {
+        ImGuiStyle& style = ImGui::GetStyle();
+        // 设置工具提示背景颜色（RGBA，这里设置为半透明的蓝色）
+        style.Colors[ImGuiCol_PopupBg] = ImVec4(0.9f, 0.9f, 0.9f, 1.0f);
+        // 设置工具提示文本颜色
+        style.Colors[ImGuiCol_Text] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
+
+
         m_Box = new ImGuiWidget::ImVerticalBox("Box0");
         m_MiddleSplitter = new ImGuiWidget::ImHorizontalSplitter("Splitter0");
         m_VSplitter = new ImGuiWidget::ImVerticalSplitter("VSplitter0");
@@ -110,7 +117,7 @@ public:
         m_MenuButton_Project->GetNormalStyle().BackgroundColor = IM_COL32(210, 180, 150, 120);
         m_MenuButton_Project->GetHoveredStyle().BackgroundColor = IM_COL32(230, 200, 170, 120);
         m_MenuButton_Project->GetPressedStyle().BackgroundColor = IM_COL32(250, 220, 190, 120);
-
+        m_MenuButton_Project->SetTooltipText("Project");
         m_MenuButton_Project_History = new ImWindows::ImMenuButton("MenuButton_Project_History");
         m_MenuButton_Project_History->SetDockDirection(ImWindows::MenuDockDirection::Dock_Right);
         m_MenuButton_Project_History1 = new ImWindows::ImMenuButton("MenuButton_Project_History1");

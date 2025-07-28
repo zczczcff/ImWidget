@@ -32,6 +32,8 @@ namespace ImGuiWidget
     class ImButton : public ImPanelWidget
     {
     protected:
+
+        std::string m_TooltipText;
         // 回调函数
         std::function<void(void)> OnPressed;
         std::function<void(void)> OnReleased;
@@ -92,7 +94,8 @@ namespace ImGuiWidget
                 m_Slots.push_back(newslot);
             }
         }
-
+        // 设置工具提示文本
+        void SetTooltipText(const std::string& text) { m_TooltipText = text; }
         // 设置回调函数
         void SetOnPressed(std::function<void(void)> callback) { OnPressed = callback; }
         void SetOnReleased(std::function<void(void)> callback) { OnReleased = callback; }
@@ -203,6 +206,13 @@ namespace ImGuiWidget
                 m_Slots[0]->GetContent()->Render();
             }
 
+            if (hovered && !m_TooltipText.empty() &&
+                ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+            {
+                ImGui::BeginTooltip();
+                ImGui::TextUnformatted(m_TooltipText.c_str());
+                ImGui::EndTooltip();
+            }
         }
 
     private:
