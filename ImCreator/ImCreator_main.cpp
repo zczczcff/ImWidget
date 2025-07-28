@@ -88,7 +88,7 @@ public:
         m_LogList = new ImGuiWidget::ImScrollingTextList("LogList");
         for (int i = 0; i < 20; i++)
         {
-            m_LogList->AddItem("abcdesafsafefa tesrt skanf isf nin aifn ansifasf nia fni asfaf");
+            m_LogList->AddItem("abcdesafsafefa tesrt skanf isf nin aifn ansifasf nia fni asfaf",IM_COL32(150,100,10*i,255));
         }
         
         //m_LogText2=new ImGuiWidget::ImMultiLineTextBlock("LogText2");

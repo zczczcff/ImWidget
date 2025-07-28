@@ -10,6 +10,20 @@ namespace ImGuiWidget
     class ImScrollingTextList : public ImWidget
     {
     private:
+
+        // 新增：行间距控制
+        float m_LineSpacing = -1.0f; // 负值表示使用默认值
+
+        // 新增：滚动条样式
+        struct ScrollbarStyle {
+            ImU32 BackgroundColor = IM_COL32(200, 200, 200, 255);
+            ImU32 GrabColor = IM_COL32(120, 120, 120, 255);
+            float Width = ImGui::GetStyle().ScrollbarSize;
+            float Rounding = 0.0f;
+            float GrabMinHeight = 20.0f;
+        } m_ScrollbarStyle;
+
+
         struct TextLine {
             std::string Text;
             ImVec2 Position;
@@ -20,6 +34,7 @@ namespace ImGuiWidget
         struct TextItem {
             std::string Original;
             std::vector<TextLine> Lines;
+            ImU32 Color = IM_COL32(0, 0, 0, 255); // 默认黑色
         };
 
         std::vector<TextItem> m_Items;
@@ -45,6 +60,23 @@ namespace ImGuiWidget
         float m_AutoScrollSpeed = 0.0f;
         float m_AutoScrollAccumulator = 0.0f;
 
+
+
+        // 设置滚动条样式
+        void SetScrollbarStyle(
+            ImU32 bgColor = IM_COL32(200, 200, 200, 255),
+            ImU32 grabColor = IM_COL32(120, 120, 120, 255),
+            float width = -1.0f,   // 负值表示使用默认值
+            float rounding = 0.0f,
+            float grabMinHeight = 20.0f)
+        {
+            m_ScrollbarStyle.BackgroundColor = bgColor;
+            m_ScrollbarStyle.GrabColor = grabColor;
+            if (width >= 0) m_ScrollbarStyle.Width = width;
+            m_ScrollbarStyle.Rounding = rounding;
+            m_ScrollbarStyle.GrabMinHeight = grabMinHeight;
+        }
+
         // 使用ImFont底层API计算文本尺寸
         ImVec2 CalculateTextSize(const char* text_begin, const char* text_end = nullptr)
         {
@@ -57,8 +89,12 @@ namespace ImGuiWidget
         void RebuildLayout()
         {
             m_TotalContentHeight = 0.0f;
-            const float line_spacing = ImGui::GetTextLineHeightWithSpacing();
-            const float available_width = m_ContentRegion.x;
+
+            // 计算行间距：优先使用自定义值，否则使用默认值
+            const float line_spacing = (m_LineSpacing > 0) ? m_LineSpacing :
+                ImGui::GetTextLineHeightWithSpacing();
+
+            const float available_width = m_ContentRegion.x - ImGui::GetStyle().FramePadding.x * 2;
 
             for (auto& item : m_Items)
             {
@@ -309,9 +345,34 @@ namespace ImGuiWidget
             m_TextColor = color;
         }
 
-        void AddItem(const std::string& text)
+        // 设置单行文本颜色
+        void SetItemColor(size_t index, ImU32 color)
         {
-            m_Items.push_back({ text, {} });
+            if (index < m_Items.size()) {
+                m_Items[index].Color = color;
+            }
+        }
+
+        // 设置所有文本颜色
+        void SetAllItemsColor(ImU32 color)
+        {
+            for (auto& item : m_Items) {
+                item.Color = color;
+            }
+        }
+
+        // 设置行间距（负值表示使用默认值）
+        void SetLineSpacing(float spacing)
+        {
+            if (spacing != m_LineSpacing) {
+                m_LineSpacing = spacing;
+                m_RequireRebuild = true;
+            }
+        }
+
+        void AddItem(const std::string& text, ImU32 color = IM_COL32(0, 0, 0, 255))
+        {
+            m_Items.push_back({ text, {}, color });
             m_RequireRebuild = true;
         }
 
@@ -324,11 +385,12 @@ namespace ImGuiWidget
             m_IsSelecting = false;
         }
 
-        void ModifyItem(size_t index, const std::string& newText)
+        void ModifyItem(size_t index, const std::string& newText, ImU32 newColor = IM_COL32(0, 0, 0, 255))
         {
             if (index < m_Items.size())
             {
                 m_Items[index].Original = newText;
+                m_Items[index].Color = newColor;
                 m_Items[index].Lines.clear();
                 m_RequireRebuild = true;
                 m_HasSelection = false;
@@ -366,21 +428,36 @@ namespace ImGuiWidget
             ImVec2 widget_pos = Position;
             ImRect widget_rect(widget_pos, widget_pos + Size);
 
+            ImVec2 mousepos = ImGui::GetMousePos();
+            ImRect WidgetRect(Position, Position + Size);
             // 开始裁剪区域
             window->DrawList->PushClipRect(widget_rect.Min, widget_rect.Max, true);
+
+            // 新增：全局鼠标点击检查（用于取消选中）
+            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+            {
+                // 检查点击是否发生在控件外
+                if (!WidgetRect.Contains(mousepos))
+                {
+                    m_HasSelection = false;
+                    m_IsSelecting = false;
+                }
+            }
 
             // 处理鼠标和键盘事件
             ImGuiIO& io = ImGui::GetIO();
             bool is_hovered = ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(widget_rect.Min, widget_rect.Max);
             bool is_active = ImGui::IsWindowFocused() && is_hovered;
 
-            // 处理文本选中
-            if (is_hovered) {
+            // 修改：添加滚动条拖动检查，避免同时处理文本选中
+            if (is_hovered && !m_IsDraggingScrollbar)  // 新增条件
+            {
                 // 鼠标滚轮滚动
                 m_ScrollOffsetY -= io.MouseWheel * ImGui::GetTextLineHeight() * 3;
 
                 // 开始选中（鼠标左键按下）
-                if (ImGui::IsMouseClicked(ImGuiMouseButton_Left)) {
+                if (ImGui::IsMouseClicked(ImGuiMouseButton_Left))
+                {
                     m_IsSelecting = true;
                     m_HasSelection = true;
 
@@ -403,7 +480,7 @@ namespace ImGuiWidget
             }
 
             // 处理选中拖动 - 核心修改部分
-            if (m_IsSelecting && (ImGui::IsMouseDragging(ImGuiMouseButton_Left) || ImGui::IsMouseDown(ImGuiMouseButton_Left))) {
+            if (!m_IsDraggingScrollbar &&m_IsSelecting && (ImGui::IsMouseDragging(ImGuiMouseButton_Left) || ImGui::IsMouseDown(ImGuiMouseButton_Left))) {
                 ImVec2 mousePos = io.MousePos;
                 ImVec2 mousePosLocal = mousePos - widget_pos;
 
@@ -519,7 +596,7 @@ namespace ImGuiWidget
                 }
             }
 
-            // 渲染可见行
+            // 渲染可见行 - 支持每行不同颜色
             for (const auto& item : m_Items)
             {
                 for (const auto& line : item.Lines)
@@ -529,16 +606,21 @@ namespace ImGuiWidget
 
                     if (line_y2 >= visible_y1 && line_y1 <= visible_y2)
                     {
-                        ImVec2 screen_pos = widget_pos + ImVec2(0, line.Position.y - m_ScrollOffsetY);
-                        window->DrawList->AddText(screen_pos, m_TextColor, line.Text.c_str());
+                        ImVec2 screen_pos = widget_pos +
+                            ImVec2(ImGui::GetStyle().FramePadding.x,
+                                line.Position.y - m_ScrollOffsetY);
+
+                        // 使用该项的颜色设置
+                        window->DrawList->AddText(screen_pos, item.Color, line.Text.c_str());
                     }
                 }
             }
 
-            // 滚动条处理
+
+            // 滚动条处理 - 使用自定义样式
             if (max_scroll > 0.0f)
             {
-                const float scrollbar_width = ImGui::GetStyle().ScrollbarSize;
+                const float scrollbar_width = m_ScrollbarStyle.Width;
                 const ImRect scrollbar_rect(
                     widget_pos.x + Size.x - scrollbar_width,
                     widget_pos.y,
@@ -546,10 +628,12 @@ namespace ImGuiWidget
                     widget_pos.y + Size.y
                 );
 
-                // 计算滚动条滑块高度（至少20像素）
-                const float scroll_thumb_height = ImMax(20.0f, (m_ContentRegion.y / m_TotalContentHeight) * Size.y);
+                // 计算滚动条滑块高度
+                const float scroll_thumb_height = ImMax(
+                    m_ScrollbarStyle.GrabMinHeight,
+                    (m_ContentRegion.y / m_TotalContentHeight) * Size.y
+                );
 
-                // 修复：使用正确的高度差计算滚动比例
                 float scroll_ratio = (m_ScrollOffsetY / max_scroll);
                 scroll_ratio = ImClamp(scroll_ratio, 0.0f, 1.0f);
 
@@ -564,21 +648,21 @@ namespace ImGuiWidget
                     scroll_thumb_y + scroll_thumb_height
                 );
 
-                // 绘制滚动条背景
+                // 使用自定义颜色绘制滚动条背景
                 window->DrawList->AddRectFilled(
                     scrollbar_rect.Min, scrollbar_rect.Max,
-                    ImGui::GetColorU32(ImGuiCol_ScrollbarBg),
-                    g.Style.ScrollbarRounding
+                    m_ScrollbarStyle.BackgroundColor,
+                    m_ScrollbarStyle.Rounding
                 );
 
-                // 绘制滑块
+                // 使用自定义颜色绘制滑块
                 window->DrawList->AddRectFilled(
                     thumb_rect.Min, thumb_rect.Max,
-                    ImGui::GetColorU32(ImGuiCol_ScrollbarGrab),
-                    g.Style.ScrollbarRounding
+                    m_ScrollbarStyle.GrabColor,
+                    m_ScrollbarStyle.Rounding
                 );
 
-                // 处理滚动条拖动
+                // 处理滚动条拖动 - 新增：设置拖动标志
                 ImGuiID scrollbar_id = window->GetID(m_WidgetName.c_str());
                 bool hovered, held;
                 ImGui::ButtonBehavior(scrollbar_rect, scrollbar_id, &hovered, &held,
@@ -587,6 +671,7 @@ namespace ImGuiWidget
                 // 处理拖动开始
                 if (ImGui::IsMouseClicked(0) && hovered)
                 {
+                    m_IsDraggingScrollbar = true;  // 设置滚动条拖动标志
                     m_IsDraggingScrollbar = true;
                     if (ImGui::IsMouseHoveringRect(thumb_rect.Min, thumb_rect.Max))
                     {
