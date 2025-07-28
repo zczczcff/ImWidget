@@ -1,393 +1,324 @@
 #pragma once
-#include "ImScrollBox.h"
-#include "ImMultiLineTextBlock.h"
+#include "ImWidget.h"
 #include <vector>
+#include <string>
 #include <algorithm>
-#include <set>
 
 namespace ImGuiWidget
 {
-    class ImScrollingTextList : public ImScrollBox
+    class ImScrollingTextList : public ImWidget
     {
     private:
+        struct TextLine {
+            std::string Text;
+            ImVec2 Position;
+            ImVec2 Size;
+        };
+
         struct TextItem {
-            std::string content;
-            float height = 0.0f;
-            ImMultiLineTextBlock* block = nullptr;
+            std::string Original;
+            std::vector<TextLine> Lines;
         };
 
         std::vector<TextItem> m_Items;
-        float m_TotalHeight = 0.0f;
-        float m_ItemSpacing = 5.0f;
-        float m_ItemHeight = 20.0f; // 默认项高度
-        ImU32 m_SelectionColor = IM_COL32(100, 150, 250, 100);
+        float m_ScrollOffsetY = 0.0f;
+        float m_TotalContentHeight = 0.0f;
+        ImVec2 m_ContentRegion = { 0, 0 };
+        bool m_RequireRebuild = true;
+        ImU32 m_TextColor = IM_COL32(0, 0, 0, 255);
+        bool m_IsDraggingScrollbar = false;
+        float m_ScrollbarGrabDelta = 0.0f;
 
-        // 字符级选择状态
-        struct SelectionState {
-            int startItem = -1;      // 起始条目索引
-            int startChar = -1;      // 起始字符索引
-            int endItem = -1;        // 结束条目索引
-            int endChar = -1;        // 结束字符索引
-            bool isSelecting = false; // 是否正在选择
-        };
+        // 使用ImFont底层API计算文本尺寸
+        ImVec2 CalculateTextSize(const char* text_begin, const char* text_end = nullptr)
+        {
+            ImFont* font = ImGui::GetFont();
+            float font_size = ImGui::GetFontSize();
+            return font->CalcTextSizeA(font_size, FLT_MAX, -1.0f, text_begin, text_end);
+        }
 
-        SelectionState m_Selection;
-        std::set<int> m_SelectedItems;
+        // 重建布局（自动换行）
+        void RebuildLayout()
+        {
+            m_TotalContentHeight = 0.0f;
+            const float line_spacing = ImGui::GetTextLineHeightWithSpacing();
+            const float available_width = m_ContentRegion.x;
+
+            for (auto& item : m_Items)
+            {
+                item.Lines.clear();
+                const char* text_ptr = item.Original.c_str();
+                const char* text_end = text_ptr + item.Original.size();
+
+                while (text_ptr < text_end)
+                {
+                    const char* line_end = text_ptr;
+                    while (line_end < text_end && *line_end != '\n' && *line_end != '\r')
+                        ++line_end;
+
+                    const char* next_line = line_end;
+                    if (line_end < text_end && *line_end == '\r') ++next_line;
+                    if (line_end < text_end && *line_end == '\n') ++next_line;
+
+                    TextLine line;
+                    line.Text = std::string(text_ptr, line_end);
+                    line.Size = CalculateTextSize(line.Text.c_str());
+
+                    if (line.Size.x > available_width)
+                    {
+                        const char* wrap_ptr = text_ptr;
+                        const char* last_good = text_ptr;
+
+                        while (wrap_ptr < line_end)
+                        {
+                            if (*wrap_ptr == ' ' || *wrap_ptr == ',' || *wrap_ptr == '.')
+                                last_good = wrap_ptr;
+
+                            const std::string temp_str(text_ptr, wrap_ptr);
+                            ImVec2 temp_size = CalculateTextSize(temp_str.c_str());
+
+                            if (temp_size.x > available_width)
+                            {
+                                if (last_good > text_ptr)
+                                {
+                                    line.Text = std::string(text_ptr, last_good);
+                                    line.Size = CalculateTextSize(line.Text.c_str());
+                                    wrap_ptr = last_good + 1;
+                                }
+                                else
+                                {
+                                    line.Text = std::string(text_ptr, wrap_ptr);
+                                    line.Size = temp_size;
+                                }
+                                break;
+                            }
+                            ++wrap_ptr;
+                        }
+                        next_line = wrap_ptr;
+                    }
+
+                    line.Position = ImVec2(0.0f, m_TotalContentHeight);
+                    m_TotalContentHeight += line.Size.y + line_spacing;
+                    item.Lines.push_back(line);
+
+                    text_ptr = next_line;
+                }
+            }
+            m_RequireRebuild = false;
+
+            // 修复：使用正确的高度差进行滚动限制
+            float max_scroll = ImMax(0.0f, m_TotalContentHeight - m_ContentRegion.y);
+            m_ScrollOffsetY = ImClamp(m_ScrollOffsetY, 0.0f, max_scroll);
+        }
 
     public:
         ImScrollingTextList(const std::string& WidgetName)
-            : ImScrollBox(WidgetName)
+            : ImWidget(WidgetName)
         {
-            EnableVerticalScroll(true);
-            ShowVerticalScrollbar(true);
         }
 
-        virtual ~ImScrollingTextList()
-        {
-            for (auto& item : m_Items) {
-                delete item.block;
-            }
+        void SetTextColor(ImU32 color) {
+            m_TextColor = color;
         }
 
-        // 添加文本条目
         void AddItem(const std::string& text)
         {
-            TextItem item;
-            item.content = text;
-            item.block = new ImMultiLineTextBlock("TextItem_" + std::to_string(m_Items.size()));
-            item.block->SetText(text);
-            item.block->SetSelectionColor(m_SelectionColor);
-            item.block->SetSize(ImVec2(Size.x - m_ScrollbarThickness, 0)); // 宽度适应
-
-            // 计算项高度
-            ImVec2 minSize = item.block->GetMinSize();
-            item.height = minSize.y + m_ItemSpacing;
-            m_ItemHeight = item.height; // 更新默认高度
-
-            m_Items.push_back(item);
-            m_TotalHeight += item.height;
-
-            // 更新内容大小
-            m_ContentSize = ImVec2(Size.x, m_TotalHeight);
+            m_Items.push_back({ text, {} });
+            m_RequireRebuild = true;
         }
 
-        // 删除指定索引的条目
-        void RemoveItem(int index)
+        void Clear()
         {
-            if (index < 0 || index >= static_cast<int>(m_Items.size()))
-                return;
-
-            m_TotalHeight -= m_Items[index].height;
-            delete m_Items[index].block;
-            m_Items.erase(m_Items.begin() + index);
-            m_ContentSize.y = m_TotalHeight;
-
-            // 更新选择状态
-            if (m_Selection.startItem == index) m_Selection.startItem = -1;
-            if (m_Selection.endItem == index) m_Selection.endItem = -1;
-        }
-
-        // 清空所有条目
-        void ClearAllItems()
-        {
-            for (auto& item : m_Items) {
-                delete item.block;
-            }
             m_Items.clear();
-            m_TotalHeight = 0.0f;
-            m_ContentSize = ImVec2(0, 0);
-            ClearSelection();
+            m_ScrollOffsetY = 0.0f;
+            m_RequireRebuild = true;
         }
 
-        // 获取条目数量
-        int GetItemCount() const { return static_cast<int>(m_Items.size()); }
-
-        // 更新条目内容
-        void UpdateItem(int index, const std::string& newText)
+        void ModifyItem(size_t index, const std::string& newText)
         {
-            if (index < 0 || index >= static_cast<int>(m_Items.size()))
-                return;
-
-            // 保存旧高度
-            float oldHeight = m_Items[index].height;
-
-            m_Items[index].content = newText;
-            m_Items[index].block->SetText(newText);
-
-            // 更新高度和总高度
-            ImVec2 minSize = m_Items[index].block->GetMinSize();
-            m_Items[index].height = minSize.y + m_ItemSpacing;
-            m_TotalHeight += (m_Items[index].height - oldHeight);
-            m_ContentSize.y = m_TotalHeight;
-        }
-
-        // 设置选择颜色
-        void SetSelectionColor(ImU32 color)
-        {
-            m_SelectionColor = color;
-            for (auto& item : m_Items) {
-                if (item.block) {
-                    item.block->SetSelectionColor(color);
-                }
+            if (index < m_Items.size())
+            {
+                m_Items[index].Original = newText;
+                m_Items[index].Lines.clear();
+                m_RequireRebuild = true;
             }
         }
 
-        // 清除选择状态
-        void ClearSelection()
+        void RemoveItem(size_t index)
         {
-            m_Selection = SelectionState();
-            for (auto& item : m_Items) {
-                if (item.block) {
-                    item.block->ClearSelection();
-                }
+            if (index < m_Items.size())
+            {
+                m_Items.erase(m_Items.begin() + index);
+                m_RequireRebuild = true;
             }
+        }
+
+        virtual void SetSize(ImVec2 size) override
+        {
+            ImWidget::SetSize(size);
+            m_ContentRegion = size - ImVec2(ImGui::GetStyle().ScrollbarSize, 0);
+            m_RequireRebuild = true;
         }
 
         virtual void Render() override
         {
-            if (!Visibility) return;
+            if (m_RequireRebuild)
+                RebuildLayout();
 
-            // 处理自动滚动
-            HandleAutoScroll();
-
-            // 渲染背景
-            RenderBackGround();
-
-            // 计算内容区域（排除滚动条）
-            ImVec2 contentAvail = Size;
-            if (m_ShowVerticalScrollbar && m_VerticalScrollEnabled)
-                contentAvail.x -= m_ScrollbarThickness;
-
-            // 计算可见项范围
-            float startY = m_ScrollPosition.y;
-            float endY = startY + contentAvail.y;
-
-            int firstVisible = static_cast<int>(startY / m_ItemHeight);
-            int lastVisible = static_cast<int>(endY / m_ItemHeight) + 1;
-            firstVisible = ImClamp(firstVisible, 0, static_cast<int>(m_Items.size()) - 1);
-            lastVisible = ImClamp(lastVisible, firstVisible, static_cast<int>(m_Items.size()) - 1);
-
-            // 渲染可见项
-            ImVec2 currentPos(Position.x, Position.y - m_ScrollPosition.y);
-            for (int i = 0; i < firstVisible; ++i) {
-                currentPos.y += m_Items[i].height;
-            }
-
-            for (int i = firstVisible; i <= lastVisible; ++i) {
-                if (m_Items[i].block) {
-                    m_Items[i].block->SetPosition(currentPos);
-                    m_Items[i].block->SetSize(ImVec2(contentAvail.x, m_Items[i].height));
-                    m_Items[i].block->Render();
-                }
-                currentPos.y += m_Items[i].height;
-            }
-
-            // 处理文本选择
-            HandleSelection();
-
-            // 渲染滚动条
-            RenderCustomScrollbars();
-
-            // 更新选择状态显示
-            UpdateSelectionDisplay();
-        }
-
-    private:
-        void HandleAutoScroll()
-        {
-            ImGuiIO& io = ImGui::GetIO();
-            ImVec2 mousePos = io.MousePos;
-
-            // 只在选择过程中启用自动滚动
-            if (!m_Selection.isSelecting) return;
-
-            // 检查是否需要垂直滚动
-            const float scrollSpeed = 30.0f;
-            const float scrollThreshold = 30.0f;
-
-            // 检查鼠标是否在控件顶部/底部附近
-            if (mousePos.y <= Position.y) {
-                m_ScrollPosition.y -= scrollSpeed * io.DeltaTime;
-            }
-            else if (mousePos.y >= Position.y + Size.y) {
-                m_ScrollPosition.y += scrollSpeed * io.DeltaTime;
-            }
-
-            // 确保滚动位置在有效范围内
-            ClampScrollPosition();
-        }
-
-        void HandleSelection()
-        {
-            ImGuiIO& io = ImGui::GetIO();
-            ImVec2 mousePos = io.MousePos;
-            bool isMouseInWidget = ImRect(Position, Position + Size).Contains(mousePos);
-
-            // 开始选择
-            if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && isMouseInWidget) {
-                m_Selection.isSelecting = true;
-
-                // 查找起始条目
-                for (int i = 0; i < static_cast<int>(m_Items.size()); ++i) {
-                    ImRect itemRect(
-                        m_Items[i].block->GetPosition(),
-                        m_Items[i].block->GetPosition() + m_Items[i].block->GetSize()
-                    );
-
-                    if (itemRect.Contains(mousePos)) {
-                        // 计算起始字符索引
-                        ImVec2 localPos = mousePos - m_Items[i].block->GetPosition();
-                        int charIndex = m_Items[i].block->GetCharIndexAtPosition(localPos);
-
-                        if (charIndex >= 0) {
-                            m_Selection.startItem = i;
-                            m_Selection.startChar = charIndex;
-                            m_Selection.endItem = i;
-                            m_Selection.endChar = charIndex;
-                        }
-                        break;
-                    }
-                }
-            }
-
-            // 更新选择结束位置
-            if (m_Selection.isSelecting && ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-                // 查找结束条目
-                for (int i = 0; i < static_cast<int>(m_Items.size()); ++i) {
-                    ImRect itemRect(
-                        m_Items[i].block->GetPosition(),
-                        m_Items[i].block->GetPosition() + m_Items[i].block->GetSize()
-                    );
-
-                    if (itemRect.Contains(mousePos)) {
-                        // 计算结束字符索引
-                        ImVec2 localPos = mousePos - m_Items[i].block->GetPosition();
-                        int charIndex = m_Items[i].block->GetCharIndexAtPosition(localPos);
-
-                        if (charIndex >= 0) {
-                            m_Selection.endItem = i;
-                            m_Selection.endChar = charIndex;
-                        }
-                        break;
-                    }
-                }
-            }
-
-            // 结束选择
-            if (ImGui::IsMouseReleased(ImGuiMouseButton_Left)) {
-                m_Selection.isSelecting = false;
-            }
-
-            // 处理复制操作
-            if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_C)) {
-                CopySelectedText();
-            }
-        }
-
-        void UpdateSelectionDisplay()
-        {
-            // 清除所有条目的选择状态
-            for (auto& item : m_Items) {
-                if (item.block) {
-                    item.block->ClearSelection();
-                }
-            }
-
-            // 如果选择无效，直接返回
-            if (m_Selection.startItem < 0 || m_Selection.endItem < 0)
+            ImGuiContext& g = *GImGui;
+            ImGuiWindow* window = ImGui::GetCurrentWindow();
+            if (window->SkipItems)
                 return;
 
-            // 确保选择方向正确（从开始到结束）
-            int startItem = m_Selection.startItem;
-            int endItem = m_Selection.endItem;
-            int startChar = m_Selection.startChar;
-            int endChar = m_Selection.endChar;
+            // 计算控件在屏幕上的位置
+            ImVec2 widget_pos = Position;
+            ImRect widget_rect(widget_pos, widget_pos + Size);
 
-            if (startItem > endItem || (startItem == endItem && startChar > endChar)) {
-                std::swap(startItem, endItem);
-                std::swap(startChar, endChar);
+            // 开始裁剪区域
+            window->DrawList->PushClipRect(widget_rect.Min, widget_rect.Max, true);
+
+            // 处理滚轮事件
+            ImGuiIO& io = ImGui::GetIO();
+            bool is_hovered = ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(widget_rect.Min, widget_rect.Max);
+
+            if (is_hovered)
+            {
+                m_ScrollOffsetY -= io.MouseWheel * ImGui::GetTextLineHeight() * 3;
+
+                // 修复：使用正确的高度差进行滚动限制
+                float max_scroll = ImMax(0.0f, m_TotalContentHeight - m_ContentRegion.y);
+                m_ScrollOffsetY = ImClamp(m_ScrollOffsetY, 0.0f, max_scroll);
             }
 
-            // 更新选择显示
-            if (startItem == endItem) {
-                // 同一条目内的选择
-                if (m_Items[startItem].block) {
-                    m_Items[startItem].block->SetSelection(startChar, endChar);
+            // 计算可见区域
+            const float visible_y1 = m_ScrollOffsetY;
+            const float visible_y2 = visible_y1 + Size.y;
+
+            // 绘制背景（可选）
+            window->DrawList->AddRectFilled(
+                widget_rect.Min, widget_rect.Max,
+                ImGui::GetColorU32(ImGuiCol_ChildBg),
+                ImGui::GetStyle().ChildRounding
+            );
+
+            // 渲染可见行
+            for (const auto& item : m_Items)
+            {
+                for (const auto& line : item.Lines)
+                {
+                    const float line_y1 = line.Position.y;
+                    const float line_y2 = line_y1 + line.Size.y;
+
+                    if (line_y2 >= visible_y1 && line_y1 <= visible_y2)
+                    {
+                        ImVec2 screen_pos = widget_pos + ImVec2(0, line.Position.y - m_ScrollOffsetY);
+                        window->DrawList->AddText(screen_pos, m_TextColor, line.Text.c_str());
+                    }
                 }
             }
-            else {
-                // 跨条目选择
-                // 起始条目：从起始字符到末尾
-                if (m_Items[startItem].block) {
-                    m_Items[startItem].block->SetSelection(startChar, m_Items[startItem].content.size());
-                }
 
-                // 中间条目：全选
-                for (int i = startItem + 1; i < endItem; ++i) {
-                    if (m_Items[i].block) {
-                        m_Items[i].block->SetSelection(0, m_Items[i].content.size());
+            // 滚动条处理
+            float max_scroll = ImMax(0.0f, m_TotalContentHeight - m_ContentRegion.y);
+
+            if (max_scroll > 0.0f)
+            {
+                const float scrollbar_width = ImGui::GetStyle().ScrollbarSize;
+                const ImRect scrollbar_rect(
+                    widget_pos.x + Size.x - scrollbar_width,
+                    widget_pos.y,
+                    widget_pos.x + Size.x,
+                    widget_pos.y + Size.y
+                );
+
+                // 计算滚动条滑块高度（至少20像素）
+                const float scroll_thumb_height = ImMax(20.0f, (m_ContentRegion.y / m_TotalContentHeight) * Size.y);
+
+                // 修复：使用正确的高度差计算滚动比例
+                float scroll_ratio = (m_ScrollOffsetY / max_scroll);
+                scroll_ratio = ImClamp(scroll_ratio, 0.0f, 1.0f);
+
+                // 计算滑块位置
+                const float scroll_thumb_y = scrollbar_rect.Min.y +
+                    (scrollbar_rect.GetHeight() - scroll_thumb_height) * scroll_ratio;
+
+                ImRect thumb_rect(
+                    scrollbar_rect.Min.x,
+                    scroll_thumb_y,
+                    scrollbar_rect.Max.x,
+                    scroll_thumb_y + scroll_thumb_height
+                );
+
+                // 绘制滚动条背景
+                window->DrawList->AddRectFilled(
+                    scrollbar_rect.Min, scrollbar_rect.Max,
+                    ImGui::GetColorU32(ImGuiCol_ScrollbarBg),
+                    g.Style.ScrollbarRounding
+                );
+
+                // 绘制滑块
+                window->DrawList->AddRectFilled(
+                    thumb_rect.Min, thumb_rect.Max,
+                    ImGui::GetColorU32(ImGuiCol_ScrollbarGrab),
+                    g.Style.ScrollbarRounding
+                );
+
+                // 处理滚动条拖动
+                ImGuiID scrollbar_id = window->GetID(m_WidgetName.c_str());
+                bool hovered, held;
+                ImGui::ButtonBehavior(scrollbar_rect, scrollbar_id, &hovered, &held,
+                    ImGuiButtonFlags_AllowOverlap | ImGuiButtonFlags_PressedOnClick);
+
+                // 处理拖动开始
+                if (ImGui::IsMouseClicked(0) && hovered)
+                {
+                    m_IsDraggingScrollbar = true;
+                    if (ImGui::IsMouseHoveringRect(thumb_rect.Min, thumb_rect.Max))
+                    {
+                        // 计算鼠标在滑块内的相对位置
+                        m_ScrollbarGrabDelta = io.MousePos.y - thumb_rect.Min.y;
+                    }
+                    else
+                    {
+                        // 点击轨道时直接跳转
+                        m_ScrollbarGrabDelta = scroll_thumb_height * 0.5f;
+                        float mouse_rel_y = io.MousePos.y - scrollbar_rect.Min.y;
+                        float new_scroll_ratio = (mouse_rel_y - m_ScrollbarGrabDelta) /
+                            (scrollbar_rect.GetHeight() - scroll_thumb_height);
+                        new_scroll_ratio = ImClamp(new_scroll_ratio, 0.0f, 1.0f);
+
+                        // 修复：使用正确的高度差计算新偏移
+                        m_ScrollOffsetY = new_scroll_ratio * max_scroll;
                     }
                 }
 
-                // 结束条目：从开始到结束字符
-                if (m_Items[endItem].block) {
-                    m_Items[endItem].block->SetSelection(0, endChar);
-                }
-            }
-        }
-
-        void CopySelectedText()
-        {
-            if (m_Selection.startItem < 0 || m_Selection.endItem < 0)
-                return;
-
-            // 确保选择方向正确
-            int startItem = m_Selection.startItem;
-            int endItem = m_Selection.endItem;
-            int startChar = m_Selection.startChar;
-            int endChar = m_Selection.endChar;
-
-            if (startItem > endItem || (startItem == endItem && startChar > endChar)) {
-                std::swap(startItem, endItem);
-                std::swap(startChar, endChar);
-            }
-
-            // 构建复制文本
-            std::string combinedText;
-
-            if (startItem == endItem) {
-                // 同一条目内的选择
-                int start = ImClamp(startChar, 0, static_cast<int>(m_Items[startItem].content.size()));
-                int end = ImClamp(endChar, 0, static_cast<int>(m_Items[startItem].content.size()));
-
-                if (start < end) {
-                    combinedText = m_Items[startItem].content.substr(start, end - start);
-                }
-            }
-            else {
-                // 跨条目选择
-                // 起始条目
-                if (startChar < static_cast<int>(m_Items[startItem].content.size())) {
-                    combinedText += m_Items[startItem].content.substr(startChar);
-                }
-                combinedText += "\n";
-
-                // 中间条目
-                for (int i = startItem + 1; i < endItem; ++i) {
-                    combinedText += m_Items[i].content;
-                    combinedText += "\n";
+                // 处理拖动结束
+                if (m_IsDraggingScrollbar && ImGui::IsMouseReleased(0))
+                {
+                    m_IsDraggingScrollbar = false;
                 }
 
-                // 结束条目
-                if (endChar > 0) {
-                    combinedText += m_Items[endItem].content.substr(0, endChar);
+                // 处理拖动中
+                if (m_IsDraggingScrollbar)
+                {
+                    float mouse_rel_y = io.MousePos.y - scrollbar_rect.Min.y;
+                    float new_scroll_ratio = (mouse_rel_y - m_ScrollbarGrabDelta) /
+                        (scrollbar_rect.GetHeight() - scroll_thumb_height);
+                    new_scroll_ratio = ImClamp(new_scroll_ratio, 0.0f, 1.0f);
+
+                    // 修复：使用正确的高度差计算新偏移
+                    m_ScrollOffsetY = new_scroll_ratio * max_scroll;
                 }
             }
 
-            // 复制到剪贴板
-            if (!combinedText.empty()) {
-                ImGui::SetClipboardText(combinedText.c_str());
-            }
+            // 结束裁剪区域
+            window->DrawList->PopClipRect();
+
+            // 绘制边框（可选）
+            window->DrawList->AddRect(
+                widget_rect.Min, widget_rect.Max,
+                ImGui::GetColorU32(ImGuiCol_Border),
+                ImGui::GetStyle().ChildRounding
+            );
         }
     };
 }
