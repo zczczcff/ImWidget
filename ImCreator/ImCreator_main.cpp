@@ -46,8 +46,6 @@ public:
     ImGuiWidget::ImVerticalBox* m_WidgetList;
     DesiginPanel* m_CenterPanel;
     ImGuiWidget::ImVerticalBox* m_DetailList;
-    ImGuiWidget::ImMultiLineTextBlock* m_LogText;
-    ImGuiWidget::ImMultiLineTextBlock* m_LogText2;
 
     ImGuiWidget::ImScrollingTextList* m_LogList;
 
@@ -82,32 +80,27 @@ public:
         m_MiddleSplitter->AddPart(m_CenterPageManager)->Ratio = 5.0f;
         m_MiddleSplitter->AddPart(m_DetailList);
 
-        m_Example_Button = new ExampleWidget("Example_Button", "Button");
-        m_WidgetList->AddChildToVerticalBox(m_Example_Button);
-
-        
-
+        m_Example_Button = new ExampleWidget("Example_Button", "Button", WidgetType::ImButton);
+        ImGuiWidget::ImButton* button_test = new ImGuiWidget::ImButton("buttontest");
+        auto slot1 = m_WidgetList->AddChildToVerticalBox(m_Example_Button);
+        slot1->SetIfAutoSize(false);
+        slot1->PaddingLeft = 10;
+        slot1->PaddingRight = 10;
+        m_WidgetList->AddChildToVerticalBox(button_test)->SetIfAutoSize(false);
 
         m_BottomBox=new ImGuiWidget::ImVerticalBox("BottomBox");
         m_VSplitter->AddPart(m_MiddleBox)->Ratio = 4.0f;
         m_VSplitter->AddPart(m_BottomBox);
-        m_LogText = new  ImGuiWidget::ImMultiLineTextBlock("LogText");
+
         m_LogList = new ImGuiWidget::ImScrollingTextList("LogList");
         for (int i = 0; i < 20; i++)
         {
             m_LogList->AddItem("abcdesafsafefa tesrt skanf isf nin aifn ansifasf nia fni asfaf",IM_COL32(150,100,10*i,255));
         }
         
-        //m_LogText2=new ImGuiWidget::ImMultiLineTextBlock("LogText2");
-        //m_LogBox = new ImGuiWidget::ImScrollBox("LogBox");
-       // m_LogBox->SetContent(m_LogText);
-        //m_LogBox->EnableHorizontalScroll(false);
+
         m_BottomBox->AddChildToVerticalBox(m_LogList)->SetIfAutoSize(true);
 
-
-        //m_BottomBox->AddChildToVerticalBox(m_LogText2)->SetIfAutoSize(false);
-        m_LogText->SetText("abcde fghij klmn opq rst uvw xyzabcde fghij klmn opq rst uvw xyzabcde fghij klmn opq rst uvw xyzabcde fghij klmn opq rst uvw xyzabcde fghij klmn opq rst uvw xyzabcde fghij klmn opq rst uvw xyzabcde fghij klmn opq rst uvw xyzabcde fghij klmn opq rst uvw xyzabcde fghij klmn opq rst uvw xyzabcde fghij klmn opq rst uvw xyz");
-        //m_LogText2->SetText("abcde fghij klmn opq rst uvw xyz");
         m_MenuList = new ImGuiWidget::ImHorizontalBox("m_MenuList");
         m_MenuList->SetBackGroundColor(IM_COL32(50, 50, 230, 255));
         //Button_Project = new ImGuiWidget::ImMenuButton("Button_Project");
@@ -152,66 +145,7 @@ public:
         m_MenuButton_Project_History1->AddMenuOption(button3);
         m_MenuButton_Project_History1->AddMenuOption(button4);
         m_MenuButton_Project_History1->AddMenuOption(button5);
-        //m_Menu_ProjectMenu->AddChildToVerticalBox(button0);
-        //m_Menu_ProjectMenu->AddChildToVerticalBox(button1);
-        //m_Menu_ProjectMenu->AddChildToVerticalBox(button2);
-        //Button_Project->SetOnPressed([this]()
-        //    {
-        //        bRenderMenu_ProjectMenu = !bRenderMenu_ProjectMenu;
-        //        m_Menu_ProjectMenu->SetPosition(Button_Project->GetPosition() + ImVec2(0.f, Button_Project->GetSize().y));
-        //        m_Menu_ProjectMenu->SetSize(ImVec2(50, 200));
-        //    });
-        
 
-        //TextBlock0->SetText("Test");
-        //m_MiddleSplitter->SetSize(ImVec2(600, 300));
-
-
-        //ImGuiWidget::ImVerticalBox* Box1 = new ImGuiWidget::ImVerticalBox("Box1");
-        //ImGuiWidget::ImButton* button3 = new ImGuiWidget::ImButton("button3");
-        //ImGuiWidget::ImButton* button4 = new ImGuiWidget::ImButton("button4");
-        //ImGuiWidget::ImButton* button5 = new ImGuiWidget::ImButton("button5");
-        //ImGuiWidget::ImSingleLineInPutText* InPutText0 = new ImGuiWidget::ImSingleLineInPutText("InputText0");
-        //ImGuiWidget::ImSlider* Slider0 = new ImGuiWidget::ImSlider("Slider0");
-        //ImGuiWidget::ImScrollBox* ScrollBox0 = new ImGuiWidget::ImScrollBox("ScrollBox0");
-        //ScrollBox0->SetSize(ImVec2(500.f, 500.f));
-        //ImGuiWidget::ImCanvasPanel* CanvasPanel1 = new ImGuiWidget::ImCanvasPanel("CanvasPanel1");
-        //ScrollBox0->SetContent(CanvasPanel1);
-        //CanvasPanel1->SetSize(ImVec2(300.f, 300.f));
-        //ImGuiWidget::ImButton* button6 = new ImGuiWidget::ImButton("button6");
-        //ImGuiWidget::ImButton* button7 = new ImGuiWidget::ImButton("button7");
-
-        //ImGuiWidget::ImResizableBox* ResizableBox0 = new ImGuiWidget::ImResizableBox("ResizableBox0");
-        //ImGuiWidget::ImImage* Image0 = new ImGuiWidget::ImImage("Image0", "./Resource/preview.jpg");
-        //Image0->SetAlpha(0.5);
-        //CanvasPanel1->AddChildToCanvasPanel(button6)->SetSlotPosAndSize(ImVec2(100.f, 100.f), ImVec2(20.f, 20.f));
-        //CanvasPanel1->AddChildToCanvasPanel(button7)->SetSlotPosAndSize(ImVec2(280.f, 290.f), ImVec2(20.f, 20.f));
-
-
-        //m_Box->AddChildToVerticalBox(button0);
-        //m_Box->AddChildToVerticalBox(button1);
-        //m_Box->AddChildToVerticalBox(button2)->SetIfAutoSize(false);
-        //Box1->AddChildToVerticalBox(button3);
-        //Box1->AddChildToVerticalBox(button4);
-        ////button4->SetContent(TextBlock0);
-        //Box1->AddChildToVerticalBox(InPutText0);
-        ////Box1->AddChildToVerticalBox(TextBlock0);
-        ////m_Box->AddChildToVerticalBox(Box1);
-        //m_Box->SetSize(ImVec2(100, 600));
-
-        ////m_Splitter->SetLeftPart(m_Box);
-        ////m_Splitter->SetRightPart(Box1);
-        //m_MiddleSplitter->AddPart(m_Box);
-        //m_MiddleSplitter->AddPart(Box1);
-        //m_MiddleSplitter->AddPart(ScrollBox0);
-        ////m_Canvas->AddChildToCanvasPanel(button5)->SetSlotPosAndSize(ImVec2(500, 500), ImVec2(50, 50));
-        ////m_Canvas->AddChildToCanvasPanel(Slider0)->SetSlotPosAndSize(ImVec2(550, 550), ImVec2(200, 10));
-        ////m_Canvas->AddChildToCanvasPanel(ScrollBox0)->SetSlotPosAndSize(ImVec2(100, 100), ImVec2(400, 400));
-
-        //m_Canvas->AddChildToCanvasPanel(ResizableBox0)->SetSlotPosAndSize(ImVec2(400, 400), ImVec2(400, 400));
-
-        //m_Canvas->AddChildToCanvasPanel(m_MiddleSplitter)->SetSlotPosAndSize(ImVec2(500, 500), ImVec2(400, 200));
-        //ResizableBox0->SetContent(Image0);
     }
     void Render() override
     {

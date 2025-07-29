@@ -4,6 +4,10 @@
 #include "ImWidget/ImTextBlock.h"
 #include "ImWidget/ImResizableBox.h"
 #include "ImWidget/ImDesignPanel.h"
+
+
+#include "ExampleWidgetInfor.h"
+
 class DesiginPanel : public ImGuiWidget::ImUserWidget
 {
 private:
@@ -12,26 +16,32 @@ protected:
 	virtual void OnDragOn(ImGuiWidget::ImDragHandle* OriginalHandle) override
 	{
 		ImVec2 Pos = ImGui::GetMousePos();
-		ImGuiWidget::ImTextBlock* testblock = new ImGuiWidget::ImTextBlock("testblock");
-		//ImGuiWidget::ImResizableBox* testBox = new ImGuiWidget::ImResizableBox("testresizableBox");
-		//testBox->SetContent(testblock);
-		testblock->SetText("test");
-		m_MainPanel->AddChildToCanvasPanel(testblock)->SetSlotPosAndSize(Pos - m_MainPanel->GetPosition(), ImVec2(80, 20));
-		//testBox->SetOnResizing(
-		//	[this,testBox](ImVec2 Pos,ImVec2 Size) 
-		//	{
-		//		for (int i = 0; i < m_MainPanel->GetChildNum(); i++)
-		//		{
-		//			ImGuiWidget::ImCanvasPanelSlot* slottemp = (ImGuiWidget::ImCanvasPanelSlot*)(m_MainPanel->GetSlot(i));
-		//			if (slottemp->GetContent() == testBox)
-		//			{
-		//				slottemp->RelativePosition = Pos - m_MainPanel->GetPosition();
-		//				slottemp->SlotSize = Size;
-		//				break;
-		//			}
-		//		}
-		//	}
-		//);
+		ExampleWidgetDragHandle* Target_ExampleWidgetDragHandle = dynamic_cast<ExampleWidgetDragHandle*>(OriginalHandle);
+
+		if (!Target_ExampleWidgetDragHandle) return;
+
+		switch (Target_ExampleWidgetDragHandle->widgettype)
+		{
+		case WidgetType::ImButton:
+		{
+			Handle_DragOnButton(Pos);
+			break;
+		}
+
+		default:
+			break;
+		}
+
+
+	}
+
+	void Handle_DragOnButton(ImVec2 MousePos)
+	{
+		static int count = 0;
+		
+		ImGuiWidget::ImButton* button = new ImGuiWidget::ImButton("Button_" + std::to_string(count));
+		m_MainPanel->AddChildToCanvasPanel(button)->SetSlotPosAndSize(MousePos - Position, button->GetMinSize());
+		count++;
 	}
 public:
 	DesiginPanel(const std::string& WidgetName) :
