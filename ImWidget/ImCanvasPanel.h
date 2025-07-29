@@ -40,6 +40,6 @@ namespace ImGuiWidget
 				CPSlot->GetContent()->Render();
 			}
 		}
-
+		
 	};
 }

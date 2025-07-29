@@ -16,7 +16,13 @@ namespace ImGuiWidget
 		float PaddingLeft = 0.f;
 		float PaddingRight = 0.f;
 		ImSlot():Content(nullptr) {}
-		ImSlot(ImWidget* Content):Content(Content){}
+		ImSlot(ImWidget* Content):Content(Content)
+		{
+			if (Content)
+			{
+				Content->SetSlot(this);
+			}
+		}
 		ImWidget* GetContent() { return Content; }
 		virtual void ApplyLayout(const ImVec2& containerPos, const ImVec2& containerSize){}
 		bool GetIfAutoSize() { return bAutoSize; }

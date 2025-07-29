@@ -127,5 +127,24 @@ namespace ImGuiWidget
 
 		ImSlot* GetSlot(int Index) { return m_Slots[Index]; }
 
+		virtual ImWidget* ChildHitTest(ImVec2 Pos) override
+		{
+			if (ImWidget::ChildHitTest(Pos))
+			{
+				for (int i = m_Slots.size(); i >= 0; i--)
+				{
+					ImWidget* ChildHitWidget = m_Slots[i]->GetContent()->ChildHitTest(Pos);
+					if (ChildHitWidget)
+					{
+						return ChildHitWidget;
+					}
+				}
+				return this;
+			}
+			else
+			{
+				return nullptr;
+			}
+		}
 	};
 }
