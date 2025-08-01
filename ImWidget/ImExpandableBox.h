@@ -14,6 +14,40 @@ namespace ImGuiWidget
 		ImVec2 p0, p1, p2, p3, p4, p5;//TrianglePoints
 		ImRect buttonrect_NotExpanded, buttonrect_Expanded;
 		ImU32 TriangleColor;
+	protected:
+		virtual ImSlot* CreateSlot(ImWidget* Content)
+		{
+			return new ImPaddingSlot(Content);
+		}
+		virtual void Relayout() override
+		{
+			float headhight = HeadPad;
+
+			if (auto slot = GetSlotAt(0))
+			{
+				slot->SetSlotPosition(Position + ImVec2(HeadPad, 0.f));
+				ImVec2 minsize(0.f, 0.f);
+				if (auto widget = slot->GetContent())
+				{
+					minsize = widget->GetMinSize();
+				}
+				headhight = ImMax(headhight, minsize.y);
+				slot->SetSlotSize(ImVec2(minsize.x, headhight));
+				slot->ApplyLayout();
+			}
+			if (bIsExpanded)
+			{
+				if (auto slot = GetSlotAt(1))
+				{
+					slot->SetSlotPosition(Position + ImVec2(0, headhight));
+					if (auto widget = slot->GetContent())
+					{
+						slot->SetSlotSize(widget->GetMinSize());
+					}
+					slot->ApplyLayout();
+				}
+			}
+		}
 	public:
 		ImExpandableBox(const std::string& WidgetName):
 			ImPanelWidget(WidgetName),
@@ -22,44 +56,15 @@ namespace ImGuiWidget
 		{
 			ReCaculateTriangle();
 		}
-		ImSlot* SetHead(ImWidget* HeadWidget)
+		ImPaddingSlot* SetHead(ImWidget* HeadWidget)
 		{
-			if (m_Slots.size() >= 1)
-			{
-				if (m_Slots[0])
-				{
-					delete m_Slots[0];
-				}
-				m_Slots[0] = new ImSlot(HeadWidget);
-			}
-			else
-			{
-				m_Slots.push_back(new ImSlot(HeadWidget));
-			}
-			
-			return m_Slots[0];
+			SetChildAt(0, HeadWidget);
+			return (ImPaddingSlot*)GetSlotAt(0);
 		}
-		ImSlot* SetBody(ImWidget* BodyWidget)
+		ImPaddingSlot* SetBody(ImWidget* BodyWidget)
 		{
-			if (m_Slots.size() >= 2)
-			{
-				if (m_Slots[1])
-				{
-					delete m_Slots[1];
-				}
-				m_Slots[1] = new ImSlot(BodyWidget);
-			}
-			else if (m_Slots.size() == 1)
-			{
-				m_Slots.push_back(new ImSlot(BodyWidget));
-			}
-			else
-			{
-				m_Slots.push_back(nullptr);
-				m_Slots.push_back(new ImSlot(BodyWidget));
-			}
-
-			return m_Slots[1];
+			SetChildAt(1, BodyWidget);
+			return (ImPaddingSlot*)GetSlotAt(1);
 		}
 
 		void ReCaculateTriangle()
@@ -118,19 +123,30 @@ namespace ImGuiWidget
 
 		virtual ImVec2 GetMinSize()
 		{
-			ImVec2 MinSize = ImVec2(HeadPad, HeadPad);
-			if (m_Slots.size() >= 1 && m_Slots[0])
-			{
-				MinSize.x += m_Slots[0]->GetContent()->GetMinSize().x;
-				MinSize.y = max(MinSize.y, m_Slots[0]->GetContent()->GetMinSize().y);
-			}
+			ImVec2 minSize(HeadPad, HeadPad);
 
-			if (m_Slots.size() >= 2 && m_Slots[1] && bIsExpanded)
+			if (ImSlot* headSlot = GetSlot(0))
 			{
-				MinSize.x = max(MinSize.x, m_Slots[1]->GetContent()->GetMinSize().x);
-				MinSize.y += m_Slots[1]->GetContent()->GetMinSize().y;
+				if (ImWidget* content = headSlot->GetContent())
+				{
+					const ImVec2 headMin = content->GetMinSize();
+					minSize.x += headMin.x;
+					minSize.y = ImMax(minSize.y, headMin.y);
+				}
 			}
-			return MinSize;
+			if (bIsExpanded)
+			{
+				if (ImSlot* bodySlot = GetSlot(1))
+				{
+					if (ImWidget* content = bodySlot->GetContent())
+					{
+						const ImVec2 bodyMin = content->GetMinSize();
+						minSize.y += bodyMin.y;
+						minSize.x = ImMax(minSize.x, bodyMin.x);
+					}
+				}
+			}
+			return minSize;
 		}
 
 		virtual void Render()override
@@ -148,6 +164,8 @@ namespace ImGuiWidget
 				if (pressed)
 				{
 					bIsExpanded = false;
+					MarkSizeDirty();
+					SetLayoutDirty();
 				}
 				
 			}
@@ -160,27 +178,30 @@ namespace ImGuiWidget
 				if (pressed)
 				{
 					bIsExpanded = true;
+					MarkSizeDirty();
+					SetLayoutDirty();
 				}
 			}
-			
 
-			float headhight = HeadPad;
-			if(m_Slots.size()>=1&&m_Slots[0])
-			{
-				m_Slots[0]->GetContent()->SetPosition(Position + ImVec2(HeadPad, 0.f));
-				ImVec2 minsize = m_Slots[0]->GetContent()->GetMinSize();
-				headhight = max(headhight, minsize.y);
-				m_Slots[0]->GetContent()->SetSize(ImVec2(minsize.x, headhight));
-				m_Slots[0]->GetContent()->Render();
-			}
 
-			if (bIsExpanded && m_Slots.size() >= 2 && m_Slots[1])
-			{
-				m_Slots[1]->GetContent()->SetPosition(Position + ImVec2(0, headhight));
-				ImVec2 minsize = m_Slots[1]->GetContent()->GetMinSize();
-				m_Slots[1]->GetContent()->SetSize(minsize);
-				m_Slots[1]->GetContent()->Render();
-			}
+			HandleLayout();
+			//if(m_Slots.size()>=1&&m_Slots[0])
+			//{
+			//	m_Slots[0]->GetContent()->SetPosition(Position + ImVec2(HeadPad, 0.f));
+			//	ImVec2 minsize = m_Slots[0]->GetContent()->GetMinSize();
+			//	headhight = max(headhight, minsize.y);
+			//	m_Slots[0]->GetContent()->SetSize(ImVec2(minsize.x, headhight));
+			//	m_Slots[0]->GetContent()->Render();
+			//}
+
+			//if (bIsExpanded && m_Slots.size() >= 2 && m_Slots[1])
+			//{
+			//	m_Slots[1]->GetContent()->SetPosition(Position + ImVec2(0, headhight));
+			//	ImVec2 minsize = m_Slots[1]->GetContent()->GetMinSize();
+			//	m_Slots[1]->GetContent()->SetSize(minsize);
+			//	m_Slots[1]->GetContent()->Render();
+			//}
 		}
+		
 	};
 }

@@ -15,23 +15,54 @@ private:
 protected:
 	virtual void OnDragOn(ImGuiWidget::ImDragHandle* OriginalHandle) override
 	{
-		ImVec2 Pos = ImGui::GetMousePos();
+		static int count = 0;
+		ImVec2 MousePos = ImGui::GetMousePos();
 		ExampleWidgetDragHandle* Target_ExampleWidgetDragHandle = dynamic_cast<ExampleWidgetDragHandle*>(OriginalHandle);
 
 		if (!Target_ExampleWidgetDragHandle) return;
+
+		ImGuiWidget::ImWidget* NewWidget = nullptr;
 
 		switch (Target_ExampleWidgetDragHandle->widgettype)
 		{
 		case WidgetType::ImButton:
 		{
-			Handle_DragOnButton(Pos);
+			//Handle_DragOnButton(Pos);
+			NewWidget= new ImGuiWidget::ImButton("Button_" + std::to_string(count));
+			break;
+		}
+		case WidgetType::ImTextBlock:
+		{
+			NewWidget = new ImGuiWidget::ImTextBlock("TextBlock_" + std::to_string(count));
+			break;
+		}
+		case WidgetType::ImImage:
+		{
+			NewWidget = new ImGuiWidget::ImImage("Image_" + std::to_string(count));
+			break;
+		}
+		case WidgetType::ImCanvasPanel:
+		{
+			NewWidget = new ImGuiWidget::ImCanvasPanel("CanvasPanel_" + std::to_string(count));
 			break;
 		}
 
 		default:
 			break;
 		}
-
+		if (NewWidget)
+		{
+			auto widget = m_MainPanel->ChildHitTest(MousePos);
+			ImGuiWidget::ImPanelWidget* Panel = dynamic_cast<ImGuiWidget::ImPanelWidget*>(widget);
+			if (Panel)
+			{
+				if (!Panel->AddChild(NewWidget,MousePos-Panel->GetPosition()))
+				{
+					delete NewWidget;
+				}
+			}
+			count++;
+		}
 
 	}
 
@@ -40,8 +71,19 @@ protected:
 		static int count = 0;
 		
 		ImGuiWidget::ImButton* button = new ImGuiWidget::ImButton("Button_" + std::to_string(count));
-		m_MainPanel->AddChildToCanvasPanel(button)->SetSlotPosAndSize(MousePos - Position, button->GetMinSize());
+		//m_MainPanel->AddChildToCanvasPanel(button)->SetSlotPosAndSize(MousePos - Position, button->GetMinSize());
+		auto widget = m_MainPanel->ChildHitTest(MousePos);
+		ImGuiWidget::ImPanelWidget* Panel = dynamic_cast<ImGuiWidget::ImPanelWidget*>(widget);
+		if (Panel)
+		{
+			Panel->AddChild(button);
+		}
 		count++;
+	}
+	void Handle_DragOnTextBlock(ImVec2 MousePos)
+	{
+		static int count = 0;
+
 	}
 public:
 	DesiginPanel(const std::string& WidgetName) :

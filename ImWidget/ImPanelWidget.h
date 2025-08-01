@@ -9,12 +9,91 @@ namespace ImGuiWidget
 {
 	class ImPanelWidget :public ImWidget
 	{
-	protected:
+	private:
 		std::vector<ImSlot*> m_Slots;
+	protected:
+		
 		ImU32 BgColor;
 		ImU32 BorderColor;
 		bool bHaveBorder;
+		bool bLayOutDirty = false;
 
+
+		virtual void Relayout() {}
+		void RenderChild()
+		{
+			for (auto slot : m_Slots)
+			{
+				if(slot)
+				slot->Render();
+			}
+		}
+		virtual ImSlot* CreateSlot(ImWidget* Content)
+		{
+			return new ImSlot(Content);
+		}
+		void SetLayoutDirty()
+		{
+			bLayOutDirty = true;
+		}
+		void ClearLayoutDirty()
+		{
+			bLayOutDirty = false;
+		}
+
+		void HandleLayout()
+		{
+			if (bLayOutDirty)
+			{
+				Relayout();
+				ClearLayoutDirty();
+			}
+		}
+
+		template<typename SlotType>
+		SlotType* AddChildInternal(ImWidget* child)
+		{
+			SlotType* newslot = new SlotType(child);
+			m_Slots.push_back(newslot);
+			SetLayoutDirty();
+			return newslot;
+		}
+		void SetChildAt(int index, ImWidget* child)
+		{
+			if (m_Slots.size() > index)
+			{
+				if (m_Slots[index])
+				{
+					delete m_Slots[index]->GetContent();
+				}
+				delete m_Slots[index];
+				m_Slots[index] = CreateSlot(child);
+			}
+			else
+			{
+				for (int i = m_Slots.size(); i < index; i++)
+				{
+					m_Slots.push_back(nullptr);
+				}
+				m_Slots.push_back(CreateSlot(child));
+			}
+			SetLayoutDirty();
+		}
+		// 插入子控件到指定位置
+		ImSlot* InsertChildAt(int index, ImWidget* child)
+		{
+			if (index < 0 || index > static_cast<int>(m_Slots.size())) {
+				return AddChild(child);
+			}
+			ImSlot* newSlot = CreateSlot(child);
+			m_Slots.insert(m_Slots.begin() + index, newSlot);
+			SetLayoutDirty();
+			return newSlot;
+		}
+		virtual void HandleChildSizeDirty() 
+		{
+			SetLayoutDirty();
+		}
 	public:
 		ImPanelWidget(const std::string& WidgetName)
 			:ImWidget(WidgetName),
@@ -30,77 +109,94 @@ namespace ImGuiWidget
 			m_Slots.clear();
 		}
 
-		template<typename SlotType>
-		SlotType* AddChild(ImWidget* child)
+		virtual ImSlot* AddChild(ImWidget* child,ImVec2 RelativePosition=ImVec2(FLT_MIN,FLT_MIN))
 		{
-			SlotType* newslot = new SlotType(child);
-			m_Slots.push_back(newslot);
-			return newslot;
+			return AddChildInternal<ImSlot>(child);
 		}
+
+
 
 		// 按索引移除子控件
 		void RemoveChildAt(int index)
 		{
 			if (index >= 0 && index < static_cast<int>(m_Slots.size()))
 			{
+				if (m_Slots[index])
+				{
+					delete m_Slots[index]->GetContent();
+				}
 				delete m_Slots[index]; // 删除slot对象
 				m_Slots.erase(m_Slots.begin() + index);
+				SetLayoutDirty();
 			}
 		}
 
 		// 按指针移除子控件
-		bool RemoveChild(ImWidget* child)
-		{
-			auto it = std::find_if(m_Slots.begin(), m_Slots.end(),
-				[child](ImSlot* slot) {
-					return slot->GetContent() == child;
-				});
+		//bool RemoveChild(ImWidget* child)
+		//{
+		//	auto it = std::find_if(m_Slots.begin(), m_Slots.end(),
+		//		[child](ImSlot* slot) {
+		//			return slot->GetContent() == child;
+		//		});
 
-			if (it != m_Slots.end())
-			{
-				delete* it; // 删除slot对象
-				m_Slots.erase(it);
-				return true;
-			}
-			return false;
-		}
+		//	if (it != m_Slots.end())
+		//	{
+		//		delete* it; // 删除slot对象
+		//		m_Slots.erase(it);
+		//		SetLayoutDirty();
+		//		return true;
+		//	}
+		//	return false;
+		//}
 
 		// 新增：取出子控件（移除slot但保留子控件指针）
 		ImWidget* ExtractChildAt(int index)
 		{
 			if (index >= 0 && index < static_cast<int>(m_Slots.size()))
 			{
+				if (!m_Slots[index])
+				{
+					return nullptr;
+				}
 				ImWidget* child = m_Slots[index]->GetContent();
 				delete m_Slots[index]; // 删除slot对象
 				m_Slots.erase(m_Slots.begin() + index);
+				SetLayoutDirty();
 				return child;
 			}
 			return nullptr;
 		}
 
 		// 新增：取出子控件（通过指针查找）
-		ImWidget* ExtractChild(ImWidget* child)
-		{
-			auto it = std::find_if(m_Slots.begin(), m_Slots.end(),
-				[child](ImSlot* slot) {
-					return slot->GetContent() == child;
-				});
+		//ImWidget* ExtractChild(ImWidget* child)
+		//{
+		//	auto it = std::find_if(m_Slots.begin(), m_Slots.end(),
+		//		[child](ImSlot* slot) {
+		//			return slot->GetContent() == child;
+		//		});
 
-			if (it != m_Slots.end())
-			{
-				ImWidget* result = (*it)->GetContent();
-				delete* it; // 删除slot对象
-				m_Slots.erase(it);
-				return result;
-			}
-			return nullptr;
-		}
+		//	if (it != m_Slots.end())
+		//	{
+		//		ImWidget* result = (*it)->GetContent();
+		//		delete* it; // 删除slot对象
+		//		m_Slots.erase(it);
+		//		return result;
+		//	}
+		//	return nullptr;
+		//}
 
 		// 获取子控件指针
 		ImWidget* GetChildAt(int index)
 		{
 			if (index >= 0 && index < static_cast<int>(m_Slots.size()))
 				return m_Slots[index]->GetContent();
+			return nullptr;
+		}
+
+		ImSlot* GetSlotAt(int index)
+		{
+			if (index >= 0 && index < static_cast<int>(m_Slots.size()))
+				return m_Slots[index];
 			return nullptr;
 		}
 
@@ -123,7 +219,7 @@ namespace ImGuiWidget
 
 		void SetBorderColor(ImU32 color) { BorderColor = color; }
 
-		int GetChildNum() { return static_cast<int>(m_Slots.size()); }
+		int GetSlotNum() { return static_cast<int>(m_Slots.size()); }
 
 		ImSlot* GetSlot(int Index) { return m_Slots[Index]; }
 
@@ -131,9 +227,9 @@ namespace ImGuiWidget
 		{
 			if (ImWidget::ChildHitTest(Pos))
 			{
-				for (int i = m_Slots.size(); i >= 0; i--)
+				for (int i = m_Slots.size(); i > 0; i--)
 				{
-					ImWidget* ChildHitWidget = m_Slots[i]->GetContent()->ChildHitTest(Pos);
+					ImWidget* ChildHitWidget = m_Slots[i-1]->GetContent()->ChildHitTest(Pos);
 					if (ChildHitWidget)
 					{
 						return ChildHitWidget;
@@ -145,6 +241,18 @@ namespace ImGuiWidget
 			{
 				return nullptr;
 			}
+		}
+
+		virtual void SetPosition(ImVec2 Pos)override
+		{
+			Position = Pos;
+			SetLayoutDirty();
+		}
+
+		virtual void SetSize(ImVec2 size)override
+		{
+			Size = size;
+			SetLayoutDirty();
 		}
 	};
 }

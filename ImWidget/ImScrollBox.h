@@ -30,17 +30,13 @@ namespace ImGuiWidget
         // 设置内容控件
         ImSlot* SetContent(ImWidget* content)
         {
-            if (m_Slots.size() >= 1 && m_Slots[0])
-            {
-                delete m_Slots[0];
-                m_Slots[0] = new ImSlot(content);
+            if (GetSlotNum() > 0) {
+                SetChildAt(0, content);
             }
-            else
-            {
-                m_Slots.push_back(new ImSlot(content));
+            else {
+                AddChild(content);
             }
-
-            return m_Slots[0];
+            return GetSlotAt(0);
         }
 
         // 设置滚动位置
@@ -91,90 +87,48 @@ namespace ImGuiWidget
 
         virtual void Render() override
         {
+            HandleLayout(); // 确保布局更新
+
             ImGuiWindow* window = ImGui::GetCurrentWindow();
             ImGuiID id = ImGui::GetID(m_WidgetName.c_str());
-            ImRect bb(Position, Position + Size);
-
-
-
-            // 处理滚动条拖动结束
-            if (m_DraggingScrollbar != 0 && !ImGui::IsMouseDown(0))
-            {
-                m_DraggingScrollbar = 0; // 结束拖动
-            }
 
             // 渲染背景
             RenderBackGround();
 
-            // 计算内容区域（排除滚动条）
-            ImVec2 contentAvail = Size;
-            if (m_ShowVerticalScrollbar && m_VerticalScrollEnabled) contentAvail.x -= m_ScrollbarThickness;
-            if (m_ShowHorizontalScrollbar && m_HorizontalScrollEnabled) contentAvail.y -= m_ScrollbarThickness;
+            if (GetSlotNum() > 0 && GetSlotAt(0) && GetSlotAt(0)->GetContent()) {
+                // 计算内容区域可用空间（排除滚动条）
+                ImVec2 contentAvail = Size;
+                if (m_ShowVerticalScrollbar && m_VerticalScrollEnabled)
+                    contentAvail.x -= m_ScrollbarThickness;
+                if (m_ShowHorizontalScrollbar && m_HorizontalScrollEnabled)
+                    contentAvail.y -= m_ScrollbarThickness;
 
-            if (m_Slots.size() >= 1 && m_Slots[0])
-            {
-                //预设置子项大小
-
-                m_Slots[0]->GetContent()->SetSize(contentAvail);
-                // 计算内容大小
-                ImVec2 minSize = m_Slots[0]->GetContent()->GetMinSize();
-
-                // 禁用滚动方向：限制子控件大小
-                ImVec2 childSize = minSize;
-                if (!m_HorizontalScrollEnabled) {
-                    childSize.x = ImMin(minSize.x, contentAvail.x);
-                }
-                if (!m_VerticalScrollEnabled) {
-                    childSize.y = ImMin(minSize.y, contentAvail.y);
-                }
-
-                // 设置内容区域大小
-                m_ContentSize = ImVec2(
-                    m_HorizontalScrollEnabled ? minSize.x : childSize.x,
-                    m_VerticalScrollEnabled ? minSize.y : childSize.y
-                );
-
-                // 开始滚动区域 - 使用自定义滚动而非ImGui自带滚动
+                // 创建裁剪区域
                 ImGui::SetNextWindowPos(Position);
                 ImGui::BeginChild(id, contentAvail, ImGuiChildFlags_None,
                     ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
 
-                // 检测整个滚动框的悬停状态
-                bool isHovered = ImGui::IsWindowHovered() &&
-                    ImGui::IsMouseHoveringRect(Position, Position + Size);
-
                 // 处理鼠标滚轮滚动
-                if (isHovered && ImGui::GetIO().MouseWheel != 0.0f)
-                {
-                    if (m_VerticalScrollEnabled)
-                    {
-                        m_ScrollPosition.y -= ImGui::GetIO().MouseWheel * 30.0f;
-                        
-                    }
-                    else if (m_HorizontalScrollEnabled)
-                    {
-                        m_ScrollPosition.x -= ImGui::GetIO().MouseWheel * 30.0f;
-                        
+                if (ImGui::IsWindowHovered() && ImGui::IsMouseHoveringRect(Position, Position + Size)) {
+                    if (ImGui::GetIO().MouseWheel != 0.0f) {
+                        if (m_VerticalScrollEnabled) {
+                            m_ScrollPosition.y -= ImGui::GetIO().MouseWheel * 30.0f;
+                        }
+                        else if (m_HorizontalScrollEnabled) {
+                            m_ScrollPosition.x -= ImGui::GetIO().MouseWheel * 30.0f;
+                        }
+                        ClampScrollPosition();
                     }
                 }
-                ClampScrollPosition();
-                // 设置子控件位置
+
+                // 设置滚动偏移
                 ImVec2 childPos = ImGui::GetCursorPos();
                 if (m_HorizontalScrollEnabled) childPos.x -= m_ScrollPosition.x;
                 if (m_VerticalScrollEnabled) childPos.y -= m_ScrollPosition.y;
-
-                // 禁用滚动方向：固定位置
-                if (!m_HorizontalScrollEnabled) {
-                    childPos.x = 0;
-                }
-                if (!m_VerticalScrollEnabled) {
-                    childPos.y = 0;
-                }
-
                 ImGui::SetCursorPos(childPos);
-                m_Slots[0]->GetContent()->SetPosition(ImVec2(Position.x + childPos.x, Position.y + childPos.y));
-                m_Slots[0]->GetContent()->SetSize(childSize);
-                m_Slots[0]->GetContent()->Render();
+
+                // 渲染所有子控件（通过基类方法）
+                RenderChild();
 
                 // 确保内容区域大小正确
                 ImGui::SetCursorPos(ImVec2(0, 0));
@@ -182,10 +136,11 @@ namespace ImGuiWidget
 
                 ImGui::EndChild();
 
-                // 自定义渲染滚动条
+                // 渲染滚动条
                 RenderCustomScrollbars();
             }
         }
+
 
     protected:
         // 确保滚动位置在有效范围内
@@ -338,5 +293,40 @@ namespace ImGuiWidget
                 ClampScrollPosition();
             }
         }
+
+        virtual void Relayout() override
+        {
+            if (GetSlotNum() > 0 && GetSlotAt(0) && GetSlotAt(0)->GetContent()) {
+                ImSlot* slot = GetSlotAt(0);
+                ImWidget* content = slot->GetContent();
+
+                // 计算内容区域可用空间（排除滚动条）
+                ImVec2 contentAvail = Size;
+                if (m_ShowVerticalScrollbar && m_VerticalScrollEnabled)
+                    contentAvail.x -= m_ScrollbarThickness;
+                if (m_ShowHorizontalScrollbar && m_HorizontalScrollEnabled)
+                    contentAvail.y -= m_ScrollbarThickness;
+
+                // 计算内容尺寸
+                ImVec2 minSize = content->GetMinSize();
+                m_ContentSize = ImVec2(
+                    m_HorizontalScrollEnabled ? minSize.x : ImMin(minSize.x, contentAvail.x),
+                    m_VerticalScrollEnabled ? minSize.y : ImMin(minSize.y, contentAvail.y)
+                );
+
+                // 设置Slot属性（而不是直接设置控件）
+                slot->SetSlotPosition(ImVec2(0, 0)); // 相对位置
+                slot->SetSlotSize(m_ContentSize);    // 内容尺寸
+
+                // 应用布局（这会设置实际控件的位置和大小）
+                slot->ApplyLayout();
+            }
+        }
+
+        virtual void HandleChildSizeDirty() override
+        {
+            SetLayoutDirty(); // 内容尺寸变化需要重新布局
+        }
+
     };
 }

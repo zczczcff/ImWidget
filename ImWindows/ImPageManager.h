@@ -268,7 +268,7 @@ namespace ImWindows
             }
 
             // 添加为子控件
-            AddChild<ImGuiWidget::ImSlot>(m_TabBar);
+            AddChildInternal<ImGuiWidget::ImSlot>(m_TabBar);
         }
 
         virtual ~ImPageManager()

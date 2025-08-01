@@ -48,7 +48,101 @@ namespace ImGuiWidget
         ButtonStateStyle m_PressedStyle;
 
         bool m_WasHovered = false;  // 上一帧悬停状态
+        void RenderButton()
+        {
+            ImGuiWindow* window = ImGui::GetCurrentWindow();
+            ImGuiContext& g = *GImGui;
+            const ImGuiID id = window->GetID(m_WidgetName.c_str());
+            ImRect bb(Position, Position + Size);
 
+            //ImGui::ItemSize(Size, g.Style.FramePadding.y);
+            if (!ImGui::ItemAdd(bb, id)) {}
+
+            // 检测按钮行为
+            bool hovered, held;
+            bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, m_ButtonFlag);
+
+            // 处理悬停状态变化
+            if (hovered && !m_WasHovered && OnHoverBegin)
+            {
+                OnHoverBegin();
+            }
+            if (!hovered && m_WasHovered && OnHoverEnd)
+            {
+                OnHoverEnd();
+            }
+            m_WasHovered = hovered;
+
+            // 处理按下/松开事件
+            if (held && !m_LastFrameHeld && OnPressed)
+            {
+                OnPressed();
+            }
+            if (!held && m_LastFrameHeld && OnReleased)
+            {
+                OnReleased();
+            }
+            m_LastFrameHeld = held;
+
+            // 根据当前状态选择样式
+            const ButtonStateStyle* currentStyle = &m_NormalStyle;
+            if (held)
+            {
+                currentStyle = &m_PressedStyle;
+            }
+            else if (hovered)
+            {
+                if (m_WidgetName == "CloseButton_test")
+                {
+                    printf("test");
+                }
+                currentStyle = &m_HoveredStyle;
+            }
+
+            // 绘制按钮背景
+            window->DrawList->AddRectFilled(
+                bb.Min,
+                bb.Max,
+                currentStyle->BackgroundColor,
+                currentStyle->Rounding,
+                0
+            );
+
+            // 绘制边框
+            if (currentStyle->HasBorder && currentStyle->BorderThickness > 0.0f)
+            {
+                window->DrawList->AddRect(
+                    bb.Min,
+                    bb.Max,
+                    currentStyle->BorderColor,
+                    currentStyle->Rounding,
+                    0, // 默认全部圆角
+                    currentStyle->BorderThickness
+                );
+            }
+
+            if (hovered && !m_TooltipText.empty() &&
+                ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+            {
+                ImGui::BeginTooltip();
+                ImGui::TextUnformatted(m_TooltipText.c_str());
+                ImGui::EndTooltip();
+            }
+        }
+        virtual void Relayout() override
+        {
+            auto slot = GetSlotAt(0);
+            if (slot)
+            {
+                slot->SetSlotPosition(Position);
+                slot->SetSlotSize(Size);
+                slot->ApplyLayout();
+            }
+        }
+        virtual ImSlot* CreateSlot(ImWidget* Content)override
+        {
+            return new ImPaddingSlot(Content);
+        }
     public:
         ImButton(const std::string& WidgetName) : ImPanelWidget(WidgetName)
         {
@@ -83,16 +177,21 @@ namespace ImGuiWidget
         // 设置内容
         void SetContent(ImWidget* child) 
         {
-            ImSlot* newslot = new ImSlot(child);
-            if (m_Slots.size() == 1)
-            {
-                delete m_Slots[0];
-                m_Slots[0] = newslot;
-            }
-            else
-            {
-                m_Slots.push_back(newslot);
-            }
+            SetChildAt(0, child);
+            //ImSlot* newslot = new ImSlot(child);
+            //if (m_Slots.size() == 1)
+            //{
+            //    delete m_Slots[0];
+            //    m_Slots[0] = newslot;
+            //}
+            //else
+            //{
+            //    m_Slots.push_back(newslot);
+            //}
+        }
+        ImPaddingSlot* GetContentSlot()
+        {
+            return (ImPaddingSlot*)GetSlotAt(0);
         }
         // 设置工具提示文本
         void SetTooltipText(const std::string& text) { m_TooltipText = text; }
@@ -114,11 +213,17 @@ namespace ImGuiWidget
 
         virtual ImVec2 GetMinSize() 
         {
-            if (m_Slots.size() > 0 && m_Slots[0])
+            auto content = GetChildAt(0);
+            if (content)
             {
-                ImVec2 ContentMinSize = m_Slots[0]->GetContent()->GetMinSize();
+                ImVec2 ContentMinSize = content->GetMinSize();
                 return ImVec2(max(ContentMinSize.x, 30.f), max(ContentMinSize.y, 10.f));
             }
+            //if (m_Slots.size() > 0 && m_Slots[0])
+            //{
+            //    ImVec2 ContentMinSize = m_Slots[0]->GetContent()->GetMinSize();
+            //    return ImVec2(max(ContentMinSize.x, 30.f), max(ContentMinSize.y, 10.f));
+            //}
             else
             {
                 return ImVec2(30, 10);
@@ -127,92 +232,9 @@ namespace ImGuiWidget
 
         virtual void Render()
         {
-            ImGuiWindow* window = ImGui::GetCurrentWindow();
-            ImGuiContext& g = *GImGui;
-            const ImGuiID id = window->GetID(m_WidgetName.c_str());
-            ImRect bb(Position, Position + Size);
-
-            //ImGui::ItemSize(Size, g.Style.FramePadding.y);
-            if (!ImGui::ItemAdd(bb, id)) return;
-
-            // 检测按钮行为
-            bool hovered, held;
-            bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, m_ButtonFlag);
-
-            // 处理悬停状态变化
-            if (hovered && !m_WasHovered && OnHoverBegin) 
-            {
-                OnHoverBegin();
-            }
-            if (!hovered && m_WasHovered && OnHoverEnd) 
-            {
-                OnHoverEnd();
-            }
-            m_WasHovered = hovered;
-
-            // 处理按下/松开事件
-            if (held && !m_LastFrameHeld && OnPressed) 
-            {
-                OnPressed();
-            }
-            if (!held && m_LastFrameHeld && OnReleased) 
-            {
-                OnReleased();
-            }
-            m_LastFrameHeld = held;
-
-            // 根据当前状态选择样式
-            const ButtonStateStyle* currentStyle = &m_NormalStyle;
-            if (held) 
-            {
-                currentStyle = &m_PressedStyle;
-            }
-            else if (hovered) 
-            {
-                if (m_WidgetName == "CloseButton_test")
-                {
-                    printf("test");
-                }
-                currentStyle = &m_HoveredStyle;
-            }
-
-            // 绘制按钮背景
-            window->DrawList->AddRectFilled(
-                bb.Min,
-                bb.Max,
-                currentStyle->BackgroundColor,
-                currentStyle->Rounding,
-                0
-            );
-
-            // 绘制边框
-            if (currentStyle->HasBorder && currentStyle->BorderThickness > 0.0f)
-            {
-                window->DrawList->AddRect(
-                    bb.Min,
-                    bb.Max,
-                    currentStyle->BorderColor,
-                    currentStyle->Rounding,
-                    0, // 默认全部圆角
-                    currentStyle->BorderThickness
-                );
-            }
-
-            // 渲染子内容
-            if (m_Slots.size() == 1)
-            {
-                m_Slots[0]->GetContent()->SetPosition(Position);
-                m_Slots[0]->GetContent()->SetSize(Size);
-                m_Slots[0]->GetContent()->Render();
-            }
-
-            if (hovered && !m_TooltipText.empty() &&
-                ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
-            {
-                ImGui::BeginTooltip();
-                ImGui::TextUnformatted(m_TooltipText.c_str());
-                ImGui::EndTooltip();
-            }
+            HandleLayout();
+            RenderButton();
+            RenderChild();
         }
 
     private:

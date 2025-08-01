@@ -39,25 +39,27 @@ namespace ImGuiWidget
         ImResizableBox(const std::string& WidgetName)
             : ImPanelWidget(WidgetName),
             dragging_point_index(-1)
-        {}
-
-        ImResizableBoxSlot* SetContent(ImWidget* Child)
         {
-            if (m_Slots.size() > 0)
+            bHaveBorder = false; // 禁用基类边框绘制
+        }
+
+        virtual ImSlot* AddChild(ImWidget* child, ImVec2 RelativePosition = ImVec2(FLT_MIN, FLT_MIN)) override
+        {
+            if (GetChildAt(0))
             {
-                if (m_Slots[0])
-                {
-                    delete m_Slots[0];
-                }
-                m_Slots[0] = new ImResizableBoxSlot(Child);
-                return static_cast<ImResizableBoxSlot*>(m_Slots[0]);
+                return nullptr;
             }
             else
             {
-                ImResizableBoxSlot* slot = new ImResizableBoxSlot(Child);
-                m_Slots.push_back(slot);
-                return slot;
+                SetChildAt(0, child);
+                return GetSlotAt(0);
             }
+        }
+
+        ImResizableBoxSlot* SetContent(ImWidget* Child)
+        {
+            AddChild(Child);
+            return static_cast<ImResizableBoxSlot*>(GetSlotAt(0));
         }
 
         // 设置回调函数
@@ -72,12 +74,28 @@ namespace ImGuiWidget
         void SetBoxBorderColor(ImU32 color) { m_BoxBorderColor = color; }
         void SetBoxBorderThickness(float thickness) { m_BoxBorderThickness = thickness; }
 
+        virtual void Relayout() override
+        {
+            if (GetSlotNum() == 0) return;
+
+            // 通过API获取slot并设置其位置和大小
+            ImSlot* slot = GetSlotAt(0);
+            if (slot) {
+                slot->SetSlotPosition(Position);
+                slot->SetSlotSize(Size);
+                slot->ApplyLayout();
+            }
+        }
+
         virtual void Render() override
         {
             ImGuiContext& g = *ImGui::GetCurrentContext();
             ImGuiWindow* window = g.CurrentWindow;
 
             const ImGuiID base_id = ImGui::GetID(m_WidgetName.c_str());
+
+            // 处理布局
+            HandleLayout();
 
             // 计算矩形边界
             ImVec2 rectMin = Position;
@@ -92,6 +110,9 @@ namespace ImGuiWidget
                 0,
                 m_BoxBorderThickness
             );
+
+            // 通过基类API渲染子控件
+            RenderChild();
 
             bool changed = false;
             const ImVec2 rect_size = Size;
@@ -171,68 +192,73 @@ namespace ImGuiWidget
                 if (held && dragging_point_index == i) {
                     if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
                         const ImVec2 mouse_delta = ImGui::GetMousePos() - drag_start_mouse_pos;
+                        ImVec2 new_pos = original_position;
+                        ImVec2 new_size = original_size;
 
                         // 根据拖动点类型更新位置和尺寸
                         switch (dragging_point_index) {
                         case TopLeft:
-                            Position = original_position + mouse_delta;
-                            Size = original_size - mouse_delta;
+                            new_pos = original_position + mouse_delta;
+                            new_size = original_size - mouse_delta;
                             break;
                         case TopCenter:
-                            Position.y = original_position.y + mouse_delta.y;
-                            Size.y = original_size.y - mouse_delta.y;
+                            new_pos.y = original_position.y + mouse_delta.y;
+                            new_size.y = original_size.y - mouse_delta.y;
                             break;
                         case TopRight:
-                            Position.y = original_position.y + mouse_delta.y;
-                            Size = ImVec2(
+                            new_pos.y = original_position.y + mouse_delta.y;
+                            new_size = ImVec2(
                                 original_size.x + mouse_delta.x,
                                 original_size.y - mouse_delta.y
                             );
                             break;
                         case MidRight:
-                            Size.x = original_size.x + mouse_delta.x;
+                            new_size.x = original_size.x + mouse_delta.x;
                             break;
                         case BottomRight:
-                            Size = original_size + mouse_delta;
+                            new_size = original_size + mouse_delta;
                             break;
                         case BottomCenter:
-                            Size.y = original_size.y + mouse_delta.y;
+                            new_size.y = original_size.y + mouse_delta.y;
                             break;
                         case BottomLeft:
-                            Position.x = original_position.x + mouse_delta.x;
-                            Size = ImVec2(
+                            new_pos.x = original_position.x + mouse_delta.x;
+                            new_size = ImVec2(
                                 original_size.x - mouse_delta.x,
                                 original_size.y + mouse_delta.y
                             );
                             break;
                         case MidLeft:
-                            Position.x = original_position.x + mouse_delta.x;
-                            Size.x = original_size.x - mouse_delta.x;
+                            new_pos.x = original_position.x + mouse_delta.x;
+                            new_size.x = original_size.x - mouse_delta.x;
                             break;
                         case Center: // 整体拖动
-                            Position = original_position + mouse_delta;
+                            new_pos = original_position + mouse_delta;
                             break;
                         }
 
-                        changed = true;
-
                         // 应用最小尺寸限制
-                        if (Size.x < min_size.x) {
+                        if (new_size.x < min_size.x) {
                             if (dragging_point_index == TopLeft ||
                                 dragging_point_index == MidLeft ||
                                 dragging_point_index == BottomLeft) {
-                                Position.x = Position.x + Size.x - min_size.x;
+                                new_pos.x = new_pos.x + new_size.x - min_size.x;
                             }
-                            Size.x = min_size.x;
+                            new_size.x = min_size.x;
                         }
-                        if (Size.y < min_size.y) {
+                        if (new_size.y < min_size.y) {
                             if (dragging_point_index == TopLeft ||
                                 dragging_point_index == TopCenter ||
                                 dragging_point_index == TopRight) {
-                                Position.y = Position.y + Size.y - min_size.y;
+                                new_pos.y = new_pos.y + new_size.y - min_size.y;
                             }
-                            Size.y = min_size.y;
+                            new_size.y = min_size.y;
                         }
+
+                        // 使用Set方法更新位置和大小
+                        SetPosition(new_pos);
+                        SetSize(new_size);
+                        changed = true;
 
                         // 调用拖动中回调
                         if (OnResizing) {
@@ -260,14 +286,6 @@ namespace ImGuiWidget
                     m_ControlPointColor,
                     12
                 );
-            }
-
-            // 渲染子项
-            if (!m_Slots.empty() && m_Slots[0])
-            {
-                m_Slots[0]->GetContent()->SetPosition(Position);
-                m_Slots[0]->GetContent()->SetSize(Size);
-                m_Slots[0]->GetContent()->Render();
             }
         }
     };

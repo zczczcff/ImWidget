@@ -1,71 +1,104 @@
 #pragma once
-#pragma once
 #include "ImPanelWidget.h"
 
 namespace ImGuiWidget
 {
-    class ImHorizontalBoxSlot : public ImSlot
+    class ImHorizontalBoxSlot : public ImPaddingSlot // 改为继承ImPaddingSlot
     {
     public:
-        ImHorizontalBoxSlot(ImWidget* Content) : ImSlot(Content) {}
+        ImHorizontalBoxSlot(ImWidget* Content) : ImPaddingSlot(Content) {}
 
         float SizeRatio = 1.f; // 宽度比例
     };
 
     class ImHorizontalBox : public ImPanelWidget
     {
-
     public:
         ImHorizontalBox(const std::string& WidgetName) : ImPanelWidget(WidgetName) {}
 
         ImHorizontalBoxSlot* AddChildToHorizontalBox(ImWidget* child)
         {
-            return AddChild<ImHorizontalBoxSlot>(child);
+            return AddChildInternal<ImHorizontalBoxSlot>(child);
         }
+        virtual ImSlot* AddChild(ImWidget* Child, ImVec2 RelativePosition = ImVec2(FLT_MIN, FLT_MIN)) override
+        {
+            // 如果没有指定相对位置，添加到末尾
+            if (RelativePosition.x == FLT_MIN) {
+                return AddChildInternal<ImHorizontalBoxSlot>(Child);
+            }
 
+            // 计算在水平框中的相对位置
+            float relativeX = RelativePosition.x - Position.x;
+
+            // 如果没有子项，直接添加到末尾
+            if (GetSlotNum() == 0) {
+                return AddChildInternal<ImHorizontalBoxSlot>(Child);
+            }
+
+            // 遍历所有子项，寻找插入位置
+            int insertIndex = GetSlotNum(); // 默认插入到最后
+
+            for (int i = 0; i < GetSlotNum(); i++) {
+                ImSlot* currentSlot = GetSlotAt(i);
+
+                // 计算当前子项的中点
+                float currentMid = currentSlot->GetContent()->GetPosition().x +
+                    currentSlot->GetContent()->GetSize().x / 2.0f;
+
+                // 如果位置在当前子项中点之前，插入在当前位置
+                if (relativeX <= currentMid) {
+                    insertIndex = i;
+                    break;
+                }
+            }
+
+            // 插入到找到的位置
+            return InsertChildAt(insertIndex, Child);
+        }
         virtual void Render() override
         {
-            ReLayOut(); // 重新布局子控件
-            
+            HandleLayout(); // 添加布局处理调用
+
             RenderBackGround();
-
-            // 渲染所有子控件
-            for (auto& slot : m_Slots)
-            {
-                slot->GetContent()->Render();
-            }
+            RenderChild();  // 使用统一的子控件渲染
         }
-        virtual ImVec2 GetMinSize()
-        {
-            float minheight = 0.f;
-            float minlength = 0.f;
-            for (auto& child : m_Slots)
-            {
-                ImVec2 childminsize = child->GetContent()->GetMinSize();
-                float childminheight = child->PaddingTop + child->PaddingBottom + childminsize.y;
-                minheight = ImMax(minheight, childminheight);
-                minlength += child->PaddingLeft;
-                minlength += child->PaddingRight;
-                minlength += childminsize.x;
-            }
 
-            return ImVec2(minlength, minheight);
-        }
-    private:
-        // 重新布局子控件（水平方向）
-        void ReLayOut()
+        virtual ImVec2 GetMinSize() override
         {
-            float requiredWidth = 0.f; // 自动大小控件所需的总宽度
-            float remainingWidth = 0.f; // 剩余宽度（用于比例分配）
-            float sumSizeRatio = 0.f;   // 比例总和
-
-            // 第一步：计算自动大小控件所需宽度和比例总和
-            for (auto& slot : m_Slots)
+            float minWidth = 0.f;
+            float minHeight = 0.f;
+            for (int i = 0; i < GetSlotNum(); i++)
             {
-                ImHorizontalBoxSlot* HSlot = static_cast<ImHorizontalBoxSlot*>(slot);
-                if (!slot->GetIfAutoSize())
+                ImHorizontalBoxSlot* slot = static_cast<ImHorizontalBoxSlot*>(GetSlotAt(i));
+                if (slot && slot->IsValid())
                 {
-                    ImVec2 minSize = slot->GetContent()->GetMinSize();
+                    ImVec2 childMinSize = slot->GetContent()->GetMinSize();
+                    float slotWidth = slot->PaddingLeft + slot->PaddingRight + childMinSize.x;
+                    float slotHeight = slot->PaddingTop + slot->PaddingBottom + childMinSize.y;
+
+                    minWidth += slotWidth;
+                    minHeight = ImMax(minHeight, slotHeight);
+                }
+            }
+            return ImVec2(minWidth, minHeight);
+        }
+
+    private:
+        virtual void Relayout() override // 重写布局算法
+        {
+            float requiredWidth = 0.f;   // 非自动大小控件所需的总宽度
+            float remainingWidth = 0.f;   // 剩余宽度（用于比例分配）
+            float sumSizeRatio = 0.f;     // 比例总和
+
+            // 第一步：计算非自动大小控件所需宽度和比例总和
+            for (int i = 0; i < GetSlotNum(); i++)
+            {
+                ImHorizontalBoxSlot* HSlot = static_cast<ImHorizontalBoxSlot*>(GetSlotAt(i));
+                if (!HSlot || !HSlot->IsValid()) continue;
+
+                if (!HSlot->GetIfAutoSize())
+                {
+                    ImVec2 minSize = HSlot->GetContent()->GetMinSize();
                     requiredWidth += (minSize.x + HSlot->PaddingLeft + HSlot->PaddingRight);
                 }
                 else
@@ -75,69 +108,56 @@ namespace ImGuiWidget
             }
 
             remainingWidth = Size.x - requiredWidth;
-
-            ImVec2 currentPos = Position; // 当前位置
+            ImVec2 currentPos = Position;
 
             if (remainingWidth > 0.f) // 有足够空间
             {
-                for (auto& slot : m_Slots)
+                for (int i = 0; i < GetSlotNum(); i++)
                 {
-                    ImHorizontalBoxSlot* HSlot = static_cast<ImHorizontalBoxSlot*>(slot);
-                    // 设置子控件位置（考虑内边距）
-                    slot->GetContent()->SetPosition(ImVec2(
-                        currentPos.x + HSlot->PaddingLeft,
-                        currentPos.y + HSlot->PaddingTop
-                    ));
+                    ImHorizontalBoxSlot* HSlot = static_cast<ImHorizontalBoxSlot*>(GetSlotAt(i));
+                    if (!HSlot || !HSlot->IsValid()) continue;
 
-                    if (!slot->GetIfAutoSize())
+                    HSlot->SetSlotPosition(currentPos);
+
+                    if (!HSlot->GetIfAutoSize())
                     {
-                        // 自动大小控件：使用最小宽度，高度填满
-                        ImVec2 minSize = slot->GetContent()->GetMinSize();
-                        slot->GetContent()->SetSize(ImVec2(
-                            minSize.x,
-                            Size.y - HSlot->PaddingTop - HSlot->PaddingBottom
-                        ));
-                        // 移动到下一个位置
-                        currentPos.x += (minSize.x + HSlot->PaddingLeft + HSlot->PaddingRight);
+                        ImVec2 minSize = HSlot->GetContent()->GetMinSize();
+                        float slotWidth = minSize.x + HSlot->PaddingLeft + HSlot->PaddingRight;
+                        HSlot->SetSlotSize(ImVec2(slotWidth, Size.y));
+                        currentPos.x += slotWidth;
                     }
                     else
                     {
-                        // 比例分配控件：计算实际宽度
                         float ratioWidth = (HSlot->SizeRatio / sumSizeRatio) * remainingWidth;
-                        slot->GetContent()->SetSize(ImVec2(
-                            ratioWidth - HSlot->PaddingLeft - HSlot->PaddingRight,
-                            Size.y - HSlot->PaddingTop - HSlot->PaddingBottom
-                        ));
-                        // 移动到下一个位置
+                        HSlot->SetSlotSize(ImVec2(ratioWidth, Size.y));
                         currentPos.x += ratioWidth;
                     }
+
+                    HSlot->ApplyLayout(); // 应用布局（处理内边距）
                 }
             }
             else // 空间不足
             {
-                for (auto& slot : m_Slots)
+                for (int i = 0; i < GetSlotNum(); i++)
                 {
-                    ImHorizontalBoxSlot* HSlot = static_cast<ImHorizontalBoxSlot*>(slot);
-                    slot->GetContent()->SetPosition(ImVec2(
-                        currentPos.x + HSlot->PaddingLeft,
-                        currentPos.y + HSlot->PaddingTop
-                    ));
+                    ImHorizontalBoxSlot* HSlot = static_cast<ImHorizontalBoxSlot*>(GetSlotAt(i));
+                    if (!HSlot || !HSlot->IsValid()) continue;
 
-                    if (!slot->GetIfAutoSize())
+                    HSlot->SetSlotPosition(currentPos);
+
+                    if (!HSlot->GetIfAutoSize())
                     {
-                        // 自动大小控件：使用最小宽度
-                        ImVec2 minSize = slot->GetContent()->GetMinSize();
-                        slot->GetContent()->SetSize(ImVec2(
-                            minSize.x,
-                            Size.y - HSlot->PaddingTop - HSlot->PaddingBottom
-                        ));
-                        currentPos.x += (minSize.x + HSlot->PaddingLeft + HSlot->PaddingRight);
+                        ImVec2 minSize = HSlot->GetContent()->GetMinSize();
+                        float slotWidth = minSize.x + HSlot->PaddingLeft + HSlot->PaddingRight;
+                        HSlot->SetSlotSize(ImVec2(slotWidth, Size.y));
+                        currentPos.x += slotWidth;
                     }
                     else
                     {
-                        // 比例分配控件：宽度设为0
-                        slot->GetContent()->SetSize(ImVec2(0.f, 0.f));
+                        HSlot->SetSlotSize(ImVec2(0.f, Size.y));
                     }
+
+                    HSlot->ApplyLayout(); // 应用布局（处理内边距）
                 }
             }
         }

@@ -1,17 +1,19 @@
 #pragma once
-#include "ImCanvasPanel.h"
+#include "ImPanelWidget.h"
 #include "ImResizableBox.h"
+#include "ImCanvasPanel.h" // 包含ImCanvasPanelSlot定义
 #include <functional>
 
 namespace ImGuiWidget
 {
-    class ImDesignPanel : public ImCanvasPanel
+    class ImDesignPanel : public ImPanelWidget
     {
     private:
-        // 当前选中的子控件插槽
-        ImCanvasPanelSlot* m_SelectedSlot = nullptr;
+        // 当前选中的控件和其slot
+        ImWidget* m_SelectedWidget = nullptr;
+        ImSlot* m_SelectedSlot = nullptr;
 
-        // 包裹选中子控件的可调整框
+        // 包裹选中控件的可调整框
         ImResizableBox* m_ResizableBox = nullptr;
 
         // 面板拖动状态
@@ -25,7 +27,7 @@ namespace ImGuiWidget
 
     public:
         ImDesignPanel(const std::string& WidgetName)
-            : ImCanvasPanel(WidgetName)
+            : ImPanelWidget(WidgetName)
         {}
 
         virtual ~ImDesignPanel()
@@ -35,6 +37,18 @@ namespace ImGuiWidget
             }
         }
 
+        //只允许唯一子控件
+        virtual ImSlot* AddChild(ImWidget* child, ImVec2 RelativePosition = ImVec2(FLT_MIN, FLT_MIN))override
+        {
+            if (GetSlotNum() > 0)
+            {
+                return nullptr;
+            }
+            else
+            {
+                return AddChildInternal<ImSlot>(child);
+            }
+        }
         // 设置回调函数
         void SetOnSelected(std::function<void(ImWidget*)> callback) { OnSelected = callback; }
         void SetOnUnSelected(std::function<void()> callback) { OnUnSelected = callback; }
@@ -42,7 +56,7 @@ namespace ImGuiWidget
         // 获取当前选中的控件
         ImWidget* GetSelectedWidget() const
         {
-            return m_SelectedSlot ? m_SelectedSlot->GetContent() : nullptr;
+            return m_SelectedWidget;
         }
 
         virtual void Render() override
@@ -80,65 +94,32 @@ namespace ImGuiWidget
             // 渲染背景
             RenderBackGround();
 
-            // 检查是否点击空白处取消选中
-            if (is_mouse_clicked && m_SelectedSlot && m_ResizableBox)
-            {
-                if (GetRect().Contains(mouse_pos))
-                {
-                    bool clickedOnChild = false;
-
-                    // 检查是否点击了子控件
-                    for (auto& slot : m_Slots)
-                    {
-                        ImCanvasPanelSlot* canvasSlot = static_cast<ImCanvasPanelSlot*>(slot);
-                        ImWidget* child = canvasSlot->GetContent();
-                        const ImRect child_rect(
-                            Position + canvasSlot->RelativePosition,
-                            Position + canvasSlot->RelativePosition + canvasSlot->SlotSize
-                        );
-
-                        if (child_rect.Contains(mouse_pos))
-                        {
-                            clickedOnChild = true;
-                            break;
-                        }
-                    }
-
-                    // 点击空白处取消选中
-                    if (!clickedOnChild)
-                    {
-                        if (m_ResizableBox)
-                        {
-                            delete m_ResizableBox;
-                            m_ResizableBox = nullptr;
-                            m_SelectedSlot = nullptr;
-
-                            if (OnUnSelected) OnUnSelected();
-                        }
-                    }
+            // 设置子控件Slot并渲染
+            if (GetSlotNum() > 0) {
+                ImSlot* slot = GetSlotAt(0);
+                if (slot) {
+                    // 设置Slot位置和大小（填满设计面板）
+                    slot->SetSlotPosition(Position);
+                    slot->SetSlotSize(Size);
+                    slot->ApplyLayout(); // 应用布局
                 }
             }
+            // 通过基类方法渲染子控件
+            RenderChild();
 
-            // 渲染所有子控件
-            for (auto& slot : m_Slots)
+            // 处理左键点击
+            if (is_mouse_clicked)
             {
-                ImCanvasPanelSlot* canvasSlot = static_cast<ImCanvasPanelSlot*>(slot);
-                ImWidget* child = canvasSlot->GetContent();
+                // 通过ChildHitTest查找被点击的最上层控件
+                ImWidget* hitWidget = ChildHitTest(mouse_pos);
 
-                // 设置子控件位置和大小
-                child->SetPosition(Position + canvasSlot->RelativePosition);
-                child->SetSize(canvasSlot->SlotSize);
-
-                // 检查是否选中子控件
-                const ImRect child_rect(
-                    Position + canvasSlot->RelativePosition,
-                    Position + canvasSlot->RelativePosition + canvasSlot->SlotSize
-                );
-
-                if (is_mouse_clicked && child_rect.Contains(mouse_pos))
+                if (hitWidget && hitWidget != this) // 排除设计面板自身
                 {
-                    // 选中新控件
-                    if (m_SelectedSlot != canvasSlot)
+                    // 获取该控件的slot
+                    ImSlot* hitSlot = hitWidget->GetSlot();
+
+                    // 更新选中状态
+                    if (m_SelectedWidget != hitWidget)
                     {
                         // 清理之前的选中状态
                         if (m_ResizableBox)
@@ -147,49 +128,75 @@ namespace ImGuiWidget
                             m_ResizableBox = nullptr;
                         }
 
-                        m_SelectedSlot = canvasSlot;
+                        m_SelectedWidget = hitWidget;
+                        m_SelectedSlot = hitSlot;
 
-                        // 创建可调整框包裹选中的控件
-                        m_ResizableBox = new ImResizableBox(m_WidgetName + "_ResizableBox");
-                        m_ResizableBox->SetPosition(child->GetPosition());
-                        m_ResizableBox->SetSize(child->GetSize());
-                        m_ResizableBox->SetContent(child);
+                        // 根据slot类型决定创建调整框还是简单边框
+                        if (dynamic_cast<ImCanvasPanelSlot*>(hitSlot))
+                        {
+                            // 创建可调整框
+                            m_ResizableBox = new ImResizableBox(m_WidgetName + "_ResizableBox");
+                            m_ResizableBox->SetPosition(m_SelectedWidget->GetPosition());
+                            m_ResizableBox->SetSize(m_SelectedWidget->GetSize());
 
-                        // 设置回调更新实际位置和大小
-                        m_ResizableBox->SetOnResizing([this](ImVec2 newPos, ImVec2 newSize)
-                            {
-                                if (m_SelectedSlot)
+                            // 设置回调更新实际位置和大小
+                            m_ResizableBox->SetOnResizing([this](ImVec2 newPos, ImVec2 newSize)
                                 {
-                                    m_SelectedSlot->RelativePosition = newPos - Position;
-                                    m_SelectedSlot->SlotSize = newSize;
-                                }
-                            });
+                                    if (m_SelectedSlot)
+                                    {
+                                        // 更新slot的位置和大小
+                                        if (auto canvasSlot = dynamic_cast<ImCanvasPanelSlot*>(m_SelectedSlot))
+                                        {
+                                            // 使用相对位置（相对于设计面板）
+                                            canvasSlot->RelativePosition = newPos - Position;
+                                            canvasSlot->SlotSize = newSize;
+                                        }
+                                    }
+                                });
+                        }
 
                         // 触发选中回调
-                        if (OnSelected) OnSelected(child);
+                        if (OnSelected) OnSelected(hitWidget);
                     }
                 }
-
-                // 仅渲染未被选中的子控件（被选中的由ResizableBox渲染）
-                if (canvasSlot != m_SelectedSlot)
+                else
                 {
-                    child->Render();
+                    // 点击空白处取消选中
+                    if (m_ResizableBox)
+                    {
+                        delete m_ResizableBox;
+                        m_ResizableBox = nullptr;
+                        m_SelectedWidget = nullptr;
+                        m_SelectedSlot = nullptr;
+
+                        if (OnUnSelected) OnUnSelected();
+                    }
                 }
             }
 
-            // 渲染选中控件的可调整框
-            if (m_ResizableBox && m_SelectedSlot)
+            // 渲染选中控件效果
+            if (m_SelectedWidget)
             {
-                // 更新可调整框位置（处理面板移动后）
-                if (!m_IsDraggingPanel)
+                if (m_ResizableBox)
                 {
-                    m_ResizableBox->SetPosition(
-                        Position + m_SelectedSlot->RelativePosition
+                    // 更新并渲染可调整框
+                    m_ResizableBox->SetPosition(m_SelectedWidget->GetPosition());
+                    m_ResizableBox->SetSize(m_SelectedWidget->GetSize());
+                    m_ResizableBox->Render();
+                }
+                else
+                {
+                    // 绘制简单边框表示选中
+                    ImRect selectedRect = m_SelectedWidget->GetRect();
+                    window->DrawList->AddRect(
+                        selectedRect.Min,
+                        selectedRect.Max,
+                        IM_COL32(255, 0, 0, 255), // 红色边框
+                        0.0f,
+                        0,
+                        2.0f // 边框粗细
                     );
                 }
-
-                m_ResizableBox->SetSize(m_SelectedSlot->SlotSize);
-                m_ResizableBox->Render();
             }
         }
     };

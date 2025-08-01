@@ -14,12 +14,32 @@ namespace ImGuiWidget
 		ImVec2 Size = { 0, 0 };      // 控件尺寸
 		bool Visibility = true;     // 可见性
 		class ImSlot* m_Slot;
+		class ImWidget* m_Parents;
+		bool bSizeDirty;
+
+		//处理子控件最小尺寸发生变化的情况
+		virtual void HandleChildSizeDirty(){}
+
+		//控件最小尺寸发生变化时调用
+		virtual void MarkSizeDirty()
+		{
+			if (m_Parents)
+			{
+				m_Parents->HandleChildSizeDirty();
+			}
+		}
 	public:
 		ImWidget(const std::string& WidgetName)
 			:m_WidgetName(WidgetName),
-			m_Slot(nullptr)
+			m_Slot(nullptr),
+			m_Parents(nullptr),
+			bSizeDirty(false)
 		{
 
+		}
+		void SetParents(ImWidget* parents)
+		{
+			m_Parents = parents;
 		}
 		void SetSlot(ImSlot* slot)
 		{

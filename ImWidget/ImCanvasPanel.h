@@ -19,12 +19,35 @@ namespace ImGuiWidget
 	class ImCanvasPanel :public ImPanelWidget
 	{
 	private:
+
+	protected:
+		virtual void Relayout() override
+		{
+			for (int i = 0; i < GetSlotNum(); i++)
+			{
+				if (auto slot = (ImCanvasPanelSlot*)GetSlotAt(i))
+				{
+					slot->SetSlotPosition(Position + slot->RelativePosition);
+					slot->SetSlotSize(slot->SlotSize);
+					slot->ApplyLayout();
+				}
+			}
+		}
 	public:
 		ImCanvasPanel(const std::string& WidgetName):ImPanelWidget(WidgetName){}
 
 		ImCanvasPanelSlot* AddChildToCanvasPanel(ImWidget* Child)
 		{
-			return AddChild<ImCanvasPanelSlot>(Child);
+			auto slot = AddChildInternal<ImCanvasPanelSlot>(Child);
+			slot->RelativePosition = ImVec2(0, 0);
+			slot->SlotSize = Child->GetMinSize();
+			return slot;
+		}
+		virtual ImSlot* AddChild(ImWidget* Child, ImVec2 RelativePosition = ImVec2(FLT_MIN, FLT_MIN))override
+		{
+			ImCanvasPanelSlot* slot = AddChildToCanvasPanel(Child);
+			slot->RelativePosition = RelativePosition == ImVec2(FLT_MIN, FLT_MIN) ? ImVec2(0.f, 0.f) : RelativePosition;
+			return  slot;
 		}
 		virtual ImVec2 GetMinSize()override
 		{
@@ -32,13 +55,8 @@ namespace ImGuiWidget
 		}
 		virtual void Render() override
 		{
-			for (auto& slot : m_Slots)
-			{
-				ImCanvasPanelSlot* CPSlot = (ImCanvasPanelSlot*)slot;
-				CPSlot->GetContent()->SetPosition(Position + CPSlot->RelativePosition);
-				CPSlot->GetContent()->SetSize(CPSlot->SlotSize);
-				CPSlot->GetContent()->Render();
-			}
+			HandleLayout();
+			RenderChild();
 		}
 		
 	};

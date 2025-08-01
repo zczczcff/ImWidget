@@ -8,7 +8,8 @@ enum class WidgetType
 {
 	ImButton,
 	ImTextBlock,
-	ImImage
+	ImImage,
+	ImCanvasPanel
 };
 
 
