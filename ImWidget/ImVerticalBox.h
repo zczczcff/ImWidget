@@ -15,7 +15,11 @@ namespace ImGuiWidget
 
 	class ImVerticalBox :public ImPanelWidget
 	{
-	private:
+    protected:
+        virtual ImSlot* CreateSlot(ImWidget* Content)override
+        {
+            return new ImVerticalBoxSlot(Content);
+        }
 		
 	public:
 		ImVerticalBox(const std::string& WidgetName):ImPanelWidget(WidgetName){}
@@ -75,8 +79,8 @@ namespace ImGuiWidget
 
 		virtual ImVec2 GetMinSize()
 		{
-			float minheight = 0.f;
-			float minlength = 0.f;
+			float minheight = 10.f;
+			float minlength = 30.f;
             for (int i = 0; i < GetSlotNum(); i++)
             {
                 ImVerticalBoxSlot* child = (ImVerticalBoxSlot*)GetSlotAt(i);
@@ -102,8 +106,6 @@ namespace ImGuiWidget
 
 			return ImVec2(minlength, minheight);
 		}
-
-
 
 		virtual void Relayout()override
 		{

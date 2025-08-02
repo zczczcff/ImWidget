@@ -12,7 +12,7 @@ namespace ImGuiWidget
 	private:
 		std::vector<ImSlot*> m_Slots;
 	protected:
-		
+		float  WidgetHitTestPadding = 5.f;
 		ImU32 BgColor;
 		ImU32 BorderColor;
 		bool bHaveBorder;
@@ -225,14 +225,33 @@ namespace ImGuiWidget
 
 		virtual ImWidget* ChildHitTest(ImVec2 Pos) override
 		{
-			if (ImWidget::ChildHitTest(Pos))
+
+			ImRect PanelHitRect(Position, Position + Size);
+			if (PanelHitRect.Contains(Pos))
 			{
 				for (int i = m_Slots.size(); i > 0; i--)
 				{
-					ImWidget* ChildHitWidget = m_Slots[i-1]->GetContent()->ChildHitTest(Pos);
+					ImWidget* ChildHitWidget = m_Slots[i - 1]->GetContent()->ChildHitTest(Pos);
 					if (ChildHitWidget)
 					{
-						return ChildHitWidget;
+						ImVec2 Min = Position;
+						ImVec2 Max = Position + Size;
+						if (Size.x > WidgetHitTestPadding * 2 && Size.y > WidgetHitTestPadding * 2)
+						{
+							Min.x += WidgetHitTestPadding;
+							Min.y += WidgetHitTestPadding;
+							Max.x -= WidgetHitTestPadding;
+							Max.y -= WidgetHitTestPadding;
+						}
+						ImRect ChildHitRect(Min, Max);
+						if (ChildHitRect.Contains(Pos))
+						{
+							return ChildHitWidget;
+						}
+						else
+						{
+							return this;
+						}
 					}
 				}
 				return this;
@@ -241,6 +260,23 @@ namespace ImGuiWidget
 			{
 				return nullptr;
 			}
+
+			//if (ImWidget::ChildHitTest(Pos))
+			//{
+			//	for (int i = m_Slots.size(); i > 0; i--)
+			//	{
+			//		ImWidget* ChildHitWidget = m_Slots[i-1]->GetContent()->ChildHitTest(Pos);
+			//		if (ChildHitWidget)
+			//		{
+			//			return ChildHitWidget;
+			//		}
+			//	}
+			//	return this;
+			//}
+			//else
+			//{
+			//	return nullptr;
+			//}
 		}
 
 		virtual void SetPosition(ImVec2 Pos)override

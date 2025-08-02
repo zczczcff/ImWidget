@@ -9,7 +9,9 @@ enum class WidgetType
 	ImButton,
 	ImTextBlock,
 	ImImage,
-	ImCanvasPanel
+	ImCanvasPanel,
+	ImVerticalBox,
+	ImHorizontalBox
 };
 
 

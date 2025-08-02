@@ -16,7 +16,6 @@ namespace ImGuiWidget
 		class ImSlot* m_Slot;
 		class ImWidget* m_Parents;
 		bool bSizeDirty;
-
 		//处理子控件最小尺寸发生变化的情况
 		virtual void HandleChildSizeDirty(){}
 
@@ -51,7 +50,16 @@ namespace ImGuiWidget
 		}
 		virtual ImWidget* ChildHitTest(ImVec2 Pos)
 		{
-			if (ImRect(Position, Position + Size).Contains(Pos))
+			ImVec2 Min = Position;
+			ImVec2 Max = Position + Size;
+			//if (Size.x > WidgetHitTestPadding*2&&Size.y> WidgetHitTestPadding * 2)
+			//{
+			//	Min.x += WidgetHitTestPadding;
+			//	Min.y += WidgetHitTestPadding;
+			//	Max.x -= WidgetHitTestPadding;
+			//	Max.y -= WidgetHitTestPadding;
+			//}
+			if (ImRect(Min, Max).Contains(Pos))
 				return this;
 			else
 				return nullptr;

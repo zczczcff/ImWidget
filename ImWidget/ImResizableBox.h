@@ -35,6 +35,9 @@ namespace ImGuiWidget
         // 回调函数
         std::function<void(ImVec2, ImVec2)> OnResizing;  // 拖动过程中回调
         std::function<void(ImVec2, ImVec2)> OnResized;   // 拖动结束回调
+        std::function<void(ImVec2, ImVec2)> OnBeginPreResing;  // 准备开始调整的回调
+
+
 
         ImResizableBox(const std::string& WidgetName)
             : ImPanelWidget(WidgetName),
@@ -65,7 +68,7 @@ namespace ImGuiWidget
         // 设置回调函数
         void SetOnResizing(std::function<void(ImVec2, ImVec2)> callback) { OnResizing = callback; }
         void SetOnResized(std::function<void(ImVec2, ImVec2)> callback) { OnResized = callback; }
-
+        void SetOnBeginPreResing(std::function<void(ImVec2, ImVec2)> callback) { OnBeginPreResing = callback; }
         // 设置控制点样式
         void SetControlPointRadius(float radius) { m_ControlPointRadius = radius; }
         void SetControlPointColor(ImU32 color) { m_ControlPointColor = color; }
@@ -181,7 +184,12 @@ namespace ImGuiWidget
                 }
 
                 // 开始拖动时记录初始状态
-                if (pressed) {
+                if (pressed)
+                {
+                    if (OnBeginPreResing)
+                    {
+                        OnBeginPreResing(Position, Size);
+                    }
                     dragging_point_index = i;
                     drag_start_mouse_pos = ImGui::GetMousePos();
                     original_position = Position;

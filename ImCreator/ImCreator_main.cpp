@@ -55,6 +55,8 @@ public:
     ExampleWidget* m_Example_Image;
 
     ExampleWidget* m_Example_ImCanvasPanel;
+    ExampleWidget* m_Example_HorizontalBox;
+    ExampleWidget* m_Example_VerticalBox;
     void Init()
     {
         ImGuiStyle& style = ImGui::GetStyle();
@@ -88,13 +90,17 @@ public:
         m_Example_TextBlock = new ExampleWidget("Example_TextBlock", "TextBlock", WidgetType::ImTextBlock);
         m_Example_Image = new ExampleWidget("Example_Image", "Image", WidgetType::ImImage);
         m_Example_ImCanvasPanel = new ExampleWidget("Example_CanvasPanel", "CanvasPanel", WidgetType::ImCanvasPanel);
+        m_Example_HorizontalBox = new ExampleWidget("Example_HorizontalBox", "HorizontalBox", WidgetType::ImHorizontalBox);
+        m_Example_VerticalBox = new ExampleWidget("Example_VerticalBox", "VerticalBox", WidgetType::ImVerticalBox);
+
 
         //ImGuiWidget::ImButton* button_test = new ImGuiWidget::ImButton("buttontest");
         m_WidgetList->AddChildToVerticalBox(m_Example_Button)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_TextBlock)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_Image)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_ImCanvasPanel)->SetIfAutoSize(false);
-
+        m_WidgetList->AddChildToVerticalBox(m_Example_HorizontalBox)->SetIfAutoSize(false);
+        m_WidgetList->AddChildToVerticalBox(m_Example_VerticalBox)->SetIfAutoSize(false);
         //m_WidgetList->AddChildToVerticalBox(button_test)->SetIfAutoSize(false);
 
         m_BottomBox=new ImGuiWidget::ImVerticalBox("BottomBox");

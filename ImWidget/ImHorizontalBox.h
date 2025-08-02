@@ -13,6 +13,11 @@ namespace ImGuiWidget
 
     class ImHorizontalBox : public ImPanelWidget
     {
+    protected:
+        virtual ImSlot* CreateSlot(ImWidget* Content)override
+        {
+            return new ImHorizontalBoxSlot(Content);
+        }
     public:
         ImHorizontalBox(const std::string& WidgetName) : ImPanelWidget(WidgetName) {}
 
@@ -65,8 +70,8 @@ namespace ImGuiWidget
 
         virtual ImVec2 GetMinSize() override
         {
-            float minWidth = 0.f;
-            float minHeight = 0.f;
+            float minWidth = 30.f;
+            float minHeight = 10.f;
             for (int i = 0; i < GetSlotNum(); i++)
             {
                 ImHorizontalBoxSlot* slot = static_cast<ImHorizontalBoxSlot*>(GetSlotAt(i));

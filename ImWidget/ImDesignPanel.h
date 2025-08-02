@@ -18,6 +18,7 @@ namespace ImGuiWidget
 
         // 面板拖动状态
         bool m_IsDraggingPanel = false;
+        bool bIsInResize = false;
         ImVec2 m_DragStartMousePos;
         ImVec2 m_DragStartPanelPos;
 
@@ -61,6 +62,7 @@ namespace ImGuiWidget
 
         virtual void Render() override
         {
+            bIsInResize = false;
             ImGuiContext& g = *ImGui::GetCurrentContext();
             ImGuiWindow* window = g.CurrentWindow;
             const ImVec2 mouse_pos = ImGui::GetMousePos();
@@ -106,9 +108,32 @@ namespace ImGuiWidget
             }
             // 通过基类方法渲染子控件
             RenderChild();
-
+            // 渲染选中控件效果
+            if (m_SelectedWidget)
+            {
+                if (m_ResizableBox)
+                {
+                    // 更新并渲染可调整框
+                    m_ResizableBox->SetPosition(m_SelectedWidget->GetPosition());
+                    m_ResizableBox->SetSize(m_SelectedWidget->GetSize());
+                    m_ResizableBox->Render();
+                }
+                else
+                {
+                    // 绘制简单边框表示选中
+                    ImRect selectedRect = m_SelectedWidget->GetRect();
+                    window->DrawList->AddRect(
+                        selectedRect.Min,
+                        selectedRect.Max,
+                        IM_COL32(255, 0, 0, 255), // 红色边框
+                        0.0f,
+                        0,
+                        2.0f // 边框粗细
+                    );
+                }
+            }
             // 处理左键点击
-            if (is_mouse_clicked)
+            if (!bIsInResize&&is_mouse_clicked)
             {
                 // 通过ChildHitTest查找被点击的最上层控件
                 ImWidget* hitWidget = ChildHitTest(mouse_pos);
@@ -151,8 +176,10 @@ namespace ImGuiWidget
                                             canvasSlot->RelativePosition = newPos - Position;
                                             canvasSlot->SlotSize = newSize;
                                         }
+                                        bIsInResize = true;
                                     }
                                 });
+                            m_ResizableBox->SetOnBeginPreResing([this](ImVec2, ImVec2) {bIsInResize = true; });
                         }
 
                         // 触发选中回调
@@ -162,7 +189,7 @@ namespace ImGuiWidget
                 else
                 {
                     // 点击空白处取消选中
-                    if (m_ResizableBox)
+                    if (!bIsInResize&&m_ResizableBox)
                     {
                         delete m_ResizableBox;
                         m_ResizableBox = nullptr;
@@ -174,30 +201,7 @@ namespace ImGuiWidget
                 }
             }
 
-            // 渲染选中控件效果
-            if (m_SelectedWidget)
-            {
-                if (m_ResizableBox)
-                {
-                    // 更新并渲染可调整框
-                    m_ResizableBox->SetPosition(m_SelectedWidget->GetPosition());
-                    m_ResizableBox->SetSize(m_SelectedWidget->GetSize());
-                    m_ResizableBox->Render();
-                }
-                else
-                {
-                    // 绘制简单边框表示选中
-                    ImRect selectedRect = m_SelectedWidget->GetRect();
-                    window->DrawList->AddRect(
-                        selectedRect.Min,
-                        selectedRect.Max,
-                        IM_COL32(255, 0, 0, 255), // 红色边框
-                        0.0f,
-                        0,
-                        2.0f // 边框粗细
-                    );
-                }
-            }
+          
         }
     };
 }

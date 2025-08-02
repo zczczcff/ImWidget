@@ -4,6 +4,8 @@
 #include "ImWidget/ImTextBlock.h"
 #include "ImWidget/ImResizableBox.h"
 #include "ImWidget/ImDesignPanel.h"
+#include "ImWidget/ImVerticalBox.h"
+#include "ImWidget/ImHorizontalBox.h"
 
 
 #include "ExampleWidgetInfor.h"
@@ -44,6 +46,16 @@ protected:
 		case WidgetType::ImCanvasPanel:
 		{
 			NewWidget = new ImGuiWidget::ImCanvasPanel("CanvasPanel_" + std::to_string(count));
+			break;
+		}
+		case WidgetType::ImHorizontalBox:
+		{
+			NewWidget = new ImGuiWidget::ImHorizontalBox("HorizontalBox_" + std::to_string(count));
+			break;
+		}
+		case WidgetType::ImVerticalBox:
+		{
+			NewWidget = new ImGuiWidget::ImVerticalBox("VerticalBox_" + std::to_string(count));
 			break;
 		}
 
