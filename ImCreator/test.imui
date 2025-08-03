@@ -1,0 +1,67 @@
+{
+    "BackGroundColor": [
+        255,
+        255,
+        255,
+        255
+    ],
+    "BorderColor": [
+        0,
+        0,
+        0,
+        255
+    ],
+    "HaveBorder": true,
+    "HoveredStyle": {
+        "BackgroundColor": [
+            230,
+            200,
+            170,
+            120
+        ],
+        "BorderColor": [
+            255,
+            255,
+            255,
+            255
+        ],
+        "BorderThickness": 1.0,
+        "HasBorder": false,
+        "Rounding": 0.0
+    },
+    "NormalStyle": {
+        "BackgroundColor": [
+            0,
+            255,
+            0,
+            255
+        ],
+        "BorderColor": [
+            255,
+            255,
+            255,
+            255
+        ],
+        "BorderThickness": 1.0,
+        "HasBorder": false,
+        "Rounding": 0.0
+    },
+    "PressedStyle": {
+        "BackgroundColor": [
+            250,
+            220,
+            190,
+            120
+        ],
+        "BorderColor": [
+            255,
+            255,
+            255,
+            255
+        ],
+        "BorderThickness": 1.0,
+        "HasBorder": false,
+        "Rounding": 0.0
+    },
+    "TooltipText": "Project"
+}

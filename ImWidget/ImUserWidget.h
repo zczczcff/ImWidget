@@ -327,6 +327,10 @@ namespace ImGuiWidget
 
 		void SetRootWidget(ImWidget* RootWidget)
 		{
+			if (m_RootWidget)
+			{
+				delete m_RootWidget;
+			}
 			m_RootWidget = RootWidget;
 			if (m_RootWidget)
 			{

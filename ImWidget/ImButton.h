@@ -263,7 +263,7 @@ namespace ImGuiWidget
         }
 
 
-        std::vector<PropertyInfo> GetProperties() override 
+        virtual std::vector<PropertyInfo> GetProperties() override 
         {
             auto baseProps = ImPanelWidget::GetProperties();
 

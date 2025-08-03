@@ -1,6 +1,6 @@
 #pragma once
 #include "ImPanelWidget.h"
-
+#include <functional>
 
 namespace ImGuiWidget
 {
@@ -10,10 +10,13 @@ namespace ImGuiWidget
 		bool bIsExpanded;
 		float TriangleSize = 7.f;
 		float HeadPad;
+		float BodyPad=6.f;
 
 		ImVec2 p0, p1, p2, p3, p4, p5;//TrianglePoints
 		ImRect buttonrect_NotExpanded, buttonrect_Expanded;
 		ImU32 TriangleColor;
+
+		std::function<void(bool)> OnExpandedStateChanged;
 	protected:
 		virtual ImSlot* CreateSlot(ImWidget* Content)
 		{
@@ -40,12 +43,12 @@ namespace ImGuiWidget
 			{
 				if (auto slot = GetSlotAt(1))
 				{
-					slot->SetSlotPosition(Position + ImVec2(HeadPad, headhight));
+					slot->SetSlotPosition(Position + ImVec2(BodyPad, headhight));
 
 					
 					if (auto widget = slot->GetContent())
 					{
-						float bodylength = ImMax(widget->GetMinSize().x, Size.x - HeadPad);
+						float bodylength = ImMax(widget->GetMinSize().x, Size.x - BodyPad);
 						slot->SetSlotSize(ImVec2(bodylength,widget->GetMinSize().y));
 					}
 					slot->ApplyLayout();
@@ -171,6 +174,10 @@ namespace ImGuiWidget
 					bIsExpanded = false;
 					MarkSizeDirty();
 					SetLayoutDirty();
+					if (OnExpandedStateChanged)
+					{
+						OnExpandedStateChanged(bIsExpanded);
+					}
 				}
 				
 			}
@@ -185,6 +192,10 @@ namespace ImGuiWidget
 					bIsExpanded = true;
 					MarkSizeDirty();
 					SetLayoutDirty();
+					if (OnExpandedStateChanged)
+					{
+						OnExpandedStateChanged(bIsExpanded);
+					}
 				}
 			}
 
@@ -221,5 +232,19 @@ namespace ImGuiWidget
 			//}
 		}
 		
+		bool GetIfExpanded() { return bIsExpanded; }
+
+		void SetExpandedState(bool newstate)
+		{
+			bIsExpanded = newstate; 
+			MarkSizeDirty();
+			SetLayoutDirty();
+			if (OnExpandedStateChanged)
+			{
+				OnExpandedStateChanged(bIsExpanded);
+			}
+		}
+
+		void SetOnExpandedStateChanged(std::function<void(bool)> callback) { OnExpandedStateChanged = callback; }
 	};
 }

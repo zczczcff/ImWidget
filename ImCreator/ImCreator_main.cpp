@@ -17,8 +17,12 @@
 #include "ImWidget/ImInputText.h"
 #include "ImWidget/ImCheckBox.h"
 
+#include "ImWidget/ImWidgetSerializer.h"
+
 #include "ImWindows/ImMenuButton.h"
 #include "ImWindows/ImPageManager.h"
+
+#include "WidgetTreeView.h"
 
 #include "ImExampleWidget.h"
 #include "ImDesignPanel.h"
@@ -46,7 +50,10 @@ public:
     ImWindows::ImMenuButton* m_MenuButton_Project_History;
     ImWindows::ImMenuButton* m_MenuButton_Project_History1;
     ImWindows::ImPageManager* m_CenterPageManager;
+
+    ImGuiWidget::ImVerticalSplitter* m_WidgetList_WidgetTreeSplitter;
     ImGuiWidget::ImVerticalBox* m_WidgetList;
+    WidgetTreeView* m_WidgetTreeView;
 
     DesiginPanel* m_DesiginPanel;
 
@@ -83,7 +90,13 @@ public:
         m_MiddleBox= new ImGuiWidget::ImVerticalBox("MiddleBox");
         m_MiddleBox->AddChildToVerticalBox(m_MiddleSplitter);
 
+
+        m_WidgetList_WidgetTreeSplitter= new ImGuiWidget::ImVerticalSplitter("WidgetList_WidgetTreeSplitter");
         m_WidgetList = new ImGuiWidget::ImVerticalBox("WidgetList");
+        m_WidgetTreeView = new WidgetTreeView("WidgetTreeView");
+        m_WidgetList_WidgetTreeSplitter->AddPart(m_WidgetList);
+        m_WidgetList_WidgetTreeSplitter->AddPart(m_WidgetTreeView);
+
         m_DesiginPanel = new DesiginPanel("CenterPanel");
        // m_DetailList= new ImGuiWidget::ImVerticalBox("DetailList");
         m_DetailList = new DetailList("DetailList");
@@ -95,12 +108,22 @@ public:
                     m_DetailList->SetCurrentWidget(selectedwidget);
                 }
             });
-
+        m_DesiginPanel->SetOnDragWidgetOn([this](ImGuiWidget::ImWidget* NewWidget) 
+            {
+                if (!m_WidgetTreeView->GetTargetWidget())
+                {
+                    m_WidgetTreeView->SetTargetWidget(NewWidget);
+                }
+                else
+                {
+                    m_WidgetTreeView->Refresh();
+                }
+            });
         m_CenterPageManager = new ImWindows::ImPageManager("CenterPageManager",ImWindows::TabDockPosition::Top);
         m_CenterPageManager->AddPage("test", m_DesiginPanel);
         m_CenterPageManager->SetTabBarThickness(20.f);
 
-        m_MiddleSplitter->AddPart(m_WidgetList);
+        m_MiddleSplitter->AddPart(m_WidgetList_WidgetTreeSplitter);
         m_MiddleSplitter->AddPart(m_CenterPageManager)->Ratio = 5.0f;
         m_MiddleSplitter->AddPart(m_DetailList);
 
@@ -154,6 +177,8 @@ public:
         
         m_MenuButton_Project->SetContent(Button_Project_Text);
         
+        //ImGuiWidget::SaveWidgetToFile(m_MenuButton_Project, "test.imui");
+        ImGuiWidget::LoadWidgetFromFile(m_MenuButton_Project, "test.imui");
 
         m_MenuList->AddChildToHorizontalBox(m_MenuButton_Project)->SetIfAutoSize(false);
         m_MainBox->AddChildToVerticalBox(m_MenuList)->SetIfAutoSize(false);

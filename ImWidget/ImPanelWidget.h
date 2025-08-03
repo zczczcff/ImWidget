@@ -57,6 +57,7 @@ namespace ImGuiWidget
 			SlotType* newslot = new SlotType(child);
 			m_Slots.push_back(newslot);
 			SetLayoutDirty();
+			child->SetParents(this);
 			return newslot;
 		}
 		void SetChildAt(int index, ImWidget* child)
@@ -79,6 +80,7 @@ namespace ImGuiWidget
 				m_Slots.push_back(CreateSlot(child));
 			}
 			SetLayoutDirty();
+			child->SetParents(this);
 		}
 		// 插入子控件到指定位置
 		ImSlot* InsertChildAt(int index, ImWidget* child)
@@ -89,6 +91,7 @@ namespace ImGuiWidget
 			ImSlot* newSlot = CreateSlot(child);
 			m_Slots.insert(m_Slots.begin() + index, newSlot);
 			SetLayoutDirty();
+			child->SetParents(this);
 			return newSlot;
 		}
 		virtual void HandleChildSizeDirty() 
@@ -146,22 +149,23 @@ namespace ImGuiWidget
 		}
 
 		// 按指针移除子控件
-		//bool RemoveChild(ImWidget* child)
-		//{
-		//	auto it = std::find_if(m_Slots.begin(), m_Slots.end(),
-		//		[child](ImSlot* slot) {
-		//			return slot->GetContent() == child;
-		//		});
+		bool RemoveChild(ImWidget* child)
+		{
+			auto it = std::find_if(m_Slots.begin(), m_Slots.end(),
+				[child](ImSlot* slot) {
+					return slot->GetContent() == child;
+				});
 
-		//	if (it != m_Slots.end())
-		//	{
-		//		delete* it; // 删除slot对象
-		//		m_Slots.erase(it);
-		//		SetLayoutDirty();
-		//		return true;
-		//	}
-		//	return false;
-		//}
+			if (it != m_Slots.end())
+			{
+				delete* it; // 删除slot对象
+				m_Slots.erase(it);
+				SetLayoutDirty();
+				delete child;
+				return true;
+			}
+			return false;
+		}
 
 		// 新增：取出子控件（移除slot但保留子控件指针）
 		ImWidget* ExtractChildAt(int index)
@@ -308,7 +312,7 @@ namespace ImGuiWidget
 			SetLayoutDirty();
 		}
 
-		std::vector<PropertyInfo> GetProperties() override
+		virtual std::vector<PropertyInfo> GetProperties() override
 		{
 			auto baseProps = ImWidget::GetProperties();
 

@@ -14,6 +14,8 @@ class DesiginPanel : public ImGuiWidget::ImUserWidget
 {
 private:
 	ImGuiWidget::ImDesignPanel* m_MainPanel;
+
+	std::function<void(ImWidget*)> OnDragWidgetOn;
 protected:
 	virtual void OnDragOn(ImGuiWidget::ImDragHandle* OriginalHandle) override
 	{
@@ -73,7 +75,20 @@ protected:
 				{
 					delete NewWidget;
 				}
+				else
+				{
+					if (OnDragWidgetOn)
+					{
+						OnDragWidgetOn(NewWidget);
+					}
+				}
 			}
+			if (OnDragWidgetOn)
+			{
+				OnDragWidgetOn(NewWidget);
+			}
+			
+
 			count++;
 		}
 
@@ -108,4 +123,5 @@ public:
 	}
 
 	void SetOnSelected(std::function<void(ImWidget*)> callback) { m_MainPanel->SetOnSelected(callback); }
+	void SetOnDragWidgetOn(std::function<void(ImWidget*)>callback) { OnDragWidgetOn = callback; }
 };
