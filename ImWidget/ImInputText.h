@@ -1,3 +1,4 @@
+// 文档1: ImInputText.h
 #pragma once
 #include "ImWidget.h"
 #include <string>
@@ -14,6 +15,7 @@ namespace ImGuiWidget
     {
     protected:
         std::string m_Text;
+        std::string m_PreviousText; // 记录上次失去焦点时的文本
         ImU32 m_TextColor = IM_COL32(0, 0, 0, 255);
         ImU32 m_BackgroundColor = IM_COL32(255, 255, 255, 255);
         ImU32 m_BorderColor = IM_COL32(100, 100, 100, 255);
@@ -31,20 +33,14 @@ namespace ImGuiWidget
 
         std::function<void(const std::string&)> OnTextChanged;
 
-        //void HandleInput();
-        //void HandleSelection();
-        //void CopySelection();
-        //void DeleteSelection();
-        //void MoveCursor(int direction);
-        //void UpdateCursorBlink();
-
     public:
         ImInputText(const std::string& WidgetName)
-            : ImWidget(WidgetName)
+            : ImWidget(WidgetName), m_PreviousText("")
         {}
 
         virtual void SetText(const std::string& text) {
             m_Text = text;
+            m_PreviousText = text;
             m_CursorPos = static_cast<int>(m_Text.size());
             m_SelectionStart = -1;
             m_SelectionEnd = -1;
@@ -102,8 +98,18 @@ namespace ImGuiWidget
             bool isHovered = ImRect(Position, Position + Size).Contains(io.MousePos);
 
             if (clicked) {
+                bool wasFocused = m_IsFocused;
                 m_IsFocused = isHovered;
+
+                // 失去焦点时检查文本变化
+                if (wasFocused && !m_IsFocused) {
+                    CheckTextChanged();
+                }
+
                 if (m_IsFocused) {
+                    // 保存当前文本作为比较基准
+                    m_PreviousText = m_Text;
+
                     // 设置光标位置
                     ImVec2 textPos = Position + ImVec2(4, (Size.y - ImGui::GetTextLineHeight()) * 0.5f);
                     float mouseX = io.MousePos.x - textPos.x;
@@ -178,7 +184,10 @@ namespace ImGuiWidget
         virtual std::vector<PropertyInfo> GetProperties() override {
             std::vector<PropertyInfo> props = {
                 {"Text", PropertyType::String, "Data",
-                    [this](void* v) { m_Text = *static_cast<std::string*>(v); },
+                    [this](void* v) {
+                        std::string newText = *static_cast<std::string*>(v);
+                        SetText(newText);
+                    },
                     [this]() -> void* { return &m_Text; }},
                 {"TextColor", PropertyType::Color, "Style",
                     [this](void* v) { m_TextColor = *static_cast<ImU32*>(v); },
@@ -200,29 +209,61 @@ namespace ImGuiWidget
         }
 
     protected:
+        // 检查文本是否变化并触发回调
+        virtual void CheckTextChanged() {
+            if (m_Text != m_PreviousText && OnTextChanged) {
+                OnTextChanged(m_Text);
+            }
+            m_PreviousText = m_Text;
+        }
+
         virtual void HandleInput() {
             ImGuiIO& io = ImGui::GetIO();
 
-            // 处理字符输入
-            for (int i = 0; i < io.InputQueueCharacters.Size; i++) {
-                unsigned int c = io.InputQueueCharacters[i];
-                if (c < 256&&c!=8) { // ASCII字符
-                    // 删除选中文本
+            // ==================== 1. 特殊键处理 ====================
+            if (ImGui::IsKeyPressed(ImGuiKey_Escape)) {
+                CancelEditing();
+                return;
+            }
+
+            if (ImGui::IsKeyPressed(ImGuiKey_Enter) ||
+                ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
+            {
+                SubmitEditing();
+                return;
+            }
+
+            // ==================== 2. 编辑操作 ====================
+            // Ctrl+A: 全选
+            if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_A)) {
+                m_SelectionStart = 0;
+                m_SelectionEnd = static_cast<int>(m_Text.size());
+            }
+
+            // Ctrl+C: 复制
+            if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_C)) {
+                CopySelection();
+            }
+
+            // Ctrl+X: 剪切
+            if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_X)) {
+                CopySelection();
+                DeleteSelection();
+            }
+
+            // Ctrl+V: 粘贴
+            if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_V)) {
+                const char* clipboard = ImGui::GetClipboardText();
+                if (clipboard) {
                     if (m_SelectionStart != -1 && m_SelectionEnd != -1) {
                         DeleteSelection();
                     }
-
-                    // 插入字符
-                    m_Text.insert(m_CursorPos, 1, static_cast<char>(c));
-                    m_CursorPos++;
-
-                    if (OnTextChanged) {
-                        OnTextChanged(m_Text);
-                    }
+                    m_Text.insert(m_CursorPos, clipboard);
+                    m_CursorPos += static_cast<int>(strlen(clipboard));
                 }
             }
 
-            // 处理退格键
+            // 退格键
             if (ImGui::IsKeyPressed(ImGuiKey_Backspace)) {
                 if (m_SelectionStart != -1 && m_SelectionEnd != -1) {
                     DeleteSelection();
@@ -230,39 +271,94 @@ namespace ImGuiWidget
                 else if (m_CursorPos > 0) {
                     m_Text.erase(m_CursorPos - 1, 1);
                     m_CursorPos--;
-
-                    if (OnTextChanged) {
-                        OnTextChanged(m_Text);
-                    }
                 }
             }
 
-            // 处理删除键
+            // 删除键
             if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
                 if (m_SelectionStart != -1 && m_SelectionEnd != -1) {
                     DeleteSelection();
                 }
                 else if (m_CursorPos < static_cast<int>(m_Text.size())) {
                     m_Text.erase(m_CursorPos, 1);
-
-                    if (OnTextChanged) {
-                        OnTextChanged(m_Text);
-                    }
                 }
             }
 
-            // 处理方向键
+            // ==================== 3. 光标移动 ====================
             if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
-                MoveCursor(-1);
+                HandleArrowKey(-1);
             }
             if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
-                MoveCursor(1);
+                HandleArrowKey(1);
+            }
+            if (ImGui::IsKeyPressed(ImGuiKey_Home)) {
+                m_CursorPos = 0;
+                ClearSelection();
+                m_CursorBlinkTimer = 0.0f;
+            }
+            if (ImGui::IsKeyPressed(ImGuiKey_End)) {
+                m_CursorPos = static_cast<int>(m_Text.size());
+                ClearSelection();
+                m_CursorBlinkTimer = 0.0f;
             }
 
-            // 处理Ctrl+C复制
-            if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_C)) {
-                CopySelection();
+            // ==================== 4. 字符输入 ====================
+            // 处理可打印字符
+            for (int i = 0; i < io.InputQueueCharacters.Size; i++) {
+                unsigned int c = io.InputQueueCharacters[i];
+
+                // 跳过控制字符（除回车和Tab外）
+                if (c < 32 && c != '\t') continue;
+
+                // 删除当前选择（如果有）
+                if (m_SelectionStart != -1 && m_SelectionEnd != -1) {
+                    DeleteSelection();
+                }
+
+                // 插入字符
+                if (c == '\t') {
+                    // Tab替换为4个空格
+                    m_Text.insert(m_CursorPos, 4, ' ');
+                    m_CursorPos += 4;
+                }
+                else {
+                    // 普通可打印字符
+                    m_Text.insert(m_CursorPos, 1, static_cast<char>(c));
+                    m_CursorPos++;
+                }
             }
+
+            // ==================== 5. 光标闪烁更新 ====================
+            UpdateCursorBlink();
+        }
+        void ClearSelection() {
+            m_SelectionStart = -1;
+            m_SelectionEnd = -1;
+        }
+        // 辅助函数
+        void HandleArrowKey(int direction) {
+            if (ImGui::IsKeyDown(ImGuiKey_LeftShift)) {
+                if (m_SelectionStart == -1) {
+                    m_SelectionStart = m_CursorPos;
+                    m_SelectionEnd = m_CursorPos;
+                }
+                MoveCursor(direction);
+                m_SelectionEnd = m_CursorPos;
+            }
+            else {
+                MoveCursor(direction);
+                ClearSelection();
+            }
+        }
+
+        void CancelEditing() {
+            m_Text = m_PreviousText; // 恢复原始文本
+            m_IsFocused = false;
+        }
+
+        void SubmitEditing() {
+            m_IsFocused = false;
+            CheckTextChanged(); // 通知文本变化
         }
 
         void MoveCursor(int direction) {
@@ -302,10 +398,6 @@ namespace ImGuiWidget
             m_CursorPos = start;
             m_SelectionStart = -1;
             m_SelectionEnd = -1;
-
-            if (OnTextChanged) {
-                OnTextChanged(m_Text);
-            }
         }
     };
 
@@ -315,48 +407,15 @@ namespace ImGuiWidget
     private:
         int m_MinValue = INT_MIN;
         int m_MaxValue = INT_MAX;
-
+        int m_PreviousValue = 0; // 记录上次失去焦点时的值
+        bool m_IsValid = true;
         // 整数值改变时的回调
         std::function<void(int)> OnIntValueChanged;
 
-        void ValidateAndFormat()
-        {
-            if (m_Text.empty()) {
-                SetValue(m_MinValue);
-                return;
-            }
-
-            const char* start = m_Text.c_str();
-            char* end = nullptr;
-            long value = std::strtol(start, &end, 10);
-
-            if (end != start + m_Text.size() || value < m_MinValue || value > m_MaxValue) {
-                SetValue(m_MinValue);
-            }
-            else {
-                // 如果值有效，但文本格式不正确（如前置零），则重新格式化
-                std::string formatted = std::to_string(static_cast<int>(value));
-                if (formatted != m_Text) {
-                    m_Text = formatted;
-                    m_CursorPos = static_cast<int>(m_Text.size());
-                    m_SelectionStart = -1;
-                    m_SelectionEnd = -1;
-
-                    if (OnTextChanged) {
-                        OnTextChanged(m_Text);
-                    }
-
-                    // 触发整数值改变回调
-                    if (OnIntValueChanged) {
-                        OnIntValueChanged(static_cast<int>(value));
-                    }
-                }
-            }
-        }
 
     public:
         ImIntInput(const std::string& WidgetName)
-            : ImInputText(WidgetName)
+            : ImInputText(WidgetName), m_PreviousValue(0)
         {
             SetValue(0);
         }
@@ -391,39 +450,66 @@ namespace ImGuiWidget
             }
 
             m_Text = std::to_string(value);
+            m_PreviousText = m_Text;
             m_CursorPos = static_cast<int>(m_Text.size());
             m_SelectionStart = -1;
             m_SelectionEnd = -1;
-
-            if (OnTextChanged) {
-                OnTextChanged(m_Text);
-            }
-
-            // 触发整数值改变回调
-            if (OnIntValueChanged) {
-                OnIntValueChanged(value);
-            }
         }
 
         void SetText(const std::string& text) override
         {
             ImInputText::SetText(text);
             ValidateAndFormat();
+            m_PreviousValue = GetValue();
         }
+        void Render() override {
+            // 检查输入有效性
+            if (m_IsFocused) {
+                m_IsValid = IsTextValid();
+            }
 
-        virtual void Render() override
-        {
-            bool wasFocused = m_IsFocused;
+            // 基类渲染
             ImInputText::Render();
-            if (wasFocused && !m_IsFocused) {
-                ValidateAndFormat();
+
+            // 无效状态视觉反馈
+            if (!m_IsValid && m_IsFocused) {
+                ImDrawList* drawList = ImGui::GetWindowDrawList();
+                drawList->AddRect(
+                    Position,
+                    Position + Size,
+                    IM_COL32(255, 0, 0, 255), // 红色边框
+                    m_Rounding,
+                    0,
+                    2.0f
+                );
             }
         }
 
-        void HandleInput() override
-        {
+        void CheckTextChanged() override {
+            // 提交时验证并格式化
+            ValidateAndFormat();
+
+            // 然后调用基类检查
+            ImInputText::CheckTextChanged();
+
+            // 检查整数值变化
+            CheckValueChanged();
+        }
+
+        void HandleInput() override {
             ImGuiIO& io = ImGui::GetIO();
 
+            // 处理回车键
+            if (ImGui::IsKeyPressed(ImGuiKey_Enter) ||
+                ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
+            {
+                m_IsFocused = false;
+                ValidateAndFormat();
+                CheckValueChanged();
+                return;
+            }
+
+            // 处理粘贴
             if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_V)) {
                 const char* clipboard = ImGui::GetClipboardText();
                 if (clipboard) {
@@ -447,37 +533,81 @@ namespace ImGuiWidget
 
                         m_Text.insert(m_CursorPos, filtered);
                         m_CursorPos += static_cast<int>(filtered.size());
-
-                        if (OnTextChanged) {
-                            OnTextChanged(m_Text);
-                        }
-
-                        // 输入后立即验证（不同于基类行为）
-                        ValidateAndFormat();
                     }
                 }
-                return;
             }
 
+            // 过滤输入字符
             for (int i = 0; i < io.InputQueueCharacters.Size; i++) {
                 unsigned int c = io.InputQueueCharacters[i];
 
+                // 只允许数字和负号（在开头）
                 if (!(c >= '0' && c <= '9') &&
                     !(c == '-' && m_CursorPos == 0))
                 {
                     io.InputQueueCharacters.Data[i] = 0;
-                    continue;
                 }
             }
 
+            // 调用基类处理其他按键
             ImInputText::HandleInput();
+        }
 
-            // 输入后立即验证（不同于基类行为）
-            if (io.InputQueueCharacters.Size > 0) {
-                ValidateAndFormat();
+    private:
+        bool IsTextValid() const {
+            if (m_Text.empty()) return true; // 允许空输入（临时状态）
+            if (m_Text == "-") return true;  // 允许单个负号（临时状态）
+
+            try {
+                size_t pos;
+                int value = std::stoi(m_Text, &pos);
+                if (pos != m_Text.size()) return false;
+                return (value >= m_MinValue && value <= m_MaxValue);
+            }
+            catch (...) {
+                return false;
             }
         }
 
+        void ValidateAndFormat() {
+            if (m_Text.empty()) {
+                SetValue(m_MinValue);
+                return;
+            }
+
+            try {
+                size_t pos;
+                int value = std::stoi(m_Text, &pos);
+
+                // 无效格式或超出范围
+                if (pos != m_Text.size() || value < m_MinValue || value > m_MaxValue) {
+                    SetValue(m_MinValue);
+                    return;
+                }
+
+                // 如果值有效但文本格式不正确（如前置零），则重新格式化
+                std::string formatted = std::to_string(value);
+                if (formatted != m_Text) {
+                    m_Text = formatted;
+                    m_CursorPos = static_cast<int>(m_Text.size());
+                    ClearSelection();
+                }
+            }
+            catch (...) {
+                SetValue(m_MinValue);
+            }
+        }
+
+        void CheckValueChanged() {
+            int currentValue = GetValue();
+            if (currentValue != m_PreviousValue) {
+                if (OnIntValueChanged) {
+                    OnIntValueChanged(currentValue);
+                }
+                m_PreviousValue = currentValue;
+            }
+        }
+    public:
         virtual std::vector<PropertyInfo> GetProperties() override
         {
             auto props = ImInputText::GetProperties();
@@ -508,6 +638,7 @@ namespace ImGuiWidget
         {
             OnIntValueChanged = callback;
         }
+
     };
 
     class ImFloatInput : public ImInputText
@@ -516,28 +647,11 @@ namespace ImGuiWidget
         float m_MinValue = -FLT_MAX;
         float m_MaxValue = FLT_MAX;
         int m_DecimalPlaces = 2;
-
+        float m_PreviousValue = 0.0f; // 记录上次失去焦点时的值
+        bool m_IsValid = true;
         // 浮点数值改变时的回调
         std::function<void(float)> OnFloatValueChanged;
 
-        void ValidateAndFormat()
-        {
-            if (m_Text.empty()) {
-                SetValue(m_MinValue);
-                return;
-            }
-
-            const char* start = m_Text.c_str();
-            char* end = nullptr;
-            double value = std::strtod(start, &end);
-
-            if (end != start + m_Text.size() || value < m_MinValue || value > m_MaxValue) {
-                SetValue(m_MinValue);
-            }
-            else {
-                FormatValue(value);
-            }
-        }
 
         void FormatValue(double value)
         {
@@ -566,21 +680,12 @@ namespace ImGuiWidget
                 m_CursorPos = static_cast<int>(m_Text.size());
                 m_SelectionStart = -1;
                 m_SelectionEnd = -1;
-
-                if (OnTextChanged) {
-                    OnTextChanged(m_Text);
-                }
-
-                // 触发浮点数值改变回调
-                if (OnFloatValueChanged) {
-                    OnFloatValueChanged(value);
-                }
             }
         }
 
     public:
         ImFloatInput(const std::string& WidgetName)
-            : ImInputText(WidgetName)
+            : ImInputText(WidgetName), m_PreviousValue(0.0f)
         {
             SetValue(0.0);
         }
@@ -622,26 +727,52 @@ namespace ImGuiWidget
             }
 
             FormatValue(value);
+            m_PreviousText = m_Text;
+            m_PreviousValue = value;
         }
 
         void SetText(const std::string& text) override
         {
             ImInputText::SetText(text);
             ValidateAndFormat();
+            m_PreviousValue = GetValue();
         }
 
-        virtual void Render() override
-        {
-            bool wasFocused = m_IsFocused;
+        void Render() override {
+            if (m_IsFocused) {
+                m_IsValid = IsTextValid();
+            }
             ImInputText::Render();
-            if (wasFocused && !m_IsFocused) {
-                ValidateAndFormat();
+            if (!m_IsValid && m_IsFocused) {
+                ImDrawList* drawList = ImGui::GetWindowDrawList();
+                drawList->AddRect(
+                    Position,
+                    Position + Size,
+                    IM_COL32(255, 0, 0, 255),
+                    m_Rounding,
+                    0,
+                    2.0f
+                );
             }
         }
 
-        void HandleInput() override
-        {
+        void CheckTextChanged() override {
+            ValidateAndFormat();
+            ImInputText::CheckTextChanged();
+            CheckValueChanged();
+        }
+
+        void HandleInput() override {
             ImGuiIO& io = ImGui::GetIO();
+
+            if (ImGui::IsKeyPressed(ImGuiKey_Enter) ||
+                ImGui::IsKeyPressed(ImGuiKey_KeypadEnter))
+            {
+                m_IsFocused = false;
+                ValidateAndFormat();
+                CheckValueChanged();
+                return;
+            }
 
             if (ImGui::IsKeyDown(ImGuiKey_LeftCtrl) && ImGui::IsKeyPressed(ImGuiKey_V)) {
                 const char* clipboard = ImGui::GetClipboardText();
@@ -671,16 +802,8 @@ namespace ImGuiWidget
 
                         m_Text.insert(m_CursorPos, filtered);
                         m_CursorPos += static_cast<int>(filtered.size());
-
-                        if (OnTextChanged) {
-                            OnTextChanged(m_Text);
-                        }
-
-                        // 输入后立即验证
-                        ValidateAndFormat();
                     }
                 }
-                return;
             }
 
             for (int i = 0; i < io.InputQueueCharacters.Size; i++) {
@@ -691,18 +814,91 @@ namespace ImGuiWidget
                     !(c == '.' && m_Text.find('.') == std::string::npos))
                 {
                     io.InputQueueCharacters.Data[i] = 0;
-                    continue;
                 }
             }
 
             ImInputText::HandleInput();
+        }
 
-            // 输入后立即验证
-            if (io.InputQueueCharacters.Size > 0) {
-                ValidateAndFormat();
+    private:
+        bool IsTextValid() const {
+            if (m_Text.empty()) return true;
+            if (m_Text == "-") return true;
+            if (m_Text == ".") return true;
+            if (m_Text == "-.") return true;
+
+            try {
+                size_t pos;
+                float value = std::stof(m_Text, &pos);
+                if (pos != m_Text.size()) return false;
+                return (value >= m_MinValue && value <= m_MaxValue);
+            }
+            catch (...) {
+                return false;
             }
         }
 
+        void ValidateAndFormat() {
+            if (m_Text.empty()) {
+                SetValue(m_MinValue);
+                return;
+            }
+
+            try {
+                size_t pos;
+                float value = std::stof(m_Text, &pos);
+
+                // 无效格式或超出范围
+                if (pos != m_Text.size() || value < m_MinValue || value > m_MaxValue) {
+                    SetValue(m_MinValue);
+                    return;
+                }
+
+                FormatValue(value);
+            }
+            catch (...) {
+                SetValue(m_MinValue);
+            }
+        }
+
+        void FormatValue(float value) {
+            std::ostringstream oss;
+            oss << std::fixed << std::setprecision(m_DecimalPlaces) << value;
+            std::string formatted = oss.str();
+
+            // 移除多余的尾随零
+            size_t dotPos = formatted.find('.');
+            if (dotPos != std::string::npos) {
+                // 移除尾随零
+                size_t lastNonZero = formatted.find_last_not_of('0');
+                if (lastNonZero != std::string::npos && lastNonZero > dotPos) {
+                    formatted.erase(lastNonZero + 1);
+                }
+
+                // 如果小数点后没有数字，移除小数点
+                if (formatted.back() == '.') {
+                    formatted.pop_back();
+                }
+            }
+
+            if (formatted != m_Text) {
+                m_Text = formatted;
+                m_CursorPos = static_cast<int>(m_Text.size());
+                ClearSelection();
+            }
+        }
+
+        void CheckValueChanged() {
+            float currentValue = GetValue();
+            const float epsilon = 1e-6f;
+            if (std::abs(currentValue - m_PreviousValue) > epsilon) {
+                if (OnFloatValueChanged) {
+                    OnFloatValueChanged(currentValue);
+                }
+                m_PreviousValue = currentValue;
+            }
+        }
+public:
         virtual std::vector<PropertyInfo> GetProperties() override
         {
             auto props = ImInputText::GetProperties();
@@ -741,5 +937,6 @@ namespace ImGuiWidget
         {
             OnFloatValueChanged = callback;
         }
+
     };
 }

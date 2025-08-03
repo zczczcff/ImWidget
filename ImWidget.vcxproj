@@ -168,6 +168,7 @@
     <ClInclude Include="ImWidget\ImButton.h" />
     <ClInclude Include="ImWidget\ImCanvasPanel.h" />
     <ClInclude Include="ImWidget\ImCheckBox.h" />
+    <ClInclude Include="ImWidget\ImColorPicker.h" />
     <ClInclude Include="ImWidget\ImComboBox.h" />
     <ClInclude Include="ImWidget\ImDesignPanel.h" />
     <ClInclude Include="ImWidget\ImExpandableBox.h" />

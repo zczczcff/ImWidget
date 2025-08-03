@@ -5,6 +5,7 @@
 #include "ImWidget/ImHorizontalBox.h"
 #include "ImWidget/ImTextBlock.h"
 #include "Imwidget/ImCheckBox.h"
+#include "ImWidget/ImColorPicker.h"
 
 class DetailList :public ImGuiWidget::ImUserWidget
 {
@@ -42,6 +43,17 @@ public:
 		}
 		case ImGuiWidget::PropertyType::Color:
 		{
+			ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetName + "_StructBox");
+			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetName + "_PropertyName");
+			PropertyName->SetText(SingleProperty.name);
+			ImGuiWidget::ImColorPicker* ColorPalette = new ImGuiWidget::ImColorPicker(m_WidgetName + "_ColorPalette");
+			ColorPalette->SetColor(*(ImU32*)SingleProperty.getter());
+			ColorPalette->SetOnColorChanged([SingleProperty](ImU32 NewColor) {SingleProperty.setter(&NewColor); });
+
+			StructBox->SetHead(PropertyName);
+			StructBox->SetBody(ColorPalette);
+
+			CurrentVerticalBox->AddChildToVerticalBox(StructBox)->SetIfAutoSize(false);
 			break;
 		}
 		case ImGuiWidget::PropertyType::Float:
