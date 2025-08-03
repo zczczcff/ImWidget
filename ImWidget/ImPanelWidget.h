@@ -16,6 +16,7 @@ namespace ImGuiWidget
 		ImU32 BgColor;
 		ImU32 BorderColor;
 		bool bHaveBorder;
+		bool bHaveBackGround;
 		bool bLayOutDirty = false;
 
 
@@ -99,14 +100,13 @@ namespace ImGuiWidget
 			:ImWidget(WidgetName),
 			BgColor(IM_COL32(255, 255, 255, 255)),
 			BorderColor(IM_COL32(0, 0, 0, 255)),
-			bHaveBorder(true)
+			bHaveBorder(true),
+			bHaveBackGround(true)
 		{}
 
 		virtual ~ImPanelWidget() // 添加析构函数管理内存
 		{
-			for (auto slot : m_Slots)
-				delete slot;
-			m_Slots.clear();
+			RemoveAllChild();
 		}
 
 		virtual ImSlot* AddChild(ImWidget* child,ImVec2 RelativePosition=ImVec2(FLT_MIN,FLT_MIN))
@@ -114,7 +114,21 @@ namespace ImGuiWidget
 			return AddChildInternal<ImSlot>(child);
 		}
 
-
+		void RemoveAllChild()
+		{
+			for (auto& slot : m_Slots)
+			{
+				if (slot)
+				{
+					if (slot->GetContent())
+					{
+						delete slot->GetContent();
+					}
+					delete slot;
+				}
+			}
+			m_Slots.clear();
+		}
 
 		// 按索引移除子控件
 		void RemoveChildAt(int index)
@@ -208,7 +222,10 @@ namespace ImGuiWidget
 		void RenderBackGround()
 		{
 			ImGuiWindow* window = ImGui::GetCurrentWindow();
-			window->DrawList->AddRectFilled(Position, Position + Size, BgColor);
+			if (bHaveBackGround)
+			{
+				window->DrawList->AddRectFilled(Position, Position + Size, BgColor);
+			}
 			if (bHaveBorder)
 			{
 				window->DrawList->AddRect(Position, Position + Size, BorderColor);
@@ -289,6 +306,43 @@ namespace ImGuiWidget
 		{
 			Size = size;
 			SetLayoutDirty();
+		}
+
+		std::vector<PropertyInfo> GetProperties() override
+		{
+			auto baseProps = ImWidget::GetProperties();
+
+			baseProps.push_back(
+				{
+					"BackGroundColor",
+					PropertyType::Color,
+					"Style",
+					[this](void* v) { BgColor = *static_cast<ImU32*>(v); },
+					[this]() -> void* { return &BgColor; }
+				}
+			);
+
+			baseProps.push_back(
+				{
+					"HaveBorder",
+					PropertyType::Bool,
+					"Style",
+					[this](void* v){bHaveBorder= *static_cast<bool*>(v); },
+					[this]()->void* {return &bHaveBorder; }
+				}
+			);
+
+			baseProps.push_back(
+				{
+					"BorderColor",
+					PropertyType::Color,
+					"Style",
+					[this](void* v) { BorderColor = *static_cast<ImU32*>(v); },
+					[this]() -> void* { return &BorderColor; }
+				}
+			);
+
+			return baseProps;
 		}
 	};
 }

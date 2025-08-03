@@ -2,8 +2,9 @@
 #include <imgui.h>
 #include <string>
 #include <imgui_internal.h>
+#include <vector>
 
-
+#include "ImWidgetProperty.h"
 namespace ImGuiWidget
 {
 	class ImWidget
@@ -34,7 +35,9 @@ namespace ImGuiWidget
 			m_Parents(nullptr),
 			bSizeDirty(false)
 		{
-
+			static int counter = 0;
+			m_WidgetName += std::to_string(counter);
+			counter++;
 		}
 		void SetParents(ImWidget* parents)
 		{
@@ -71,5 +74,11 @@ namespace ImGuiWidget
 		ImRect GetRect() { return ImRect(Position, Position + Size); }
 		virtual void Render(){}
 		virtual ImVec2 GetMinSize() { return ImVec2(-1.f, -1.f); }
+		std::string GetWidgetName() { return m_WidgetName; }
+
+		virtual std::vector<PropertyInfo> GetProperties()
+		{
+			return {};
+		}
 	};
 }

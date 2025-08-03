@@ -14,12 +14,15 @@
 #include "ImWidget/ImMenuButton.h"
 #include "ImWidget/ImMultiLineTextBlock.h"
 #include "ImWidget/ImScrollingTextList.h"
+#include "ImWidget/ImInputText.h"
+#include "ImWidget/ImCheckBox.h"
 
 #include "ImWindows/ImMenuButton.h"
 #include "ImWindows/ImPageManager.h"
 
 #include "ImExampleWidget.h"
 #include "ImDesignPanel.h"
+#include "ImCreator_DetailList.h"
 namespace ImGuiWidget
 {
     Application* GlobalApp;
@@ -44,10 +47,16 @@ public:
     ImWindows::ImMenuButton* m_MenuButton_Project_History1;
     ImWindows::ImPageManager* m_CenterPageManager;
     ImGuiWidget::ImVerticalBox* m_WidgetList;
-    DesiginPanel* m_CenterPanel;
-    ImGuiWidget::ImVerticalBox* m_DetailList;
+
+    DesiginPanel* m_DesiginPanel;
+
+    DetailList* m_DetailList;
+    //ImGuiWidget::ImVerticalBox* m_DetailList;
 
     ImGuiWidget::ImScrollingTextList* m_LogList;
+
+    ImGuiWidget::ImInputText* m_InputTextTest;
+    ImGuiWidget::ImCheckBox* m_CheckBoxTest;
 
     //ImGuiWidget::ImScrollBox* m_LogBox;
     ExampleWidget* m_Example_Button;
@@ -75,11 +84,20 @@ public:
         m_MiddleBox->AddChildToVerticalBox(m_MiddleSplitter);
 
         m_WidgetList = new ImGuiWidget::ImVerticalBox("WidgetList");
-        m_CenterPanel = new DesiginPanel("CenterPanel");
-        m_DetailList= new ImGuiWidget::ImVerticalBox("DetailList");
+        m_DesiginPanel = new DesiginPanel("CenterPanel");
+       // m_DetailList= new ImGuiWidget::ImVerticalBox("DetailList");
+        m_DetailList = new DetailList("DetailList");
+
+        m_DesiginPanel->SetOnSelected([this](ImGuiWidget::ImWidget* selectedwidget) 
+            {
+                if (selectedwidget)
+                {
+                    m_DetailList->SetCurrentWidget(selectedwidget);
+                }
+            });
 
         m_CenterPageManager = new ImWindows::ImPageManager("CenterPageManager",ImWindows::TabDockPosition::Top);
-        m_CenterPageManager->AddPage("test", m_CenterPanel);
+        m_CenterPageManager->AddPage("test", m_DesiginPanel);
         m_CenterPageManager->SetTabBarThickness(20.f);
 
         m_MiddleSplitter->AddPart(m_WidgetList);
@@ -92,8 +110,8 @@ public:
         m_Example_ImCanvasPanel = new ExampleWidget("Example_CanvasPanel", "CanvasPanel", WidgetType::ImCanvasPanel);
         m_Example_HorizontalBox = new ExampleWidget("Example_HorizontalBox", "HorizontalBox", WidgetType::ImHorizontalBox);
         m_Example_VerticalBox = new ExampleWidget("Example_VerticalBox", "VerticalBox", WidgetType::ImVerticalBox);
-
-
+        m_InputTextTest = new ImGuiWidget::ImInputText("InputTextTest");
+        m_CheckBoxTest = new ImGuiWidget::ImCheckBox("CheckBoxTest");
         //ImGuiWidget::ImButton* button_test = new ImGuiWidget::ImButton("buttontest");
         m_WidgetList->AddChildToVerticalBox(m_Example_Button)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_TextBlock)->SetIfAutoSize(false);
@@ -101,7 +119,8 @@ public:
         m_WidgetList->AddChildToVerticalBox(m_Example_ImCanvasPanel)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_HorizontalBox)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_VerticalBox)->SetIfAutoSize(false);
-        //m_WidgetList->AddChildToVerticalBox(button_test)->SetIfAutoSize(false);
+        m_WidgetList->AddChildToVerticalBox(m_InputTextTest)->SetIfAutoSize(false);
+        m_WidgetList->AddChildToVerticalBox(m_CheckBoxTest)->SetIfAutoSize(false);
 
         m_BottomBox=new ImGuiWidget::ImVerticalBox("BottomBox");
         m_VSplitter->AddPart(m_MiddleBox)->Ratio = 4.0f;

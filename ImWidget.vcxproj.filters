@@ -132,6 +132,15 @@
     <ClInclude Include="ImWidget\ImScrollingTextList.h">
       <Filter>ImWidget</Filter>
     </ClInclude>
+    <ClInclude Include="ImWidget\ImWidgetProperty.h">
+      <Filter>ImWidget</Filter>
+    </ClInclude>
+    <ClInclude Include="ImWidget\ImInputText.h">
+      <Filter>ImWidget</Filter>
+    </ClInclude>
+    <ClInclude Include="ImWidget\ImCheckBox.h">
+      <Filter>ImWidget</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">

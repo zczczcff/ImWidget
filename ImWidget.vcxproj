@@ -167,12 +167,14 @@
     <ClInclude Include="Extern\imgui-master\imstb_truetype.h" />
     <ClInclude Include="ImWidget\ImButton.h" />
     <ClInclude Include="ImWidget\ImCanvasPanel.h" />
+    <ClInclude Include="ImWidget\ImCheckBox.h" />
     <ClInclude Include="ImWidget\ImComboBox.h" />
     <ClInclude Include="ImWidget\ImDesignPanel.h" />
     <ClInclude Include="ImWidget\ImExpandableBox.h" />
     <ClInclude Include="ImWidget\ImHorizontalBox.h" />
     <ClInclude Include="ImWidget\ImHorizontalSplitter.h" />
     <ClInclude Include="ImWidget\ImImage.h" />
+    <ClInclude Include="ImWidget\ImInputText.h" />
     <ClInclude Include="ImWidget\ImMenuButton.h" />
     <ClInclude Include="ImWidget\ImMultiLineTextBlock.h" />
     <ClInclude Include="ImWidget\ImPanelWidget.h" />
@@ -187,6 +189,7 @@
     <ClInclude Include="ImWidget\ImWidget.h" />
     <ClInclude Include="ImWidget\ImVerticalBox.h" />
     <ClInclude Include="ImWidget\ImResizableBox.h" />
+    <ClInclude Include="ImWidget\ImWidgetProperty.h" />
     <ClInclude Include="ImWindows\ImMenuButton.h" />
     <ClInclude Include="ImWindows\ImPageManager.h" />
   </ItemGroup>

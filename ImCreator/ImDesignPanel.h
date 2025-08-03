@@ -31,6 +31,7 @@ protected:
 		{
 			//Handle_DragOnButton(Pos);
 			NewWidget= new ImGuiWidget::ImButton("Button_" + std::to_string(count));
+			((ImGuiWidget::ImButton*)NewWidget)->GetNormalStyle().Rounding = 10;
 			break;
 		}
 		case WidgetType::ImTextBlock:
@@ -105,4 +106,6 @@ public:
 		SetAllowDragOn(true);
 		SetRootWidget(m_MainPanel);
 	}
+
+	void SetOnSelected(std::function<void(ImWidget*)> callback) { m_MainPanel->SetOnSelected(callback); }
 };

@@ -6,33 +6,55 @@
 
 namespace ImGuiWidget
 {
-    // 按钮基础样式结构
-    struct ButtonStateStyle
+    class ButtonStateStyle : public PropertyStruct 
     {
-        ImU32 BackgroundColor;   // 背景颜色
-        float Rounding;          // 四边圆角
-        bool HasBorder;          // 有无边框
-        float BorderThickness;   // 边框厚度
-        ImU32 BorderColor;       // 边框颜色
+    public:
+        ImU32 BackgroundColor = IM_COL32(0, 0, 0, 0);
+        float Rounding = 0.0f;
+        bool HasBorder = false;
+        float BorderThickness = 1.0f;
+        ImU32 BorderColor = IM_COL32(0, 0, 0, 0);
 
-        // 构造函数设置默认值
-        ButtonStateStyle(ImU32 bgColor = IM_COL32(0, 0, 0, 0),
-            float rounding = 0.0f,
-            bool hasBorder = false,
-            float borderThickness = 1.0f,
-            ImU32 borderColor = IM_COL32(0, 0, 0, 0))
-            : BackgroundColor(bgColor)
-            , Rounding(rounding)
-            , HasBorder(hasBorder)
-            , BorderThickness(borderThickness)
-            , BorderColor(borderColor)
+        std::vector<PropertyInfo> GetProperties()  override 
+        {
+            return 
+            {
+                {"BackgroundColor", PropertyType::Color, "Style",
+                    [this](void* v) { BackgroundColor = *static_cast<ImU32*>(v); },
+                    [this]() -> void* { return &BackgroundColor; }},
+
+                {"Rounding", PropertyType::Float, "Style",
+                    [this](void* v) { Rounding = *static_cast<float*>(v); },
+                    [this]() -> void* { return &Rounding; }},
+
+                {"HasBorder", PropertyType::Bool, "Border",
+                    [this](void* v) { HasBorder = *static_cast<bool*>(v); },
+                    [this]() -> void* { return &HasBorder; }},
+
+                {"BorderThickness", PropertyType::Float, "Border",
+                    [this](void* v) { BorderThickness = *static_cast<float*>(v); },
+                    [this]() -> void* { return &BorderThickness; }},
+
+                {"BorderColor", PropertyType::Color, "Border",
+                    [this](void* v) { BorderColor = *static_cast<ImU32*>(v); },
+                    [this]() -> void* { return &BorderColor; }}
+            };
+        }
+        ButtonStateStyle(){}
+        ButtonStateStyle(ImU32 BackgroundColor, float Rounding, bool HasBorder, float BorderThickness, ImU32 BorderColor):
+            BackgroundColor(BackgroundColor),
+            Rounding(Rounding),
+            HasBorder(HasBorder),
+            BorderThickness(BorderThickness),
+            BorderColor(BorderColor)
         {}
+        //void operator=(const ButtonStateStyle& From) {};
     };
 
     class ImButton : public ImPanelWidget
     {
     protected:
-
+        bool m_LastFrameHeld = false; // 跟踪上一帧的按下状态
         std::string m_TooltipText;
         // 回调函数
         std::function<void(void)> OnPressed;
@@ -172,6 +194,8 @@ namespace ImGuiWidget
                 1.0f,
                 IM_COL32(255, 255, 255, 255)
             };
+            bHaveBackGround = false;
+            
         }
 
         // 设置内容
@@ -234,10 +258,42 @@ namespace ImGuiWidget
         {
             HandleLayout();
             RenderButton();
+            RenderBackGround();
             RenderChild();
         }
 
-    private:
-        bool m_LastFrameHeld = false; // 跟踪上一帧的按下状态
+
+        std::vector<PropertyInfo> GetProperties() override 
+        {
+            auto baseProps = ImPanelWidget::GetProperties();
+
+            // 添加按钮特有属性
+            baseProps.push_back(
+                { "TooltipText", PropertyType::String, "Behavior",
+                 [this](void* v) { m_TooltipText = *static_cast<std::string*>(v); },
+                 [this]() -> void* { return &m_TooltipText; } }
+            );
+
+            // 添加样式结构体属性
+            baseProps.push_back(
+                { "NormalStyle", PropertyType::Struct, "Style",
+                 [this](void* v) { m_NormalStyle = *(ButtonStateStyle*)v; },
+                 [this]() -> void* { return const_cast<ButtonStateStyle*>(&m_NormalStyle); } }
+            );
+
+            baseProps.push_back(
+                { "HoveredStyle", PropertyType::Struct, "Style",
+                 [this](void* v) { m_HoveredStyle = *(ButtonStateStyle*)v; },
+                 [this]() -> void* { return const_cast<ButtonStateStyle*>(&m_HoveredStyle); } }
+            );
+
+            baseProps.push_back(
+                { "PressedStyle", PropertyType::Struct, "Style",
+                 [this](void* v) { m_PressedStyle = *(ButtonStateStyle*)v; },
+                 [this]() -> void* { return const_cast<ButtonStateStyle*>(&m_PressedStyle); } }
+            );
+
+            return baseProps;
+        }
     };
 }

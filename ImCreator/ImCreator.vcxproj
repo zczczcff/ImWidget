@@ -150,6 +150,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ExampleWidgetInfor.h" />
+    <ClInclude Include="ImCreator_DetailList.h" />
     <ClInclude Include="ImDesignPanel.h" />
     <ClInclude Include="ImExampleWidget.h" />
   </ItemGroup>

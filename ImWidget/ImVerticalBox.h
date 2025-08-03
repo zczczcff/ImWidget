@@ -79,8 +79,8 @@ namespace ImGuiWidget
 
 		virtual ImVec2 GetMinSize()
 		{
-			float minheight = 10.f;
-			float minlength = 30.f;
+			float minheight = 0.f;
+			float minlength = 0.f;
             for (int i = 0; i < GetSlotNum(); i++)
             {
                 ImVerticalBoxSlot* child = (ImVerticalBoxSlot*)GetSlotAt(i);
@@ -104,7 +104,7 @@ namespace ImGuiWidget
 			//	minheight += childminsize.y;
 			//}
 
-			return ImVec2(minlength, minheight);
+			return ImVec2(ImMax(minlength,30.f), ImMax(minheight,10.f));
 		}
 
 		virtual void Relayout()override

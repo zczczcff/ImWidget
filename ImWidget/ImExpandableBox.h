@@ -32,6 +32,7 @@ namespace ImGuiWidget
 					minsize = widget->GetMinSize();
 				}
 				headhight = ImMax(headhight, minsize.y);
+				float headlength = ImMax(minsize.x, Size.x - HeadPad);
 				slot->SetSlotSize(ImVec2(minsize.x, headhight));
 				slot->ApplyLayout();
 			}
@@ -39,10 +40,13 @@ namespace ImGuiWidget
 			{
 				if (auto slot = GetSlotAt(1))
 				{
-					slot->SetSlotPosition(Position + ImVec2(0, headhight));
+					slot->SetSlotPosition(Position + ImVec2(HeadPad, headhight));
+
+					
 					if (auto widget = slot->GetContent())
 					{
-						slot->SetSlotSize(widget->GetMinSize());
+						float bodylength = ImMax(widget->GetMinSize().x, Size.x - HeadPad);
+						slot->SetSlotSize(ImVec2(bodylength,widget->GetMinSize().y));
 					}
 					slot->ApplyLayout();
 				}
@@ -151,6 +155,7 @@ namespace ImGuiWidget
 
 		virtual void Render()override
 		{
+			RenderBackGround();
 			ImDrawList* draw_list = ImGui::GetWindowDrawList();
 			ImGuiWindow* window = ImGui::GetCurrentWindow();
 			const ImGuiID id = window->GetID(m_WidgetName.c_str());
@@ -185,6 +190,19 @@ namespace ImGuiWidget
 
 
 			HandleLayout();
+			
+			if (auto head = GetChildAt(0))
+			{
+				head->Render();
+			}
+
+			if (bIsExpanded)
+			{
+				if (auto body = GetChildAt(1))
+				{
+					body->Render();
+				}
+			}
 			//if(m_Slots.size()>=1&&m_Slots[0])
 			//{
 			//	m_Slots[0]->GetContent()->SetPosition(Position + ImVec2(HeadPad, 0.f));
