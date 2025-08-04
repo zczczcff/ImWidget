@@ -174,12 +174,17 @@ namespace ImGuiWidget
             void* valuePtr = prop.getter();
             if (!valuePtr) continue;
 
-            if (prop.type == PropertyType::Struct) {
+            if (prop.type == PropertyType::Struct) 
+            {
                 PropertyStruct* nestedStruct = static_cast<PropertyStruct*>(valuePtr);
                 std::string nestedAccessor = accessor + "_" + prop.name;
+                context.oss << context.indentStr() << "PropertyStruct* " << nestedAccessor
+                    << " = " << accessor << "->GetPropertyPtr<PropertyStruct>(" << prop.name
+                    << ");\n";
                 GeneratePropertiesCode(nestedStruct, nestedAccessor, context);
             }
-            else {
+            else 
+            {
                 std::string valueCode = ValueToCode(prop.type, valuePtr);
                 context.oss << context.indentStr()
                     << accessor << "->SetPropertyValue<"

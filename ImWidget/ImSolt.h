@@ -64,6 +64,20 @@ namespace ImGuiWidget
 				});
 			return props;
 		}
+		
+		template<typename T>
+		T* GetPropertyPtr(const std::string& name)
+		{
+			auto properties = GetProperties();
+			PropertyInfo temp;
+			temp.name = name;
+
+			auto it = properties.find(temp);
+			if (it != properties.end())
+			{
+				return ((T*)it->getter());
+			}
+		}
 		virtual ~ImSlot()
 		{
 			//delete Content;
