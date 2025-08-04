@@ -55,7 +55,7 @@ namespace ImGuiWidget
 			window->DrawList->AddImage(m_TextureID, Position, Position + Size, ImVec2(0, 0), ImVec2(1, 1), TintColor);
 		}
 
-
+		virtual std::string GetRegisterTypeName()override { return "ImImage"; }
 	};
 
 

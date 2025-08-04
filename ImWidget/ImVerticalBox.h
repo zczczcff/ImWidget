@@ -207,5 +207,7 @@ namespace ImGuiWidget
                 }
             }
 		}
+
+        virtual std::string GetRegisterTypeName()override { return "ImVerticalBox"; }
 	};
 }

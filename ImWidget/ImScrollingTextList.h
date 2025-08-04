@@ -721,5 +721,7 @@ namespace ImGuiWidget
                 ImGui::GetStyle().ChildRounding
             );
         }
+
+        virtual std::string GetRegisterTypeName()override { return "ImScrollingTextList"; }
     };
 }

@@ -89,8 +89,8 @@ namespace ImGuiWidget
             }
         }
 
-        virtual std::vector<PropertyInfo> GetProperties() override {
-            std::vector<PropertyInfo> props = {
+        virtual std::unordered_set<PropertyInfo> GetProperties() override {
+            std::unordered_set<PropertyInfo> props = {
                 {"Checked", PropertyType::Bool, "Data",
                     [this](void* v) { m_Checked = *static_cast<bool*>(v); },
                     [this]() -> void* { return &m_Checked; }},
@@ -112,5 +112,6 @@ namespace ImGuiWidget
             };
             return props;
         }
+        virtual std::string GetRegisterTypeName()override { return "ImCheckBox"; }
     };
 }

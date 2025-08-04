@@ -76,9 +76,33 @@ namespace ImGuiWidget
 		virtual ImVec2 GetMinSize() { return ImVec2(-1.f, -1.f); }
 		std::string GetWidgetName() { return m_WidgetName; }
 
-		virtual std::vector<PropertyInfo> GetProperties()
+		virtual std::unordered_set<PropertyInfo> GetProperties()
 		{
 			return {};
 		}
+
+		bool SetProperty(const std::string& name, void* value)
+		{
+			auto properties = GetProperties();
+			PropertyInfo temp;
+			temp.name = name;
+
+			auto it = properties.find(temp);
+			if (it != properties.end())
+			{
+				it->setter(value);
+				return true;
+			}
+			return false;
+		}
+
+		template<typename T>
+		bool SetPropertyValue(const std::string& name, const T& value)
+		{
+			T copy = value;
+			return SetProperty(name, &copy);
+		}
+
+		virtual std::string GetRegisterTypeName() { return "ImWidget"; }
 	};
 }

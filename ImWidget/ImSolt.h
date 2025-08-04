@@ -50,7 +50,20 @@ namespace ImGuiWidget
 		{
 			SlotSize = Size;
 		}
-
+		virtual std::unordered_set<PropertyInfo> GetProperties()
+		{
+			std::unordered_set<PropertyInfo> props;
+			props.insert
+			(
+				{
+				"bAutoSize",
+				PropertyType::Bool,
+				"Layout",
+				[this](void* v) { bAutoSize = *static_cast<bool*>(v); },
+				[this]() -> void* { return &bAutoSize; }
+				});
+			return props;
+		}
 		virtual ~ImSlot()
 		{
 			//delete Content;
@@ -78,6 +91,45 @@ namespace ImGuiWidget
 			WidgetSize.y = ImMax(0.f, WidgetSize.y);
 			Content->SetPosition(Rect_Min);
 			Content->SetSize(WidgetSize);
+		}
+
+		virtual std::unordered_set<PropertyInfo> GetProperties() override 
+		{
+			auto props = ImSlot::GetProperties();
+			props.insert
+			({
+				"PaddingTop",
+				PropertyType::Float,
+				"Padding",
+				[this](void* v) { PaddingTop = *static_cast<float*>(v); },
+				[this]() -> void* { return &PaddingTop; }
+				});
+
+			props.insert
+			({
+				"PaddingBottom",
+				PropertyType::Float,
+				"Padding",
+				[this](void* v) { PaddingBottom = *static_cast<float*>(v); },
+				[this]() -> void* { return &PaddingBottom; }
+				});
+			props.insert
+			({
+				"PaddingLeft",
+				PropertyType::Float,
+				"Padding",
+				[this](void* v) { PaddingLeft = *static_cast<float*>(v); },
+				[this]() -> void* { return &PaddingLeft; }
+				});
+			props.insert
+			({
+				"PaddingRight",
+				PropertyType::Float,
+				"Padding",
+				[this](void* v) { PaddingRight = *static_cast<float*>(v); },
+				[this]() -> void* { return &PaddingRight; }
+				});
+			return props;
 		}
 	};
 

@@ -246,5 +246,7 @@ namespace ImGuiWidget
 		}
 
 		void SetOnExpandedStateChanged(std::function<void(bool)> callback) { OnExpandedStateChanged = callback; }
+	
+		virtual std::string GetRegisterTypeName()override { return "ImExpandableBox"; }
 	};
 }

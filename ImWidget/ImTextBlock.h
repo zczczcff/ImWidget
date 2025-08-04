@@ -87,5 +87,7 @@ namespace ImGuiWidget
         {
             valign = NewSetting;
         }
+
+        virtual std::string GetRegisterTypeName()override { return "ImTextBlock"; }
 	};
 }

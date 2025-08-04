@@ -14,6 +14,25 @@ namespace ImGuiWidget
 			RelativePosition = relativepos;
 			SlotSize = size;
 		}
+		virtual std::unordered_set<PropertyInfo> GetProperties() override 
+		{
+			auto props = ImSlot::GetProperties();
+			props.insert({
+				"RelativePosition",
+				PropertyType::Vec2,
+				"Layout",
+				[this](void* v) { RelativePosition = *static_cast<ImVec2*>(v); },
+				[this]() -> void* { return &RelativePosition; }
+				});
+			props.insert({
+				"SlotSize",
+				PropertyType::Vec2,
+				"Layout",
+				[this](void* v) { SlotSize = *static_cast<ImVec2*>(v); },
+				[this]() -> void* { return &SlotSize; }
+				});
+			return props;
+		}
 	};
 
 	class ImCanvasPanel :public ImPanelWidget
@@ -58,6 +77,6 @@ namespace ImGuiWidget
 			HandleLayout();
 			RenderChild();
 		}
-		
+		virtual std::string GetRegisterTypeName()override { return "ImCanvasPanel"; }
 	};
 }

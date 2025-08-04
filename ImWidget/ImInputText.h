@@ -181,8 +181,8 @@ namespace ImGuiWidget
             }
         }
 
-        virtual std::vector<PropertyInfo> GetProperties() override {
-            std::vector<PropertyInfo> props = {
+        virtual std::unordered_set<PropertyInfo> GetProperties() override {
+            std::unordered_set<PropertyInfo> props = {
                 {"Text", PropertyType::String, "Data",
                     [this](void* v) {
                         std::string newText = *static_cast<std::string*>(v);
@@ -608,11 +608,11 @@ namespace ImGuiWidget
             }
         }
     public:
-        virtual std::vector<PropertyInfo> GetProperties() override
+        virtual std::unordered_set<PropertyInfo> GetProperties() override
         {
             auto props = ImInputText::GetProperties();
 
-            props.push_back(
+            props.insert(
                 { "MinValue", PropertyType::Int, "Data",
                     [this](void* v) {
                         m_MinValue = *static_cast<int*>(v);
@@ -621,7 +621,7 @@ namespace ImGuiWidget
                     [this]() -> void* { return &m_MinValue; } }
             );
 
-            props.push_back(
+            props.insert(
                 { "MaxValue", PropertyType::Int, "Data",
                     [this](void* v) {
                         m_MaxValue = *static_cast<int*>(v);
@@ -899,11 +899,11 @@ namespace ImGuiWidget
             }
         }
 public:
-        virtual std::vector<PropertyInfo> GetProperties() override
+        virtual std::unordered_set<PropertyInfo> GetProperties() override
         {
             auto props = ImInputText::GetProperties();
 
-            props.push_back(
+            props.insert(
                 { "MinValue", PropertyType::Float, "Data",
                     [this](void* v) {
                         m_MinValue = *static_cast<float*>(v);
@@ -912,7 +912,7 @@ public:
                     [this]() -> void* { return &m_MinValue; } }
             );
 
-            props.push_back(
+            props.insert(
                 { "MaxValue", PropertyType::Float, "Data",
                     [this](void* v) {
                         m_MaxValue = *static_cast<float*>(v);
@@ -921,7 +921,7 @@ public:
                     [this]() -> void* { return &m_MaxValue; } }
             );
 
-            props.push_back(
+            props.insert(
                 { "DecimalPlaces", PropertyType::Int, "Data",
                     [this](void* v) {
                         SetDecimalPlaces(*static_cast<int*>(v));
@@ -932,6 +932,7 @@ public:
             return props;
         }
 
+        virtual std::string GetRegisterTypeName()override { return "ImInPutText"; }
         // 设置浮点数值改变回调
         void SetOnFloatValueChanged(std::function<void(float)> callback)
         {

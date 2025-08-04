@@ -21,7 +21,7 @@ public:
 		SetRootWidget(m_VerticalBox);
 	}
 
-	void HandleSingleProperty(ImGuiWidget::PropertyInfo& SingleProperty, ImGuiWidget::ImVerticalBox* CurrentVerticalBox)
+	void HandleSingleProperty(const ImGuiWidget::PropertyInfo& SingleProperty, ImGuiWidget::ImVerticalBox* CurrentVerticalBox)
 	{
 		switch (SingleProperty.type)
 		{
@@ -106,7 +106,6 @@ public:
 			ItemBox->AddChildToHorizontalBox(Input)->SetIfAutoSize(true);
 			CurrentVerticalBox->AddChildToVerticalBox(ItemBox)->SetIfAutoSize(false);
 			break;
-			break;
 		}
 		case ImGuiWidget::PropertyType::Struct:
 		{
@@ -121,6 +120,46 @@ public:
 				HandleSingleProperty(SubSingleProperty, StructPropertyBox);
 			}
 			CurrentVerticalBox->AddChildToVerticalBox(StructBox)->SetIfAutoSize(false);
+			break;
+		}
+		case ImGuiWidget::PropertyType::Vec2:
+		{
+			ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetName + "_StructBox");
+			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetName + "_PropertyName");
+			PropertyName->SetText(SingleProperty.name);
+			ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetName + "_ItemBox");
+			ImGuiWidget::ImTextBlock* Vec_X = new ImGuiWidget::ImTextBlock(m_WidgetName + "_Vec_X");
+			Vec_X->SetText("X:");
+			ImGuiWidget::ImTextBlock* Vec_Y = new ImGuiWidget::ImTextBlock(m_WidgetName + "_Vec_Y");
+			Vec_Y->SetText("Y:");
+			ImGuiWidget::ImFloatInput* X_Input = new ImGuiWidget::ImFloatInput(m_WidgetName + "_X_Imput");
+			ImGuiWidget::ImFloatInput* Y_Input = new ImGuiWidget::ImFloatInput(m_WidgetName + "_Y_Imput");
+
+			ImVec2 currentv = *(ImVec2*)SingleProperty.getter();
+			X_Input->SetValue(currentv.x);
+			Y_Input->SetValue(currentv.y);
+			X_Input->SetOnFloatValueChanged([SingleProperty](float NewX) 
+				{
+					ImVec2 v = *(ImVec2*)SingleProperty.getter();
+					v.x = NewX;
+					SingleProperty.setter(&v);
+				});
+
+			Y_Input->SetOnFloatValueChanged([SingleProperty](float NewY)
+				{
+					ImVec2 v = *(ImVec2*)SingleProperty.getter();
+					v.y = NewY;
+					SingleProperty.setter(&v);
+				});
+			ItemBox->AddChildToHorizontalBox(Vec_X);
+			ItemBox->AddChildToHorizontalBox(X_Input);
+			ItemBox->AddChildToHorizontalBox(Vec_Y);
+			ItemBox->AddChildToHorizontalBox(Y_Input);
+
+			StructBox->SetHead(PropertyName);
+			StructBox->SetBody(ItemBox);
+			CurrentVerticalBox->AddChildToVerticalBox(StructBox)->SetIfAutoSize(false);
+			break;
 		}
 		default:
 			break;
@@ -136,6 +175,23 @@ public:
 		ImGuiWidget::ImTextBlock* WidgetName = new ImGuiWidget::ImTextBlock(m_WidgetName + "_WidgetName");
 		WidgetName->SetText(widget->GetWidgetName());
 		m_VerticalBox->AddChildToVerticalBox(WidgetName)->SetIfAutoSize(false);
+
+		if (auto Slot = widget->GetSlot())
+		{
+			ImGuiWidget::ImExpandableBox* SlotBox = new ImGuiWidget::ImExpandableBox(m_WidgetName + "_SlotBox");
+			ImGuiWidget::ImTextBlock* SlotName = new ImGuiWidget::ImTextBlock(m_WidgetName + "_SlotName");
+			SlotName->SetText("SlotProperty");
+			ImGuiWidget::ImVerticalBox* SlotPropertyBox = new ImGuiWidget::ImVerticalBox(m_WidgetName + "_StructPropertyBox");
+			SlotBox->SetHead(SlotName);
+			SlotBox->SetBody(SlotPropertyBox);
+			for (auto& SubSingleProperty : Slot->GetProperties())
+			{
+				HandleSingleProperty(SubSingleProperty, SlotPropertyBox);
+			}
+			m_VerticalBox->AddChildToVerticalBox(SlotBox)->SetIfAutoSize(false);
+		}
+
+
 		for (auto& SingleProperty:widget->GetProperties())
 		{
 			HandleSingleProperty(SingleProperty, m_VerticalBox);

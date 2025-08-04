@@ -334,5 +334,6 @@ namespace ImGuiWidget
                 RenderSplitterBar(m_BarRects[i], mousePos, i);
             }
         }
+        virtual std::string GetRegisterTypeName()override { return "ImHorizontalSplitter"; }
     };
 }

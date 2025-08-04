@@ -593,7 +593,7 @@ namespace ImGuiWidget
         }
 
         // 属性列表 (更新为使用输入控件)
-        virtual std::vector<PropertyInfo> GetProperties() override {
+        virtual std::unordered_set<PropertyInfo> GetProperties() override {
             return {
                 {"Color", PropertyType::Color, "Data",
                     [this](void* v) {
@@ -610,5 +610,6 @@ namespace ImGuiWidget
                     [this]() -> void* { return &m_SVAreaSize; }}
             };
         }
+        virtual std::string GetRegisterTypeName()override { return "ImColorPicker"; }
     };
 }

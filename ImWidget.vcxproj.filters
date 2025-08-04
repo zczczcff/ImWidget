@@ -147,6 +147,12 @@
     <ClInclude Include="ImWidget\ImWidgetSerializer.h">
       <Filter>ImWidget</Filter>
     </ClInclude>
+    <ClInclude Include="ImWidget\ImWidgetCodeGenerator.h">
+      <Filter>ImWidget</Filter>
+    </ClInclude>
+    <ClInclude Include="ImWidget\ImWidgetFactory.h">
+      <Filter>ImWidget</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -175,6 +181,12 @@
     </ClCompile>
     <ClCompile Include="Application\ImApplication.cpp">
       <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="ImWidget\ImWidgetFactory.cpp">
+      <Filter>ImWidget</Filter>
+    </ClCompile>
+    <ClCompile Include="ImWidget\ImMultiLineTextBlock.cpp">
+      <Filter>ImWidget</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -16,6 +16,7 @@
 #include "ImWidget/ImScrollingTextList.h"
 #include "ImWidget/ImInputText.h"
 #include "ImWidget/ImCheckBox.h"
+#include "ImWidget/ImWidgetCodeGenerator.h"
 
 #include "ImWidget/ImWidgetSerializer.h"
 
@@ -176,9 +177,25 @@ public:
         Button_Project_Text->SetText("Project");
         
         m_MenuButton_Project->SetContent(Button_Project_Text);
+        //ImGuiWidget::ImButton* m_MenuButton_Project;
+        //auto properties = m_MenuButton_Project->GetProperties();
+        //for (auto& SingleProperty : properties)
+        //{
+        //    if (SingleProperty.name == "TooltipText")
+        //    {
+        //        //设置TooltipText
+        //        std::string Temp_TooltipText = "Test";
+        //        SingleProperty.setter(&Temp_TooltipText);
+        //    }
+        //    else if (SingleProperty.name == "NormalStyle")
+        //    {
+        //        //此处递归展开生成代码
+        //    }
+        //}
         
-        //ImGuiWidget::SaveWidgetToFile(m_MenuButton_Project, "test.imui");
-        ImGuiWidget::LoadWidgetFromFile(m_MenuButton_Project, "test.imui");
+        //ImGuiWidget::LoadWidgetFromFile(m_MenuButton_Project, "test.imui");
+        
+        //ImGuiWidget::ExportWidgetInitializationCodeToFile(m_MenuButton_Project, "test.cpp", "button0");
 
         m_MenuList->AddChildToHorizontalBox(m_MenuButton_Project)->SetIfAutoSize(false);
         m_MainBox->AddChildToVerticalBox(m_MenuList)->SetIfAutoSize(false);
@@ -205,6 +222,7 @@ public:
         m_MenuButton_Project_History1->AddMenuOption(button4);
         m_MenuButton_Project_History1->AddMenuOption(button5);
 
+        ImGuiWidget::SaveWidgetTreeToFile(m_MainBox, "test.imui");
     }
     void Render() override
     {

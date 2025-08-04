@@ -29,10 +29,7 @@ namespace ImGuiWidget
 				slot->Render();
 			}
 		}
-		virtual ImSlot* CreateSlot(ImWidget* Content)
-		{
-			return new ImSlot(Content);
-		}
+		
 		void SetLayoutDirty()
 		{
 			bLayOutDirty = true;
@@ -106,6 +103,11 @@ namespace ImGuiWidget
 			bHaveBorder(true),
 			bHaveBackGround(true)
 		{}
+
+		virtual ImSlot* CreateSlot(ImWidget* Content)
+		{
+			return new ImSlot(Content);
+		}
 
 		virtual ~ImPanelWidget() // 添加析构函数管理内存
 		{
@@ -312,11 +314,11 @@ namespace ImGuiWidget
 			SetLayoutDirty();
 		}
 
-		virtual std::vector<PropertyInfo> GetProperties() override
+		virtual std::unordered_set<PropertyInfo> GetProperties() override
 		{
 			auto baseProps = ImWidget::GetProperties();
 
-			baseProps.push_back(
+			baseProps.insert(
 				{
 					"BackGroundColor",
 					PropertyType::Color,
@@ -326,7 +328,7 @@ namespace ImGuiWidget
 				}
 			);
 
-			baseProps.push_back(
+			baseProps.insert(
 				{
 					"HaveBorder",
 					PropertyType::Bool,
@@ -336,7 +338,7 @@ namespace ImGuiWidget
 				}
 			);
 
-			baseProps.push_back(
+			baseProps.insert(
 				{
 					"BorderColor",
 					PropertyType::Color,
@@ -348,5 +350,7 @@ namespace ImGuiWidget
 
 			return baseProps;
 		}
+
+		virtual std::string GetRegisterTypeName()override { return "ImPanelWidget"; }
 	};
 }

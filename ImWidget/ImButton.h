@@ -15,7 +15,7 @@ namespace ImGuiWidget
         float BorderThickness = 1.0f;
         ImU32 BorderColor = IM_COL32(0, 0, 0, 0);
 
-        std::vector<PropertyInfo> GetProperties()  override 
+        std::unordered_set<PropertyInfo> GetProperties()  override
         {
             return 
             {
@@ -241,7 +241,7 @@ namespace ImGuiWidget
             if (content)
             {
                 ImVec2 ContentMinSize = content->GetMinSize();
-                return ImVec2(max(ContentMinSize.x, 30.f), max(ContentMinSize.y, 10.f));
+                return ImVec2(ImMax(ContentMinSize.x, 30.f), ImMax(ContentMinSize.y, 10.f));
             }
             //if (m_Slots.size() > 0 && m_Slots[0])
             //{
@@ -262,32 +262,31 @@ namespace ImGuiWidget
             RenderChild();
         }
 
-
-        virtual std::vector<PropertyInfo> GetProperties() override 
+        virtual std::unordered_set<PropertyInfo> GetProperties() override
         {
             auto baseProps = ImPanelWidget::GetProperties();
 
             // 添加按钮特有属性
-            baseProps.push_back(
+            baseProps.insert(
                 { "TooltipText", PropertyType::String, "Behavior",
                  [this](void* v) { m_TooltipText = *static_cast<std::string*>(v); },
                  [this]() -> void* { return &m_TooltipText; } }
             );
 
             // 添加样式结构体属性
-            baseProps.push_back(
+            baseProps.insert(
                 { "NormalStyle", PropertyType::Struct, "Style",
                  [this](void* v) { m_NormalStyle = *(ButtonStateStyle*)v; },
                  [this]() -> void* { return const_cast<ButtonStateStyle*>(&m_NormalStyle); } }
             );
 
-            baseProps.push_back(
+            baseProps.insert(
                 { "HoveredStyle", PropertyType::Struct, "Style",
                  [this](void* v) { m_HoveredStyle = *(ButtonStateStyle*)v; },
                  [this]() -> void* { return const_cast<ButtonStateStyle*>(&m_HoveredStyle); } }
             );
 
-            baseProps.push_back(
+            baseProps.insert(
                 { "PressedStyle", PropertyType::Struct, "Style",
                  [this](void* v) { m_PressedStyle = *(ButtonStateStyle*)v; },
                  [this]() -> void* { return const_cast<ButtonStateStyle*>(&m_PressedStyle); } }
@@ -295,5 +294,7 @@ namespace ImGuiWidget
 
             return baseProps;
         }
+
+        virtual std::string GetRegisterTypeName()override { return "ImButton"; }
     };
 }

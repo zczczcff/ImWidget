@@ -190,6 +190,8 @@
     <ClInclude Include="ImWidget\ImWidget.h" />
     <ClInclude Include="ImWidget\ImVerticalBox.h" />
     <ClInclude Include="ImWidget\ImResizableBox.h" />
+    <ClInclude Include="ImWidget\ImWidgetCodeGenerator.h" />
+    <ClInclude Include="ImWidget\ImWidgetFactory.h" />
     <ClInclude Include="ImWidget\ImWidgetProperty.h" />
     <ClInclude Include="ImWidget\ImWidgetSerializer.h" />
     <ClInclude Include="ImWindows\ImMenuButton.h" />
@@ -204,6 +206,8 @@
     <ClCompile Include="Extern\imgui-master\imgui_draw.cpp" />
     <ClCompile Include="Extern\imgui-master\imgui_tables.cpp" />
     <ClCompile Include="Extern\imgui-master\imgui_widgets.cpp" />
+    <ClCompile Include="ImWidget\ImMultiLineTextBlock.cpp" />
+    <ClCompile Include="ImWidget\ImWidgetFactory.cpp" />
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
