@@ -10,7 +10,7 @@ namespace ImGuiWidget
 
         float SizeRatio = 1.f; // ¿í¶È±ÈÀý
 
-        virtual std::unordered_set<PropertyInfo> GetProperties() override 
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override 
         {
             auto props = ImPaddingSlot::GetProperties();
             props.insert({

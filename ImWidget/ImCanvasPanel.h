@@ -14,7 +14,7 @@ namespace ImGuiWidget
 			RelativePosition = relativepos;
 			SlotSize = size;
 		}
-		virtual std::unordered_set<PropertyInfo> GetProperties() override 
+		virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override 
 		{
 			auto props = ImSlot::GetProperties();
 			props.insert({

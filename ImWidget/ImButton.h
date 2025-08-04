@@ -15,7 +15,7 @@ namespace ImGuiWidget
         float BorderThickness = 1.0f;
         ImU32 BorderColor = IM_COL32(0, 0, 0, 0);
 
-        std::unordered_set<PropertyInfo> GetProperties()  override
+        std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties()  override
         {
             return 
             {
@@ -262,7 +262,7 @@ namespace ImGuiWidget
             RenderChild();
         }
 
-        virtual std::unordered_set<PropertyInfo> GetProperties() override
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
         {
             auto baseProps = ImPanelWidget::GetProperties();
 

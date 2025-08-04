@@ -76,7 +76,7 @@ namespace ImGuiWidget
 		virtual ImVec2 GetMinSize() { return ImVec2(-1.f, -1.f); }
 		std::string GetWidgetName() { return m_WidgetName; }
 
-		virtual std::unordered_set<PropertyInfo> GetProperties()
+		virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties()
 		{
 			return {};
 		}

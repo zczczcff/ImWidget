@@ -50,9 +50,9 @@ namespace ImGuiWidget
 		{
 			SlotSize = Size;
 		}
-		virtual std::unordered_set<PropertyInfo> GetProperties()
+		virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties()
 		{
-			std::unordered_set<PropertyInfo> props;
+			std::unordered_set<PropertyInfo, PropertyInfo::Hasher> props;
 			props.insert
 			(
 				{
@@ -93,7 +93,7 @@ namespace ImGuiWidget
 			Content->SetSize(WidgetSize);
 		}
 
-		virtual std::unordered_set<PropertyInfo> GetProperties() override 
+		virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override 
 		{
 			auto props = ImSlot::GetProperties();
 			props.insert

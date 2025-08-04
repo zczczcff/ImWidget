@@ -89,8 +89,8 @@ namespace ImGuiWidget
             }
         }
 
-        virtual std::unordered_set<PropertyInfo> GetProperties() override {
-            std::unordered_set<PropertyInfo> props = {
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override {
+            std::unordered_set<PropertyInfo, PropertyInfo::Hasher> props = {
                 {"Checked", PropertyType::Bool, "Data",
                     [this](void* v) { m_Checked = *static_cast<bool*>(v); },
                     [this]() -> void* { return &m_Checked; }},

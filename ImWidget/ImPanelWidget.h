@@ -314,7 +314,7 @@ namespace ImGuiWidget
 			SetLayoutDirty();
 		}
 
-		virtual std::unordered_set<PropertyInfo> GetProperties() override
+		virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
 		{
 			auto baseProps = ImWidget::GetProperties();
 

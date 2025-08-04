@@ -36,6 +36,12 @@ namespace ImGuiWidget
         bool operator==(const PropertyInfo& other) const {
             return name == other.name;
         }
+
+        struct Hasher {
+            size_t operator()(const PropertyInfo& pi) const {
+                return std::hash<std::string>()(pi.name);
+            }
+        };
     };
 
     // 属性结构基类
@@ -45,7 +51,7 @@ namespace ImGuiWidget
         virtual ~PropertyStruct() = default;
 
         // 获取所有可编辑属性
-        virtual std::unordered_set<PropertyInfo> GetProperties() = 0;
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() = 0;
 
         // 类型安全的属性访问
         template<typename T>
@@ -80,11 +86,11 @@ namespace ImGuiWidget
 } // namespace ImGuiWidget
 
 
-    template<>
-    struct std::hash<ImGuiWidget::PropertyInfo>
-    {
-        size_t operator()(const ImGuiWidget::PropertyInfo& pi) const
-        {
-            return hash<string>()(pi.name);
-        }
-    };
+    //template<>
+    //struct std::hash<ImGuiWidget::PropertyInfo>
+    //{
+    //    size_t operator()(const ImGuiWidget::PropertyInfo& pi) const
+    //    {
+    //        return hash<string>()(pi.name);
+    //    }
+    //};

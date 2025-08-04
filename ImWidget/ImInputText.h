@@ -181,8 +181,8 @@ namespace ImGuiWidget
             }
         }
 
-        virtual std::unordered_set<PropertyInfo> GetProperties() override {
-            std::unordered_set<PropertyInfo> props = {
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override {
+            std::unordered_set<PropertyInfo, PropertyInfo::Hasher> props = {
                 {"Text", PropertyType::String, "Data",
                     [this](void* v) {
                         std::string newText = *static_cast<std::string*>(v);
@@ -608,7 +608,7 @@ namespace ImGuiWidget
             }
         }
     public:
-        virtual std::unordered_set<PropertyInfo> GetProperties() override
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
         {
             auto props = ImInputText::GetProperties();
 
@@ -899,7 +899,7 @@ namespace ImGuiWidget
             }
         }
 public:
-        virtual std::unordered_set<PropertyInfo> GetProperties() override
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
         {
             auto props = ImInputText::GetProperties();
 

@@ -195,7 +195,7 @@ public:
         
         //ImGuiWidget::LoadWidgetFromFile(m_MenuButton_Project, "test.imui");
         
-        //ImGuiWidget::ExportWidgetInitializationCodeToFile(m_MenuButton_Project, "test.cpp", "button0");
+        
 
         m_MenuList->AddChildToHorizontalBox(m_MenuButton_Project)->SetIfAutoSize(false);
         m_MainBox->AddChildToVerticalBox(m_MenuList)->SetIfAutoSize(false);
@@ -223,6 +223,7 @@ public:
         m_MenuButton_Project_History1->AddMenuOption(button5);
 
         ImGuiWidget::SaveWidgetTreeToFile(m_MainBox, "test.imui");
+        ImGuiWidget::ExportWidgetTreeToFile(m_MainBox, "test.cpp", "Test");
     }
     void Render() override
     {

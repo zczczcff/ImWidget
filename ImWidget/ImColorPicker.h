@@ -593,7 +593,7 @@ namespace ImGuiWidget
         }
 
         // 属性列表 (更新为使用输入控件)
-        virtual std::unordered_set<PropertyInfo> GetProperties() override {
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override {
             return {
                 {"Color", PropertyType::Color, "Data",
                     [this](void* v) {
