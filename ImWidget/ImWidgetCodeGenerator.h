@@ -5,6 +5,7 @@
 #include "ImWidgetProperty.h"
 #include "ImPanelWidget.h"
 #include <fstream>
+#include <regex>
 
 namespace ImGuiWidget
 {
@@ -127,8 +128,6 @@ namespace ImGuiWidget
         return oss.str();
     }
 
-
-
     // 主函数：生成控件的初始化代码
     std::string GenerateWidgetInitializationCode(ImWidget* widget,
         const std::string& varName)
@@ -201,16 +200,37 @@ namespace ImGuiWidget
         // 生成变量名
         std::string varName = context.generateVarName(widget);
 
-        // 生成控件创建代码
+        // 生成控件创建代码（使用完全限定名）
         context.oss << context.indentStr()
-            << widget->GetRegisterTypeName() << "* " << varName
-            << " = new " << widget->GetRegisterTypeName()
+            << "ImGuiWidget::" << widget->GetRegisterTypeName() << "* " << varName
+            << " = new ImGuiWidget::" << widget->GetRegisterTypeName()
             << "(\"" << widget->GetWidgetName() << "\");\n";
 
-        // 生成属性设置代码
-        GeneratePropertiesCode(widget, varName, context);
+        // 生成属性设置代码（使用完全限定名）
+        auto properties = widget->GetProperties();
+        for (const auto& prop : properties) {
+            void* valuePtr = prop.getter();
+            if (!valuePtr) continue;
 
-        // 处理容器控件及其子控件
+            if (prop.type == PropertyType::Struct) {
+                PropertyStruct* nestedStruct = static_cast<PropertyStruct*>(valuePtr);
+                std::string nestedAccessor = varName + "_" + prop.name;
+                context.oss << context.indentStr()
+                    << "ImGuiWidget::PropertyStruct* " << nestedAccessor
+                    << " = " << varName << "->GetPropertyPtr<ImGuiWidget::PropertyStruct>(\""
+                    << prop.name << "\");\n";
+                GeneratePropertiesCode(nestedStruct, nestedAccessor, context);
+            }
+            else {
+                std::string valueCode = ValueToCode(prop.type, valuePtr);
+                context.oss << context.indentStr()
+                    << varName << "->SetPropertyValue<"
+                    << PropertyTypeToString(prop.type) << ">(\""
+                    << prop.name << "\", " << valueCode << ");\n";
+            }
+        }
+
+        // 处理容器控件及其子控件（使用完全限定名）
         if (auto panel = dynamic_cast<ImPanelWidget*>(widget)) {
             int slotCount = panel->GetSlotNum();
             for (int i = 0; i < slotCount; i++) {
@@ -223,13 +243,24 @@ namespace ImGuiWidget
 
                     // 生成添加子控件的代码
                     std::string childVarName = context.generateVarName(child);
-
                     std::string childSlotName = varName + "_slot" + std::to_string(i);
-                    context.oss << context.indentStr() << "ImSlot* " << childSlotName << " = "
+
+                    context.oss << context.indentStr()
+                        << "ImGuiWidget::ImSlot* " << childSlotName << " = "
                         << varName << "->AddChild(" << childVarName << ");\n";
 
                     // 生成slot属性设置代码
-                    GeneratePropertiesCode(slot, childSlotName, context);
+                    auto slotProps = slot->GetProperties();
+                    for (const auto& prop : slotProps) {
+                        void* valuePtr = prop.getter();
+                        if (!valuePtr) continue;
+
+                        std::string valueCode = ValueToCode(prop.type, valuePtr);
+                        context.oss << context.indentStr()
+                            << childSlotName << "->SetPropertyValue<"
+                            << PropertyTypeToString(prop.type) << ">(\""
+                            << prop.name << "\", " << valueCode << ");\n";
+                    }
                 }
             }
         }
@@ -325,4 +356,260 @@ namespace ImGuiWidget
         return true;
     }
 
+
+    bool ExportUserWidgetToFiles(ImWidget* rootWidget,
+        const std::string& widgetName,
+        const std::string& outputDirectory)
+    {
+        // 确保输出目录以分隔符结尾
+        std::string dir = outputDirectory;
+        if (!dir.empty() && dir.back() != '/' && dir.back() != '\\') {
+            dir += '/';
+        }
+
+        // 创建头文件和源文件路径
+        std::string headerPath = dir + widgetName + ".h";
+        std::string sourcePath = dir + widgetName + ".cpp";
+
+        // 收集所有控件（包括子控件）
+        std::vector<ImWidget*> allWidgets;
+        std::map<ImWidget*, std::string> widgetVarMap;
+        std::set<std::string> requiredHeaders;
+
+        // 递归收集控件
+        std::function<void(ImWidget*)> collectWidgets = [&](ImWidget* widget) {
+            if (!widget) return;
+
+            // 生成唯一变量名（使用控件名）
+            std::string varName = widget->GetWidgetName();
+            // 替换非法字符
+            std::replace(varName.begin(), varName.end(), ' ', '_');
+            std::replace(varName.begin(), varName.end(), '-', '_');
+
+            widgetVarMap[widget] = varName;
+            allWidgets.push_back(widget);
+
+            // 添加所需头文件
+            std::string header = widget->GetRegisterTypeName() + ".h";
+            requiredHeaders.insert(header);
+
+            // 处理子控件
+            if (auto panel = dynamic_cast<ImPanelWidget*>(widget)) {
+                int slotCount = panel->GetSlotNum();
+                for (int i = 0; i < slotCount; i++) {
+                    ImSlot* slot = panel->GetSlot(i);
+                    if (slot && slot->GetContent()) {
+                        collectWidgets(slot->GetContent());
+                    }
+                }
+            }
+        };
+
+        collectWidgets(rootWidget);
+
+        // 1. 处理头文件
+        std::string headerContent;
+        bool headerExists = false;
+
+        // 读取现有头文件（如果存在）
+        std::ifstream headerIn(headerPath);
+        if (headerIn.good()) {
+            headerExists = true;
+            std::ostringstream ss;
+            ss << headerIn.rdbuf();
+            headerContent = ss.str();
+            headerIn.close();
+        }
+
+        // 创建或更新头文件
+        std::ofstream headerOut(headerPath);
+        if (!headerOut.is_open()) return false;
+
+        if (!headerExists) 
+        {
+            // 创建新头文件
+			headerOut << "#pragma once\n"
+				<< "#include \"ImUserWidget.h\"\n\n"
+				//<< "namespace ImGuiWidget {\n"
+				<< "    class " << widgetName << " : public ImGuiWidget::ImUserWidget {\n"
+				<< "    public:\n"
+				<< "        " << widgetName << "(const std::string& name);\n"
+				<< "        virtual void Init() override;\n\n"
+				<< "    protected:\n"
+				<< "        //----Gen Members Begin----\n"
+				<< "        // Auto-generated widget pointers\n";
+			for (auto widget : allWidgets)
+			{
+				std::string typeName = widget->GetRegisterTypeName();
+				std::string varName = widgetVarMap[widget];
+                headerOut<< "        ImGuiWidget::" + typeName + "* " + varName + ";\n";
+			}
+            headerOut << "        //----Gen Members End----\n"
+                << "    };\n";
+                //<< "}\n";
+        }
+        else {
+            // 更新现有头文件 - 只替换成员区域
+            std::regex membersPattern(
+                R"(//----Gen Members Begin----[\s\S]*?//----Gen Members End----)"
+            );
+
+            std::string newMembers = "        //----Gen Members Begin----\n"
+                "        // Auto-generated widget pointers\n";
+
+            // 为每个控件生成成员变量声明
+            for (auto widget : allWidgets) {
+                std::string typeName = widget->GetRegisterTypeName();
+                std::string varName = widgetVarMap[widget];
+
+                newMembers += "        ImGuiWidget::" + typeName + "* " + varName + ";\n";
+            }
+
+            newMembers += "        //----Gen Members End----";
+
+            headerContent = std::regex_replace(
+                headerContent,
+                membersPattern,
+                newMembers
+            );
+
+            headerOut << headerContent;
+        }
+        headerOut.close();
+
+        // 2. 处理源文件
+        std::string sourceContent;
+        bool sourceExists = false;
+
+        // 读取现有源文件（如果存在）
+        std::ifstream sourceIn(sourcePath);
+        if (sourceIn.good()) {
+            sourceExists = true;
+            std::ostringstream ss;
+            ss << sourceIn.rdbuf();
+            sourceContent = ss.str();
+            sourceIn.close();
+        }
+
+        // 创建或更新源文件
+        std::ofstream sourceOut(sourcePath);
+        if (!sourceOut.is_open()) return false;
+
+        // 生成包含区域
+        std::string newIncludes = "//----Gen Include Begin----\n"
+            "// Auto-generated includes\n";
+
+        // 添加必需的头文件
+        newIncludes += "#include \"" + widgetName + ".h\"\n";
+        newIncludes += "#include \"ImUserWidget.h\"\n";
+        for (auto& header : requiredHeaders) {
+            newIncludes += "#include \"" + header + "\"\n";
+        }
+        newIncludes += "//----Gen Include End----\n\n";
+
+        // 生成初始化代码
+        std::ostringstream initCode;
+        initCode << "//----Gen Code Begin----\n"
+            << "// Auto-generated initialization code\n"
+            << "void " << widgetName << "::Init()\n"
+            << "{\n";
+
+        // 创建控件实例
+        for (auto widget : allWidgets) {
+            std::string typeName = widget->GetRegisterTypeName();
+            std::string varName = widgetVarMap[widget];
+
+            initCode << "    " << varName << " = new ImGuiWidget::" << typeName
+                << "(\"" << widget->GetWidgetName() << "\");\n";
+        }
+        initCode << "\n";
+
+        // 设置控件属性
+        for (auto widget : allWidgets) {
+            std::string varName = widgetVarMap[widget];
+            auto properties = widget->GetProperties();
+
+            for (const auto& prop : properties) {
+                void* valuePtr = prop.getter();
+                if (!valuePtr) continue;
+
+                if (prop.type == PropertyType::Struct) {
+                    PropertyStruct* nestedStruct = static_cast<PropertyStruct*>(valuePtr);
+                    std::string nestedAccessor = varName + "_" + prop.name;
+                    initCode << "    ImGuiWidget::PropertyStruct* " << nestedAccessor
+                        << " = " << varName << "->GetPropertyPtr<ImGuiWidget::PropertyStruct>(\""
+                        << prop.name << "\");\n";
+                    CodeGenContext context{ initCode, 1 };
+                    GeneratePropertiesCode(nestedStruct, nestedAccessor, context);
+                }
+                else {
+                    std::string valueCode = ValueToCode(prop.type, valuePtr);
+                    initCode << "    " << varName << "->SetPropertyValue<"
+                        << PropertyTypeToString(prop.type) << ">(\""
+                        << prop.name << "\", " << valueCode << ");\n";
+                }
+            }
+            initCode << "\n";
+        }
+
+        // 建立父子关系
+        for (auto widget : allWidgets) {
+            if (auto panel = dynamic_cast<ImPanelWidget*>(widget)) {
+                std::string panelVar = widgetVarMap[panel];
+
+                for (int i = 0; i < panel->GetSlotNum(); i++) {
+                    ImSlot* slot = panel->GetSlot(i);
+                    if (!slot || !slot->GetContent()) continue;
+
+                    std::string childVar = widgetVarMap[slot->GetContent()];
+                    initCode << "    " << panelVar << "->AddChild(" << childVar << ");\n";
+                }
+            }
+        }
+
+        // 设置根控件
+        std::string rootVar = widgetVarMap[rootWidget];
+        initCode << "\n    SetRootWidget(" << rootVar << ");\n"
+            << "}\n"
+            << "//----Gen Code End----\n";
+
+        if (!sourceExists) {
+            // 创建新源文件
+            sourceOut << newIncludes
+                //<< "using namespace ImGuiWidget;\n\n"
+                << widgetName << "::" << widgetName << "(const std::string& name)\n"
+                << "    : ImGuiWidget::ImUserWidget(name)\n"
+                << "{\n"
+                << "}\n\n"
+                << initCode.str();
+        }
+        else {
+            // 更新现有源文件 - 替换标记区域
+
+            // 处理包含区域
+            std::regex includesPattern(
+                R"(//----Gen Include Begin----[\s\S]*?//----Gen Include End----)"
+            );
+            sourceContent = std::regex_replace(
+                sourceContent,
+                includesPattern,
+                newIncludes
+            );
+
+            // 处理代码区域
+            std::regex codePattern(
+                R"(//----Gen Code Begin----[\s\S]*?//----Gen Code End----)"
+            );
+            sourceContent = std::regex_replace(
+                sourceContent,
+                codePattern,
+                initCode.str()
+            );
+
+            sourceOut << sourceContent;
+        }
+
+        sourceOut.close();
+        return true;
+    }
 }
