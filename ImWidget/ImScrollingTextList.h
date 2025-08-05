@@ -722,6 +722,60 @@ namespace ImGuiWidget
             );
         }
 
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override {
+            auto props = ImWidget::GetProperties();
+
+            // 文本颜色
+            props.insert({
+                "TextColor", PropertyType::Color, "Appearance",
+                [this](void* v) { this->m_TextColor = *static_cast<ImU32*>(v); },
+                [this]() -> void* { return &this->m_TextColor; }
+                });
+
+            // 行间距
+            props.insert({
+                "LineSpacing", PropertyType::Float, "Layout",
+                [this](void* v) {
+                    this->m_LineSpacing = *static_cast<float*>(v);
+                    this->m_RequireRebuild = true;
+                },
+                [this]() -> void* { return &this->m_LineSpacing; }
+                });
+
+            // 滚动条样式
+            props.insert({
+                "ScrollbarWidth", PropertyType::Float, "Scrollbar",
+                [this](void* v) { this->m_ScrollbarStyle.Width = *static_cast<float*>(v); },
+                [this]() -> void* { return &this->m_ScrollbarStyle.Width; }
+                });
+
+            props.insert({
+                "ScrollbarRounding", PropertyType::Float, "Scrollbar",
+                [this](void* v) { this->m_ScrollbarStyle.Rounding = *static_cast<float*>(v); },
+                [this]() -> void* { return &this->m_ScrollbarStyle.Rounding; }
+                });
+
+            props.insert({
+                "ScrollbarGrabMinHeight", PropertyType::Float, "Scrollbar",
+                [this](void* v) { this->m_ScrollbarStyle.GrabMinHeight = *static_cast<float*>(v); },
+                [this]() -> void* { return &this->m_ScrollbarStyle.GrabMinHeight; }
+                });
+
+            props.insert({
+                "ScrollbarBackgroundColor", PropertyType::Color, "Scrollbar",
+                [this](void* v) { this->m_ScrollbarStyle.BackgroundColor = *static_cast<ImU32*>(v); },
+                [this]() -> void* { return &this->m_ScrollbarStyle.BackgroundColor; }
+                });
+
+            props.insert({
+                "ScrollbarGrabColor", PropertyType::Color, "Scrollbar",
+                [this](void* v) { this->m_ScrollbarStyle.GrabColor = *static_cast<ImU32*>(v); },
+                [this]() -> void* { return &this->m_ScrollbarStyle.GrabColor; }
+                });
+
+            return props;
+        }
+
         virtual std::string GetRegisterTypeName()override { return "ImScrollingTextList"; }
     };
 }

@@ -239,6 +239,93 @@ namespace ImGuiWidget
 
         }
 
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override 
+        {
+            auto props = ImWidget::GetProperties();
+
+            // 值范围
+            props.insert({
+                "MinValue", PropertyType::Float, "Value",
+                [this](void* v) { this->v_Min = *static_cast<float*>(v); },
+                [this]() -> void* { return &this->v_Min; }
+                });
+
+            props.insert({
+                "MaxValue", PropertyType::Float, "Value",
+                [this](void* v) { this->v_Max = *static_cast<float*>(v); },
+                [this]() -> void* { return &this->v_Max; }
+                });
+
+            props.insert({
+                "CurrentValue", PropertyType::Float, "Value",
+                [this](void* v) { this->v = *static_cast<float*>(v); },
+                [this]() -> void* { return &this->v; }
+                });
+
+            // 手柄类型
+            props.insert({
+                "HandleType", PropertyType::Int, "Appearance",
+                [this](void* v) { this->handle_type = static_cast<SliderHandleType>(*static_cast<int*>(v)); },
+                [this]() -> void* {
+                    static int handle_type_int = static_cast<int>(this->handle_type);
+                    return &handle_type_int;
+                }
+                });
+
+            // 显示选项
+            props.insert({
+                "ShowValue", PropertyType::Bool, "Appearance",
+                [this](void* v) { this->show_value = *static_cast<bool*>(v); },
+                [this]() -> void* { return &this->show_value; }
+                });
+
+            props.insert({
+                "ValueFormat", PropertyType::String, "Appearance",
+                [this](void* v) { this->format = static_cast<const char*>(v); },
+                [this]() -> void* { return const_cast<void*>(static_cast<const void*>(this->format)); }
+                });
+
+            // 颜色设置
+            props.insert({
+                "BackgroundColor", PropertyType::Color, "Colors",
+                [this](void* v) { this->colors.background = *static_cast<ImU32*>(v); },
+                [this]() -> void* { return &this->colors.background; }
+                });
+
+            props.insert({
+                "FilledColor", PropertyType::Color, "Colors",
+                [this](void* v) { this->colors.filled = *static_cast<ImU32*>(v); },
+                [this]() -> void* { return &this->colors.filled; }
+                });
+
+            props.insert({
+                "HandleColor", PropertyType::Color, "Colors",
+                [this](void* v) { this->colors.handle = *static_cast<ImU32*>(v); },
+                [this]() -> void* { return &this->colors.handle; }
+                });
+
+            props.insert({
+                "HandleBorderColor", PropertyType::Color, "Colors",
+                [this](void* v) { this->colors.handle_border = *static_cast<ImU32*>(v); },
+                [this]() -> void* { return &this->colors.handle_border; }
+                });
+
+            props.insert({
+                "TextColor", PropertyType::Color, "Colors",
+                [this](void* v) { this->colors.text = *static_cast<ImU32*>(v); },
+                [this]() -> void* { return &this->colors.text; }
+                });
+
+            // 非线性参数
+            props.insert({
+                "Power", PropertyType::Float, "Behavior",
+                [this](void* v) { this->power = *static_cast<float*>(v); },
+                [this]() -> void* { return &this->power; }
+                });
+
+            return props;
+        }
+
         virtual std::string GetRegisterTypeName()override { return "ImSlider"; }
 	};
 }

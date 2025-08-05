@@ -21,7 +21,9 @@ namespace ImGuiWidget
         Int,        // int
         String,     // std::string
         Vec2,       // ImVec2
-        Struct      // PropertyStruct 派生类
+        Struct,      // PropertyStruct 派生类
+        StringArray,     //新增：数组
+        Enum
     };
 
     // 属性信息结构

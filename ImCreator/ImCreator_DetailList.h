@@ -21,6 +21,53 @@ public:
 		SetRootWidget(m_VerticalBox);
 	}
 
+	ImGuiWidget::ImHorizontalBox* HandleAddStringItem(const ImGuiWidget::PropertyInfo& SingleProperty, std::string& SingleString, ImGuiWidget::ImVerticalBox* StringListBox)
+	{
+		ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetName + "_ItemBox");
+		ImGuiWidget::ImInputText* InputString = new ImGuiWidget::ImInputText(m_WidgetName + "_InputString");
+		ImGuiWidget::ImButton* DeleteButton = new ImGuiWidget::ImButton(m_WidgetName + "_DeleteButton");
+		ImGuiWidget::ImTextBlock* DeleteButtonText = new ImGuiWidget::ImTextBlock(m_WidgetName + "_DeleteButtonText");
+		DeleteButtonText->SetText("X");
+		DeleteButton->SetContent(DeleteButtonText);
+		InputString->SetText(SingleString);
+		InputString->SetOnTextChanged([SingleProperty, OldString = SingleString](const std::string& newstring) mutable
+			{
+				std::vector<std::string> stringvector = *(std::vector<std::string>*)SingleProperty.getter();
+				for (auto& s : stringvector)
+				{
+					if (s == OldString)
+					{
+						s = newstring;
+						OldString = newstring;
+					}
+				}
+				SingleProperty.setter(&stringvector);
+			});
+		DeleteButton->SetOnPressed([SingleProperty, ItemBox, StringListBox, InputString]()
+			{
+				auto text = InputString->GetText();
+				std::vector<std::string> stringvector = *(std::vector<std::string>*)SingleProperty.getter();
+				for (auto it = stringvector.begin(); it != stringvector.end();)
+				{
+					if (*it == text)
+					{
+						it = stringvector.erase(it);
+						break;
+					}
+					else
+					{
+						++it;
+					}
+				}
+				SingleProperty.setter(&stringvector);
+				StringListBox->RemoveChild(ItemBox);
+			});
+
+		ItemBox->AddChildToHorizontalBox(InputString)->SetIfAutoSize(true);
+		ItemBox->AddChildToHorizontalBox(DeleteButton)->SetIfAutoSize(false);
+		return ItemBox;
+	}
+
 	void HandleSingleProperty(const ImGuiWidget::PropertyInfo& SingleProperty, ImGuiWidget::ImVerticalBox* CurrentVerticalBox)
 	{
 		switch (SingleProperty.type)
@@ -159,6 +206,42 @@ public:
 			StructBox->SetHead(PropertyName);
 			StructBox->SetBody(ItemBox);
 			CurrentVerticalBox->AddChildToVerticalBox(StructBox)->SetIfAutoSize(false);
+			break;
+		}
+		case ImGuiWidget::PropertyType::StringArray:
+		{
+			ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetName + "_StructBox");
+			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetName + "_PropertyName");
+			PropertyName->SetText(SingleProperty.name);
+			ImGuiWidget::ImVerticalBox* StringListBox = new ImGuiWidget::ImVerticalBox(m_WidgetName + "_StringListBox");
+
+			for (auto& SingleString : *(std::vector<std::string>*)SingleProperty.getter())
+			{
+				StringListBox->AddChildToVerticalBox(HandleAddStringItem(SingleProperty, SingleString, StringListBox))->SetIfAutoSize(false);
+			}
+			ImGuiWidget::ImButton* AddItemButton = new ImGuiWidget::ImButton(m_WidgetName + "_AddItemButton");
+			ImGuiWidget::ImTextBlock* AddButtonText = new ImGuiWidget::ImTextBlock(m_WidgetName + "_AddButtonText");
+			AddButtonText->SetText("+");
+			AddItemButton->SetContent(AddButtonText);
+			AddItemButton->SetOnPressed([SingleProperty, StringListBox,this]()
+				{
+					std::vector<std::string> stringvector = *(std::vector<std::string>*)SingleProperty.getter();
+					std::string NewString = "NewString_" + std::to_string(stringvector.size());
+					stringvector.push_back(NewString);
+					SingleProperty.setter(&stringvector);
+					auto buttonptr=StringListBox->ExtractChildAt(StringListBox->GetSlotNum() - 1);
+					StringListBox->AddChildToVerticalBox(HandleAddStringItem(SingleProperty, NewString, StringListBox))->SetIfAutoSize(false);
+					StringListBox->AddChildToVerticalBox(buttonptr)->SetIfAutoSize(false);
+				});
+			StringListBox->AddChildToVerticalBox(AddItemButton)->SetIfAutoSize(false);
+
+			StructBox->SetHead(PropertyName);
+			StructBox->SetBody(StringListBox);
+			CurrentVerticalBox->AddChildToVerticalBox(StructBox)->SetIfAutoSize(false);
+			break;
+		}
+		case ImGuiWidget::PropertyType::Enum:
+		{
 			break;
 		}
 		default:

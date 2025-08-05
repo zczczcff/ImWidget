@@ -10,6 +10,21 @@ namespace ImGuiWidget
 		ImVerticalBoxSlot(ImWidget* Content):ImPaddingSlot(Content){}
 
 		float SizeRatio = 1.f;
+
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties()
+        {
+            auto props = ImPaddingSlot::GetProperties();
+
+            props.insert({
+                "SizeRatio",
+                PropertyType::Float,
+                "Layout",
+                [this](void* val) { this->SizeRatio = *static_cast<float*>(val); },
+                [this]() { return static_cast<void*>(&this->SizeRatio); }
+                });
+
+            return props;
+        }
 	};
 
 

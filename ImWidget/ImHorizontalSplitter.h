@@ -23,6 +23,24 @@ namespace ImGuiWidget
             : ImPaddingSlot(Content)
         {
         }
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
+        {
+            auto baseProps = ImPaddingSlot::GetProperties();
+
+            baseProps.insert(
+                { "Ratio", PropertyType::Float, "Layout",
+                  [this](void* v) { Ratio = *static_cast<float*>(v); },
+                  [this]() -> void* { return &Ratio; } }
+            );
+
+            baseProps.insert(
+                { "MinSize", PropertyType::Float, "Layout",
+                  [this](void* v) { MinSize = *static_cast<float*>(v); },
+                  [this]() -> void* { return &MinSize; } }
+            );
+
+            return baseProps;
+        }
     };
 
     class ImHorizontalSplitter : public ImPanelWidget
@@ -334,6 +352,44 @@ namespace ImGuiWidget
                 RenderSplitterBar(m_BarRects[i], mousePos, i);
             }
         }
+
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
+        {
+            auto baseProps = ImPanelWidget::GetProperties();
+
+            baseProps.insert(
+                { "BarWidth", PropertyType::Float, "Style",
+                  [this](void* v) { m_Style.BarWidth = *static_cast<float*>(v); },
+                  [this]() -> void* { return &m_Style.BarWidth; } }
+            );
+
+            baseProps.insert(
+                { "BarColor", PropertyType::Color, "Style",
+                  [this](void* v) { m_Style.Color = *static_cast<ImU32*>(v); },
+                  [this]() -> void* { return &m_Style.Color; } }
+            );
+
+            baseProps.insert(
+                { "BarHoveredColor", PropertyType::Color, "Style",
+                  [this](void* v) { m_Style.HoveredColor = *static_cast<ImU32*>(v); },
+                  [this]() -> void* { return &m_Style.HoveredColor; } }
+            );
+
+            baseProps.insert(
+                { "BarActiveColor", PropertyType::Color, "Style",
+                  [this](void* v) { m_Style.ActiveColor = *static_cast<ImU32*>(v); },
+                  [this]() -> void* { return &m_Style.ActiveColor; } }
+            );
+
+            baseProps.insert(
+                { "BarRounding", PropertyType::Float, "Style",
+                  [this](void* v) { m_Style.Rounding = *static_cast<float*>(v); },
+                  [this]() -> void* { return &m_Style.Rounding; } }
+            );
+
+            return baseProps;
+        }
+
         virtual std::string GetRegisterTypeName()override { return "ImHorizontalSplitter"; }
     };
 }

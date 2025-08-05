@@ -88,6 +88,82 @@ namespace ImGuiWidget
             valign = NewSetting;
         }
 
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
+        {
+            auto props = ImWidget::GetProperties();
+
+            // 文本内容
+            props.insert({
+                "Text",
+                PropertyType::String,
+                "Content",
+                [this](void* val) { this->SetText(*static_cast<std::string*>(val)); },
+                [this]() { return static_cast<void*>(&this->m_Text); }
+                });
+
+            // 文本颜色
+            props.insert({
+                "TextColor",
+                PropertyType::Color,
+                "Appearance",
+                [this](void* val) { this->SetTextColor(*static_cast<ImU32*>(val)); },
+                [this]() { return static_cast<void*>(&this->m_TextColor); }
+                });
+
+			props.insert
+			({
+				"HorizontalAlignment",
+				PropertyType::Enum,
+				"Layout",
+				[this](void* val) {
+					std::string str = *static_cast<std::string*>(val);
+					if (str == "Left") halign = TextAlignment_Horizontal::Left;
+					else if (str == "Center") halign = TextAlignment_Horizontal::Center;
+					else if (str == "Right") halign = TextAlignment_Horizontal::Right;
+				},
+				[this]() {
+					static std::vector<std::string> options;
+					options = {"Left", "Center", "Right"}; // 枚举选项
+
+					// 添加当前选中项
+					switch (halign) {
+						case TextAlignment_Horizontal::Left: options.push_back("Left"); break;
+						case TextAlignment_Horizontal::Center: options.push_back("Center"); break;
+						case TextAlignment_Horizontal::Right: options.push_back("Right"); break;
+					}
+					return static_cast<void*>(&options);
+				}
+			});
+
+			// 垂直对齐 (使用Enum类型)
+			props.insert
+			({
+				"VerticalAlignment",
+				PropertyType::Enum,
+				"Layout",
+				[this](void* val) {
+					std::string str = *static_cast<std::string*>(val);
+					if (str == "Top") valign = TextAlignment_Vertical::Top;
+					else if (str == "Center") valign = TextAlignment_Vertical::Center;
+					else if (str == "Bottom") valign = TextAlignment_Vertical::Bottom;
+				},
+				[this]() {
+					static std::vector<std::string> options;
+					options = {"Top", "Center", "Bottom"}; // 枚举选项
+
+					// 添加当前选中项
+					switch (valign) {
+						case TextAlignment_Vertical::Top: options.push_back("Top"); break;
+						case TextAlignment_Vertical::Center: options.push_back("Center"); break;
+						case TextAlignment_Vertical::Bottom: options.push_back("Bottom"); break;
+					}
+					return static_cast<void*>(&options);
+				}
+			});
+
+			return props;
+		}
+
         virtual std::string GetRegisterTypeName()override { return "ImTextBlock"; }
 	};
 }

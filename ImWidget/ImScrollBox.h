@@ -329,6 +329,71 @@ namespace ImGuiWidget
         }
 
     public:
+
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override 
+        {
+            auto props = ImPanelWidget::GetProperties();
+
+            // 滚动条属性
+            props.insert({
+                "ScrollbarThickness", PropertyType::Float, "Scrollbar",
+                [this](void* v) { this->m_ScrollbarThickness = *static_cast<float*>(v); },
+                [this]() -> void* { return &this->m_ScrollbarThickness; }
+                });
+
+            props.insert({
+                "ScrollbarBgColor", PropertyType::Color, "Scrollbar",
+                [this](void* v) { this->m_ScrollbarBgColor = *static_cast<ImU32*>(v); },
+                [this]() -> void* { return &this->m_ScrollbarBgColor; }
+                });
+
+            props.insert({
+                "ScrollbarGrabColor", PropertyType::Color, "Scrollbar",
+                [this](void* v) { this->m_ScrollbarGrabColor = *static_cast<ImU32*>(v); },
+                [this]() -> void* { return &this->m_ScrollbarGrabColor; }
+                });
+
+            props.insert({
+                "ScrollbarGrabHoveredColor", PropertyType::Color, "Scrollbar",
+                [this](void* v) { this->m_ScrollbarGrabHoveredColor = *static_cast<ImU32*>(v); },
+                [this]() -> void* { return &this->m_ScrollbarGrabHoveredColor; }
+                });
+
+            props.insert({
+                "ScrollbarGrabActiveColor", PropertyType::Color, "Scrollbar",
+                [this](void* v) { this->m_ScrollbarGrabActiveColor = *static_cast<ImU32*>(v); },
+                [this]() -> void* { return &this->m_ScrollbarGrabActiveColor; }
+                });
+
+            // 滚动方向属性
+            props.insert({
+                "HorizontalScrollEnabled", PropertyType::Bool, "Behavior",
+                [this](void* v) { this->m_HorizontalScrollEnabled = *static_cast<bool*>(v); },
+                [this]() -> void* { return &this->m_HorizontalScrollEnabled; }
+                });
+
+            props.insert({
+                "VerticalScrollEnabled", PropertyType::Bool, "Behavior",
+                [this](void* v) { this->m_VerticalScrollEnabled = *static_cast<bool*>(v); },
+                [this]() -> void* { return &this->m_VerticalScrollEnabled; }
+                });
+
+            // 滚动条可见性
+            props.insert({
+                "ShowHorizontalScrollbar", PropertyType::Bool, "Appearance",
+                [this](void* v) { this->m_ShowHorizontalScrollbar = *static_cast<bool*>(v); },
+                [this]() -> void* { return &this->m_ShowHorizontalScrollbar; }
+                });
+
+            props.insert({
+                "ShowVerticalScrollbar", PropertyType::Bool, "Appearance",
+                [this](void* v) { this->m_ShowVerticalScrollbar = *static_cast<bool*>(v); },
+                [this]() -> void* { return &this->m_ShowVerticalScrollbar; }
+                });
+
+            return props;
+        }
+
         virtual std::string GetRegisterTypeName()override { return "ImScrollBox"; }
     };
 }

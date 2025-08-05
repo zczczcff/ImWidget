@@ -547,6 +547,22 @@ namespace ImGuiWidget
         // 静态成员：存储所有选中的控件
         static std::set<ImMultiLineTextBlock*> s_SelectedWidgets;
 
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override {
+            auto props = ImWidget::GetProperties();
+            props.insert({
+                "Text", PropertyType::String, "Content",
+                [this](void* v) { SetText(*static_cast<std::string*>(v)); },
+                [this]() -> void* { return &m_Text; }
+                });
+            props.insert({
+                "TextColor", PropertyType::Color, "Appearance",
+                [this](void* v) { m_TextColor = *static_cast<ImU32*>(v); },
+                [this]() -> void* { return &m_TextColor; }
+                });
+            // 添加其他属性...
+            return props;
+        }
+
         virtual std::string GetRegisterTypeName()override { return "ImMultiLineTextBlock"; }
     };
 

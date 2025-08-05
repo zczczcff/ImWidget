@@ -43,16 +43,34 @@ namespace ImGuiWidget
             case PropertyType::String:
                 j[prop.name] = *static_cast<std::string*>(valuePtr);
                 break;
-            case PropertyType::Vec2: {
+            case PropertyType::Vec2: 
+            {
                 ImVec2 vec = *static_cast<ImVec2*>(valuePtr);
                 j[prop.name] = { vec.x, vec.y };
                 break;
             }
-            case PropertyType::Struct: {
+            case PropertyType::Struct: 
+            {
                 // 对于嵌套结构，需要递归处理
                 PropertyStruct* childStruct = static_cast<PropertyStruct*>(valuePtr);
                 if (childStruct) {
                     j[prop.name] = SerializeProperties(childStruct);
+                }
+                break;
+            }
+            case PropertyType::StringArray: 
+            {
+                std::vector<std::string>* vec = static_cast<std::vector<std::string>*>(valuePtr);
+                j[prop.name] = *vec; // 直接序列化为JSON数组
+                break;
+            }
+            case PropertyType::Enum: 
+            {
+                // 获取枚举选项和当前值
+                std::vector<std::string>* vec = static_cast<std::vector<std::string>*>(valuePtr);
+                if (vec && !vec->empty()) {
+                    // 最后一个元素是当前选中的值
+                    j[prop.name] = vec->back();
                 }
                 break;
             }
@@ -117,11 +135,31 @@ namespace ImGuiWidget
                 }
                 break;
             }
-            case PropertyType::Struct: {
+            case PropertyType::Struct: 
+            {
                 // 对于嵌套结构，需要递归处理
                 PropertyStruct* childStruct = static_cast<PropertyStruct*>(prop.getter());
-                if (childStruct && j[prop.name].is_object()) {
+                if (childStruct && j[prop.name].is_object()) 
+                {
                     DeserializeProperties(childStruct, j[prop.name]);
+                }
+                break;
+            }
+            case PropertyType::StringArray: 
+            {
+                if (j[prop.name].is_array()) 
+                {
+                    std::vector<std::string> vec = j[prop.name].get<std::vector<std::string>>();
+                    prop.setter(&vec);
+                }
+                break;
+            }
+            case PropertyType::Enum: 
+            {
+                if (j[prop.name].is_string()) 
+                {
+                    std::string val = j[prop.name].get<std::string>();
+                    prop.setter(&val);
                 }
                 break;
             }

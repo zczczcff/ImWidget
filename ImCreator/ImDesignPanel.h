@@ -1,11 +1,5 @@
 #pragma once
-#include "ImWidget/ImUserWidget.h"
-#include "ImWidget/ImCanvasPanel.h"
-#include "ImWidget/ImTextBlock.h"
-#include "ImWidget/ImResizableBox.h"
-#include "ImWidget/ImDesignPanel.h"
-#include "ImWidget/ImVerticalBox.h"
-#include "ImWidget/ImHorizontalBox.h"
+#include "ImWidget/ImBasicWidgetList.h"
 
 
 #include "ExampleWidgetInfor.h"
@@ -59,6 +53,11 @@ protected:
 		case WidgetType::ImVerticalBox:
 		{
 			NewWidget = new ImGuiWidget::ImVerticalBox("VerticalBox_" + std::to_string(count));
+			break;
+		}
+		case WidgetType::ImComboBox:
+		{
+			NewWidget = new ImGuiWidget::ImComboBox("ComboBox_" + std::to_string(count));
 			break;
 		}
 

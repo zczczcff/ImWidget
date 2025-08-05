@@ -74,6 +74,8 @@ public:
     ExampleWidget* m_Example_ImCanvasPanel;
     ExampleWidget* m_Example_HorizontalBox;
     ExampleWidget* m_Example_VerticalBox;
+
+    ExampleWidget* m_Example_ComboBox;
     void Init()
     {
         ImGuiStyle& style = ImGui::GetStyle();
@@ -134,8 +136,11 @@ public:
         m_Example_ImCanvasPanel = new ExampleWidget("Example_CanvasPanel", "CanvasPanel", WidgetType::ImCanvasPanel);
         m_Example_HorizontalBox = new ExampleWidget("Example_HorizontalBox", "HorizontalBox", WidgetType::ImHorizontalBox);
         m_Example_VerticalBox = new ExampleWidget("Example_VerticalBox", "VerticalBox", WidgetType::ImVerticalBox);
+        m_Example_ComboBox = new ExampleWidget("Example_ComboBox", "ComboBox", WidgetType::ImComboBox);
+
         m_InputTextTest = new ImGuiWidget::ImInputText("InputTextTest");
         m_CheckBoxTest = new ImGuiWidget::ImCheckBox("CheckBoxTest");
+        
         //ImGuiWidget::ImButton* button_test = new ImGuiWidget::ImButton("buttontest");
         m_WidgetList->AddChildToVerticalBox(m_Example_Button)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_TextBlock)->SetIfAutoSize(false);
@@ -143,6 +148,8 @@ public:
         m_WidgetList->AddChildToVerticalBox(m_Example_ImCanvasPanel)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_HorizontalBox)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_VerticalBox)->SetIfAutoSize(false);
+        m_WidgetList->AddChildToVerticalBox(m_Example_ComboBox)->SetIfAutoSize(false);
+
         m_WidgetList->AddChildToVerticalBox(m_InputTextTest)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_CheckBoxTest)->SetIfAutoSize(false);
 

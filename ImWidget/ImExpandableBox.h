@@ -247,6 +247,43 @@ namespace ImGuiWidget
 
 		void SetOnExpandedStateChanged(std::function<void(bool)> callback) { OnExpandedStateChanged = callback; }
 	
+		virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
+		{
+			auto baseProps = ImPanelWidget::GetProperties();
+
+			baseProps.insert(
+				{ "IsExpanded", PropertyType::Bool, "State",
+				  [this](void* v) { bIsExpanded = *static_cast<bool*>(v); },
+				  [this]() -> void* { return &bIsExpanded; } }
+			);
+
+			baseProps.insert(
+				{ "TriangleSize", PropertyType::Float, "Appearance",
+				  [this](void* v) { TriangleSize = *static_cast<float*>(v); },
+				  [this]() -> void* { return &TriangleSize; } }
+			);
+
+			baseProps.insert(
+				{ "HeadPad", PropertyType::Float, "Layout",
+				  [this](void* v) { HeadPad = *static_cast<float*>(v); },
+				  [this]() -> void* { return &HeadPad; } }
+			);
+
+			baseProps.insert(
+				{ "BodyPad", PropertyType::Float, "Layout",
+				  [this](void* v) { BodyPad = *static_cast<float*>(v); },
+				  [this]() -> void* { return &BodyPad; } }
+			);
+
+			baseProps.insert(
+				{ "TriangleColor", PropertyType::Color, "Appearance",
+				  [this](void* v) { TriangleColor = *static_cast<ImU32*>(v); },
+				  [this]() -> void* { return &TriangleColor; } }
+			);
+
+			return baseProps;
+		}
+
 		virtual std::string GetRegisterTypeName()override { return "ImExpandableBox"; }
 	};
 }

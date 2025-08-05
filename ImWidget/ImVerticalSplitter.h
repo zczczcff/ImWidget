@@ -4,13 +4,58 @@
 
 namespace ImGuiWidget
 {
-    struct ImSplitterStyle
-    {
+    struct ImSplitterStyle : public PropertyStruct {
         float BarHeight = 4.0f;
         ImU32 Color = IM_COL32(100, 100, 100, 255);
         ImU32 HoveredColor = IM_COL32(120, 120, 120, 255);
         ImU32 ActiveColor = IM_COL32(150, 150, 150, 255);
         float Rounding = 0.0f;
+
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override {
+            std::unordered_set<PropertyInfo, PropertyInfo::Hasher> props;
+
+            props.insert({
+                "BarHeight",
+                PropertyType::Float,
+                "Appearance",
+                [this](void* val) { this->BarHeight = *static_cast<float*>(val); },
+                [this]() { return static_cast<void*>(&this->BarHeight); }
+                });
+
+            props.insert({
+                "Color",
+                PropertyType::Color,
+                "Appearance",
+                [this](void* val) { this->Color = *static_cast<ImU32*>(val); },
+                [this]() { return static_cast<void*>(&this->Color); }
+                });
+
+            props.insert({
+                "HoveredColor",
+                PropertyType::Color,
+                "Appearance",
+                [this](void* val) { this->HoveredColor = *static_cast<ImU32*>(val); },
+                [this]() { return static_cast<void*>(&this->HoveredColor); }
+                });
+
+            props.insert({
+                "ActiveColor",
+                PropertyType::Color,
+                "Appearance",
+                [this](void* val) { this->ActiveColor = *static_cast<ImU32*>(val); },
+                [this]() { return static_cast<void*>(&this->ActiveColor); }
+                });
+
+            props.insert({
+                "Rounding",
+                PropertyType::Float,
+                "Appearance",
+                [this](void* val) { this->Rounding = *static_cast<float*>(val); },
+                [this]() { return static_cast<void*>(&this->Rounding); }
+                });
+
+            return props;
+        }
     };
 
     class ImVerticalSplitterSlot : public ImPaddingSlot
@@ -22,6 +67,29 @@ namespace ImGuiWidget
         ImVerticalSplitterSlot(ImWidget* Content)
             : ImPaddingSlot(Content)
         {
+        }
+
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties()
+        {
+            auto props = ImPaddingSlot::GetProperties();
+
+            props.insert({
+                "Ratio",
+                PropertyType::Float,
+                "Layout",
+                [this](void* val) { this->Ratio = *static_cast<float*>(val); },
+                [this]() { return static_cast<void*>(&this->Ratio); }
+                });
+
+            props.insert({
+                "MinSize",
+                PropertyType::Float,
+                "Layout",
+                [this](void* val) { this->MinSize = *static_cast<float*>(val); },
+                [this]() { return static_cast<void*>(&this->MinSize); }
+                });
+
+            return props;
         }
     };
 
@@ -339,6 +407,22 @@ namespace ImGuiWidget
             for (int i = 0; i < m_BarRects.size(); i++) {
                 RenderSplitterBar(m_BarRects[i], mousePos, i);
             }
+        }
+
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
+        {
+            auto props = ImPanelWidget::GetProperties();
+
+            // 分隔条样式
+            props.insert({
+                "SplitterStyle",
+                PropertyType::Struct,
+                "Appearance",
+                [this](void* val) { this->m_Style = *static_cast<ImSplitterStyle*>(val); },
+                [this]() { return static_cast<void*>(&this->m_Style); }
+                });
+
+            return props;
         }
 
         virtual std::string GetRegisterTypeName()override { return "ImHorizontalSplitter"; }

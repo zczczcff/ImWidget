@@ -74,7 +74,28 @@ namespace ImGuiWidget
         case PropertyType::Struct:
             // 结构体需要特殊处理
             return "/* Struct properties require nested initialization */";
-
+        case PropertyType::StringArray: 
+        {
+            std::vector<std::string>* vec = static_cast<std::vector<std::string>*>(valuePtr);
+            std::ostringstream oss;
+            oss << "{";
+            for (size_t i = 0; i < vec->size(); ++i) {
+                if (i > 0) oss << ", ";
+                oss << "\"" << (*vec)[i] << "\"";
+            }
+            oss << "}";
+            return oss.str();
+        }
+        case PropertyType::Enum: 
+        {
+            std::vector<std::string>* vec = static_cast<std::vector<std::string>*>(valuePtr);
+            if (vec && !vec->empty()) {
+                // 取最后一个元素（当前选中的值）
+                return "\"" + vec->back() + "\"";
+            }
+            return "\"\""; // 空字符串作为默认
+            break;
+        }
         default:
             return "/* Unknown type */";
         }

@@ -19,7 +19,7 @@
     "Children": [
         {
             "Type": "ImHorizontalBox",
-            "Name": "m_MenuList34",
+            "Name": "m_MenuList36",
             "Properties": {
                 "BackGroundColor": [
                     50,
@@ -38,7 +38,7 @@
             "Children": [
                 {
                     "Type": "ImButton",
-                    "Name": "MenuButton_Project35",
+                    "Name": "MenuButton_Project37",
                     "Properties": {
                         "BackGroundColor": [
                             255,
@@ -109,8 +109,18 @@
                     "Children": [
                         {
                             "Type": "ImTextBlock",
-                            "Name": "Button_Project_Text41",
-                            "Properties": null,
+                            "Name": "Button_Project_Text43",
+                            "Properties": {
+                                "Text": "Project",
+                                "TextColor": [
+                                    0,
+                                    0,
+                                    0,
+                                    255
+                                ],
+                                "HorizontalAlignment": "Center",
+                                "VerticalAlignment": "Center"
+                            },
                             "ParentSlot": {
                                 "bAutoSize": true,
                                 "PaddingTop": 0.0,
@@ -131,6 +141,7 @@
                 }
             ],
             "ParentSlot": {
+                "SizeRatio": 1.0,
                 "bAutoSize": false,
                 "PaddingTop": 0.0,
                 "PaddingBottom": 0.0,
@@ -154,7 +165,29 @@
                     0,
                     0,
                     255
-                ]
+                ],
+                "SplitterStyle": {
+                    "BarHeight": 4.0,
+                    "Color": [
+                        100,
+                        100,
+                        100,
+                        255
+                    ],
+                    "HoveredColor": [
+                        120,
+                        120,
+                        120,
+                        255
+                    ],
+                    "ActiveColor": [
+                        150,
+                        150,
+                        150,
+                        255
+                    ],
+                    "Rounding": 0.0
+                }
             },
             "Children": [
                 {
@@ -180,17 +213,37 @@
                             "Type": "ImHorizontalSplitter",
                             "Name": "Splitter01",
                             "Properties": {
+                                "BarHoveredColor": [
+                                    120,
+                                    120,
+                                    120,
+                                    255
+                                ],
                                 "BackGroundColor": [
                                     255,
                                     255,
                                     255,
                                     255
                                 ],
+                                "BarColor": [
+                                    100,
+                                    100,
+                                    100,
+                                    255
+                                ],
                                 "HaveBorder": true,
+                                "BarRounding": 0.0,
+                                "BarWidth": 4.0,
                                 "BorderColor": [
                                     0,
                                     0,
                                     0,
+                                    255
+                                ],
+                                "BarActiveColor": [
+                                    150,
+                                    150,
+                                    150,
                                     255
                                 ]
                             },
@@ -211,7 +264,29 @@
                                             0,
                                             0,
                                             255
-                                        ]
+                                        ],
+                                        "SplitterStyle": {
+                                            "BarHeight": 4.0,
+                                            "Color": [
+                                                100,
+                                                100,
+                                                100,
+                                                255
+                                            ],
+                                            "HoveredColor": [
+                                                120,
+                                                120,
+                                                120,
+                                                255
+                                            ],
+                                            "ActiveColor": [
+                                                150,
+                                                150,
+                                                150,
+                                                255
+                                            ],
+                                            "Rounding": 0.0
+                                        }
                                     },
                                     "Children": [
                                         {
@@ -238,6 +313,7 @@
                                                     "Name": "Example_Button18",
                                                     "Properties": null,
                                                     "ParentSlot": {
+                                                        "SizeRatio": 1.0,
                                                         "bAutoSize": false,
                                                         "PaddingTop": 0.0,
                                                         "PaddingBottom": 0.0,
@@ -250,6 +326,7 @@
                                                     "Name": "Example_TextBlock20",
                                                     "Properties": null,
                                                     "ParentSlot": {
+                                                        "SizeRatio": 1.0,
                                                         "bAutoSize": false,
                                                         "PaddingTop": 0.0,
                                                         "PaddingBottom": 0.0,
@@ -262,6 +339,7 @@
                                                     "Name": "Example_Image22",
                                                     "Properties": null,
                                                     "ParentSlot": {
+                                                        "SizeRatio": 1.0,
                                                         "bAutoSize": false,
                                                         "PaddingTop": 0.0,
                                                         "PaddingBottom": 0.0,
@@ -274,6 +352,7 @@
                                                     "Name": "Example_CanvasPanel24",
                                                     "Properties": null,
                                                     "ParentSlot": {
+                                                        "SizeRatio": 1.0,
                                                         "bAutoSize": false,
                                                         "PaddingTop": 0.0,
                                                         "PaddingBottom": 0.0,
@@ -286,6 +365,7 @@
                                                     "Name": "Example_HorizontalBox26",
                                                     "Properties": null,
                                                     "ParentSlot": {
+                                                        "SizeRatio": 1.0,
                                                         "bAutoSize": false,
                                                         "PaddingTop": 0.0,
                                                         "PaddingBottom": 0.0,
@@ -298,6 +378,7 @@
                                                     "Name": "Example_VerticalBox28",
                                                     "Properties": null,
                                                     "ParentSlot": {
+                                                        "SizeRatio": 1.0,
                                                         "bAutoSize": false,
                                                         "PaddingTop": 0.0,
                                                         "PaddingBottom": 0.0,
@@ -307,7 +388,20 @@
                                                 },
                                                 {
                                                     "Type": "ImWidget",
-                                                    "Name": "InputTextTest30",
+                                                    "Name": "Example_ComboBox30",
+                                                    "Properties": null,
+                                                    "ParentSlot": {
+                                                        "SizeRatio": 1.0,
+                                                        "bAutoSize": false,
+                                                        "PaddingTop": 0.0,
+                                                        "PaddingBottom": 0.0,
+                                                        "PaddingLeft": 0.0,
+                                                        "PaddingRight": 0.0
+                                                    }
+                                                },
+                                                {
+                                                    "Type": "ImWidget",
+                                                    "Name": "InputTextTest32",
                                                     "Properties": {
                                                         "BorderColor": [
                                                             100,
@@ -332,6 +426,7 @@
                                                         "Rounding": 4.0
                                                     },
                                                     "ParentSlot": {
+                                                        "SizeRatio": 1.0,
                                                         "bAutoSize": false,
                                                         "PaddingTop": 0.0,
                                                         "PaddingBottom": 0.0,
@@ -341,7 +436,7 @@
                                                 },
                                                 {
                                                     "Type": "ImCheckBox",
-                                                    "Name": "CheckBoxTest31",
+                                                    "Name": "CheckBoxTest33",
                                                     "Properties": {
                                                         "BoxRounding": 3.0,
                                                         "CheckColor": [
@@ -366,6 +461,7 @@
                                                         "BorderThickness": 1.5
                                                     },
                                                     "ParentSlot": {
+                                                        "SizeRatio": 1.0,
                                                         "bAutoSize": false,
                                                         "PaddingTop": 0.0,
                                                         "PaddingBottom": 0.0,
@@ -379,7 +475,9 @@
                                                 "PaddingTop": 0.0,
                                                 "PaddingBottom": 0.0,
                                                 "PaddingLeft": 0.0,
-                                                "PaddingRight": 0.0
+                                                "Ratio": 1.0,
+                                                "PaddingRight": 0.0,
+                                                "MinSize": 30.0
                                             }
                                         },
                                         {
@@ -391,7 +489,9 @@
                                                 "PaddingTop": 0.0,
                                                 "PaddingBottom": 0.0,
                                                 "PaddingLeft": 0.0,
-                                                "PaddingRight": 0.0
+                                                "Ratio": 1.0,
+                                                "PaddingRight": 0.0,
+                                                "MinSize": 30.0
                                             }
                                         }
                                     ],
@@ -400,7 +500,9 @@
                                         "PaddingTop": 0.0,
                                         "PaddingBottom": 0.0,
                                         "PaddingLeft": 0.0,
-                                        "PaddingRight": 0.0
+                                        "Ratio": 1.0,
+                                        "PaddingRight": 0.0,
+                                        "MinSize": 30.0
                                     }
                                 },
                                 {
@@ -545,7 +647,9 @@
                                         "PaddingTop": 0.0,
                                         "PaddingBottom": 0.0,
                                         "PaddingLeft": 0.0,
-                                        "PaddingRight": 0.0
+                                        "Ratio": 5.0,
+                                        "PaddingRight": 0.0,
+                                        "MinSize": 30.0
                                     }
                                 },
                                 {
@@ -557,11 +661,14 @@
                                         "PaddingTop": 0.0,
                                         "PaddingBottom": 0.0,
                                         "PaddingLeft": 0.0,
-                                        "PaddingRight": 0.0
+                                        "Ratio": 1.0,
+                                        "PaddingRight": 0.0,
+                                        "MinSize": 30.0
                                     }
                                 }
                             ],
                             "ParentSlot": {
+                                "SizeRatio": 1.0,
                                 "bAutoSize": true,
                                 "PaddingTop": 0.0,
                                 "PaddingBottom": 0.0,
@@ -575,12 +682,14 @@
                         "PaddingTop": 0.0,
                         "PaddingBottom": 0.0,
                         "PaddingLeft": 0.0,
-                        "PaddingRight": 0.0
+                        "Ratio": 4.0,
+                        "PaddingRight": 0.0,
+                        "MinSize": 30.0
                     }
                 },
                 {
                     "Type": "ImVerticalBox",
-                    "Name": "BottomBox32",
+                    "Name": "BottomBox34",
                     "Properties": {
                         "BackGroundColor": [
                             255,
@@ -599,9 +708,33 @@
                     "Children": [
                         {
                             "Type": "ImScrollingTextList",
-                            "Name": "LogList33",
-                            "Properties": null,
+                            "Name": "LogList35",
+                            "Properties": {
+                                "ScrollbarRounding": 0.0,
+                                "TextColor": [
+                                    0,
+                                    0,
+                                    0,
+                                    255
+                                ],
+                                "ScrollbarBackgroundColor": [
+                                    200,
+                                    200,
+                                    200,
+                                    255
+                                ],
+                                "LineSpacing": -1.0,
+                                "ScrollbarWidth": 14.0,
+                                "ScrollbarGrabColor": [
+                                    120,
+                                    120,
+                                    120,
+                                    255
+                                ],
+                                "ScrollbarGrabMinHeight": 20.0
+                            },
                             "ParentSlot": {
+                                "SizeRatio": 1.0,
                                 "bAutoSize": true,
                                 "PaddingTop": 0.0,
                                 "PaddingBottom": 0.0,
@@ -615,11 +748,14 @@
                         "PaddingTop": 0.0,
                         "PaddingBottom": 0.0,
                         "PaddingLeft": 0.0,
-                        "PaddingRight": 0.0
+                        "Ratio": 1.0,
+                        "PaddingRight": 0.0,
+                        "MinSize": 30.0
                     }
                 }
             ],
             "ParentSlot": {
+                "SizeRatio": 1.0,
                 "bAutoSize": true,
                 "PaddingTop": 0.0,
                 "PaddingBottom": 0.0,

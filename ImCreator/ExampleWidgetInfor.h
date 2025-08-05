@@ -11,7 +11,8 @@ enum class WidgetType
 	ImImage,
 	ImCanvasPanel,
 	ImVerticalBox,
-	ImHorizontalBox
+	ImHorizontalBox,
+	ImComboBox
 };
 
 

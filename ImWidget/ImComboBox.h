@@ -182,7 +182,7 @@ namespace ImGuiWidget
             // È·¶¨°´Å¥×´Ì¬
             const bool is_hovered = total_bb.Contains(g.IO.MousePos);
             if (!ImGui::ItemAdd(total_bb, id)) return;
-            const bool is_clicked = ImGui::ButtonBehavior(total_bb, id, nullptr, nullptr, 0);
+            const bool is_clicked = ImGui::ButtonBehavior(total_bb, id, nullptr, nullptr, ImGuiButtonFlags_AllowOverlap);
 
             if (is_clicked)
             {
@@ -415,6 +415,94 @@ namespace ImGuiWidget
                 }
             }
         }
+
+
+    public:
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
+        {
+            auto baseProps = ImWidget::GetProperties();
+
+            baseProps.insert(
+                { "Items", PropertyType::StringArray, "Data",
+                  [this](void* v) { m_Items = *static_cast<std::vector<std::string>*>(v); },
+                  [this]() -> void* { return &m_Items; } }
+            );
+
+            baseProps.insert(
+                { "SelectedIndex", PropertyType::Int, "Data",
+                  [this](void* v) { m_SelectedIndex = *static_cast<int*>(v); },
+                  [this]() -> void* { return &m_SelectedIndex; } }
+            );
+
+            baseProps.insert(
+                { "ArrowSize", PropertyType::Float, "Appearance",
+                  [this](void* v) { m_ArrowSize = *static_cast<float*>(v); },
+                  [this]() -> void* { return &m_ArrowSize; } }
+            );
+
+            baseProps.insert(
+                { "ItemHeight", PropertyType::Float, "Appearance",
+                  [this](void* v) { m_ItemHeight = *static_cast<float*>(v); },
+                  [this]() -> void* { return &m_ItemHeight; } }
+            );
+
+            baseProps.insert(
+                { "PopupRounding", PropertyType::Float, "Appearance",
+                  [this](void* v) { m_PopupRounding = *static_cast<float*>(v); },
+                  [this]() -> void* { return &m_PopupRounding; } }
+            );
+
+            baseProps.insert(
+                { "PopupPadding", PropertyType::Vec2, "Appearance",
+                  [this](void* v) { m_PopupPadding = *static_cast<ImVec2*>(v); },
+                  [this]() -> void* { return &m_PopupPadding; } }
+            );
+
+            baseProps.insert(
+                { "PopupBgColor", PropertyType::Color, "Appearance",
+                  [this](void* v) { m_PopupBgColor = *static_cast<ImU32*>(v); },
+                  [this]() -> void* { return &m_PopupBgColor; } }
+            );
+
+            baseProps.insert(
+                { "HighlightColor", PropertyType::Color, "Appearance",
+                  [this](void* v) { m_HighlightColor = *static_cast<ImU32*>(v); },
+                  [this]() -> void* { return &m_HighlightColor; } }
+            );
+
+            baseProps.insert(
+                { "TextColor", PropertyType::Color, "Appearance",
+                  [this](void* v) { m_TextColor = *static_cast<ImU32*>(v); },
+                  [this]() -> void* { return &m_TextColor; } }
+            );
+
+            baseProps.insert(
+                { "NormalStyle", PropertyType::Struct, "Style",
+                  [this](void* v) { m_NormalStyle = *(ButtonStateStyle*)v; },
+                  [this]() -> void* { return const_cast<ButtonStateStyle*>(&m_NormalStyle); } }
+            );
+
+            baseProps.insert(
+                { "HoveredStyle", PropertyType::Struct, "Style",
+                  [this](void* v) { m_HoveredStyle = *(ButtonStateStyle*)v; },
+                  [this]() -> void* { return const_cast<ButtonStateStyle*>(&m_HoveredStyle); } }
+            );
+
+            baseProps.insert(
+                { "PressedStyle", PropertyType::Struct, "Style",
+                  [this](void* v) { m_PressedStyle = *(ButtonStateStyle*)v; },
+                  [this]() -> void* { return const_cast<ButtonStateStyle*>(&m_PressedStyle); } }
+            );
+
+            baseProps.insert(
+                { "DropdownStyle", PropertyType::Struct, "Style",
+                  [this](void* v) { m_DropdownStyle = *(ButtonStateStyle*)v; },
+                  [this]() -> void* { return const_cast<ButtonStateStyle*>(&m_DropdownStyle); } }
+            );
+
+            return baseProps;
+        }
+
         virtual std::string GetRegisterTypeName()override { return "ImComboBox"; }
     };
 }
