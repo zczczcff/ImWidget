@@ -150,7 +150,9 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ExampleWidgetInfor.h" />
+    <ClInclude Include="FileUtil.h" />
     <ClInclude Include="ImCreator_DetailList.h" />
+    <ClInclude Include="ImCreator_PageManager.h" />
     <ClInclude Include="ImDesignPanel.h" />
     <ClInclude Include="ImExampleWidget.h" />
     <ClInclude Include="WidgetTreeView.h" />

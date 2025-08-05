@@ -28,6 +28,8 @@
 #include "ImExampleWidget.h"
 #include "ImDesignPanel.h"
 #include "ImCreator_DetailList.h"
+#include "FileUtil.h"
+#include "ImCreator_PageManager.h"
 namespace ImGuiWidget
 {
     Application* GlobalApp;
@@ -48,15 +50,15 @@ public:
     //ImGuiWidget::ImMenuButton* Button_Project;
     //ImGuiWidget::ImVerticalBox* m_Menu_ProjectMenu;
     ImWindows::ImMenuButton* m_MenuButton_Project;
-    ImWindows::ImMenuButton* m_MenuButton_Project_History;
-    ImWindows::ImMenuButton* m_MenuButton_Project_History1;
-    ImWindows::ImPageManager* m_CenterPageManager;
-
+    //ImWindows::ImMenuButton* m_MenuButton_Project_History;
+    //ImWindows::ImMenuButton* m_MenuButton_Project_History1;
+    //ImWindows::ImPageManager* m_CenterPageManager;
+    ImCreatorUIPageManager* m_CenterPageManager;
     ImGuiWidget::ImVerticalSplitter* m_WidgetList_WidgetTreeSplitter;
     ImGuiWidget::ImVerticalBox* m_WidgetList;
     WidgetTreeView* m_WidgetTreeView;
 
-    DesiginPanel* m_DesiginPanel;
+    //DesiginPanel* m_DesiginPanel;
 
     DetailList* m_DetailList;
     //ImGuiWidget::ImVerticalBox* m_DetailList;
@@ -100,31 +102,44 @@ public:
         m_WidgetList_WidgetTreeSplitter->AddPart(m_WidgetList);
         m_WidgetList_WidgetTreeSplitter->AddPart(m_WidgetTreeView);
 
-        m_DesiginPanel = new DesiginPanel("CenterPanel");
+        //m_DesiginPanel = new DesiginPanel("CenterPanel");
        // m_DetailList= new ImGuiWidget::ImVerticalBox("DetailList");
         m_DetailList = new DetailList("DetailList");
 
-        m_DesiginPanel->SetOnSelected([this](ImGuiWidget::ImWidget* selectedwidget) 
+
+        //m_DesiginPanel->SetOnSelected([this](ImGuiWidget::ImWidget* selectedwidget) 
+        //    {
+        //        if (selectedwidget)
+        //        {
+        //            m_DetailList->SetCurrentWidget(selectedwidget);
+        //        }
+        //    });
+        //m_DesiginPanel->SetOnDragWidgetOn([this](ImGuiWidget::ImWidget* NewWidget) 
+        //    {
+        //        if (!m_WidgetTreeView->GetTargetWidget())
+        //        {
+        //            m_WidgetTreeView->SetTargetWidget(NewWidget);
+        //        }
+        //        else
+        //        {
+        //            m_WidgetTreeView->Refresh();
+        //        }
+        //    });
+        
+        m_CenterPageManager = new ImCreatorUIPageManager;
+
+        m_CenterPageManager->SetOnWidgetSelected([this](ImGuiWidget::ImWidget* selectedwidget)
             {
                 if (selectedwidget)
                 {
                     m_DetailList->SetCurrentWidget(selectedwidget);
                 }
             });
-        m_DesiginPanel->SetOnDragWidgetOn([this](ImGuiWidget::ImWidget* NewWidget) 
-            {
-                if (!m_WidgetTreeView->GetTargetWidget())
-                {
-                    m_WidgetTreeView->SetTargetWidget(NewWidget);
-                }
-                else
-                {
-                    m_WidgetTreeView->Refresh();
-                }
-            });
-        m_CenterPageManager = new ImWindows::ImPageManager("CenterPageManager",ImWindows::TabDockPosition::Top);
-        m_CenterPageManager->AddPage("test", m_DesiginPanel);
-        m_CenterPageManager->SetTabBarThickness(20.f);
+        m_CenterPageManager->SetOnWidgetDragedOn([this](ImGuiWidget::ImWidget*) {m_WidgetTreeView->Refresh(); });
+
+        //m_CenterPageManager = new ImWindows::ImPageManager("CenterPageManager",ImWindows::TabDockPosition::Top);
+        //m_CenterPageManager->AddPage("test", m_DesiginPanel);
+        //m_CenterPageManager->SetTabBarThickness(20.f);
 
         m_MiddleSplitter->AddPart(m_WidgetList_WidgetTreeSplitter);
         m_MiddleSplitter->AddPart(m_CenterPageManager)->Ratio = 5.0f;
@@ -176,10 +191,10 @@ public:
         m_MenuButton_Project->GetHoveredStyle().BackgroundColor = IM_COL32(230, 200, 170, 120);
         m_MenuButton_Project->GetPressedStyle().BackgroundColor = IM_COL32(250, 220, 190, 120);
         m_MenuButton_Project->SetTooltipText("Project");
-        m_MenuButton_Project_History = new ImWindows::ImMenuButton("MenuButton_Project_History");
-        m_MenuButton_Project_History->SetDockDirection(ImWindows::MenuDockDirection::Dock_Right);
-        m_MenuButton_Project_History1 = new ImWindows::ImMenuButton("MenuButton_Project_History1");
-        m_MenuButton_Project_History1->SetDockDirection(ImWindows::MenuDockDirection::Dock_Right);
+        //m_MenuButton_Project_History = new ImWindows::ImMenuButton("MenuButton_Project_History");
+        //m_MenuButton_Project_History->SetDockDirection(ImWindows::MenuDockDirection::Dock_Right);
+        //m_MenuButton_Project_History1 = new ImWindows::ImMenuButton("MenuButton_Project_History1");
+        //m_MenuButton_Project_History1->SetDockDirection(ImWindows::MenuDockDirection::Dock_Right);
         ImGuiWidget::ImTextBlock* Button_Project_Text = new ImGuiWidget::ImTextBlock("Button_Project_Text");
         Button_Project_Text->SetText("Project");
         
@@ -203,31 +218,86 @@ public:
         //ImGuiWidget::LoadWidgetFromFile(m_MenuButton_Project, "test.imui");
         
         
+        ImWindows::ImMenuButton* Button_NewUI = new ImWindows::ImMenuButton("Button_NewUI");
+        ImGuiWidget::ImTextBlock* NewUI_MenuText = new ImGuiWidget::ImTextBlock("NewUI_MenuText");
+        NewUI_MenuText->SetText("NewUI");
+        Button_NewUI->SetContent(NewUI_MenuText);
+        ImGuiWidget::ImVerticalBox* NewUI_VBox = new ImGuiWidget::ImVerticalBox("NewUI_VBox");
+        ImGuiWidget::ImInputText* NewUI_InputNameBox = new ImGuiWidget::ImInputText("NewUI_InputNameBox");
+        ImGuiWidget::ImButton* NewUI_CreateButton = new ImGuiWidget::ImButton("NewUI_CreateButton");
+        ImGuiWidget::ImTextBlock* NewUI_Text = new ImGuiWidget::ImTextBlock("NewUI_Text");
+        NewUI_Text->SetText("Create");
+        NewUI_CreateButton->SetContent(NewUI_Text);
+        NewUI_CreateButton->SetOnPressed([this, NewUI_InputNameBox]() 
+            {
+                std::string NewFileName = NewUI_InputNameBox->GetText();
+                if (m_CenterPageManager->CreateNewUIFile(NewFileName))return;
+                m_DetailList->CreateNewFileDetail(NewFileName);
+                m_DetailList->SetActiveFileDetail(NewFileName);
+                m_WidgetTreeView->CreateNewTreeView(NewFileName, m_CenterPageManager->GetMainPanelByName(NewFileName));
+                m_WidgetTreeView->SetActiveTreeView(NewFileName);
+            });
+        NewUI_VBox->AddChildToVerticalBox(NewUI_InputNameBox)->SetIfAutoSize(false);
+        NewUI_VBox->AddChildToVerticalBox(NewUI_CreateButton)->SetIfAutoSize(false);
+        Button_NewUI->AddMenuOption(NewUI_VBox);
+
+
+        ImGuiWidget::ImButton* Button_SaveUI = new ImGuiWidget::ImButton("Button_SaveUI");
+        ImGuiWidget::ImTextBlock* SaveUI_MenuText = new ImGuiWidget::ImTextBlock("SaveUI_MenuText");
+        SaveUI_MenuText->SetText("Save");
+        Button_SaveUI->SetContent(SaveUI_MenuText);
+        Button_SaveUI->SetOnPressed([this]() 
+            {
+                m_CenterPageManager->SaveCurrentUIFile();
+            });
 
         m_MenuList->AddChildToHorizontalBox(m_MenuButton_Project)->SetIfAutoSize(false);
+        m_MenuList->AddChildToHorizontalBox(Button_NewUI)->SetIfAutoSize(false);
+        m_MenuList->AddChildToHorizontalBox(Button_SaveUI)->SetIfAutoSize(false);
+
+
         m_MainBox->AddChildToVerticalBox(m_MenuList)->SetIfAutoSize(false);
         m_MainBox->AddChildToVerticalBox(m_VSplitter);
 
 
-        m_MenuButton_Project->AddMenuOption(m_MenuButton_Project_History);
-        m_MenuButton_Project->AddMenuOption(m_MenuButton_Project_History1);
+        auto AllUiFilesPath = FileUtil::getFilesWithExtension("./", ".imui");
+
+        for (auto& FileName : AllUiFilesPath)
+        {
+            ImWindows::ImMenuButton* FileChooseButton = new ImWindows::ImMenuButton("FileChooseButton");
+            ImGuiWidget::ImTextBlock* FileChooseButtonText = new ImGuiWidget::ImTextBlock("FileChooseButtonText");
+            FileChooseButtonText->SetText(FileName);
+            FileChooseButton->SetContent(FileChooseButtonText);
+            m_MenuButton_Project->AddMenuOption(FileChooseButton);
+            FileChooseButton->SetOnPressed([FileName,this]()
+                {
+                    if (m_CenterPageManager->AddEditedPage(FileName))return;
+                    m_DetailList->CreateNewFileDetail(FileName);
+                    m_DetailList->SetActiveFileDetail(FileName);
+                    m_WidgetTreeView->CreateNewTreeView(FileName, m_CenterPageManager->GetMainPanelByName(FileName));
+                    m_WidgetTreeView->SetActiveTreeView(FileName);
+                });
+        }
+
+        //m_MenuButton_Project->AddMenuOption(m_MenuButton_Project_History);
+        //m_MenuButton_Project->AddMenuOption(m_MenuButton_Project_History1);
         //m_Menu_ProjectMenu = new ImGuiWidget::ImVerticalBox("Menu_ProjectMenu");
         //Button_Project->SetMenu(m_Menu_ProjectMenu);
-		ImGuiWidget::ImButton* button0 = new ImGuiWidget::ImButton("button0");
-		ImGuiWidget::ImButton* button1 = new ImGuiWidget::ImButton("button1");
-		ImGuiWidget::ImButton* button2 = new ImGuiWidget::ImButton("button2");
+		//ImGuiWidget::ImButton* button0 = new ImGuiWidget::ImButton("button0");
+		//ImGuiWidget::ImButton* button1 = new ImGuiWidget::ImButton("button1");
+		//ImGuiWidget::ImButton* button2 = new ImGuiWidget::ImButton("button2");
 
-        ImGuiWidget::ImButton* button3 = new ImGuiWidget::ImButton("button0");
-        ImGuiWidget::ImButton* button4 = new ImGuiWidget::ImButton("button1");
-        ImGuiWidget::ImButton* button5 = new ImGuiWidget::ImButton("button2");
+  //      ImGuiWidget::ImButton* button3 = new ImGuiWidget::ImButton("button0");
+  //      ImGuiWidget::ImButton* button4 = new ImGuiWidget::ImButton("button1");
+  //      ImGuiWidget::ImButton* button5 = new ImGuiWidget::ImButton("button2");
 
-        m_MenuButton_Project_History->AddMenuOption(button0);
-        m_MenuButton_Project_History->AddMenuOption(button1);
-        m_MenuButton_Project_History->AddMenuOption(button2);
+  //      m_MenuButton_Project_History->AddMenuOption(button0);
+  //      m_MenuButton_Project_History->AddMenuOption(button1);
+  //      m_MenuButton_Project_History->AddMenuOption(button2);
 
-        m_MenuButton_Project_History1->AddMenuOption(button3);
-        m_MenuButton_Project_History1->AddMenuOption(button4);
-        m_MenuButton_Project_History1->AddMenuOption(button5);
+  //      m_MenuButton_Project_History1->AddMenuOption(button3);
+  //      m_MenuButton_Project_History1->AddMenuOption(button4);
+  //      m_MenuButton_Project_History1->AddMenuOption(button5);
 
         ImGuiWidget::SaveWidgetTreeToFile(m_MainBox, "test.imui");
         ImGuiWidget::ExportUserWidgetToFiles(m_MainBox, "Test1", "./");

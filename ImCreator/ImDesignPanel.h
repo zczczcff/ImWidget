@@ -1,7 +1,7 @@
 #pragma once
 #include "ImWidget/ImBasicWidgetList.h"
 
-
+#include "ImWidget/ImWidgetSerializer.h"
 #include "ExampleWidgetInfor.h"
 
 class DesiginPanel : public ImGuiWidget::ImUserWidget
@@ -26,7 +26,7 @@ protected:
 		case WidgetType::ImButton:
 		{
 			//Handle_DragOnButton(Pos);
-			NewWidget= new ImGuiWidget::ImButton("Button_" + std::to_string(count));
+			NewWidget = new ImGuiWidget::ImButton("Button_" + std::to_string(count));
 			((ImGuiWidget::ImButton*)NewWidget)->GetNormalStyle().Rounding = 10;
 			break;
 		}
@@ -70,7 +70,7 @@ protected:
 			ImGuiWidget::ImPanelWidget* Panel = dynamic_cast<ImGuiWidget::ImPanelWidget*>(widget);
 			if (Panel)
 			{
-				if (!Panel->AddChild(NewWidget,MousePos-Panel->GetPosition()))
+				if (!Panel->AddChild(NewWidget, MousePos - Panel->GetPosition()))
 				{
 					delete NewWidget;
 				}
@@ -86,7 +86,7 @@ protected:
 			{
 				OnDragWidgetOn(NewWidget);
 			}
-			
+
 
 			count++;
 		}
@@ -96,7 +96,7 @@ protected:
 	void Handle_DragOnButton(ImVec2 MousePos)
 	{
 		static int count = 0;
-		
+
 		ImGuiWidget::ImButton* button = new ImGuiWidget::ImButton("Button_" + std::to_string(count));
 		//m_MainPanel->AddChildToCanvasPanel(button)->SetSlotPosAndSize(MousePos - Position, button->GetMinSize());
 		auto widget = m_MainPanel->ChildHitTest(MousePos);
@@ -115,7 +115,7 @@ protected:
 public:
 	DesiginPanel(const std::string& WidgetName) :
 		ImGuiWidget::ImUserWidget(WidgetName),
-		m_MainPanel(new ImGuiWidget::ImDesignPanel(WidgetName+"_MainPanel"))
+		m_MainPanel(new ImGuiWidget::ImDesignPanel(WidgetName + "_MainPanel"))
 	{
 		SetAllowDragOn(true);
 		SetRootWidget(m_MainPanel);
@@ -123,4 +123,18 @@ public:
 
 	void SetOnSelected(std::function<void(ImWidget*)> callback) { m_MainPanel->SetOnSelected(callback); }
 	void SetOnDragWidgetOn(std::function<void(ImWidget*)>callback) { OnDragWidgetOn = callback; }
+
+	bool InitFromFile(const std::string& file)
+	{
+		if (m_MainPanel->GetChildAt(0))return false;
+		ImGuiWidget::ImWidget* NewRoot = ImGuiWidget::LoadWidgetTreeFromFile(file);
+		if (!NewRoot)return false;
+		m_MainPanel->AddChild(NewRoot);
+	}
+
+	ImGuiWidget::ImDesignPanel* GetMainPanel() { return m_MainPanel; }
+	ImGuiWidget::ImWidget* GetRootContent()
+	{
+		return m_MainPanel->GetChildAt(0);
+	}
 };

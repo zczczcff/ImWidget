@@ -1,0 +1,69 @@
+#include <vector>
+#include <string>
+#include <filesystem>
+#include <algorithm>
+
+class FileUtil 
+{
+public:
+    // 获取文件夹下指定后缀名的文件（不区分大小写）
+    static std::vector<std::string> getFilesWithExtension(
+        const std::string& folder_path,
+        const std::string& extension
+    ) 
+    {
+        std::vector<std::string> result;
+        namespace fs = std::filesystem;
+
+        // 验证路径是否存在且为目录
+        fs::path dir(folder_path);
+        if (!fs::exists(dir) || !fs::is_directory(dir)) {
+            return result;
+        }
+
+        // 统一后缀名格式（确保以 '.' 开头）
+        std::string normalized_ext = normalizeExtension(extension);
+
+        // 遍历目录中的所有文件
+        for (const auto& entry : fs::directory_iterator(dir)) {
+            if (entry.is_regular_file()) {
+                const std::string ext = entry.path().extension().string();
+                if (caseInsensitiveCompare(normalized_ext, ext)) {
+                    result.push_back(entry.path().string());
+                }
+            }
+        }
+
+        return result;
+    }
+
+private:
+    // 统一后缀名格式（确保以 '.' 开头）
+    static std::string normalizeExtension(std::string ext) 
+    {
+        if (ext.empty()) return ".";
+
+        // 移除开头的空格
+        ext.erase(0, ext.find_first_not_of(" \t"));
+        ext.erase(ext.find_last_not_of(" \t") + 1);
+
+        // 添加缺失的点号
+        if (ext[0] != '.') {
+            ext = "." + ext;
+        }
+
+        return ext;
+    }
+
+    // 不区分大小写的字符串比较
+    static bool caseInsensitiveCompare(const std::string& str1, const std::string& str2) 
+    {
+        if (str1.length() != str2.length()) return false;
+
+        return std::equal(str1.begin(), str1.end(), str2.begin(),
+            [](char a, char b) {
+                return std::tolower(static_cast<unsigned char>(a)) ==
+                    std::tolower(static_cast<unsigned char>(b));
+            });
+    }
+};

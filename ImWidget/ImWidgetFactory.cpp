@@ -16,6 +16,18 @@ void ImGuiWidget::ImWidgetFactory::Initialize()
     RegisterType<ImVerticalBox>("ImVerticalBox");
     RegisterType<ImHorizontalSplitter>("ImHorizontalSplitter");
     RegisterType<ImVerticalSplitter>("ImVerticalSplitter");
-
-    // 可以根据需要添加更多控件
+    RegisterType<ImButton>("ImButton");
+    RegisterType<ImCheckBox>("ImCheckBox");
+    RegisterType<ImColorPicker>("ImColorPicker");
+    RegisterType<ImComboBox>("ImComboBox");
+    RegisterType<ImDesignPanel>("ImDesignPanel");
+    RegisterType<ImExpandableBox>("ImExpandableBox");
+    RegisterType<ImImage>("ImImage");
+    RegisterType<ImInputText>("ImInputText");
+    RegisterType<ImMultiLineTextBlock>("ImMultiLineTextBlock");
+    RegisterType<ImResizableBox>("ImResizableBox");
+    RegisterType<ImScrollBox>("ImScrollBox");
+    RegisterType<ImScrollingTextList>("ImScrollingTextList");
+    RegisterType<ImSlider>("ImSlider");
+    RegisterType<ImTextBlock>("ImTextBlock");
 }

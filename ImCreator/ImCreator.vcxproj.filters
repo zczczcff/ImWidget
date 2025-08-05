@@ -35,5 +35,11 @@
     <ClInclude Include="WidgetTreeView.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="FileUtil.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ImCreator_PageManager.h">
+      <Filter>源文件</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

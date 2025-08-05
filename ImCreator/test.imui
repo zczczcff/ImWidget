@@ -19,7 +19,7 @@
     "Children": [
         {
             "Type": "ImHorizontalBox",
-            "Name": "m_MenuList36",
+            "Name": "m_MenuList30",
             "Properties": {
                 "BackGroundColor": [
                     50,
@@ -38,7 +38,7 @@
             "Children": [
                 {
                     "Type": "ImButton",
-                    "Name": "MenuButton_Project37",
+                    "Name": "MenuButton_Project31",
                     "Properties": {
                         "BackGroundColor": [
                             255,
@@ -109,9 +109,215 @@
                     "Children": [
                         {
                             "Type": "ImTextBlock",
-                            "Name": "Button_Project_Text43",
+                            "Name": "Button_Project_Text33",
                             "Properties": {
                                 "Text": "Project",
+                                "TextColor": [
+                                    0,
+                                    0,
+                                    0,
+                                    255
+                                ],
+                                "HorizontalAlignment": "Center",
+                                "VerticalAlignment": "Center"
+                            },
+                            "ParentSlot": {
+                                "bAutoSize": true,
+                                "PaddingTop": 0.0,
+                                "PaddingBottom": 0.0,
+                                "PaddingLeft": 0.0,
+                                "PaddingRight": 0.0
+                            }
+                        }
+                    ],
+                    "ParentSlot": {
+                        "SizeRatio": 1.0,
+                        "bAutoSize": false,
+                        "PaddingTop": 0.0,
+                        "PaddingBottom": 0.0,
+                        "PaddingLeft": 0.0,
+                        "PaddingRight": 0.0
+                    }
+                },
+                {
+                    "Type": "ImButton",
+                    "Name": "Button_NewUI34",
+                    "Properties": {
+                        "BackGroundColor": [
+                            255,
+                            255,
+                            255,
+                            255
+                        ],
+                        "HaveBorder": true,
+                        "PressedStyle": {
+                            "BackgroundColor": [
+                                0,
+                                51,
+                                153,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        },
+                        "BorderColor": [
+                            0,
+                            0,
+                            0,
+                            255
+                        ],
+                        "NormalStyle": {
+                            "BackgroundColor": [
+                                0,
+                                102,
+                                204,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        },
+                        "TooltipText": "",
+                        "HoveredStyle": {
+                            "BackgroundColor": [
+                                51,
+                                153,
+                                255,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        }
+                    },
+                    "Children": [
+                        {
+                            "Type": "ImTextBlock",
+                            "Name": "NewUI_MenuText36",
+                            "Properties": {
+                                "Text": "NewUI",
+                                "TextColor": [
+                                    0,
+                                    0,
+                                    0,
+                                    255
+                                ],
+                                "HorizontalAlignment": "Center",
+                                "VerticalAlignment": "Center"
+                            },
+                            "ParentSlot": {
+                                "bAutoSize": true,
+                                "PaddingTop": 0.0,
+                                "PaddingBottom": 0.0,
+                                "PaddingLeft": 0.0,
+                                "PaddingRight": 0.0
+                            }
+                        }
+                    ],
+                    "ParentSlot": {
+                        "SizeRatio": 1.0,
+                        "bAutoSize": false,
+                        "PaddingTop": 0.0,
+                        "PaddingBottom": 0.0,
+                        "PaddingLeft": 0.0,
+                        "PaddingRight": 0.0
+                    }
+                },
+                {
+                    "Type": "ImButton",
+                    "Name": "Button_SaveUI41",
+                    "Properties": {
+                        "BackGroundColor": [
+                            255,
+                            255,
+                            255,
+                            255
+                        ],
+                        "HaveBorder": true,
+                        "PressedStyle": {
+                            "BackgroundColor": [
+                                0,
+                                51,
+                                153,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        },
+                        "BorderColor": [
+                            0,
+                            0,
+                            0,
+                            255
+                        ],
+                        "NormalStyle": {
+                            "BackgroundColor": [
+                                0,
+                                102,
+                                204,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        },
+                        "TooltipText": "",
+                        "HoveredStyle": {
+                            "BackgroundColor": [
+                                51,
+                                153,
+                                255,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        }
+                    },
+                    "Children": [
+                        {
+                            "Type": "ImTextBlock",
+                            "Name": "SaveUI_MenuText42",
+                            "Properties": {
+                                "Text": "Save",
                                 "TextColor": [
                                     0,
                                     0,
@@ -310,7 +516,7 @@
                                             "Children": [
                                                 {
                                                     "Type": "ImWidget",
-                                                    "Name": "Example_Button18",
+                                                    "Name": "Example_Button12",
                                                     "Properties": null,
                                                     "ParentSlot": {
                                                         "SizeRatio": 1.0,
@@ -323,7 +529,7 @@
                                                 },
                                                 {
                                                     "Type": "ImWidget",
-                                                    "Name": "Example_TextBlock20",
+                                                    "Name": "Example_TextBlock14",
                                                     "Properties": null,
                                                     "ParentSlot": {
                                                         "SizeRatio": 1.0,
@@ -336,7 +542,7 @@
                                                 },
                                                 {
                                                     "Type": "ImWidget",
-                                                    "Name": "Example_Image22",
+                                                    "Name": "Example_Image16",
                                                     "Properties": null,
                                                     "ParentSlot": {
                                                         "SizeRatio": 1.0,
@@ -349,7 +555,7 @@
                                                 },
                                                 {
                                                     "Type": "ImWidget",
-                                                    "Name": "Example_CanvasPanel24",
+                                                    "Name": "Example_CanvasPanel18",
                                                     "Properties": null,
                                                     "ParentSlot": {
                                                         "SizeRatio": 1.0,
@@ -362,7 +568,7 @@
                                                 },
                                                 {
                                                     "Type": "ImWidget",
-                                                    "Name": "Example_HorizontalBox26",
+                                                    "Name": "Example_HorizontalBox20",
                                                     "Properties": null,
                                                     "ParentSlot": {
                                                         "SizeRatio": 1.0,
@@ -375,7 +581,7 @@
                                                 },
                                                 {
                                                     "Type": "ImWidget",
-                                                    "Name": "Example_VerticalBox28",
+                                                    "Name": "Example_VerticalBox22",
                                                     "Properties": null,
                                                     "ParentSlot": {
                                                         "SizeRatio": 1.0,
@@ -388,7 +594,7 @@
                                                 },
                                                 {
                                                     "Type": "ImWidget",
-                                                    "Name": "Example_ComboBox30",
+                                                    "Name": "Example_ComboBox24",
                                                     "Properties": null,
                                                     "ParentSlot": {
                                                         "SizeRatio": 1.0,
@@ -401,7 +607,7 @@
                                                 },
                                                 {
                                                     "Type": "ImWidget",
-                                                    "Name": "InputTextTest32",
+                                                    "Name": "InputTextTest26",
                                                     "Properties": {
                                                         "BorderColor": [
                                                             100,
@@ -436,7 +642,7 @@
                                                 },
                                                 {
                                                     "Type": "ImCheckBox",
-                                                    "Name": "CheckBoxTest33",
+                                                    "Name": "CheckBoxTest27",
                                                     "Properties": {
                                                         "BoxRounding": 3.0,
                                                         "CheckColor": [
@@ -506,142 +712,9 @@
                                     }
                                 },
                                 {
-                                    "Type": "ImPanelWidget",
-                                    "Name": "CenterPageManager12",
-                                    "Properties": {
-                                        "BackGroundColor": [
-                                            255,
-                                            255,
-                                            255,
-                                            255
-                                        ],
-                                        "HaveBorder": true,
-                                        "BorderColor": [
-                                            0,
-                                            0,
-                                            0,
-                                            255
-                                        ]
-                                    },
-                                    "Children": [
-                                        {
-                                            "Type": "ImHorizontalBox",
-                                            "Name": "TabBar13",
-                                            "Properties": {
-                                                "BackGroundColor": [
-                                                    255,
-                                                    255,
-                                                    255,
-                                                    255
-                                                ],
-                                                "HaveBorder": true,
-                                                "BorderColor": [
-                                                    0,
-                                                    0,
-                                                    0,
-                                                    255
-                                                ]
-                                            },
-                                            "Children": [
-                                                {
-                                                    "Type": "ImButton",
-                                                    "Name": "TabButton_test17",
-                                                    "Properties": {
-                                                        "BackGroundColor": [
-                                                            255,
-                                                            255,
-                                                            255,
-                                                            255
-                                                        ],
-                                                        "HaveBorder": true,
-                                                        "PressedStyle": {
-                                                            "BackgroundColor": [
-                                                                50,
-                                                                50,
-                                                                80,
-                                                                220
-                                                            ],
-                                                            "HasBorder": true,
-                                                            "Rounding": 4.0,
-                                                            "BorderThickness": 1.0,
-                                                            "BorderColor": [
-                                                                100,
-                                                                100,
-                                                                100,
-                                                                200
-                                                            ]
-                                                        },
-                                                        "BorderColor": [
-                                                            0,
-                                                            0,
-                                                            0,
-                                                            255
-                                                        ],
-                                                        "NormalStyle": {
-                                                            "BackgroundColor": [
-                                                                70,
-                                                                70,
-                                                                100,
-                                                                220
-                                                            ],
-                                                            "HasBorder": true,
-                                                            "Rounding": 4.0,
-                                                            "BorderThickness": 1.0,
-                                                            "BorderColor": [
-                                                                100,
-                                                                100,
-                                                                100,
-                                                                200
-                                                            ]
-                                                        },
-                                                        "TooltipText": "",
-                                                        "HoveredStyle": {
-                                                            "BackgroundColor": [
-                                                                90,
-                                                                90,
-                                                                120,
-                                                                220
-                                                            ],
-                                                            "HasBorder": true,
-                                                            "Rounding": 4.0,
-                                                            "BorderThickness": 1.0,
-                                                            "BorderColor": [
-                                                                100,
-                                                                100,
-                                                                100,
-                                                                200
-                                                            ]
-                                                        }
-                                                    },
-                                                    "Children": [
-                                                        {
-                                                            "Type": "ImWidget",
-                                                            "Name": "TabItem_test14",
-                                                            "Properties": null,
-                                                            "ParentSlot": {
-                                                                "bAutoSize": true,
-                                                                "PaddingTop": 0.0,
-                                                                "PaddingBottom": 0.0,
-                                                                "PaddingLeft": 0.0,
-                                                                "PaddingRight": 0.0
-                                                            }
-                                                        }
-                                                    ],
-                                                    "ParentSlot": {
-                                                        "SizeRatio": 1.0,
-                                                        "bAutoSize": false,
-                                                        "PaddingTop": 0.0,
-                                                        "PaddingBottom": 0.0,
-                                                        "PaddingLeft": 0.0,
-                                                        "PaddingRight": 0.0
-                                                    }
-                                                }
-                                            ],
-                                            "ParentSlot": {
-                                                "bAutoSize": true
-                                            }
-                                        }
-                                    ],
+                                    "Type": "ImWidget",
+                                    "Name": "ImCreatorUIPageManager9",
+                                    "Properties": null,
                                     "ParentSlot": {
                                         "bAutoSize": true,
                                         "PaddingTop": 0.0,
@@ -654,7 +727,7 @@
                                 },
                                 {
                                     "Type": "ImWidget",
-                                    "Name": "DetailList10",
+                                    "Name": "DetailList8",
                                     "Properties": null,
                                     "ParentSlot": {
                                         "bAutoSize": true,
@@ -689,7 +762,7 @@
                 },
                 {
                     "Type": "ImVerticalBox",
-                    "Name": "BottomBox34",
+                    "Name": "BottomBox28",
                     "Properties": {
                         "BackGroundColor": [
                             255,
@@ -708,7 +781,7 @@
                     "Children": [
                         {
                             "Type": "ImScrollingTextList",
-                            "Name": "LogList35",
+                            "Name": "LogList29",
                             "Properties": {
                                 "ScrollbarRounding": 0.0,
                                 "TextColor": [

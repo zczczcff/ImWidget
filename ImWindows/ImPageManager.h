@@ -436,6 +436,28 @@ namespace ImWindows
             }
         }
 
+        void SetActivePageByContent(ImWidget* content)
+        {
+            int i = 0;
+            for (auto& page : m_Pages)
+            {
+                if (page.content == content)
+                {
+                    SetActivePage(i);
+                    return;
+                }
+                i++;
+            }
+        }
+
+        ImWidget* GetActivePageContent()
+        {
+            if (m_ActivePageIndex >= 0)
+                return m_Pages[m_ActivePageIndex].content;
+            else
+                return nullptr;
+        }
+
         // 设置页面关闭回调
         void SetOnPageClosed(std::function<void(const std::string&)> callback)
         {

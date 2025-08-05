@@ -6,19 +6,37 @@
 #include "ImWidget/ImTextBlock.h"
 #include "Imwidget/ImCheckBox.h"
 #include "ImWidget/ImColorPicker.h"
-
+;
 class DetailList :public ImGuiWidget::ImUserWidget
 {
 private:
-	ImGuiWidget::ImVerticalBox* m_VerticalBox;
+	std::map<std::string, ImGuiWidget::ImVerticalBox*>AllFileVerticalBoxes;
+	ImGuiWidget::ImVerticalBox* m_CurrentActiveRoot;
+	//ImGuiWidget::ImVerticalBox* m_VerticalBox;
 	ImGuiWidget::ImWidget* CurrentWidget;
 public:
 	DetailList(const std::string& WidgetName)
 		:ImUserWidget(WidgetName),
-		m_VerticalBox(new ImGuiWidget::ImVerticalBox(WidgetName + "_VerticalBox")),
+		//m_VerticalBox(new ImGuiWidget::ImVerticalBox(WidgetName + "_VerticalBox")),
+		m_CurrentActiveRoot(nullptr),
 		CurrentWidget(nullptr)
 	{
-		SetRootWidget(m_VerticalBox);
+		//SetRootWidget(m_VerticalBox);
+	}
+
+	void CreateNewFileDetail(const std::string& FileName)
+	{
+		AllFileVerticalBoxes.emplace(std::make_pair(FileName, new ImGuiWidget::ImVerticalBox(m_WidgetName + "_VerticalBox")));		
+	}
+
+	void SetActiveFileDetail(const std::string& FileName)
+	{
+		auto it = AllFileVerticalBoxes.find(FileName);
+		if (it != AllFileVerticalBoxes.end())
+		{
+			SetRootWidget(it->second);
+			m_CurrentActiveRoot = it->second;
+		}
 	}
 
 	ImGuiWidget::ImHorizontalBox* HandleAddStringItem(const ImGuiWidget::PropertyInfo& SingleProperty, std::string& SingleString, ImGuiWidget::ImVerticalBox* StringListBox)
@@ -251,13 +269,14 @@ public:
 
 	void SetCurrentWidget(ImGuiWidget::ImWidget* widget)
 	{
+		if (!m_CurrentActiveRoot)return;
 		CurrentWidget = widget;
-		m_VerticalBox->RemoveAllChild();
+		m_CurrentActiveRoot->RemoveAllChild();
 		if (!widget)return;
 
 		ImGuiWidget::ImTextBlock* WidgetName = new ImGuiWidget::ImTextBlock(m_WidgetName + "_WidgetName");
 		WidgetName->SetText(widget->GetWidgetName());
-		m_VerticalBox->AddChildToVerticalBox(WidgetName)->SetIfAutoSize(false);
+		m_CurrentActiveRoot->AddChildToVerticalBox(WidgetName)->SetIfAutoSize(false);
 
 		if (auto Slot = widget->GetSlot())
 		{
@@ -271,13 +290,13 @@ public:
 			{
 				HandleSingleProperty(SubSingleProperty, SlotPropertyBox);
 			}
-			m_VerticalBox->AddChildToVerticalBox(SlotBox)->SetIfAutoSize(false);
+			m_CurrentActiveRoot->AddChildToVerticalBox(SlotBox)->SetIfAutoSize(false);
 		}
 
 
 		for (auto& SingleProperty:widget->GetProperties())
 		{
-			HandleSingleProperty(SingleProperty, m_VerticalBox);
+			HandleSingleProperty(SingleProperty, m_CurrentActiveRoot);
 		}
 	}
 };

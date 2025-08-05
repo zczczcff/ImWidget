@@ -325,9 +325,9 @@ namespace ImGuiWidget
 			}
 		}
 
-		void SetRootWidget(ImWidget* RootWidget)
+		void SetRootWidget(ImWidget* RootWidget,bool DeleteOldRoot=true)
 		{
-			if (m_RootWidget)
+			if (m_RootWidget && DeleteOldRoot)
 			{
 				delete m_RootWidget;
 			}

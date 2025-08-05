@@ -11,13 +11,25 @@
 class WidgetTreeView : public ImGuiWidget::ImUserWidget
 {
 private:
-	ImWidget* m_TargetWidget;          // 目标控件
-	ImWidget* m_SelectedWidget;        // 当前选中的控件
-	std::function<void(ImWidget*)> OnSelectionChanged; // 选中回调
+	struct FileStruct
+	{
+		ImWidget* TreeViewRoot = nullptr;//视图根控件
+		ImWidget* TargetWidget;          // 目标控件
+		ImWidget* SelectedWidget;        // 当前选中的控件
+		std::unordered_set<ImWidget*> m_ExpandedNode;
+
+	};
+private:
+	//ImWidget* m_TargetWidget;          // 目标控件
+	//ImWidget* m_SelectedWidget;        // 当前选中的控件
+
+	std::map<std::string, FileStruct*> AllFileView;
+	std::string ActiveView;
+	//std::function<void(ImWidget*)> OnSelectionChanged; // 选中回调
 	// 存储节点展开状态 (目标控件名 -> 是否展开)
-	std::unordered_set<ImWidget*> m_ExpandedNode;
+	//std::unordered_set<ImWidget*> m_ExpandedNode;
 	// 递归构建树节点
-	ImWidget* BuildTreeNode(ImWidget* widget, int depth = 0)
+	ImWidget* BuildTreeNode(ImWidget* widget, std::unordered_set<ImWidget*>& m_ExpandedNode, int depth = 0)
 	{
 		// 检查是否为PanelWidget
 		ImGuiWidget::ImPanelWidget* panelWidget = dynamic_cast<ImGuiWidget::ImPanelWidget*>(widget);
@@ -54,7 +66,7 @@ private:
 				ImGuiWidget::ImSlot* slot = panelWidget->GetSlotAt(i);
 				if (slot && slot->GetContent())
 				{
-					ImWidget* childNode = BuildTreeNode(slot->GetContent(), depth + 1);
+					ImWidget* childNode = BuildTreeNode(slot->GetContent(), m_ExpandedNode,depth + 1);
 					if (childNode)
 					{
 						childContainer->AddChildToVerticalBox(childNode)->SetIfAutoSize(false);
@@ -67,7 +79,7 @@ private:
 				expandableBox->SetExpandedState(true);
 			}
 
-			expandableBox->SetOnExpandedStateChanged([this, panelWidget](bool newstate)
+			expandableBox->SetOnExpandedStateChanged([this, panelWidget, &m_ExpandedNode](bool newstate) mutable
 				{
 					if (newstate)
 					{
@@ -102,11 +114,15 @@ private:
 
 	void SetSelectedWidget(ImWidget* widget)
 	{
-		m_SelectedWidget = widget;
-		if (OnSelectionChanged)
+		if (auto view = GetActiveFileStruct())
 		{
-			OnSelectionChanged(widget);
+			view->SelectedWidget = widget;
 		}
+		//m_SelectedWidget = widget;
+		//if (OnSelectionChanged)
+		//{
+		//	OnSelectionChanged(widget);
+		//}
 	}
 
 	void AddSingleNodeState(ImWidget* TargetWidget)
@@ -118,48 +134,92 @@ private:
 		}
 	}
 
-public:
-	WidgetTreeView(const std::string& WidgetName)
-		: ImUserWidget(WidgetName),
-		m_SelectedWidget(nullptr)
+	FileStruct* GetActiveFileStruct()
 	{
-	}
-
-	void SetTargetWidget(ImWidget* targetWidget)
-	{
-		m_TargetWidget = targetWidget;
-		if (m_TargetWidget)
+		auto it = AllFileView.find(ActiveView);
+		if (it != AllFileView.end())
 		{
-			// 构建树形结构
-			ImWidget* treeRoot = BuildTreeNode(m_TargetWidget);
-			SetRootWidget(treeRoot);
+			return it->second;
 		}
 		else
 		{
-			SetRootWidget(nullptr);
+			return nullptr;
+		}
+	}
+public:
+	WidgetTreeView(const std::string& WidgetName)
+		: ImUserWidget(WidgetName)
+		//m_SelectedWidget(nullptr)
+	{
+	}
+
+	//void SetTargetWidget(ImWidget* targetWidget)
+	//{
+	//	m_TargetWidget = targetWidget;
+	//	if (m_TargetWidget)
+	//	{
+	//		// 构建树形结构
+	//		ImWidget* treeRoot = BuildTreeNode(m_TargetWidget);
+	//		SetRootWidget(treeRoot);
+	//	}
+	//	else
+	//	{
+	//		SetRootWidget(nullptr);
+	//	}
+	//}
+
+	void CreateNewTreeView(const std::string& Name,ImGuiWidget::ImWidget* Target)
+	{
+		if (!Target)return;
+		FileStruct* NewView = new FileStruct;
+		NewView->TreeViewRoot = BuildTreeNode(Target, NewView->m_ExpandedNode);
+		NewView->TargetWidget = Target;
+		AllFileView.emplace(std::make_pair(Name, NewView));
+	}
+
+	void SetActiveTreeView(const std::string& Name)
+	{
+		auto it = AllFileView.find(Name);
+		if (it != AllFileView.end())
+		{
+			ActiveView = Name;
+			SetRootWidget(it->second->TreeViewRoot, false);
 		}
 	}
 	// 设置选中回调
-	void SetOnSelectionChanged(std::function<void(ImWidget*)> callback)
-	{
-		OnSelectionChanged = callback;
-	}
+	//void SetOnSelectionChanged(std::function<void(ImWidget*)> callback)
+	//{
+	//	OnSelectionChanged = callback;
+	//}
 
 	// 获取当前选中的控件
-	ImWidget* GetSelectedWidget() const
+	ImWidget* GetSelectedWidget()
 	{
-		return m_SelectedWidget;
+		if (auto viewstruct = GetActiveFileStruct())
+		{
+			return viewstruct->SelectedWidget;
+		}
+		else
+		{
+			return nullptr;
+		}
 	}
 
-	ImWidget* GetTargetWidget() { return m_TargetWidget; }
+	//ImWidget* GetTargetWidget() { return m_TargetWidget; }
 	// 刷新树视图
 	void Refresh()
 	{
 
-		if (m_TargetWidget)
+		if (auto viewstruct = GetActiveFileStruct())
 		{
-			ImWidget* newTree = BuildTreeNode(m_TargetWidget);
-			SetRootWidget(newTree);
+			viewstruct->TreeViewRoot= BuildTreeNode(viewstruct->TargetWidget,viewstruct->m_ExpandedNode);
+			SetRootWidget(viewstruct->TreeViewRoot, true);//重建了根，要删除旧的
 		}
+
+		//if (m_TargetWidget)
+		//{
+		//	ImWidget* newTree = BuildTreeNode(m_TargetWidget);
+		//	SetRootWidget(newTree);
+		//}
 	}
 };
