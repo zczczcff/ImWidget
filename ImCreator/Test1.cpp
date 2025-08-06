@@ -86,6 +86,8 @@
 
 
 
+
+
 Test1::Test1(const std::string& name)
     : ImGuiWidget::ImUserWidget(name)
 {
@@ -377,6 +379,7 @@ void Test1::Init()
     SetRootWidget(MainBox);
 }
 //----Gen Code End----
+
 
 
 

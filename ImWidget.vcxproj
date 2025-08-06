@@ -158,6 +158,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="Application\ImApplication.h" />
+    <ClInclude Include="Application\ImPiApplication.h" />
+    <ClInclude Include="Application\ImWin64Application.h" />
     <ClInclude Include="Extern\imgui-master\backends\imgui_impl_dx11.h" />
     <ClInclude Include="Extern\imgui-master\backends\imgui_impl_win32.h" />
     <ClInclude Include="Extern\imgui-master\imconfig.h" />
@@ -200,7 +202,8 @@
     <ClInclude Include="ImWindows\ImPageManager.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Application\ImApplication.cpp" />
+    <ClCompile Include="Application\ImPiApplication.cpp" />
+    <ClCompile Include="Application\ImWin64Application.cpp" />
     <ClCompile Include="Extern\imgui-master\backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="Extern\imgui-master\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="Extern\imgui-master\imgui.cpp" />
@@ -208,6 +211,7 @@
     <ClCompile Include="Extern\imgui-master\imgui_draw.cpp" />
     <ClCompile Include="Extern\imgui-master\imgui_tables.cpp" />
     <ClCompile Include="Extern\imgui-master\imgui_widgets.cpp" />
+    <ClCompile Include="ImMain.cpp" />
     <ClCompile Include="ImWidget\ImMultiLineTextBlock.cpp" />
     <ClCompile Include="ImWidget\ImWidgetFactory.cpp" />
     <ClCompile Include="main.cpp" />

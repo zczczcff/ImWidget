@@ -1,4 +1,3 @@
-#include "Application/ImApplication.h"
 #include "ImWidget/ImButton.h"
 #include "ImWidget/ImVerticalBox.h"
 #include "ImWidget/ImVerticalSplitter.h"
@@ -30,15 +29,10 @@
 #include "ImCreator_DetailList.h"
 #include "FileUtil.h"
 #include "ImCreator_PageManager.h"
-namespace ImGuiWidget
-{
-    ImWin64Application* GlobalApp;
-}
 
-class MyApp : public ImWin64Application
+class MyApp
 {
 public:
-    using ImWin64Application::ImWin64Application;
     ImGuiWidget::ImVerticalBox* m_Box;
     ImGuiWidget::ImHorizontalSplitter* m_MiddleSplitter;
     ImGuiWidget::ImVerticalSplitter* m_VSplitter;
@@ -312,7 +306,7 @@ public:
         ImGuiWidget::SaveWidgetTreeToFile(m_MainBox, "test.imui");
         ImGuiWidget::ExportUserWidgetToFiles(m_MainBox, "Test1", "./");
     }
-    void Render() override
+    void Render()
     {
         m_MainBox->SetPosition(ImVec2(1.f, 1.f));
         m_MainBox->SetSize(ImGui::GetWindowSize()-ImVec2(2.f,2.f));
@@ -327,13 +321,15 @@ public:
     }
 };
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
+MyApp* app;
+int ImInit()
 {
-    MyApp app(hInstance, nCmdShow);
-    ImGuiWidget::GlobalApp = &app;
-    if (!app.Initialize())
-        return 1;
-    app.Init();
-    app.Run();
-    return 0;
+    app = new MyApp;
+    app->Init();
+    return 1;
+}
+
+void ImTick()
+{
+    app->Render();
 }

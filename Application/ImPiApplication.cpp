@@ -1,19 +1,21 @@
+#if defined(__linux__)
+
 #include "ImPiApplication.h"
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h>
 #include "imgui_impl_x11.h"
 #include "imgui_impl_opengl3.h"
 
-PiApplication::PiApplication() {}
+ImPiApplication::ImPiApplication() {}
 
-PiApplication::~PiApplication() {
+ImPiApplication::~ImPiApplication() {
     CleanupEGL();
     if (m_display) {
         XCloseDisplay(m_display);
     }
 }
 
-bool PiApplication::Initialize() {
+bool ImPiApplication::Initialize() {
     if (!CreateX11Window()) return false;
     if (!InitEGL()) return false;
     
@@ -35,7 +37,7 @@ bool PiApplication::Initialize() {
     return true;
 }
 
-bool PiApplication::CreateX11Window() {
+bool ImPiApplication::CreateX11Window() {
     m_display = XOpenDisplay(nullptr);
     if (!m_display) return false;
     
@@ -64,7 +66,7 @@ bool PiApplication::CreateX11Window() {
     return true;
 }
 
-bool PiApplication::InitEGL() {
+bool ImPiApplication::InitEGL() {
     m_eglDisplay = eglGetDisplay((EGLNativeDisplayType)m_display);
     if (m_eglDisplay == EGL_NO_DISPLAY) return false;
     
@@ -106,7 +108,7 @@ bool PiApplication::InitEGL() {
     return true;
 }
 
-void PiApplication::Run() {
+void ImPiApplication::Run() {
     XEvent event;
     bool running = true;
     
@@ -162,12 +164,12 @@ void PiApplication::Run() {
     ImGui::DestroyContext();
 }
 
-void PiApplication::HandleEvent(XEvent& event) {
+void ImPiApplication::HandleEvent(XEvent& event) {
     // 传递事件给ImGui处理
     ImGui_ImplX11_EventHandler(&event);
 }
 
-void PiApplication::CleanupEGL() {
+void ImPiApplication::CleanupEGL() {
     if (m_eglDisplay != EGL_NO_DISPLAY) {
         eglMakeCurrent(m_eglDisplay, EGL_NO_SURFACE, EGL_NO_SURFACE, EGL_NO_CONTEXT);
         if (m_eglContext != EGL_NO_CONTEXT) {
@@ -183,7 +185,7 @@ void PiApplication::CleanupEGL() {
     m_eglSurface = EGL_NO_SURFACE;
 }
 
-ImTextureID PiApplication::LoadTextureFromFile(const char* filename, int& width, int& height) {
+ImTextureID ImPiApplication::LoadTextureFromFile(const char* filename, int& width, int& height) {
     // 加载图像
     int channels;
     unsigned char* data = stbi_load(filename, &width, &height, &channels, 4);
@@ -202,9 +204,11 @@ ImTextureID PiApplication::LoadTextureFromFile(const char* filename, int& width,
     return (ImTextureID)(intptr_t)texture;
 }
 
-void PiApplication::ReleaseTexture(ImTextureID textureID) {
+void ImPiApplication::ReleaseTexture(ImTextureID textureID) {
     if (textureID) {
         GLuint texture = (GLuint)(intptr_t)textureID;
         glDeleteTextures(1, &texture);
     }
 }
+
+#endif

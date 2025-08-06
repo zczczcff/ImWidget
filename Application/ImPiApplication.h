@@ -1,3 +1,4 @@
+#if defined(__linux__)
 #pragma once
 
 #include <X11/Xlib.h>
@@ -8,15 +9,17 @@
 #include <imgui.h>
 #include <vector>
 
-class PiApplication
+#include "ImApplication.h"
+
+class ImPiApplication:public ImApplication
 {
 public:
-    PiApplication();
-    virtual ~PiApplication();
+    ImPiApplication();
+    virtual ~ImPiApplication();
 
     bool Initialize();
     void Run();
-    virtual void Render() = 0;
+    void Render();
 
     ImTextureID LoadTextureFromFile(const char* filename, int& width, int& height);
     void ReleaseTexture(ImTextureID textureID);
@@ -37,3 +40,5 @@ protected:
     void HandleEvent(XEvent& event);
     void CleanupEGL();
 };
+
+#endif

@@ -1,4 +1,6 @@
-#include "ImApplication.h"
+
+#if defined(_WIN32)
+#include "ImWin64Application.h"
 // 添加stb_image库支持
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h> // 确保项目包含stb_image.h文件
@@ -267,3 +269,5 @@ void ImWin64Application::ReleaseTexture(ImTextureID TextureID)
         ((ID3D11ShaderResourceView*)TextureID)->Release();
     }
 }
+
+#endif

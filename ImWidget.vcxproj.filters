@@ -33,7 +33,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Application\ImApplication.h">
+    <ClInclude Include="Application\ImWin64Application.h">
       <Filter>Application</Filter>
     </ClInclude>
     <ClInclude Include="Extern\imgui-master\imconfig.h">
@@ -156,6 +156,12 @@
     <ClInclude Include="ImWidget\ImBasicWidgetList.h">
       <Filter>ImWidget</Filter>
     </ClInclude>
+    <ClInclude Include="Application\ImPiApplication.h">
+      <Filter>Application</Filter>
+    </ClInclude>
+    <ClInclude Include="Application\ImApplication.h">
+      <Filter>Application</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -182,7 +188,7 @@
     <ClCompile Include="Extern\imgui-master\backends\imgui_impl_win32.cpp">
       <Filter>Extern\backends</Filter>
     </ClCompile>
-    <ClCompile Include="Application\ImApplication.cpp">
+    <ClCompile Include="Application\ImWin64Application.cpp">
       <Filter>Application</Filter>
     </ClCompile>
     <ClCompile Include="ImWidget\ImWidgetFactory.cpp">
@@ -190,6 +196,12 @@
     </ClCompile>
     <ClCompile Include="ImWidget\ImMultiLineTextBlock.cpp">
       <Filter>ImWidget</Filter>
+    </ClCompile>
+    <ClCompile Include="Application\ImPiApplication.cpp">
+      <Filter>Application</Filter>
+    </ClCompile>
+    <ClCompile Include="ImMain.cpp">
+      <Filter>Application</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

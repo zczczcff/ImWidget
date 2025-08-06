@@ -7,7 +7,7 @@
         virtual void Init() override;
 
     protected:
-                                                                                                                                                                                                                                                                                                                //----Gen Members Begin----
+                                                                                                                                                                                                                                                                                                                        //----Gen Members Begin----
         // Auto-generated widget pointers
         ImGuiWidget::ImVerticalBox* MainBox;
         ImGuiWidget::ImHorizontalBox* m_MenuList;

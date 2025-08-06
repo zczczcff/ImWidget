@@ -7,7 +7,7 @@
 
 namespace ImGuiWidget
 {
-	extern ImWin64Application* GlobalApp;
+	extern ImApplication* GlobalApp;
 	class ImImage :public ImWidget
 	{
 	private:

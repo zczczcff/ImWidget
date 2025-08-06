@@ -166,7 +166,7 @@ namespace ImWindows
         {
             ImVec2 currentPos = Position + ImVec2(3.0f, 2.0f); // 起始位置带内边距
 
-            float buttonSize = min(Size.x, Size.y) * 0.6f;
+            float buttonSize = ImMin(Size.x, Size.y) * 0.6f;
             //ImVec2 buttonSize = { buttonwidth, buttonwidth };
 
             float spacing = 4.0f; // 元素间距
