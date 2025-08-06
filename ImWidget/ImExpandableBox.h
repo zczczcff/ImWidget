@@ -161,7 +161,7 @@ namespace ImGuiWidget
 			RenderBackGround();
 			ImDrawList* draw_list = ImGui::GetWindowDrawList();
 			ImGuiWindow* window = ImGui::GetCurrentWindow();
-			const ImGuiID id = window->GetID(m_WidgetName.c_str());
+			const ImGuiID id = window->GetID(m_WidgetID.c_str());
 			bool hovered, held;
 			if (bIsExpanded)
 			{

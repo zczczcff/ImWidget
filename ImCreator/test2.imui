@@ -7,7 +7,7 @@
             0,
             255
         ],
-        "Name": "CanvasPanel_05851",
+        "Name": "MainCanvas",
         "BackGroundColor": [
             255,
             255,
@@ -18,7 +18,7 @@
     },
     "Children": [
         {
-            "Type": "ImVerticalBox",
+            "Type": "ImHorizontalBox",
             "Properties": {
                 "BorderColor": [
                     0,
@@ -26,7 +26,7 @@
                     0,
                     255
                 ],
-                "Name": "VerticalBox_17652",
+                "Name": "HorizontalBox_1",
                 "BackGroundColor": [
                     255,
                     255,
@@ -62,7 +62,7 @@
                             0,
                             255
                         ],
-                        "Name": "Button_321953",
+                        "Name": "Button_2",
                         "BackGroundColor": [
                             255,
                             255,
@@ -110,8 +110,8 @@
                         {
                             "Type": "ImTextBlock",
                             "Properties": {
-                                "Text": "test1",
-                                "Name": "TextBlock_426154",
+                                "Text": "",
+                                "Name": "TextBlockbutton",
                                 "TextColor": [
                                     0,
                                     0,
@@ -134,96 +134,17 @@
                         "PaddingLeft": 0.0,
                         "PaddingRight": 0.0
                     }
-                },
-                {
-                    "Type": "ImButton",
-                    "Properties": {
-                        "PressedStyle": {
-                            "BackgroundColor": [
-                                0,
-                                51,
-                                153,
-                                255
-                            ],
-                            "HasBorder": false,
-                            "Rounding": 0.0,
-                            "BorderThickness": 1.0,
-                            "BorderColor": [
-                                255,
-                                255,
-                                255,
-                                255
-                            ]
-                        },
-                        "BorderColor": [
-                            0,
-                            0,
-                            0,
-                            255
-                        ],
-                        "Name": "Button_218555",
-                        "BackGroundColor": [
-                            255,
-                            255,
-                            255,
-                            255
-                        ],
-                        "HaveBorder": true,
-                        "NormalStyle": {
-                            "BackgroundColor": [
-                                0,
-                                102,
-                                204,
-                                255
-                            ],
-                            "HasBorder": false,
-                            "Rounding": 10.0,
-                            "BorderThickness": 1.0,
-                            "BorderColor": [
-                                255,
-                                255,
-                                255,
-                                255
-                            ]
-                        },
-                        "TooltipText": "",
-                        "HoveredStyle": {
-                            "BackgroundColor": [
-                                51,
-                                153,
-                                255,
-                                255
-                            ],
-                            "HasBorder": false,
-                            "Rounding": 0.0,
-                            "BorderThickness": 1.0,
-                            "BorderColor": [
-                                255,
-                                255,
-                                255,
-                                255
-                            ]
-                        }
-                    },
-                    "ParentSlot": {
-                        "SizeRatio": 1.0,
-                        "bAutoSize": true,
-                        "PaddingTop": 0.0,
-                        "PaddingBottom": 0.0,
-                        "PaddingLeft": 0.0,
-                        "PaddingRight": 0.0
-                    }
                 }
             ],
             "ParentSlot": {
                 "bAutoSize": true,
                 "RelativePosition": [
-                    175.8571319580078,
-                    99.0
+                    137.99998474121094,
+                    124.0
                 ],
                 "SlotSize": [
-                    181.0,
-                    69.0
+                    377.0,
+                    86.0
                 ]
             }
         }

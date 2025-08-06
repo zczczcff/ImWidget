@@ -160,7 +160,7 @@ namespace ImGuiWidget
             ImGuiWindow* window = ImGui::GetCurrentWindow();
             if (window->SkipItems) return;
 
-            const ImGuiID id = window->GetID(m_WidgetName.c_str());
+            const ImGuiID id = window->GetID(m_WidgetID.c_str());
             ImRect total_bb(Position, Position + Size);
 
             // 处理组合框的按钮部分
@@ -316,7 +316,7 @@ namespace ImGuiWidget
                 ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, m_PopupRounding);
                 ImGui::PushStyleColor(ImGuiCol_WindowBg, m_PopupBgColor);
 
-                if (ImGui::Begin(m_WidgetName.c_str(), nullptr, flags))
+                if (ImGui::Begin(m_WidgetID.c_str(), nullptr, flags))
                 {
                     // 绘制弹出窗口背景
                     ImGuiWindow* popupWindow = ImGui::GetCurrentWindow();

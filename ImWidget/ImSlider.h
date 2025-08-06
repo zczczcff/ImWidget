@@ -58,7 +58,7 @@ namespace ImGuiWidget
 
             ImGuiContext& g = *GImGui;
             const ImGuiStyle& style = g.Style;
-            const ImGuiID id = window->GetID(m_WidgetName.c_str());
+            const ImGuiID id = window->GetID(m_WidgetID.c_str());
 
             // 使用成员变量设置控件位置和大小
             const ImRect frame_bb(Position, ImVec2(Position.x + Size.x, Position.y + Size.y));

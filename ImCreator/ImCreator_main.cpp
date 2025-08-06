@@ -32,13 +32,13 @@
 #include "ImCreator_PageManager.h"
 namespace ImGuiWidget
 {
-    Application* GlobalApp;
+    ImWin64Application* GlobalApp;
 }
 
-class MyApp : public Application
+class MyApp : public ImWin64Application
 {
 public:
-    using Application::Application;
+    using ImWin64Application::ImWin64Application;
     ImGuiWidget::ImVerticalBox* m_Box;
     ImGuiWidget::ImHorizontalSplitter* m_MiddleSplitter;
     ImGuiWidget::ImVerticalSplitter* m_VSplitter;
@@ -251,10 +251,19 @@ public:
                 m_CenterPageManager->SaveCurrentUIFile();
             });
 
+        ImGuiWidget::ImButton* Button_GenCode = new ImGuiWidget::ImButton("Button_GenCode");
+        ImGuiWidget::ImTextBlock* GenCode_MenuText = new ImGuiWidget::ImTextBlock("GenCode_MenuText");
+        GenCode_MenuText->SetText("Gen Code");
+        Button_GenCode->SetContent(GenCode_MenuText);
+        Button_GenCode->SetOnPressed([this]()
+            {
+                m_CenterPageManager->GenerateCode();
+            });
+
         m_MenuList->AddChildToHorizontalBox(m_MenuButton_Project)->SetIfAutoSize(false);
         m_MenuList->AddChildToHorizontalBox(Button_NewUI)->SetIfAutoSize(false);
         m_MenuList->AddChildToHorizontalBox(Button_SaveUI)->SetIfAutoSize(false);
-
+        m_MenuList->AddChildToHorizontalBox(Button_GenCode)->SetIfAutoSize(false);
 
         m_MainBox->AddChildToVerticalBox(m_MenuList)->SetIfAutoSize(false);
         m_MainBox->AddChildToVerticalBox(m_VSplitter);
@@ -262,8 +271,9 @@ public:
 
         auto AllUiFilesPath = FileUtil::getFilesWithExtension("./", ".imui");
 
-        for (auto& FileName : AllUiFilesPath)
+        for (auto& FullFileName : AllUiFilesPath)
         {
+            std::string FileName = FileUtil::getPureFileName(FullFileName);
             ImWindows::ImMenuButton* FileChooseButton = new ImWindows::ImMenuButton("FileChooseButton");
             ImGuiWidget::ImTextBlock* FileChooseButtonText = new ImGuiWidget::ImTextBlock("FileChooseButtonText");
             FileChooseButtonText->SetText(FileName);

@@ -126,7 +126,7 @@ namespace ImWindows
 				ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(200, 200, 200, 255)); // 红色背景
 
 				// 开始菜单窗口
-				if (ImGui::Begin(("##Menu_" + m_WidgetName).c_str(), nullptr, flags))
+				if (ImGui::Begin(("##Menu_" + m_WidgetID).c_str(), nullptr, flags))
 				{
 					// 渲染菜单内容
 					if (m_Menu)

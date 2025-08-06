@@ -104,7 +104,7 @@ namespace ImWindows
         void SetIconTexture(ImTextureID textureID)
         {
             if (!m_Image) {
-                m_Image = new ImGuiWidget::ImImage("Image_" + m_WidgetName);
+                m_Image = new ImGuiWidget::ImImage("Image_" + m_WidgetID);
             }
             m_Image->SetTextureID(textureID);
         }

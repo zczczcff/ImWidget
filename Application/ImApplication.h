@@ -9,11 +9,11 @@
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
-class Application
+class ImWin64Application
 {
 public:
-    Application(HINSTANCE hInstance, int nCmdShow);
-    virtual ~Application();
+    ImWin64Application(HINSTANCE hInstance, int nCmdShow);
+    virtual ~ImWin64Application();
 
     bool Initialize();
     void Run();

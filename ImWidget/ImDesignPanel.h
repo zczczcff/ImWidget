@@ -160,7 +160,7 @@ namespace ImGuiWidget
                         if (dynamic_cast<ImCanvasPanelSlot*>(hitSlot))
                         {
                             // 创建可调整框
-                            m_ResizableBox = new ImResizableBox(m_WidgetName + "_ResizableBox");
+                            m_ResizableBox = new ImResizableBox(m_WidgetID + "_ResizableBox");
                             m_ResizableBox->SetPosition(m_SelectedWidget->GetPosition());
                             m_ResizableBox->SetSize(m_SelectedWidget->GetSize());
 

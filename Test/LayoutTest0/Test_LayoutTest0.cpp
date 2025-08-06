@@ -10,10 +10,10 @@
 #include "ImWidget/ImResizableBox.h"
 #include "ImWidget/ImExpandableBox.h"
 #include "ImWidget/ImComboBox.h"
-class MyApp : public Application
+class MyApp : public ImWin64Application
 {
 public:
-    using Application::Application;
+    using ImWin64Application::ImWin64Application;
 
     ImGuiWidget::ImCanvasPanel* m_Canvas;
     void Init()

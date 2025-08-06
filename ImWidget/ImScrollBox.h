@@ -90,7 +90,7 @@ namespace ImGuiWidget
             HandleLayout(); // 确保布局更新
 
             ImGuiWindow* window = ImGui::GetCurrentWindow();
-            ImGuiID id = ImGui::GetID(m_WidgetName.c_str());
+            ImGuiID id = ImGui::GetID(m_WidgetID.c_str());
 
             // 渲染背景
             RenderBackGround();

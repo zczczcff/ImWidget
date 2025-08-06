@@ -4,6 +4,7 @@
 #include "ImWindows/ImPageManager.h"
 #include "ImDesignPanel.h"
 #include "ImWidget/ImWidgetSerializer.h"
+#include "ImWidget/ImWidgetCodeGenerator.h"
 
 class ImCreatorUIPageManager :public ImGuiWidget::ImUserWidget
 {
@@ -28,7 +29,7 @@ public:
 			return false;
 		}
 		DesiginPanel* NewDesiginPanel = new DesiginPanel(file + "_DesiginPanel");
-		if (!NewDesiginPanel->InitFromFile(file))
+		if (!NewDesiginPanel->InitFromFile(file+".imui"))
 		{
 			delete NewDesiginPanel;
 			return false;
@@ -83,7 +84,28 @@ public:
 			if (FileName.empty())return false;
 			ImGuiWidget::ImWidget* ActiveRootWidget = ((DesiginPanel*)ActiveDesiginPanel)->GetRootContent();
 
-			ImGuiWidget::SaveWidgetTreeToFile(ActiveRootWidget, FileName);
+			ImGuiWidget::SaveWidgetTreeToFile(ActiveRootWidget, FileName + ".imui");
+		}
+		return true;
+	}
+
+	bool GenerateCode()
+	{
+		ImGuiWidget::ImWidget* ActiveDesiginPanel = m_RootPageManager->GetActivePageContent();
+		if (ActiveDesiginPanel)
+		{
+			std::string FileName;
+			for (auto& e : AllUIDesiginPages)
+			{
+				if (e.second == ActiveDesiginPanel)
+				{
+					FileName = e.first;
+				}
+			}
+			if (FileName.empty())return false;
+			ImGuiWidget::ImWidget* ActiveRootWidget = ((DesiginPanel*)ActiveDesiginPanel)->GetRootContent();
+
+			ImGuiWidget::ExportUserWidgetToFiles(ActiveRootWidget, FileName,"./");
 		}
 		return true;
 	}
@@ -104,6 +126,7 @@ public:
 		{
 			return it->second->GetMainPanel();
 		}
+		return nullptr;
 	}
 	void SetOnWidgetDragedOn(std::function<void(ImWidget*)> callback)
 	{

@@ -2,19 +2,19 @@
 // 添加stb_image库支持
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h> // 确保项目包含stb_image.h文件
-Application::Application(HINSTANCE hInstance, int nCmdShow)
+ImWin64Application::ImWin64Application(HINSTANCE hInstance, int nCmdShow)
     : m_hInstance(hInstance), m_nCmdShow(nCmdShow), m_hWnd(nullptr),
     m_pd3dDevice(nullptr), m_pd3dDeviceContext(nullptr),
     m_pSwapChain(nullptr), m_mainRenderTargetView(nullptr)
 {
 }
 
-Application::~Application()
+ImWin64Application::~ImWin64Application()
 {
     CleanupDeviceD3D();
 }
 
-bool Application::Initialize()
+bool ImWin64Application::Initialize()
 {
     // 注册窗口类
     WNDCLASSEX wc = {
@@ -53,7 +53,7 @@ bool Application::Initialize()
     return true;
 }
 
-void Application::Run()
+void ImWin64Application::Run()
 {
     MSG msg;
     ZeroMemory(&msg, sizeof(msg));
@@ -107,7 +107,7 @@ void Application::Run()
     ImGui::DestroyContext();
 }
 
-bool Application::CreateDeviceD3D()
+bool ImWin64Application::CreateDeviceD3D()
 {
     DXGI_SWAP_CHAIN_DESC sd;
     ZeroMemory(&sd, sizeof(sd));
@@ -145,7 +145,7 @@ bool Application::CreateDeviceD3D()
     return true;
 }
 
-void Application::CreateRenderTarget()
+void ImWin64Application::CreateRenderTarget()
 {
     ID3D11Texture2D* pBackBuffer;
     m_pSwapChain->GetBuffer(0, IID_PPV_ARGS(&pBackBuffer));
@@ -153,7 +153,7 @@ void Application::CreateRenderTarget()
     pBackBuffer->Release();
 }
 
-void Application::CleanupRenderTarget()
+void ImWin64Application::CleanupRenderTarget()
 {
     if (m_mainRenderTargetView) {
         m_mainRenderTargetView->Release();
@@ -161,7 +161,7 @@ void Application::CleanupRenderTarget()
     }
 }
 
-void Application::CleanupDeviceD3D()
+void ImWin64Application::CleanupDeviceD3D()
 {
     CleanupRenderTarget();
     if (m_pSwapChain) { m_pSwapChain->Release(); m_pSwapChain = nullptr; }
@@ -169,7 +169,7 @@ void Application::CleanupDeviceD3D()
     if (m_pd3dDevice) { m_pd3dDevice->Release(); m_pd3dDevice = nullptr; }
 }
 
-LRESULT WINAPI Application::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT WINAPI ImWin64Application::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     if (ImGui_ImplWin32_WndProcHandler(hWnd, msg, wParam, lParam))
         return true;
@@ -177,7 +177,7 @@ LRESULT WINAPI Application::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
     switch (msg)
     {
     case WM_SIZE:
-        if (Application* app = reinterpret_cast<Application*>(GetWindowLongPtr(hWnd, GWLP_USERDATA)))
+        if (ImWin64Application* app = reinterpret_cast<ImWin64Application*>(GetWindowLongPtr(hWnd, GWLP_USERDATA)))
         {
             if (app->m_pd3dDevice != nullptr && wParam != SIZE_MINIMIZED)
             {
@@ -206,7 +206,7 @@ LRESULT WINAPI Application::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM l
 
 
 // 新增纹理加载函数实现
-ImTextureID Application::LoadTextureFromFile(const char* filename, int& width, int& height)
+ImTextureID ImWin64Application::LoadTextureFromFile(const char* filename, int& width, int& height)
 {
     // 使用stb_image加载图片
     int channels;
@@ -260,7 +260,7 @@ ImTextureID Application::LoadTextureFromFile(const char* filename, int& width, i
     return (ImTextureID)textureView;
 }
 
-void Application::ReleaseTexture(ImTextureID TextureID)
+void ImWin64Application::ReleaseTexture(ImTextureID TextureID)
 {
     if (TextureID != 0)
     {

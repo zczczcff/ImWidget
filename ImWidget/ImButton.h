@@ -74,7 +74,7 @@ namespace ImGuiWidget
         {
             ImGuiWindow* window = ImGui::GetCurrentWindow();
             ImGuiContext& g = *GImGui;
-            const ImGuiID id = window->GetID(m_WidgetName.c_str());
+            const ImGuiID id = window->GetID(m_WidgetID.c_str());
             ImRect bb(Position, Position + Size);
 
             //ImGui::ItemSize(Size, g.Style.FramePadding.y);
@@ -114,7 +114,7 @@ namespace ImGuiWidget
             }
             else if (hovered)
             {
-                if (m_WidgetName == "CloseButton_test")
+                if (m_WidgetID == "CloseButton_test")
                 {
                     printf("test");
                 }

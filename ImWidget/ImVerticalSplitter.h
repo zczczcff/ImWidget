@@ -269,7 +269,7 @@ namespace ImGuiWidget
 
             for (int i = 0; i < numBars; i++) {
                 ImRect& barRect = m_BarRects[i];
-                ImGuiID barId = window->GetID((m_WidgetName + "_Bar" + std::to_string(i)).c_str());
+                ImGuiID barId = window->GetID((m_WidgetID + "_Bar" + std::to_string(i)).c_str());
 
                 // ×¢²á½»»¥ÇøÓò
                 ImGui::ItemAdd(barRect, barId);

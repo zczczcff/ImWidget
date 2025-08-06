@@ -37,6 +37,19 @@ public:
         return result;
     }
 
+    static std::string getFileNameWithExtension(const std::string& file_path) 
+    {
+        namespace fs = std::filesystem;
+        return fs::path(file_path).filename().string();
+    }
+
+    // 获取纯净文件名（不含路径和后缀）
+    // 示例："/home/user/document.txt" -> "document"
+    static std::string getPureFileName(const std::string& file_path) 
+    {
+        namespace fs = std::filesystem;
+        return fs::path(file_path).stem().string();
+    }
 private:
     // 统一后缀名格式（确保以 '.' 开头）
     static std::string normalizeExtension(std::string ext) 

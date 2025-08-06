@@ -95,7 +95,7 @@ namespace ImGuiWidget
             ImGuiContext& g = *ImGui::GetCurrentContext();
             ImGuiWindow* window = g.CurrentWindow;
 
-            const ImGuiID base_id = ImGui::GetID(m_WidgetName.c_str());
+            const ImGuiID base_id = ImGui::GetID(m_WidgetID.c_str());
 
             // 处理布局
             HandleLayout();

@@ -137,7 +137,7 @@ namespace ImGuiWidget
 		void HandleInteraction()
 		{
 			ImGuiWindow* window = ImGui::GetCurrentWindow();
-			const ImGuiID id = window->GetID(m_WidgetName.c_str());
+			const ImGuiID id = window->GetID(m_WidgetID.c_str());
 			const ImRect bb(Position, Position + Size);
 
 			// 添加控件到交互系统

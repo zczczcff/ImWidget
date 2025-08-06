@@ -1,3 +1,4 @@
+#pragma once
 #include <sstream>
 #include <iomanip>
 #include <unordered_set>

@@ -26,7 +26,7 @@ public:
 
 	void CreateNewFileDetail(const std::string& FileName)
 	{
-		AllFileVerticalBoxes.emplace(std::make_pair(FileName, new ImGuiWidget::ImVerticalBox(m_WidgetName + "_VerticalBox")));		
+		AllFileVerticalBoxes.emplace(std::make_pair(FileName, new ImGuiWidget::ImVerticalBox(m_WidgetID + "_VerticalBox")));		
 	}
 
 	void SetActiveFileDetail(const std::string& FileName)
@@ -41,10 +41,10 @@ public:
 
 	ImGuiWidget::ImHorizontalBox* HandleAddStringItem(const ImGuiWidget::PropertyInfo& SingleProperty, std::string& SingleString, ImGuiWidget::ImVerticalBox* StringListBox)
 	{
-		ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetName + "_ItemBox");
-		ImGuiWidget::ImInputText* InputString = new ImGuiWidget::ImInputText(m_WidgetName + "_InputString");
-		ImGuiWidget::ImButton* DeleteButton = new ImGuiWidget::ImButton(m_WidgetName + "_DeleteButton");
-		ImGuiWidget::ImTextBlock* DeleteButtonText = new ImGuiWidget::ImTextBlock(m_WidgetName + "_DeleteButtonText");
+		ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
+		ImGuiWidget::ImInputText* InputString = new ImGuiWidget::ImInputText(m_WidgetID + "_InputString");
+		ImGuiWidget::ImButton* DeleteButton = new ImGuiWidget::ImButton(m_WidgetID + "_DeleteButton");
+		ImGuiWidget::ImTextBlock* DeleteButtonText = new ImGuiWidget::ImTextBlock(m_WidgetID + "_DeleteButtonText");
 		DeleteButtonText->SetText("X");
 		DeleteButton->SetContent(DeleteButtonText);
 		InputString->SetText(SingleString);
@@ -92,10 +92,10 @@ public:
 		{
 		case ImGuiWidget::PropertyType::Bool:
 		{
-			ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetName + "_ItemBox");
-			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetName + "_PropertyName");
+			ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
+			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
 			PropertyName->SetText(SingleProperty.name);
-			ImGuiWidget::ImCheckBox* BoolSetBox = new ImGuiWidget::ImCheckBox(m_WidgetName + "_BoolSetBox");
+			ImGuiWidget::ImCheckBox* BoolSetBox = new ImGuiWidget::ImCheckBox(m_WidgetID + "_BoolSetBox");
 			BoolSetBox->SetChecked(*(bool*)SingleProperty.getter());
 			BoolSetBox->SetOnToggled([SingleProperty](bool NewSetting)
 				{
@@ -108,10 +108,10 @@ public:
 		}
 		case ImGuiWidget::PropertyType::Color:
 		{
-			ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetName + "_StructBox");
-			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetName + "_PropertyName");
+			ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetID + "_StructBox");
+			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
 			PropertyName->SetText(SingleProperty.name);
-			ImGuiWidget::ImColorPicker* ColorPalette = new ImGuiWidget::ImColorPicker(m_WidgetName + "_ColorPalette");
+			ImGuiWidget::ImColorPicker* ColorPalette = new ImGuiWidget::ImColorPicker(m_WidgetID + "_ColorPalette");
 			ColorPalette->SetColor(*(ImU32*)SingleProperty.getter());
 			ColorPalette->SetOnColorChanged([SingleProperty](ImU32 NewColor) {SingleProperty.setter(&NewColor); });
 
@@ -123,10 +123,10 @@ public:
 		}
 		case ImGuiWidget::PropertyType::Float:
 		{
-			ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetName + "_ItemBox");
-			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetName + "_PropertyName");
+			ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
+			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
 			PropertyName->SetText(SingleProperty.name);
-			ImGuiWidget::ImFloatInput* FloatInput = new ImGuiWidget::ImFloatInput(m_WidgetName + "_FloatInput");
+			ImGuiWidget::ImFloatInput* FloatInput = new ImGuiWidget::ImFloatInput(m_WidgetID + "_FloatInput");
 			FloatInput->SetValue(*(float*)SingleProperty.getter());
 			FloatInput->SetOnFloatValueChanged([SingleProperty](float value)
 				{
@@ -140,10 +140,10 @@ public:
 		}
 		case ImGuiWidget::PropertyType::Int:
 		{
-			ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetName + "_ItemBox");
-			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetName + "_PropertyName");
+			ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
+			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
 			PropertyName->SetText(SingleProperty.name);
-			ImGuiWidget::ImIntInput* FloatInput = new ImGuiWidget::ImIntInput(m_WidgetName + "_IntInput");
+			ImGuiWidget::ImIntInput* FloatInput = new ImGuiWidget::ImIntInput(m_WidgetID + "_IntInput");
 			FloatInput->SetValue(*(int*)SingleProperty.getter());
 			FloatInput->SetOnIntValueChanged([SingleProperty](int value)
 				{
@@ -157,10 +157,10 @@ public:
 		}
 		case ImGuiWidget::PropertyType::String:
 		{
-			ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetName + "_ItemBox");
-			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetName + "_PropertyName");
+			ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
+			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
 			PropertyName->SetText(SingleProperty.name);
-			ImGuiWidget::ImInputText* Input = new ImGuiWidget::ImInputText(m_WidgetName + "_Input");
+			ImGuiWidget::ImInputText* Input = new ImGuiWidget::ImInputText(m_WidgetID + "_Input");
 			Input->SetText(*(std::string*)SingleProperty.getter());
 			Input->SetOnTextChanged([SingleProperty](const std::string& text)
 				{
@@ -174,10 +174,10 @@ public:
 		}
 		case ImGuiWidget::PropertyType::Struct:
 		{
-			ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetName + "_StructBox");
-			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetName + "_PropertyName");
+			ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetID + "_StructBox");
+			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
 			PropertyName->SetText(SingleProperty.name);
-			ImGuiWidget::ImVerticalBox* StructPropertyBox = new ImGuiWidget::ImVerticalBox(m_WidgetName + "_StructPropertyBox");
+			ImGuiWidget::ImVerticalBox* StructPropertyBox = new ImGuiWidget::ImVerticalBox(m_WidgetID + "_StructPropertyBox");
 			StructBox->SetHead(PropertyName);
 			StructBox->SetBody(StructPropertyBox);
 			for (auto& SubSingleProperty : ((ImGuiWidget::PropertyStruct*)(SingleProperty.getter()))->GetProperties())
@@ -189,16 +189,16 @@ public:
 		}
 		case ImGuiWidget::PropertyType::Vec2:
 		{
-			ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetName + "_StructBox");
-			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetName + "_PropertyName");
+			ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetID + "_StructBox");
+			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
 			PropertyName->SetText(SingleProperty.name);
-			ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetName + "_ItemBox");
-			ImGuiWidget::ImTextBlock* Vec_X = new ImGuiWidget::ImTextBlock(m_WidgetName + "_Vec_X");
+			ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
+			ImGuiWidget::ImTextBlock* Vec_X = new ImGuiWidget::ImTextBlock(m_WidgetID + "_Vec_X");
 			Vec_X->SetText("X:");
-			ImGuiWidget::ImTextBlock* Vec_Y = new ImGuiWidget::ImTextBlock(m_WidgetName + "_Vec_Y");
+			ImGuiWidget::ImTextBlock* Vec_Y = new ImGuiWidget::ImTextBlock(m_WidgetID + "_Vec_Y");
 			Vec_Y->SetText("Y:");
-			ImGuiWidget::ImFloatInput* X_Input = new ImGuiWidget::ImFloatInput(m_WidgetName + "_X_Imput");
-			ImGuiWidget::ImFloatInput* Y_Input = new ImGuiWidget::ImFloatInput(m_WidgetName + "_Y_Imput");
+			ImGuiWidget::ImFloatInput* X_Input = new ImGuiWidget::ImFloatInput(m_WidgetID + "_X_Imput");
+			ImGuiWidget::ImFloatInput* Y_Input = new ImGuiWidget::ImFloatInput(m_WidgetID + "_Y_Imput");
 
 			ImVec2 currentv = *(ImVec2*)SingleProperty.getter();
 			X_Input->SetValue(currentv.x);
@@ -228,17 +228,17 @@ public:
 		}
 		case ImGuiWidget::PropertyType::StringArray:
 		{
-			ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetName + "_StructBox");
-			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetName + "_PropertyName");
+			ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetID + "_StructBox");
+			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
 			PropertyName->SetText(SingleProperty.name);
-			ImGuiWidget::ImVerticalBox* StringListBox = new ImGuiWidget::ImVerticalBox(m_WidgetName + "_StringListBox");
+			ImGuiWidget::ImVerticalBox* StringListBox = new ImGuiWidget::ImVerticalBox(m_WidgetID + "_StringListBox");
 
 			for (auto& SingleString : *(std::vector<std::string>*)SingleProperty.getter())
 			{
 				StringListBox->AddChildToVerticalBox(HandleAddStringItem(SingleProperty, SingleString, StringListBox))->SetIfAutoSize(false);
 			}
-			ImGuiWidget::ImButton* AddItemButton = new ImGuiWidget::ImButton(m_WidgetName + "_AddItemButton");
-			ImGuiWidget::ImTextBlock* AddButtonText = new ImGuiWidget::ImTextBlock(m_WidgetName + "_AddButtonText");
+			ImGuiWidget::ImButton* AddItemButton = new ImGuiWidget::ImButton(m_WidgetID + "_AddItemButton");
+			ImGuiWidget::ImTextBlock* AddButtonText = new ImGuiWidget::ImTextBlock(m_WidgetID + "_AddButtonText");
 			AddButtonText->SetText("+");
 			AddItemButton->SetContent(AddButtonText);
 			AddItemButton->SetOnPressed([SingleProperty, StringListBox,this]()
@@ -274,16 +274,16 @@ public:
 		m_CurrentActiveRoot->RemoveAllChild();
 		if (!widget)return;
 
-		ImGuiWidget::ImTextBlock* WidgetName = new ImGuiWidget::ImTextBlock(m_WidgetName + "_WidgetName");
+		ImGuiWidget::ImTextBlock* WidgetName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_WidgetName");
 		WidgetName->SetText(widget->GetWidgetName());
 		m_CurrentActiveRoot->AddChildToVerticalBox(WidgetName)->SetIfAutoSize(false);
 
 		if (auto Slot = widget->GetSlot())
 		{
-			ImGuiWidget::ImExpandableBox* SlotBox = new ImGuiWidget::ImExpandableBox(m_WidgetName + "_SlotBox");
-			ImGuiWidget::ImTextBlock* SlotName = new ImGuiWidget::ImTextBlock(m_WidgetName + "_SlotName");
+			ImGuiWidget::ImExpandableBox* SlotBox = new ImGuiWidget::ImExpandableBox(m_WidgetID + "_SlotBox");
+			ImGuiWidget::ImTextBlock* SlotName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_SlotName");
 			SlotName->SetText("SlotProperty");
-			ImGuiWidget::ImVerticalBox* SlotPropertyBox = new ImGuiWidget::ImVerticalBox(m_WidgetName + "_StructPropertyBox");
+			ImGuiWidget::ImVerticalBox* SlotPropertyBox = new ImGuiWidget::ImVerticalBox(m_WidgetID + "_StructPropertyBox");
 			SlotBox->SetHead(SlotName);
 			SlotBox->SetBody(SlotPropertyBox);
 			for (auto& SubSingleProperty : Slot->GetProperties())

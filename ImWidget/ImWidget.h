@@ -10,6 +10,7 @@ namespace ImGuiWidget
 	class ImWidget
 	{
 	protected:
+		std::string m_WidgetID;
 		std::string m_WidgetName;
 		ImVec2 Position = { 0, 0 };  // 相对位置
 		ImVec2 Size = { 0, 0 };      // 控件尺寸
@@ -30,13 +31,14 @@ namespace ImGuiWidget
 		}
 	public:
 		ImWidget(const std::string& WidgetName)
-			:m_WidgetName(WidgetName),
+			:m_WidgetID(GetRegisterTypeName()),
+			m_WidgetName(WidgetName),
 			m_Slot(nullptr),
 			m_Parents(nullptr),
 			bSizeDirty(false)
 		{
 			static int counter = 0;
-			m_WidgetName += std::to_string(counter);
+			m_WidgetID += std::to_string(counter);
 			counter++;
 		}
 		void SetParents(ImWidget* parents)
@@ -78,7 +80,14 @@ namespace ImGuiWidget
 
 		virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties()
 		{
-			return {};
+			std::unordered_set<PropertyInfo, PropertyInfo::Hasher> Props;
+			Props.insert(
+			{
+				"Name",PropertyType::String,"Name",
+				[this](void* v) {m_WidgetName = *(std::string*)v; },
+				[this]()->void* {return &m_WidgetName; }
+			});
+			return Props;
 		}
 
 		bool SetProperty(const std::string& name, void* value)

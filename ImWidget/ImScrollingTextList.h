@@ -663,7 +663,7 @@ namespace ImGuiWidget
                 );
 
                 // 处理滚动条拖动 - 新增：设置拖动标志
-                ImGuiID scrollbar_id = window->GetID(m_WidgetName.c_str());
+                ImGuiID scrollbar_id = window->GetID(m_WidgetID.c_str());
                 bool hovered, held;
                 ImGui::ButtonBehavior(scrollbar_rect, scrollbar_id, &hovered, &held,
                     ImGuiButtonFlags_AllowOverlap | ImGuiButtonFlags_PressedOnClick);
