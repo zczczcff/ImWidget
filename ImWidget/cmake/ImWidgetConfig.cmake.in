@@ -1,0 +1,27 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+# 平台特定依赖处理
+if("@IMWIDGET_PLATFORM@" STREQUAL "win64")
+    # Windows平台需要DirectX SDK
+    find_path(DirectX_INCLUDE_DIR NAMES d3d11.h
+        PATHS
+        "$ENV{DXSDK_DIR}/Include"
+        "C:/Program Files (x86)/Windows Kits/10/Include/*/um"
+        DOC "DirectX SDK include directory"
+    )
+    
+    # 确保找到必要的包含目录
+    if(NOT DirectX_INCLUDE_DIR)
+        message(FATAL_ERROR "DirectX SDK include directory not found")
+    endif()
+endif()
+
+# 包含目标文件
+include("${CMAKE_CURRENT_LIST_DIR}/ImWidgetTargets.cmake")
+
+# 设置变量
+set(IMWIDGET_FOUND TRUE)
+set(IMWIDGET_PLATFORM "@IMWIDGET_PLATFORM@")
+set(IMWIDGET_VERSION "@PROJECT_VERSION@")

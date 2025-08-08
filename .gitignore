@@ -10,8 +10,8 @@ CMakeFiles/
 CMakeScripts/
 cmake_install.cmake
 install_manifest.txt
-*.cmake
-*.cmake.*
+#*.cmake
+#*.cmake.*
 CTestTestfile.cmake
 
 ## 构建目录 ##
