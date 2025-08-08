@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
 project(ImCreator)
+#imgui配置文件
+add_definitions(-DIMGUI_USER_CONFIG=<ImWidgetConfig.h>)
 
 #-----------------------------------------------
 # 统一平台配置（与ImWidget兼容）

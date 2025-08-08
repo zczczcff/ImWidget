@@ -34,6 +34,9 @@ option(IMWIDGET_EXPORT_API "Export library symbols" ON)
 # 平台特定配置
 #-----------------------------------------------
 if(IMWIDGET_PLATFORM STREQUAL "pi")
+    #使用Opengl es2.0
+    add_definitions(-DIMGUI_IMPL_OPENGL_ES2)
+
     # 树莓派交叉编译设置
     if(NOT DEFINED IMWIDGET_SYSROOT)
         set(IMWIDGET_SYSROOT "/home/book/PI/PiRoot" CACHE PATH "Sysroot for Raspberry Pi")
@@ -85,6 +88,7 @@ if(IMWIDGET_PLATFORM STREQUAL "pi")
 elseif(IMWIDGET_PLATFORM STREQUAL "win64")
     # 设置Unicode字符集
     add_definitions(-DUNICODE -D_UNICODE)
+    add_definitions(-DTesting)
     
     # 设置C++17标准
     set(CMAKE_CXX_STANDARD 17)
@@ -126,6 +130,8 @@ endif()
 # 公共配置（所有平台）
 #-----------------------------------------------
 # 完整包含目录设置
+add_definitions(-DIMGUI_USER_CONFIG=<ImWidgetConfig.h>)
+
 set(PUBLIC_INCLUDE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/ImWidget"
     "${CMAKE_CURRENT_SOURCE_DIR}/ImWindows"
