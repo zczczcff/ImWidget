@@ -21,26 +21,17 @@ message(STATUS "Building ImCreator for platform: ${BUILD_PLATFORM}")
 # 平台特定编译设置
 #-----------------------------------------------
 if(BUILD_PLATFORM STREQUAL "pi")
-    # 继承ImWidget的交叉编译设置
-    if(NOT DEFINED IMWIDGET_SYSROOT)
-        set(IMWIDGET_SYSROOT "/home/book/PI/PiRoot" CACHE PATH "Sysroot for Raspberry Pi")
-    endif()
-    
-    # 设置编译器（与ImWidget一致）
-    if(NOT CMAKE_C_COMPILER)
-        set(CMAKE_C_COMPILER 
-            "/home/book/tools/arm-bcm2708/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc"
-            CACHE FILEPATH "C compiler for Pi")
-    endif()
-    
-    if(NOT CMAKE_CXX_COMPILER)
-        set(CMAKE_CXX_COMPILER 
-            "/home/book/tools/arm-bcm2708/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-g++"
-            CACHE FILEPATH "C++ compiler for Pi")
-    endif()
+# 强制设置交叉编译器（移除条件判断）
+    set(CMAKE_C_COMPILER 
+    "/home/book/tools/arm-bcm2708/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc"
+    CACHE FILEPATH "C compiler for Pi" FORCE)  # 添加FORCE
+
+    set(CMAKE_CXX_COMPILER 
+    "/home/book/tools/arm-bcm2708/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-g++"
+    CACHE FILEPATH "C++ compiler for Pi" FORCE)  # 添加FORCE
 
     # 树莓派编译选项
-    add_compile_options(-fPIC --sysroot=${IMWIDGET_SYSROOT})
+    add_compile_options(-fPIC -std=c++17 --sysroot=${IMWIDGET_SYSROOT})
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --sysroot=${IMWIDGET_SYSROOT}")
 
 elseif(BUILD_PLATFORM STREQUAL "win64")
@@ -72,7 +63,7 @@ add_subdirectory(../ImWidget ${CMAKE_CURRENT_BINARY_DIR}/ImWidget)
 set(TARGET_NAME ImCreator_${BUILD_PLATFORM})
 
 add_executable(${TARGET_NAME}
-    src/ImCreator_main.cpp
+    Src/ImCreator_main.cpp
     ../ImMain.cpp  # 统一入口文件
 )
 

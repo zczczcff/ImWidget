@@ -70,7 +70,7 @@ namespace ImGuiWidget
         }
 
         template<typename T>
-        T GetProperty(const std::string& name) const 
+        T GetProperty(const std::string& name)
         {
             for (auto& prop : GetProperties()) 
             {

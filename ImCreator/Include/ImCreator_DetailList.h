@@ -4,7 +4,7 @@
 #include "ImWidget/ImExpandableBox.h"
 #include "ImWidget/ImHorizontalBox.h"
 #include "ImWidget/ImTextBlock.h"
-#include "Imwidget/ImCheckBox.h"
+#include "ImWidget/ImCheckBox.h"
 #include "ImWidget/ImColorPicker.h"
 ;
 class DetailList :public ImGuiWidget::ImUserWidget

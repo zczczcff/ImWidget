@@ -79,6 +79,8 @@ if(IMWIDGET_PLATFORM STREQUAL "pi")
         ${IMWIDGET_SYSROOT}/usr/include/GLES2
         ${IMWIDGET_SYSROOT}/usr/include/EGL
         ${IMWIDGET_SYSROOT}/usr/include/GLFW
+        ${IMWIDGET_SYSROOT}/usr/include
+        $/home/book/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/lib/gcc/arm-linux-gnueabihf/4.8.3/include
     )
     
     # 链接库

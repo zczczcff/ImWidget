@@ -92,10 +92,10 @@ namespace ImGuiWidget
             switch (prop.type) {
             case PropertyType::Color: {
                 if (j[prop.name].is_array() && j[prop.name].size() == 4) {
-                    int r = j[prop.name][0].get<int>();
-                    int g = j[prop.name][1].get<int>();
-                    int b = j[prop.name][2].get<int>();
-                    int a = j[prop.name][3].get<int>();
+                    int r = j[prop.name][0].template get<int>();
+                    int g = j[prop.name][1].template get<int>();
+                    int b = j[prop.name][2].template get<int>();
+                    int a = j[prop.name][3].template get<int>();
                     ImU32 color = IM_COLOR_SET_RGBA(r, g, b, a);
                     prop.setter(&color);
                 }
@@ -103,33 +103,33 @@ namespace ImGuiWidget
             }
             case PropertyType::Float:
                 if (j[prop.name].is_number()) {
-                    float val = j[prop.name].get<float>();
+                    float val = j[prop.name].template get<float>();
                     prop.setter(&val);
                 }
                 break;
             case PropertyType::Bool:
                 if (j[prop.name].is_boolean()) {
-                    bool val = j[prop.name].get<bool>();
+                    bool val = j[prop.name].template get<bool>();
                     prop.setter(&val);
                 }
                 break;
             case PropertyType::Int:
                 if (j[prop.name].is_number_integer()) {
-                    int val = j[prop.name].get<int>();
+                    int val = j[prop.name].template get<int>();
                     prop.setter(&val);
                 }
                 break;
             case PropertyType::String:
                 if (j[prop.name].is_string()) {
-                    std::string val = j[prop.name].get<std::string>();
+                    std::string val = j[prop.name].template get<std::string>();
                     prop.setter(&val);
                 }
                 break;
             case PropertyType::Vec2: {
                 if (j[prop.name].is_array() && j[prop.name].size() == 2) {
                     ImVec2 vec(
-                        j[prop.name][0].get<float>(),
-                        j[prop.name][1].get<float>()
+                        j[prop.name][0].template get<float>(),
+                        j[prop.name][1].template get<float>()
                     );
                     prop.setter(&vec);
                 }
@@ -149,7 +149,7 @@ namespace ImGuiWidget
             {
                 if (j[prop.name].is_array()) 
                 {
-                    std::vector<std::string> vec = j[prop.name].get<std::vector<std::string>>();
+                    std::vector<std::string> vec = j[prop.name].template get<std::vector<std::string>>();
                     prop.setter(&vec);
                 }
                 break;
@@ -158,7 +158,7 @@ namespace ImGuiWidget
             {
                 if (j[prop.name].is_string()) 
                 {
-                    std::string val = j[prop.name].get<std::string>();
+                    std::string val = j[prop.name].template get<std::string>();
                     prop.setter(&val);
                 }
                 break;

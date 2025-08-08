@@ -264,7 +264,12 @@ namespace ImGuiWidget
                 ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase)) {
                 // 尝试解析十六进制值
                 unsigned int hexValue;
-                if (sscanf_s(hexBuf, "%08X", &hexValue) == 1) {
+#if defined(_WIN32) || defined(_WIN64)
+                    if (sscanf_s(hexBuf, "%08X", &hexValue) == 1) 
+#else
+                    if(sscanf(hexBuf, "%08X", &hexValue) == 1) 
+#endif
+                {
                     SetColor(ImVec4(
                         ((hexValue >> 24) & 0xFF) / 255.0f,
                         ((hexValue >> 16) & 0xFF) / 255.0f,
@@ -426,7 +431,13 @@ namespace ImGuiWidget
             // 设置十六进制输入回调
             m_HexInput.SetOnTextChanged([this](const std::string& text) {
                 unsigned int hexValue;
-                if (sscanf_s(text.c_str(), "%08X", &hexValue) == 1) {
+#if defined(_WIN32) || defined(_WIN64)
+                if (sscanf_s(text.c_str(), "%08X", &hexValue) == 1) 
+#else
+                if (sscanf(text.c_str(), "%08X", &hexValue) == 1) 
+#endif
+                
+                {
                     SetColor(ImVec4(
                         ((hexValue >> 24) & 0xFF) / 255.0f,
                         ((hexValue >> 16) & 0xFF) / 255.0f,

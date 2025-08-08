@@ -1,7 +1,16 @@
 #include <vector>
 #include <string>
-#include <filesystem>
 #include <algorithm>
+
+#if __cplusplus >= 201703L && __has_include(<filesystem>)
+    #include <filesystem>
+    namespace fs = std::filesystem;
+#elif __has_include(<experimental/filesystem>)
+    #include <experimental/filesystem>
+    namespace fs = std::experimental::filesystem;
+#else
+    #error "需要至少支持 C++17 或 experimental/filesystem"
+#endif
 
 class FileUtil 
 {
@@ -13,7 +22,6 @@ public:
     ) 
     {
         std::vector<std::string> result;
-        namespace fs = std::filesystem;
 
         // 验证路径是否存在且为目录
         fs::path dir(folder_path);
@@ -25,10 +33,14 @@ public:
         std::string normalized_ext = normalizeExtension(extension);
 
         // 遍历目录中的所有文件
-        for (const auto& entry : fs::directory_iterator(dir)) {
-            if (entry.is_regular_file()) {
+        for (const auto &entry : fs::directory_iterator(dir))
+        {
+            // 修改点：使用统一的文件状态检查方式
+            if (fs::is_regular_file(entry.status()))
+            {
                 const std::string ext = entry.path().extension().string();
-                if (caseInsensitiveCompare(normalized_ext, ext)) {
+                if (caseInsensitiveCompare(normalized_ext, ext))
+                {
                     result.push_back(entry.path().string());
                 }
             }
@@ -39,7 +51,6 @@ public:
 
     static std::string getFileNameWithExtension(const std::string& file_path) 
     {
-        namespace fs = std::filesystem;
         return fs::path(file_path).filename().string();
     }
 
@@ -47,7 +58,6 @@ public:
     // 示例："/home/user/document.txt" -> "document"
     static std::string getPureFileName(const std::string& file_path) 
     {
-        namespace fs = std::filesystem;
         return fs::path(file_path).stem().string();
     }
 private:

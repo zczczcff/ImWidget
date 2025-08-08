@@ -1,11 +1,7 @@
 #if defined(__linux__)
 #pragma once
 
-#include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/Xatom.h>
-#include <GLES2/gl2.h>
-#include <EGL/egl.h>
+
 #include <imgui.h>
 #include <vector>
 
@@ -25,20 +21,11 @@ public:
     void ReleaseTexture(ImTextureID textureID);
 
 protected:
-    Display*    m_display = nullptr;
-    Window      m_window = 0;
-    int         m_screen = 0;
-    EGLDisplay  m_eglDisplay = EGL_NO_DISPLAY;
-    EGLContext  m_eglContext = EGL_NO_CONTEXT;
-    EGLSurface  m_eglSurface = EGL_NO_SURFACE;
-    
+    struct GLFWwindow* m_window = nullptr;
     int m_width = 1280;
     int m_height = 800;
-    
-    bool CreateX11Window();
-    bool InitEGL();
-    void HandleEvent(XEvent& event);
-    void CleanupEGL();
+
+    static void GlfwErrorCallback(int error, const char* description);
 };
 
 #endif
