@@ -1,8 +1,5 @@
 # Visual Studio 2019 + CMake 混合忽略规则
 
-*.vcxproj
-*.filters
-
 ### 构建系统生成 ###
 ## CMake 生成文件 ##
 CMakeCache.txt

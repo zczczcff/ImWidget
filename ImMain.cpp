@@ -16,9 +16,13 @@ void ImWin64Application::Render()
     ImTick();
 }
 
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
-{
-    ImWin64Application app(hInstance, nCmdShow);
+int WINAPI wWinMain(
+    _In_ HINSTANCE hInstance,
+    _In_opt_ HINSTANCE hPrevInstance,
+    _In_ LPWSTR lpCmdLine,
+    _In_ int nShowCmd
+){
+    ImWin64Application app(hInstance, nShowCmd);
     ImGuiWidget::GlobalApp = &app;
     if (!app.Initialize())
         return 1;

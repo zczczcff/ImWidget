@@ -69,7 +69,10 @@ namespace ImWindows
 		}
 
 	public:
-		ImMenuButton(const std::string& WidgetName) :ImGuiWidget::ImButton(WidgetName)
+		ImMenuButton(const std::string& WidgetName) 
+			:ImGuiWidget::ImButton(WidgetName),
+			Root(nullptr),
+			Parents(nullptr)
 		{
 			m_Menu = new ImGuiWidget::ImVerticalBox(WidgetName + "_Menu");
 			SetOnPressed([this]() {m_IsMenuOpen = !m_IsMenuOpen; });

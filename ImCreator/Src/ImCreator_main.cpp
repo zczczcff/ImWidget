@@ -1,26 +1,10 @@
-#include "ImWidget/ImButton.h"
-#include "ImWidget/ImVerticalBox.h"
-#include "ImWidget/ImVerticalSplitter.h"
-#include "ImWidget/ImHorizontalSplitter.h"
-#include "ImWidget/ImHorizontalBox.h"
-#include "ImWidget/ImTextBlock.h"
-#include "ImWidget/ImSingleLineInputText.h"
-#include "ImWidget/ImCanvasPanel.h"
-#include "ImWidget/ImSlider.h"
-#include "ImWidget/ImScrollBox.h"
-#include "ImWidget/ImResizableBox.h"
-#include "ImWidget/ImImage.h"
-#include "ImWidget/ImMenuButton.h"
-#include "ImWidget/ImMultiLineTextBlock.h"
-#include "ImWidget/ImScrollingTextList.h"
-#include "ImWidget/ImInputText.h"
-#include "ImWidget/ImCheckBox.h"
-#include "ImWidget/ImWidgetCodeGenerator.h"
+#include <ImWidget/ImBasicWidgetList.h>
+//#include "ImWidget/ImWidgetCodeGenerator.h"
 
-#include "ImWidget/ImWidgetSerializer.h"
+//#include "ImWidget/ImWidgetSerializer.h"
 
-#include "ImWindows/ImMenuButton.h"
-#include "ImWindows/ImPageManager.h"
+#include <ImWindows/ImMenuButton.h>
+#include <ImWindows/ImPageManager.h>
 
 #include "WidgetTreeView.h"
 

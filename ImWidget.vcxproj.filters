@@ -170,9 +170,6 @@
     <ClCompile Include="Extern\imgui-master\imgui.cpp">
       <Filter>Extern\Imgui</Filter>
     </ClCompile>
-    <ClCompile Include="Extern\imgui-master\imgui_demo.cpp">
-      <Filter>Extern\Imgui</Filter>
-    </ClCompile>
     <ClCompile Include="Extern\imgui-master\imgui_draw.cpp">
       <Filter>Extern\Imgui</Filter>
     </ClCompile>

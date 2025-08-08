@@ -204,7 +204,7 @@ namespace ImGuiWidget
 
         // 序列化当前控件
         j["Type"] = root->GetRegisterTypeName();
-        //j["Name"] = root->GetWidgetName();
+        j["Name"] = root->GetWidgetName();
         j["Properties"] = SerializeWidgetProperties(root);
 
         // 序列化slot（如果存在）

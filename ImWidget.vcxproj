@@ -207,7 +207,6 @@
     <ClCompile Include="Extern\imgui-master\backends\imgui_impl_dx11.cpp" />
     <ClCompile Include="Extern\imgui-master\backends\imgui_impl_win32.cpp" />
     <ClCompile Include="Extern\imgui-master\imgui.cpp" />
-    <ClCompile Include="Extern\imgui-master\imgui_demo.cpp" />
     <ClCompile Include="Extern\imgui-master\imgui_draw.cpp" />
     <ClCompile Include="Extern\imgui-master\imgui_tables.cpp" />
     <ClCompile Include="Extern\imgui-master\imgui_widgets.cpp" />
