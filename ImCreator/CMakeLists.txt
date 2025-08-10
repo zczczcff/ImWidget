@@ -62,10 +62,13 @@ add_subdirectory(../ImWidget ${CMAKE_CURRENT_BINARY_DIR}/ImWidget)
 #-----------------------------------------------
 set(TARGET_NAME ImCreator_${BUILD_PLATFORM})
 
-add_executable(${TARGET_NAME}
-    Src/ImCreator_main.cpp
-    ../ImMain.cpp  # 统一入口文件
-)
+# 收集所有头文件
+file(GLOB_RECURSE All_Headers ./Include/*.h)
+file(GLOB_RECURSE All_Resource ./Src/*cpp)
+
+add_executable(${TARGET_NAME})
+
+target_sources(${TARGET_NAME} PRIVATE ${All_Resource} ${All_Headers} ../ImMain.cpp)
 
 # 自动继承ImWidget的头文件设置
 target_link_libraries(${TARGET_NAME} PRIVATE ImWidget)

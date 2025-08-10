@@ -167,31 +167,27 @@ set(LIB_SOURCES
     # 后端实现
     ${BACKEND_SRCS}
 )
-# 收集所有头文件（但不添加到库目标中）
+
+# 收集所有头文件
 file(GLOB_RECURSE LIB_HEADERS
-    "ImWidget/*.h"
-    "ImWidget/*.hpp"
-    "ImWindows/*.h"
-    "ImWindows/*.hpp"
-    "Application/*.h"
-    "Application/*.hpp"
-    "Extern/imgui-master/*.h"
-    "Extern/imgui-master/backends/*.h"
-    "Extern/stb_image/*.h"
+    ./*.h      # 匹配 .h 文件
+    ./*.hpp    # 匹配 .hpp 文件
+    ./*.hxx    # 匹配 .hxx 文件
+    ./*.hh     # 匹配 .hh 文件
 )
 
 #-----------------------------------------------
 # 构建静态库
 #-----------------------------------------------
-add_library(ImWidget STATIC ${LIB_SOURCES})
+add_library(ImWidget STATIC ${LIB_SOURCES} ${LIB_HEADERS})
 # 创建源文件和头文件过滤器
     source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} 
-        PREFIX "Source Files" 
+        PREFIX "Source" 
         FILES ${LIB_SOURCES}
     )
     
     source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} 
-        PREFIX "Header Files" 
+        PREFIX "Include" 
         FILES ${LIB_HEADERS}
     )
 
