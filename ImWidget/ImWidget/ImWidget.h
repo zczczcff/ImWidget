@@ -128,5 +128,21 @@ namespace ImGuiWidget
 			}
 		}
 
+		bool IsInTree(ImWidget* WidgetTree)
+		{
+			ImWidget* CurrentTreeNode = this;
+			while (CurrentTreeNode != nullptr)
+			{
+				if (CurrentTreeNode == WidgetTree)
+				{
+					return true;
+				}
+				else
+				{
+					CurrentTreeNode = CurrentTreeNode->m_Parents;
+				}
+			}
+			return false;
+		}
 	};
 }

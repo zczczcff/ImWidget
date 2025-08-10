@@ -25,7 +25,53 @@ namespace ImGuiWidget
         // 回调函数
         std::function<void(ImWidget*)> OnSelected;
         //std::function<void()> OnUnSelected;
+        void HandleSelectWidget(ImGuiWidget::ImWidget* hitWidget, bool bTriggerCallBack = true)
+        {
+            // 更新选中状态
+            if (m_SelectedWidget != hitWidget)
+            {
+                // 清理之前的选中状态
+                if (m_ResizableBox)
+                {
+                    delete m_ResizableBox;
+                    m_ResizableBox = nullptr;
+                }
+            }
 
+            m_SelectedWidget = hitWidget;
+            // 获取该控件的slot
+            ImSlot* hitSlot = hitWidget->GetSlot();
+            m_SelectedSlot = hitSlot;
+
+            // 根据slot类型决定创建调整框还是简单边框
+            if (dynamic_cast<ImCanvasPanelSlot*>(hitSlot))
+            {
+                // 创建可调整框
+                m_ResizableBox = new ImResizableBox(m_WidgetID + "_ResizableBox");
+                m_ResizableBox->SetPosition(m_SelectedWidget->GetPosition());
+                m_ResizableBox->SetSize(m_SelectedWidget->GetSize());
+
+                // 设置回调更新实际位置和大小
+                m_ResizableBox->SetOnResizing([this](ImVec2 newPos, ImVec2 newSize)
+                    {
+                        if (m_SelectedSlot)
+                        {
+                            // 更新slot的位置和大小
+                            if (auto canvasSlot = dynamic_cast<ImCanvasPanelSlot*>(m_SelectedSlot))
+                            {
+                                // 使用相对位置（相对于设计面板）
+                                canvasSlot->RelativePosition = newPos - Position;
+                                canvasSlot->SlotSize = newSize;
+                            }
+                            bIsInResize = true;
+                        }
+                    });
+                m_ResizableBox->SetOnBeginPreResing([this](ImVec2, ImVec2) {bIsInResize = true; });
+            }
+
+            // 触发选中回调
+            if (OnSelected && bTriggerCallBack) OnSelected(hitWidget);
+        }
     public:
         ImDesignPanel(const std::string& WidgetName)
             : ImPanelWidget(WidgetName)
@@ -140,51 +186,7 @@ namespace ImGuiWidget
 
                 if (hitWidget && hitWidget != this) // 排除设计面板自身
                 {
-                    // 获取该控件的slot
-                    ImSlot* hitSlot = hitWidget->GetSlot();
-
-                    // 更新选中状态
-                    if (m_SelectedWidget != hitWidget)
-                    {
-                        // 清理之前的选中状态
-                        if (m_ResizableBox)
-                        {
-                            delete m_ResizableBox;
-                            m_ResizableBox = nullptr;
-                        }
-
-                        m_SelectedWidget = hitWidget;
-                        m_SelectedSlot = hitSlot;
-
-                        // 根据slot类型决定创建调整框还是简单边框
-                        if (dynamic_cast<ImCanvasPanelSlot*>(hitSlot))
-                        {
-                            // 创建可调整框
-                            m_ResizableBox = new ImResizableBox(m_WidgetID + "_ResizableBox");
-                            m_ResizableBox->SetPosition(m_SelectedWidget->GetPosition());
-                            m_ResizableBox->SetSize(m_SelectedWidget->GetSize());
-
-                            // 设置回调更新实际位置和大小
-                            m_ResizableBox->SetOnResizing([this](ImVec2 newPos, ImVec2 newSize)
-                                {
-                                    if (m_SelectedSlot)
-                                    {
-                                        // 更新slot的位置和大小
-                                        if (auto canvasSlot = dynamic_cast<ImCanvasPanelSlot*>(m_SelectedSlot))
-                                        {
-                                            // 使用相对位置（相对于设计面板）
-                                            canvasSlot->RelativePosition = newPos - Position;
-                                            canvasSlot->SlotSize = newSize;
-                                        }
-                                        bIsInResize = true;
-                                    }
-                                });
-                            m_ResizableBox->SetOnBeginPreResing([this](ImVec2, ImVec2) {bIsInResize = true; });
-                        }
-
-                        // 触发选中回调
-                        if (OnSelected) OnSelected(hitWidget);
-                    }
+                    HandleSelectWidget(hitWidget);
                 }
                 else
                 {
@@ -204,6 +206,13 @@ namespace ImGuiWidget
 
           
         }
+
+        void SetSelectedWidget(ImWidget* SelectedWidget, bool bTriggerCallBack = true)
+        {
+			if (!SelectedWidget->IsInTree(this) || SelectedWidget == this) return;
+            HandleSelectWidget(SelectedWidget, bTriggerCallBack);
+        }
+
         virtual std::string GetRegisterTypeName()override { return "ImDesignPanel"; }
     };
 }

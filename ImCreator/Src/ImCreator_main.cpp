@@ -48,14 +48,26 @@ public:
 
     //ImGuiWidget::ImScrollBox* m_LogBox;
     ExampleWidget* m_Example_Button;
-    ExampleWidget* m_Example_TextBlock;
+    ExampleWidget* m_Example_CheckBox;
+    ExampleWidget* m_Example_ComboBox;
     ExampleWidget* m_Example_Image;
-
+    ExampleWidget* m_Example_InputText;
+    ExampleWidget* m_Example_IntInput;
+    ExampleWidget* m_Example_FloatInput;
+    ExampleWidget* m_Example_MultiLineTextBlock;
+    ExampleWidget* m_Example_ScrollingTextList;
+    ExampleWidget* m_Example_Slider;
+    ExampleWidget* m_Example_TextBlock;
+    
     ExampleWidget* m_Example_ImCanvasPanel;
     ExampleWidget* m_Example_HorizontalBox;
+    ExampleWidget* m_Example_HorizontalSplitter;
     ExampleWidget* m_Example_VerticalBox;
+    ExampleWidget* m_Example_VerticalSplitter;
+    ExampleWidget* m_Example_ExpandableBox;
+    ExampleWidget* m_Example_ScrollBox;
 
-    ExampleWidget* m_Example_ComboBox;
+    
     void Init()
     {
         ImGuiStyle& style = ImGui::GetStyle();
@@ -122,29 +134,47 @@ public:
         m_MiddleSplitter->AddPart(m_WidgetList_WidgetTreeSplitter);
         m_MiddleSplitter->AddPart(m_CenterPageManager)->Ratio = 5.0f;
         m_MiddleSplitter->AddPart(m_DetailList);
-
+        
         m_Example_Button = new ExampleWidget("Example_Button", "Button", WidgetType::ImButton);
-        m_Example_TextBlock = new ExampleWidget("Example_TextBlock", "TextBlock", WidgetType::ImTextBlock);
+        m_Example_CheckBox = new ExampleWidget("Example_CheckBox", "CheckBox", WidgetType::ImCheckBox);
+        m_Example_ComboBox = new ExampleWidget("Example_ComboBox", "ComboBox", WidgetType::ImComboBox);
         m_Example_Image = new ExampleWidget("Example_Image", "Image", WidgetType::ImImage);
+        m_Example_InputText = new ExampleWidget("Example_InputText", "InputText", WidgetType::ImInputText);
+        m_Example_IntInput = new ExampleWidget("Example_IntInput", "IntInput", WidgetType::ImIntInput);
+        m_Example_FloatInput = new ExampleWidget("Example_FloatInput", "FloatInput", WidgetType::ImFloatInput);
+        m_Example_MultiLineTextBlock = new ExampleWidget("Example_MultiLineTextBlock", "MultiLineTextBlock", WidgetType::ImMultiLineTextBlock);
+        m_Example_ScrollingTextList = new ExampleWidget("Example_ScrollingTextList", "ScrollingTextList ", WidgetType::ImScrollingTextList);
+        m_Example_Slider = new ExampleWidget("Example_Slider ", "Slider", WidgetType::ImSlider);
+        m_Example_TextBlock = new ExampleWidget("Example_TextBlock", "TextBlock", WidgetType::ImTextBlock);
+
         m_Example_ImCanvasPanel = new ExampleWidget("Example_CanvasPanel", "CanvasPanel", WidgetType::ImCanvasPanel);
         m_Example_HorizontalBox = new ExampleWidget("Example_HorizontalBox", "HorizontalBox", WidgetType::ImHorizontalBox);
+        m_Example_HorizontalSplitter = new ExampleWidget("Example_HorizontalSplitter", "HorizontalSplitter", WidgetType::ImHorizontalSplitter);
         m_Example_VerticalBox = new ExampleWidget("Example_VerticalBox", "VerticalBox", WidgetType::ImVerticalBox);
-        m_Example_ComboBox = new ExampleWidget("Example_ComboBox", "ComboBox", WidgetType::ImComboBox);
+        m_Example_VerticalSplitter = new ExampleWidget("Example_VerticalSplitter", "VerticalSplitter", WidgetType::ImVerticalSplitter);
+        m_Example_ExpandableBox = new ExampleWidget("Example_ExpandableBox", "ExpandableBox", WidgetType::ImExpandableBox);
+        m_Example_ScrollBox = new ExampleWidget("Example_ScrollBox", "ScrollBox", WidgetType::ImScrollBox);
 
-        m_InputTextTest = new ImGuiWidget::ImInputText("InputTextTest");
-        m_CheckBoxTest = new ImGuiWidget::ImCheckBox("CheckBoxTest");
-        
         //ImGuiWidget::ImButton* button_test = new ImGuiWidget::ImButton("buttontest");
         m_WidgetList->AddChildToVerticalBox(m_Example_Button)->SetIfAutoSize(false);
-        m_WidgetList->AddChildToVerticalBox(m_Example_TextBlock)->SetIfAutoSize(false);
+        m_WidgetList->AddChildToVerticalBox(m_Example_CheckBox)->SetIfAutoSize(false);
+        m_WidgetList->AddChildToVerticalBox(m_Example_ComboBox)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_Image)->SetIfAutoSize(false);
+        m_WidgetList->AddChildToVerticalBox(m_Example_InputText)->SetIfAutoSize(false);
+        m_WidgetList->AddChildToVerticalBox(m_Example_IntInput)->SetIfAutoSize(false);
+        m_WidgetList->AddChildToVerticalBox(m_Example_FloatInput)->SetIfAutoSize(false);
+        m_WidgetList->AddChildToVerticalBox(m_Example_MultiLineTextBlock)->SetIfAutoSize(false);
+        m_WidgetList->AddChildToVerticalBox(m_Example_ScrollingTextList)->SetIfAutoSize(false);
+        m_WidgetList->AddChildToVerticalBox(m_Example_Slider)->SetIfAutoSize(false);
+        m_WidgetList->AddChildToVerticalBox(m_Example_TextBlock)->SetIfAutoSize(false);
+        
         m_WidgetList->AddChildToVerticalBox(m_Example_ImCanvasPanel)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_HorizontalBox)->SetIfAutoSize(false);
+        m_WidgetList->AddChildToVerticalBox(m_Example_HorizontalSplitter)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_VerticalBox)->SetIfAutoSize(false);
-        m_WidgetList->AddChildToVerticalBox(m_Example_ComboBox)->SetIfAutoSize(false);
-
-        m_WidgetList->AddChildToVerticalBox(m_InputTextTest)->SetIfAutoSize(false);
-        m_WidgetList->AddChildToVerticalBox(m_CheckBoxTest)->SetIfAutoSize(false);
+        m_WidgetList->AddChildToVerticalBox(m_Example_VerticalSplitter)->SetIfAutoSize(false);
+        m_WidgetList->AddChildToVerticalBox(m_Example_ExpandableBox)->SetIfAutoSize(false);
+        m_WidgetList->AddChildToVerticalBox(m_Example_ScrollBox)->SetIfAutoSize(false);
 
         m_BottomBox=new ImGuiWidget::ImVerticalBox("BottomBox");
         m_VSplitter->AddPart(m_MiddleBox)->Ratio = 4.0f;
@@ -287,8 +317,6 @@ public:
   //      m_MenuButton_Project_History1->AddMenuOption(button4);
   //      m_MenuButton_Project_History1->AddMenuOption(button5);
 
-        ImGuiWidget::SaveWidgetTreeToFile(m_MainBox, "test.imui");
-        ImGuiWidget::ExportUserWidgetToFiles(m_MainBox, "Test1", "./");
     }
     void Render()
     {

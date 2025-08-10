@@ -7,12 +7,26 @@
 enum class WidgetType
 {
 	ImButton,
-	ImTextBlock,
-	ImImage,
 	ImCanvasPanel,
-	ImVerticalBox,
+	ImCheckBox,
+	ImColorPicker,
+	ImComboBox,
+	ImDesignPanel,
+	ImExpandableBox,
 	ImHorizontalBox,
-	ImComboBox
+	ImHorizontalSplitter,
+	ImImage,
+	ImInputText,
+	ImIntInput,
+	ImFloatInput,
+	ImMultiLineTextBlock,
+	ImResizableBox,
+	ImScrollBox,
+	ImScrollingTextList,
+	ImSlider,
+	ImTextBlock,
+	ImVerticalBox,
+	ImVerticalSplitter
 };
 
 

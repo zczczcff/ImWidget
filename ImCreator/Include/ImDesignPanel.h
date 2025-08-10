@@ -25,14 +25,17 @@ protected:
 		{
 		case WidgetType::ImButton:
 		{
-			//Handle_DragOnButton(Pos);
 			NewWidget = new ImGuiWidget::ImButton("Button_" + std::to_string(count));
-			((ImGuiWidget::ImButton*)NewWidget)->GetNormalStyle().Rounding = 10;
 			break;
 		}
 		case WidgetType::ImTextBlock:
 		{
 			NewWidget = new ImGuiWidget::ImTextBlock("TextBlock_" + std::to_string(count));
+			break;
+		}
+		case WidgetType::ImCheckBox:
+		{
+			NewWidget = new ImGuiWidget::ImCheckBox("ImCheckBox");
 			break;
 		}
 		case WidgetType::ImImage:
@@ -60,7 +63,56 @@ protected:
 			NewWidget = new ImGuiWidget::ImComboBox("ComboBox_" + std::to_string(count));
 			break;
 		}
-
+		case WidgetType::ImVerticalSplitter:
+		{
+			NewWidget = new ImGuiWidget::ImVerticalSplitter("VerticalSplitter");
+			break;
+		}
+		case WidgetType::ImHorizontalSplitter:
+		{
+			NewWidget = new ImGuiWidget::ImHorizontalSplitter("ImHorizontalSplitter");
+			break;
+		}
+		case WidgetType::ImExpandableBox:
+		{
+			NewWidget = new ImGuiWidget::ImExpandableBox("ImExpandableBox");
+			break;
+		}
+		case WidgetType::ImInputText:
+		{
+			NewWidget = new ImGuiWidget::ImInputText("ImInputText");
+			break;
+		}
+		case WidgetType::ImIntInput:
+		{
+			NewWidget = new ImGuiWidget::ImIntInput("ImIntInput");
+			break;
+		}
+		case WidgetType::ImFloatInput:
+		{
+			NewWidget = new ImGuiWidget::ImFloatInput("ImFloatInput");
+			break;
+		}
+		case WidgetType::ImMultiLineTextBlock:
+		{
+			NewWidget = new ImGuiWidget::ImMultiLineTextBlock("ImMultiLineTextBlock");
+			break;
+		}
+		case WidgetType::ImScrollBox:
+		{
+			NewWidget = new ImGuiWidget::ImScrollBox("ImScrollBox");
+			break;
+		}
+		case WidgetType::ImScrollingTextList:
+		{
+			NewWidget = new ImGuiWidget::ImScrollingTextList("ImScrollingTextList");
+			break;
+		}
+		case WidgetType::ImSlider:
+		{
+			NewWidget = new ImGuiWidget::ImSlider("ImSlider");
+			break;
+		}
 		default:
 			break;
 		}
