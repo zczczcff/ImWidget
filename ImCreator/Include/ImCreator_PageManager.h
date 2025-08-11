@@ -114,12 +114,19 @@ public:
 	{
 		OnWidgetSelected = callback;
 	}
-	ImGuiWidget::ImWidget* GetCurrentMainPanel() 
+	ImGuiWidget::ImDesignPanel* GetCurrentMainPanel()
 	{
-		return m_RootPageManager->GetActivePageContent();
+		if (auto CurrentDesignPanel = dynamic_cast<DesiginPanel*>(m_RootPageManager->GetActivePageContent()))
+		{
+			return CurrentDesignPanel->GetMainPanel();
+		}
+		else
+		{
+			return nullptr;
+		}
 	}
 
-	ImGuiWidget::ImWidget* GetMainPanelByName(const std::string& Name)
+	ImGuiWidget::ImDesignPanel* GetMainPanelByName(const std::string& Name)
 	{
 		auto it = AllUIDesiginPages.find(Name);
 		if (it != AllUIDesiginPages.end())

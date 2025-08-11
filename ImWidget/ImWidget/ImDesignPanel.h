@@ -19,6 +19,7 @@ namespace ImGuiWidget
         // 面板拖动状态
         bool m_IsDraggingPanel = false;
         bool bIsInResize = false;
+        bool bJumpMouseClidkTestThisTick = false;
         ImVec2 m_DragStartMousePos;
         ImVec2 m_DragStartPanelPos;
 
@@ -71,6 +72,8 @@ namespace ImGuiWidget
 
             // 触发选中回调
             if (OnSelected && bTriggerCallBack) OnSelected(hitWidget);
+
+            
         }
     public:
         ImDesignPanel(const std::string& WidgetName)
@@ -179,38 +182,42 @@ namespace ImGuiWidget
                 }
             }
             // 处理左键点击
-            if (!bIsInResize&&is_mouse_clicked)
-            {
-                // 通过ChildHitTest查找被点击的最上层控件
-                ImWidget* hitWidget = ChildHitTest(mouse_pos);
 
-                if (hitWidget && hitWidget != this) // 排除设计面板自身
-                {
-                    HandleSelectWidget(hitWidget);
-                }
-                else
-                {
-                    // 点击空白处取消选中
-                    if (!bIsInResize&&m_ResizableBox)
-                    {
-                        delete m_ResizableBox;
-                        m_ResizableBox = nullptr;
-                        m_SelectedWidget = nullptr;
-                        m_SelectedSlot = nullptr;
+			if (!bJumpMouseClidkTestThisTick && !bIsInResize && is_mouse_clicked)
+			{
+				// 通过ChildHitTest查找被点击的最上层控件
+				ImWidget* hitWidget = ChildHitTest(mouse_pos);
 
-                        if (OnSelected) OnSelected(nullptr);
-                        //if (OnUnSelected) OnUnSelected();
-                    }
-                }
-            }
+				if (hitWidget && hitWidget != this) // 排除设计面板自身
+				{
+					HandleSelectWidget(hitWidget);
+				}
+				else
+				{
+					// 点击空白处取消选中
+					if (!bIsInResize && m_ResizableBox)
+					{
+						delete m_ResizableBox;
+						m_ResizableBox = nullptr;
+						m_SelectedWidget = nullptr;
+						m_SelectedSlot = nullptr;
+
+						if (OnSelected) OnSelected(nullptr);
+						//if (OnUnSelected) OnUnSelected();
+					}
+				}
+			}
+            bJumpMouseClidkTestThisTick = false;
+
 
           
         }
 
-        void SetSelectedWidget(ImWidget* SelectedWidget, bool bTriggerCallBack = true)
+        void SetSelectedWidget(ImWidget* SelectedWidget, bool bTriggerCallBack = false)
         {
 			if (!SelectedWidget->IsInTree(this) || SelectedWidget == this) return;
             HandleSelectWidget(SelectedWidget, bTriggerCallBack);
+            bJumpMouseClidkTestThisTick = true;
         }
 
         virtual std::string GetRegisterTypeName()override { return "ImDesignPanel"; }

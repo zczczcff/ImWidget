@@ -296,6 +296,20 @@ public:
                     m_WidgetTreeView->SetActiveTreeView(FileName);
                 });
         }
+
+        m_WidgetTreeView->SetOnSelectionChanged([this](ImGuiWidget::ImWidget* SelectedWidget) 
+            {
+                m_CenterPageManager->GetCurrentMainPanel()->SetSelectedWidget(SelectedWidget);
+            });
+
+        m_WidgetTreeView->SetOnWidgetDeleted([this](ImGuiWidget::ImWidget* DeletedWidget) 
+            {
+                if (m_WidgetTreeView->GetSelectedWidget()&& m_WidgetTreeView->GetSelectedWidget() == DeletedWidget)
+                {
+                    m_DetailList->SetCurrentWidget(nullptr);
+                }
+            });
+
     }
     void Render()
     {

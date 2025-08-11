@@ -26,6 +26,7 @@ private:
 	std::map<std::string, FileStruct*> AllFileView;
 	std::string ActiveView;
 	std::function<void(ImWidget*)> OnSelectionChanged; // 选中回调
+	std::function<void(ImWidget*)> OnWidgetDeleted; //删除控件回调
 	// 存储节点展开状态 (目标控件名 -> 是否展开)
 	// 递归构建树节点
 	ImWidget* BuildTreeNode(ImWidget* widget, std::unordered_set<ImWidget*>& m_ExpandedNode, FileStruct* TargetStruct,int depth = 0)
@@ -68,6 +69,10 @@ private:
 
 			deletebutton->SetOnPressed([this,widget]() 
 				{
+					if (OnWidgetDeleted)
+					{
+						OnWidgetDeleted(widget);
+					}
 					DeleteChildWidget(widget);
 				});
 			TargetStruct->WidgetToHeaderButton[widget] = headerButton;
@@ -145,6 +150,10 @@ private:
 				});
 			deletebutton->SetOnPressed([this, widget]()
 				{
+					if (OnWidgetDeleted)
+					{
+						OnWidgetDeleted(widget);
+					}
 					DeleteChildWidget(widget);
 				});
 			TargetStruct->WidgetToHeaderButton[widget] = nodeButton;
@@ -239,7 +248,8 @@ public:
 	{
 		OnSelectionChanged = callback;
 	}
-
+	//设置删除回调
+	void SetOnWidgetDeleted(std::function<void(ImWidget*)> callback) { OnWidgetDeleted = callback; }
 	// 获取当前选中的控件
 	ImWidget* GetSelectedWidget()
 	{
