@@ -134,15 +134,6 @@ endif()
 # 完整包含目录设置
 add_definitions(-DIMGUI_USER_CONFIG=<ImWidgetConfig.h>)
 
-set(PUBLIC_INCLUDE_DIRS
-    "${CMAKE_CURRENT_SOURCE_DIR}/ImWidget"
-    "${CMAKE_CURRENT_SOURCE_DIR}/ImWindows"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Application"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Extern/imgui-master"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Extern/stb_image"
-    "${CMAKE_CURRENT_SOURCE_DIR}/Extern/nlohmann_json/single_include/nlohmann"
-)
-
 # 源文件列表
 set(LIB_SOURCES
     # ImWidget核心

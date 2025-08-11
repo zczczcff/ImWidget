@@ -37,10 +37,14 @@ namespace ImGuiWidget
         float v_Max;            // 最大值
         SliderHandleType handle_type; // 手柄类型
         SliderColors colors;  // 颜色配置
-        const char* format;   // 值显示格式
+        std::string format;   // 值显示格式
         float power;          // 非线性参数
         bool show_value;      // 是否显示数值
-
+        bool show_handle = true;    // 是否显示滑块
+        bool draggable = true;      // 滑块是否可拖动
+        float handle_ratio = 0.8f;  // 滑块尺寸比例（水平时为高度比例，垂直时为宽度比例）
+        float handlewidth_ratio = 0.4f;  // 滑块宽度尺寸比例
+        bool bReverse = false;    //是否反转滑动方向
         ImSlider(const std::string& WidgetName) :
             ImWidget(WidgetName),
             v(0.f), 
@@ -51,6 +55,8 @@ namespace ImGuiWidget
             power(1.0f), 
             show_value(true)
         {}
+
+        virtual ImVec2 GetMinSize() { return ImVec2(50.f, 10.f); }
 
         virtual void Render()
         {
@@ -81,13 +87,38 @@ namespace ImGuiWidget
 
             float grab_pos;
             if (is_horizontal)
-                grab_pos = frame_bb.Min.x + grab_padding + normalized_value * slider_sz;
+            {
+                if (bReverse)
+                {
+                    grab_pos = frame_bb.Min.x + grab_padding + (1.f-normalized_value) * slider_sz;
+                }
+                else
+                {
+                    grab_pos = frame_bb.Min.x + grab_padding + normalized_value * slider_sz;
+                }
+                
+            }
+
             else
-                grab_pos = frame_bb.Min.y + grab_padding + normalized_value * slider_sz;
+            {
+                if (bReverse)
+                {
+                    grab_pos = frame_bb.Min.y + grab_padding + normalized_value * slider_sz;
+                }
+                else
+                {
+                    grab_pos = frame_bb.Min.y + grab_padding + (1 - normalized_value) * slider_sz;
+                }
+            }
+                
 
             // 交互逻辑
-            bool hovered, held;
-            bool pressed = ImGui::ButtonBehavior(frame_bb, id, &hovered, &held);
+            bool hovered = false;
+            bool held = false;
+            bool pressed = false;
+            if (draggable) {  // 新增可拖动检查
+                pressed = ImGui::ButtonBehavior(frame_bb, id, &hovered, &held);
+            }
             bool value_changed = false;
 
             if (hovered || held)
@@ -97,7 +128,15 @@ namespace ImGuiWidget
             {
                 if (is_horizontal)
                 {
-                    normalized_value = ImSaturate((g.IO.MousePos.x - (frame_bb.Min.x + grab_padding)) / slider_sz);
+                    if (bReverse)
+                    {
+                        normalized_value = 1.f-ImSaturate((g.IO.MousePos.x - (frame_bb.Min.x + grab_padding)) / slider_sz);
+                    }
+                    else
+                    {
+                        normalized_value = ImSaturate((g.IO.MousePos.x - (frame_bb.Min.x + grab_padding)) / slider_sz);
+                    }
+                    
                     if (power != 1.0f)
                         normalized_value = ImPow(normalized_value, power);
                     v = v_Min + normalized_value * (v_Max - v_Min);
@@ -105,7 +144,15 @@ namespace ImGuiWidget
                 }
                 else
                 {
-                    normalized_value = ImSaturate((g.IO.MousePos.y - (frame_bb.Min.y + grab_padding)) / slider_sz);
+                    if (bReverse)
+                    {
+                        normalized_value = ImSaturate((g.IO.MousePos.y - (frame_bb.Min.y + grab_padding)) / slider_sz);
+                    }
+                    else
+                    {
+                        normalized_value = 1.f - ImSaturate((g.IO.MousePos.y - (frame_bb.Min.y + grab_padding)) / slider_sz);
+                    }
+                    
                     if (power != 1.0f)
                         normalized_value = ImPow(normalized_value, power);
                     v = v_Min + normalized_value * (v_Max - v_Min);
@@ -132,17 +179,43 @@ namespace ImGuiWidget
             ImRect filled_bb;
             if (is_horizontal)
             {
-                filled_bb = ImRect(
-                    ImVec2(frame_bb.Min.x + grab_padding, frame_bb.Min.y + grab_padding),
-                    ImVec2(grab_pos, frame_bb.Max.y - grab_padding)
-                );
+                if (bReverse)
+                {
+                    filled_bb = ImRect
+                    (
+                        ImVec2(grab_pos, frame_bb.Min.y + grab_padding),
+                        ImVec2(frame_bb.Max.x - grab_padding, frame_bb.Max.y - grab_padding)
+                    );
+                }
+                else
+                {
+                    filled_bb = ImRect
+                    (
+                        ImVec2(frame_bb.Min.x + grab_padding, frame_bb.Min.y + grab_padding),
+                        ImVec2(grab_pos, frame_bb.Max.y - grab_padding)
+                    );
+                }
+
             }
             else
             {
-                filled_bb = ImRect(
-                    ImVec2(frame_bb.Min.x + grab_padding, grab_pos),
-                    ImVec2(frame_bb.Max.x - grab_padding, frame_bb.Max.y - grab_padding)
-                );
+                if (bReverse)
+                {
+                    filled_bb = ImRect
+                    (
+                        ImVec2(frame_bb.Min.x + grab_padding, frame_bb.Min.y + grab_padding),
+                        ImVec2(frame_bb.Max.x - grab_padding, grab_pos)
+                    );
+                }
+                else
+                {
+                    filled_bb = ImRect
+                    (
+                        ImVec2(frame_bb.Min.x + grab_padding, grab_pos),
+                        ImVec2(frame_bb.Max.x - grab_padding, frame_bb.Max.y - grab_padding)
+                    );
+                }
+
             }
 
             const float filled_rounding = style.FrameRounding > 0.0f ? style.FrameRounding - 1.0f : 0.0f;
@@ -152,71 +225,86 @@ namespace ImGuiWidget
                 filled_col,
                 filled_rounding
             );
+			if (show_handle)
+			{
+				// 计算手柄尺寸（使用handle_ratio）
+				const float base_size = is_horizontal ?
+					(frame_bb.Max.y - frame_bb.Min.y) :
+					(frame_bb.Max.x - frame_bb.Min.x);
 
-            // 计算手柄尺寸
-            const float handle_radius = is_horizontal ?
-                (frame_bb.Max.y - frame_bb.Min.y) * 0.4f :
-                (frame_bb.Max.x - frame_bb.Min.x) * 0.4f;
-
-            const float handle_width = is_horizontal ?
-                handle_radius * 1.f :
-                (frame_bb.Max.x - frame_bb.Min.x) * 0.6f;
-
-            const float handle_height = is_horizontal ?
-                (frame_bb.Max.y - frame_bb.Min.y) * 0.8f :
-                handle_radius * 1.5f;
-
-            // 绘制滑块手柄
-            if (is_horizontal)
-            {
-                ImVec2 center = ImVec2(
-                    grab_pos,
-                    (frame_bb.Min.y + frame_bb.Max.y) * 0.5f
-                );
-
-                if (handle_type == SliderHandleType::SLIDER_HANDLE_CIRCLE)
+				const float handle_radius = base_size * 0.4f * handle_ratio;   // 应用比例
+                float handle_width;
+                float handle_height;
+                if (is_horizontal)
                 {
-                    window->DrawList->AddCircleFilled(center, handle_radius, grab_col);
-                    window->DrawList->AddCircle(center, handle_radius, grab_border_col, 0, 2.0f);
+                    handle_height = base_size * handle_ratio;
+                    handle_width = handle_height * handlewidth_ratio;
                 }
                 else
                 {
-                    ImRect handle_bb(
-                        ImVec2(center.x - handle_width * 0.5f, center.y - handle_height * 0.5f),
-                        ImVec2(center.x + handle_width * 0.5f, center.y + handle_height * 0.5f)
-                    );
-                    window->DrawList->AddRectFilled(handle_bb.Min, handle_bb.Max, grab_col, 3.0f);
-                    window->DrawList->AddRect(handle_bb.Min, handle_bb.Max, grab_border_col, 3.0f, 0, 2.0f);
+                    handle_width = base_size * handle_ratio;
+                    handle_height = handle_width * handlewidth_ratio;
                 }
-            }
-            else
-            {
-                ImVec2 center = ImVec2(
-                    (frame_bb.Min.x + frame_bb.Max.x) * 0.5f,
-                    grab_pos
-                );
 
-                if (handle_type == SliderHandleType::SLIDER_HANDLE_CIRCLE)
-                {
-                    window->DrawList->AddCircleFilled(center, handle_radius, grab_col);
-                    window->DrawList->AddCircle(center, handle_radius, grab_border_col, 0, 2.0f);
-                }
-                else
-                {
-                    ImRect handle_bb(
-                        ImVec2(center.x - handle_width * 0.5f, center.y - handle_height * 0.5f),
-                        ImVec2(center.x + handle_width * 0.5f, center.y + handle_height * 0.5f)
-                    );
-                    window->DrawList->AddRectFilled(handle_bb.Min, handle_bb.Max, grab_col, 3.0f);
-                    window->DrawList->AddRect(handle_bb.Min, handle_bb.Max, grab_border_col, 3.0f, 0, 2.0f);
-                }
-            }
+				//const float handle_width = is_horizontal ?
+				//	base_size * 0.6f * handle_ratio :
+				//	base_size * 0.6f * handle_ratio;  // 统一应用比例
 
+				//const float handle_height = is_horizontal ?
+				//	base_size * 0.8f * handle_ratio :
+				//	base_size * 0.8f * handle_ratio;  // 统一应用比例
+
+				// 绘制滑块手柄
+				if (is_horizontal)
+				{
+					ImVec2 center = ImVec2(
+						grab_pos,
+						(frame_bb.Min.y + frame_bb.Max.y) * 0.5f
+					);
+
+					if (handle_type == SliderHandleType::SLIDER_HANDLE_CIRCLE)
+					{
+						window->DrawList->AddCircleFilled(center, handle_radius, grab_col);
+						window->DrawList->AddCircle(center, handle_radius, grab_border_col, 0, 2.0f);
+					}
+					else
+					{
+						ImRect handle_bb(
+							ImVec2(center.x - handle_width * 0.5f, center.y - handle_height * 0.5f),
+							ImVec2(center.x + handle_width * 0.5f, center.y + handle_height * 0.5f)
+						);
+						window->DrawList->AddRectFilled(handle_bb.Min, handle_bb.Max, grab_col, 3.0f);
+						window->DrawList->AddRect(handle_bb.Min, handle_bb.Max, grab_border_col, 3.0f, 0, 2.0f);
+					}
+				}
+				else
+				{
+					ImVec2 center = ImVec2(
+						(frame_bb.Min.x + frame_bb.Max.x) * 0.5f,
+						grab_pos
+					);
+
+					if (handle_type == SliderHandleType::SLIDER_HANDLE_CIRCLE)
+					{
+						window->DrawList->AddCircleFilled(center, handle_radius, grab_col);
+						window->DrawList->AddCircle(center, handle_radius, grab_border_col, 0, 2.0f);
+					}
+					else
+					{
+						ImRect handle_bb(
+							ImVec2(center.x - handle_width * 0.5f, center.y - handle_height * 0.5f),
+							ImVec2(center.x + handle_width * 0.5f, center.y + handle_height * 0.5f)
+						);
+						window->DrawList->AddRectFilled(handle_bb.Min, handle_bb.Max, grab_col, 3.0f);
+						window->DrawList->AddRect(handle_bb.Min, handle_bb.Max, grab_border_col, 3.0f, 0, 2.0f);
+					}
+				}
+			}
             // 可选：显示当前值
             if (show_value)
             {
                 char value_buf[64];
-                ImFormatString(value_buf, IM_ARRAYSIZE(value_buf), format, v);
+                ImFormatString(value_buf, IM_ARRAYSIZE(value_buf), format.c_str(), v);
                 ImVec2 value_size = ImGui::CalcTextSize(value_buf);
 
                 ImVec2 value_pos;
@@ -281,8 +369,8 @@ namespace ImGuiWidget
 
             props.insert({
                 "ValueFormat", PropertyType::String, "Appearance",
-                [this](void* v) { this->format = static_cast<const char*>(v); },
-                [this]() -> void* { return const_cast<void*>(static_cast<const void*>(this->format)); }
+                [this](void* v) { this->format = *static_cast<std::string*>(v); },
+                [this]() -> void* { return &format; }
                 });
 
             // 颜色设置
@@ -316,6 +404,35 @@ namespace ImGuiWidget
                 [this]() -> void* { return &this->colors.text; }
                 });
 
+			props.insert({
+	            "ShowHandle", PropertyType::Bool, "Appearance",
+	            [this](void* v) { this->show_handle = *static_cast<bool*>(v); },
+	            [this]() -> void* { return &this->show_handle; }
+				});
+
+			props.insert({
+				"Draggable", PropertyType::Bool, "Behavior",
+				[this](void* v) { this->draggable = *static_cast<bool*>(v); },
+				[this]() -> void* { return &this->draggable; }
+				});
+
+			props.insert({
+				"HandleRatio", PropertyType::Float, "Appearance",
+				[this](void* v) { this->handle_ratio = *static_cast<float*>(v); },
+				[this]() -> void* { return &this->handle_ratio; }
+				});
+
+            props.insert({
+                "HandleWidthRatio", PropertyType::Float, "Appearance",
+                [this](void* v) { this->handlewidth_ratio = *static_cast<float*>(v); },
+                [this]() -> void* { return &this->handlewidth_ratio; }
+                });
+
+            props.insert({
+                "Reserve", PropertyType::Bool, "Appearance",
+                [this](void* v) { this->bReverse = *static_cast<bool*>(v); },
+                [this]() -> void* { return &this->bReverse; }
+                });
             // 非线性参数
             props.insert({
                 "Power", PropertyType::Float, "Behavior",
