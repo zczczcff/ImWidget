@@ -78,6 +78,28 @@ namespace ImGuiWidget
 				return ((T*)it->getter());
 			}
 		}
+		bool SetProperty(const std::string& name, void* value)
+		{
+			auto properties = GetProperties();
+			PropertyInfo temp;
+			temp.name = name;
+
+			auto it = properties.find(temp);
+			if (it != properties.end())
+			{
+				it->setter(value);
+				return true;
+			}
+			return false;
+		}
+
+		template<typename T>
+		bool SetPropertyValue(const std::string& name, const T& value)
+		{
+			T copy = value;
+			return SetProperty(name, &copy);
+		}
+
 		virtual ~ImSlot()
 		{
 			//delete Content;

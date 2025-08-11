@@ -134,7 +134,7 @@ namespace ImGuiWidget
 		void SetOnFocusLost(std::function<void(void)> callback) { OnFocusLost = callback; }
 
 		//处理交互
-		void HandleInteraction()
+		virtual void HandleInteraction()
 		{
 			ImGuiWindow* window = ImGui::GetCurrentWindow();
 			const ImGuiID id = window->GetID(m_WidgetID.c_str());
@@ -145,7 +145,6 @@ namespace ImGuiWidget
 
 			bool hovered = false, held = false;
 			bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, m_ButtonFlag);
-
 			// ================ 新增事件检测 ================ //
 			// 悬停状态变化检测
 			if (hovered && !m_WasHovered) {
@@ -338,5 +337,7 @@ namespace ImGuiWidget
 				m_RootWidget->SetSize(Size);
 			}
 		}
+
+		bool GetIsFocused() { return m_HadFocus; }
 	};
 }

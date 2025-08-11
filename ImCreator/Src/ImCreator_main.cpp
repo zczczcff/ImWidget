@@ -287,9 +287,9 @@ public:
             FileChooseButtonText->SetText(FileName);
             FileChooseButton->SetContent(FileChooseButtonText);
             m_MenuButton_Project->AddMenuOption(FileChooseButton);
-            FileChooseButton->SetOnPressed([FileName,this]()
+            FileChooseButton->SetOnPressed([FileName,FullFileName,this]()
                 {
-                    if (m_CenterPageManager->AddEditedPage(FileName))return;
+                    if (!m_CenterPageManager->AddEditedPage(FileName,FullFileName))return;
                     m_DetailList->CreateNewFileDetail(FileName);
                     m_DetailList->SetActiveFileDetail(FileName);
                     m_WidgetTreeView->CreateNewTreeView(FileName, m_CenterPageManager->GetMainPanelByName(FileName));

@@ -56,17 +56,19 @@ namespace ImGuiWidget
         virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() = 0;
 
         // 类型安全的属性访问
-        template<typename T>
-        void SetProperty(const std::string& name, const T& value)
+        bool SetProperty(const std::string& name, void* value)
         {
-            for (auto& prop : GetProperties()) 
+            auto properties = GetProperties();
+            PropertyInfo temp;
+            temp.name = name;
+
+            auto it = properties.find(temp);
+            if (it != properties.end())
             {
-                if (prop.name == name) 
-                {
-                    prop.setter(const_cast<T*>(&value));
-                    return;
-                }
+                it->setter(value);
+                return true;
             }
+            return false;
         }
 
         template<typename T>
@@ -94,6 +96,13 @@ namespace ImGuiWidget
             {
                 return ((T*)it->getter());
             }
+        }
+
+        template<typename T>
+        bool SetPropertyValue(const std::string& name, const T& value)
+        {
+            T copy = value;
+            return SetProperty(name, &copy);
         }
     };
 

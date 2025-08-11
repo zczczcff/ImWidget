@@ -20,16 +20,16 @@ public:
 		SetRootWidget(m_RootPageManager);
 	}
 
-	bool AddEditedPage(const std::string& file)
+	bool AddEditedPage(const std::string& FileName,const std::string& FilePath)
 	{
-		auto it = AllUIDesiginPages.find(file);
+		auto it = AllUIDesiginPages.find(FileName);
 		if ( it != AllUIDesiginPages.end())
 		{
 			m_RootPageManager->SetActivePageByContent(it->second);			
 			return false;
 		}
-		DesiginPanel* NewDesiginPanel = new DesiginPanel(file + "_DesiginPanel");
-		if (!NewDesiginPanel->InitFromFile(file+".imui"))
+		DesiginPanel* NewDesiginPanel = new DesiginPanel(FileName + "_DesiginPanel");
+		if (!NewDesiginPanel->InitFromFile(FilePath))
 		{
 			delete NewDesiginPanel;
 			return false;
@@ -42,9 +42,9 @@ public:
 				}
 			});
 		NewDesiginPanel->SetOnDragWidgetOn([this](ImGuiWidget::ImWidget* NewWidget) {OnDragWidgetOn(NewWidget); });
-		AllUIDesiginPages.insert(std::make_pair(file, NewDesiginPanel));
-		m_RootPageManager->AddPage(file, NewDesiginPanel);
-		return false;
+		AllUIDesiginPages.insert(std::make_pair(FileName, NewDesiginPanel));
+		m_RootPageManager->AddPage(FileName, NewDesiginPanel);
+		return true;
 	}
 
 	bool CreateNewUIFile(const std::string& file)

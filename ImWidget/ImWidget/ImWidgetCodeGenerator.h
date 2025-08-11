@@ -47,7 +47,7 @@ namespace ImGuiWidget
     // 辅助函数：将ImVec2转换为代码
     std::string Vec2ToCode(const ImVec2& vec) {
         std::ostringstream oss;
-        oss << "ImVec2(" << vec.x << "f, " << vec.y << "f)";
+        oss << "ImVec2(" << std::to_string(vec.x) << "f, " << std::to_string(vec.y) << "f)";
         return oss.str();
     }
 
@@ -457,22 +457,28 @@ namespace ImGuiWidget
             // 创建新头文件
 			headerOut << "#pragma once\n"
 				<< "#include \"ImUserWidget.h\"\n\n"
+                << "#include \"ImBasicWidgetDeclaration.h\"\n\n"
 				//<< "namespace ImGuiWidget {\n"
-				<< "    class " << widgetName << " : public ImGuiWidget::ImUserWidget {\n"
-				<< "    public:\n"
-				<< "        " << widgetName << "(const std::string& name);\n"
-				<< "        virtual void Init() override;\n\n"
-				<< "    protected:\n"
-				<< "        //----Gen Members Begin----\n"
-				<< "        // Auto-generated widget pointers\n";
+				<< "class " << widgetName << " : public ImGuiWidget::ImUserWidget\n"
+                << "{\n"
+				<< "public:\n"
+				//<< "    " << widgetName << "(const std::string& name);\n"
+				<< "    void Init();\n\n"
+                << "    " << widgetName << "(const std::string& name): ImGuiWidget::ImUserWidget(name)\n"
+                << "{\n"
+                << "    Init();\n"
+                << "}\n\n"
+				<< "protected:\n"
+				<< "//----Gen Members Begin----\n"
+				<< "    // Auto-generated widget pointers\n";
 			for (auto widget : allWidgets)
 			{
 				std::string typeName = widget->GetRegisterTypeName();
 				std::string varName = widgetVarMap[widget];
-                headerOut<< "        ImGuiWidget::" + typeName + "* " + varName + ";\n";
+                headerOut<< "    ImGuiWidget::" + typeName + "* " + varName + ";\n";
 			}
-            headerOut << "        //----Gen Members End----\n"
-                << "    };\n";
+            headerOut << "//----Gen Members End----\n"
+                << "};\n";
                 //<< "}\n";
         }
         else {
@@ -481,18 +487,18 @@ namespace ImGuiWidget
                 R"(//----Gen Members Begin----[\s\S]*?//----Gen Members End----)"
             );
 
-            std::string newMembers = "        //----Gen Members Begin----\n"
-                "        // Auto-generated widget pointers\n";
+            std::string newMembers = "//----Gen Members Begin----\n"
+                "    // Auto-generated widget pointers\n";
 
             // 为每个控件生成成员变量声明
             for (auto widget : allWidgets) {
                 std::string typeName = widget->GetRegisterTypeName();
                 std::string varName = widgetVarMap[widget];
 
-                newMembers += "        ImGuiWidget::" + typeName + "* " + varName + ";\n";
+                newMembers += "    ImGuiWidget::" + typeName + "* " + varName + ";\n";
             }
 
-            newMembers += "        //----Gen Members End----";
+            newMembers += "//----Gen Members End----";
 
             headerContent = std::regex_replace(
                 headerContent,
@@ -528,11 +534,11 @@ namespace ImGuiWidget
 
         // 添加必需的头文件
         newIncludes += "#include \"" + widgetName + ".h\"\n";
-        newIncludes += "#include \"ImUserWidget.h\"\n";
-        for (auto& header : requiredHeaders) {
-            newIncludes += "#include \"" + header + "\"\n";
-        }
-        newIncludes += "//----Gen Include End----\n\n";
+        newIncludes += "#include \"ImBasicWidgetList.h\"\n";
+        //for (auto& header : requiredHeaders) {
+        //    newIncludes += "#include \"" + header + "\"\n";
+        //}
+        newIncludes += "//----Gen Include End----\n";
 
         // 生成初始化代码
         std::ostringstream initCode;
@@ -579,7 +585,9 @@ namespace ImGuiWidget
             initCode << "\n";
         }
 
-        // 建立父子关系
+        // 建立父子关系并设置slot属性
+        std::map<std::pair<ImPanelWidget*, ImSlot*>, std::string> slotVarMap; // 存储slot变量名
+
         for (auto widget : allWidgets) {
             if (auto panel = dynamic_cast<ImPanelWidget*>(widget)) {
                 std::string panelVar = widgetVarMap[panel];
@@ -589,7 +597,47 @@ namespace ImGuiWidget
                     if (!slot || !slot->GetContent()) continue;
 
                     std::string childVar = widgetVarMap[slot->GetContent()];
-                    initCode << "    " << panelVar << "->AddChild(" << childVar << ");\n";
+                    std::string slotVar = panelVar + "_slot" + std::to_string(i);
+
+                    // 保存slot变量名
+                    slotVarMap[{panel, slot}] = slotVar;
+
+                    // 添加子控件并获取slot
+                    initCode << "    ImGuiWidget::ImSlot* " << slotVar << " = "
+                        << panelVar << "->AddChild(" << childVar << ");\n";
+
+                    // 设置slot的属性
+                    auto slotProps = slot->GetProperties();
+                    for (const auto& prop : slotProps) {
+                        void* valuePtr = prop.getter();
+                        if (!valuePtr) continue;
+
+                        if (prop.type == PropertyType::Struct) {
+                            PropertyStruct* nestedStruct = static_cast<PropertyStruct*>(valuePtr);
+                            std::string nestedAccessor = slotVar + "_" + prop.name;
+                            initCode << "    ImGuiWidget::PropertyStruct* " << nestedAccessor
+                                << " = " << slotVar << "->GetPropertyPtr<ImGuiWidget::PropertyStruct>(\""
+                                << prop.name << "\");\n";
+                            CodeGenContext context{ initCode, 1 };
+                            GeneratePropertiesCode(nestedStruct, nestedAccessor, context);
+                        }
+                        else {
+                            std::string valueCode = ValueToCode(prop.type, valuePtr);
+                            initCode << "    " << slotVar << "->SetPropertyValue<"
+                                << PropertyTypeToString(prop.type) << ">(\""
+                                << prop.name << "\", " << valueCode << ");\n";
+                        }
+                    }
+
+                    //// 对于ImPaddingSlot特殊处理
+                    //if (auto paddingSlot = dynamic_cast<ImPaddingSlot*>(slot)) {
+                    //    initCode << "    " << slotVar << "->PaddingTop = " << paddingSlot->PaddingTop << "f;\n";
+                    //    initCode << "    " << slotVar << "->PaddingBottom = " << paddingSlot->PaddingBottom << "f;\n";
+                    //    initCode << "    " << slotVar << "->PaddingLeft = " << paddingSlot->PaddingLeft << "f;\n";
+                    //    initCode << "    " << slotVar << "->PaddingRight = " << paddingSlot->PaddingRight << "f;\n";
+                    //}
+
+                    initCode << "\n";
                 }
             }
         }
@@ -604,10 +652,7 @@ namespace ImGuiWidget
             // 创建新源文件
             sourceOut << newIncludes
                 //<< "using namespace ImGuiWidget;\n\n"
-                << widgetName << "::" << widgetName << "(const std::string& name)\n"
-                << "    : ImGuiWidget::ImUserWidget(name)\n"
-                << "{\n"
-                << "}\n\n"
+
                 << initCode.str();
         }
         else {
@@ -615,7 +660,7 @@ namespace ImGuiWidget
 
             // 处理包含区域
             std::regex includesPattern(
-                R"(//----Gen Include Begin----[\s\S]*?//----Gen Include End----)"
+                R"(//----Gen Include Begin----\n[\s\S]*?//----Gen Include End----\n)"
             );
             sourceContent = std::regex_replace(
                 sourceContent,
@@ -625,7 +670,7 @@ namespace ImGuiWidget
 
             // 处理代码区域
             std::regex codePattern(
-                R"(//----Gen Code Begin----[\s\S]*?//----Gen Code End----)"
+                R"(//----Gen Code Begin----\n[\s\S]*?//----Gen Code End----\n)"
             );
             sourceContent = std::regex_replace(
                 sourceContent,

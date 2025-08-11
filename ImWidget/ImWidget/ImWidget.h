@@ -7,6 +7,7 @@
 #include "ImWidgetProperty.h"
 namespace ImGuiWidget
 {
+	class ImPanelWidget;
 	class ImWidget
 	{
 	protected:
@@ -44,6 +45,10 @@ namespace ImGuiWidget
 		void SetParents(ImWidget* parents)
 		{
 			m_Parents = parents;
+		}
+		ImPanelWidget* GetParents()
+		{
+			return (ImPanelWidget*)m_Parents;
 		}
 		void SetSlot(ImSlot* slot)
 		{
