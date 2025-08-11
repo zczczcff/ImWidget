@@ -381,17 +381,22 @@ namespace ImGuiWidget
 
     bool ExportUserWidgetToFiles(ImWidget* rootWidget,
         const std::string& widgetName,
-        const std::string& outputDirectory)
+        const std::string& CppoutputDirectory,
+        const std::string& HeaderoutputDirectory)
     {
+        std::string headerdir = HeaderoutputDirectory;
+        if (!headerdir.empty() && headerdir.back() != '/' && headerdir.back() != '\\') {
+            headerdir += '/';
+        }
         // 确保输出目录以分隔符结尾
-        std::string dir = outputDirectory;
-        if (!dir.empty() && dir.back() != '/' && dir.back() != '\\') {
-            dir += '/';
+        std::string cppdir = CppoutputDirectory;
+        if (!cppdir.empty() && cppdir.back() != '/' && cppdir.back() != '\\') {
+            cppdir += '/';
         }
 
         // 创建头文件和源文件路径
-        std::string headerPath = dir + widgetName + ".h";
-        std::string sourcePath = dir + widgetName + ".cpp";
+        std::string headerPath = headerdir + widgetName + ".h";
+        std::string sourcePath = cppdir + widgetName + ".cpp";
 
         // 收集所有控件（包括子控件）
         std::vector<ImWidget*> allWidgets;

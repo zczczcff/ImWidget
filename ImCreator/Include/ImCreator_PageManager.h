@@ -68,7 +68,7 @@ public:
 		return false;
 	}
 
-	bool SaveCurrentUIFile()
+	bool SaveCurrentUIFile(const std::string& OutPutFolder)
 	{
 		ImGuiWidget::ImWidget* ActiveDesiginPanel = m_RootPageManager->GetActivePageContent();
 		if (ActiveDesiginPanel)
@@ -84,12 +84,12 @@ public:
 			if (FileName.empty())return false;
 			ImGuiWidget::ImWidget* ActiveRootWidget = ((DesiginPanel*)ActiveDesiginPanel)->GetRootContent();
 
-			ImGuiWidget::SaveWidgetTreeToFile(ActiveRootWidget, FileName + ".imui");
+			ImGuiWidget::SaveWidgetTreeToFile(ActiveRootWidget, OutPutFolder + FileName + ".imui");
 		}
 		return true;
 	}
 
-	bool GenerateCode()
+	bool GenerateCode(const std::string& CppoutputDirectory, const std::string& HeaderoutputDirectory)
 	{
 		ImGuiWidget::ImWidget* ActiveDesiginPanel = m_RootPageManager->GetActivePageContent();
 		if (ActiveDesiginPanel)
@@ -105,7 +105,7 @@ public:
 			if (FileName.empty())return false;
 			ImGuiWidget::ImWidget* ActiveRootWidget = ((DesiginPanel*)ActiveDesiginPanel)->GetRootContent();
 
-			ImGuiWidget::ExportUserWidgetToFiles(ActiveRootWidget, FileName,"./");
+			ImGuiWidget::ExportUserWidgetToFiles(ActiveRootWidget, FileName, CppoutputDirectory, HeaderoutputDirectory);
 		}
 		return true;
 	}

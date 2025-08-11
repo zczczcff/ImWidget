@@ -13,7 +13,7 @@
 #include "ImCreator_DetailList.h"
 #include "FileUtil.h"
 #include "ImCreator_PageManager.h"
-
+#include "ImCreator_Projectconfig.h"
 class MyApp
 {
 public:
@@ -67,7 +67,7 @@ public:
     ExampleWidget* m_Example_ExpandableBox;
     ExampleWidget* m_Example_ScrollBox;
 
-    
+    ImCreator_ProjectConfig m_Config;
     void Init()
     {
         ImGuiStyle& style = ImGui::GetStyle();
@@ -256,7 +256,7 @@ public:
         Button_SaveUI->SetContent(SaveUI_MenuText);
         Button_SaveUI->SetOnPressed([this]() 
             {
-                m_CenterPageManager->SaveCurrentUIFile();
+                m_CenterPageManager->SaveCurrentUIFile(m_Config.UIFolder);
             });
 
         ImGuiWidget::ImButton* Button_GenCode = new ImGuiWidget::ImButton("Button_GenCode");
@@ -265,7 +265,7 @@ public:
         Button_GenCode->SetContent(GenCode_MenuText);
         Button_GenCode->SetOnPressed([this]()
             {
-                m_CenterPageManager->GenerateCode();
+                m_CenterPageManager->GenerateCode(m_Config.CPPFolder, m_Config.HeaderFolder);
             });
 
         m_MenuList->AddChildToHorizontalBox(m_MenuButton_Project)->SetIfAutoSize(false);
@@ -277,7 +277,7 @@ public:
         m_MainBox->AddChildToVerticalBox(m_VSplitter);
 
 
-        auto AllUiFilesPath = FileUtil::getFilesWithExtension("./", ".imui");
+        auto AllUiFilesPath = FileUtil::getFilesWithExtension(m_Config.UIFolder, ".imui");
 
         for (auto& FullFileName : AllUiFilesPath)
         {
@@ -296,27 +296,6 @@ public:
                     m_WidgetTreeView->SetActiveTreeView(FileName);
                 });
         }
-
-        //m_MenuButton_Project->AddMenuOption(m_MenuButton_Project_History);
-        //m_MenuButton_Project->AddMenuOption(m_MenuButton_Project_History1);
-        //m_Menu_ProjectMenu = new ImGuiWidget::ImVerticalBox("Menu_ProjectMenu");
-        //Button_Project->SetMenu(m_Menu_ProjectMenu);
-		//ImGuiWidget::ImButton* button0 = new ImGuiWidget::ImButton("button0");
-		//ImGuiWidget::ImButton* button1 = new ImGuiWidget::ImButton("button1");
-		//ImGuiWidget::ImButton* button2 = new ImGuiWidget::ImButton("button2");
-
-  //      ImGuiWidget::ImButton* button3 = new ImGuiWidget::ImButton("button0");
-  //      ImGuiWidget::ImButton* button4 = new ImGuiWidget::ImButton("button1");
-  //      ImGuiWidget::ImButton* button5 = new ImGuiWidget::ImButton("button2");
-
-  //      m_MenuButton_Project_History->AddMenuOption(button0);
-  //      m_MenuButton_Project_History->AddMenuOption(button1);
-  //      m_MenuButton_Project_History->AddMenuOption(button2);
-
-  //      m_MenuButton_Project_History1->AddMenuOption(button3);
-  //      m_MenuButton_Project_History1->AddMenuOption(button4);
-  //      m_MenuButton_Project_History1->AddMenuOption(button5);
-
     }
     void Render()
     {
