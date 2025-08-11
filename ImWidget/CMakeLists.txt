@@ -140,6 +140,7 @@ set(PUBLIC_INCLUDE_DIRS
     "${CMAKE_CURRENT_SOURCE_DIR}/Application"
     "${CMAKE_CURRENT_SOURCE_DIR}/Extern/imgui-master"
     "${CMAKE_CURRENT_SOURCE_DIR}/Extern/stb_image"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Extern/nlohmann_json/single_include/nlohmann"
 )
 
 # 源文件列表
@@ -216,7 +217,7 @@ target_include_directories(ImWidget PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Application>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Extern/imgui-master>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Extern/imgui-master/backends>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Extern>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Extern/nlohmann_json/single_include/nlohmann>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Extern/stb_image>
     
     # 安装接口使用相对路径

@@ -4,10 +4,13 @@ setlocal enabledelayedexpansion
 :: 配置参数
 set "IMGUI_URL=https://github.com/ocornut/imgui/archive/refs/heads/master.zip"
 set "STB_URL=https://github.com/nothings/stb/archive/refs/heads/master.zip"
+set "JSON_URL=https://github.com/nlohmann/json/archive/refs/heads/develop.zip"
 set "IMGUI_TARGET_DIR=Extern\imgui-master"
 set "STB_TARGET_DIR=Extern\stb_image"
+set "JSON_TARGET_DIR=Extern\nlohmann_json"
 set "IMGUI_ZIP_FILE=%TEMP%\imgui_temp.zip"
 set "STB_ZIP_FILE=%TEMP%\stb_temp.zip"
+set "JSON_ZIP_FILE=%TEMP%\json_temp.zip"
 
 :: 创建目标目录
 mkdir "Extern" 2>nul
@@ -67,6 +70,36 @@ if not exist "%STB_TARGET_DIR%" (
     del "%STB_ZIP_FILE%" 2>nul
 ) else (
     echo stb_image already exists at %STB_TARGET_DIR%
+)
+
+:: 安装nlohmann/json库（如果不存在）
+if not exist "%JSON_TARGET_DIR%" (
+    echo Downloading nlohmann/json from GitHub...
+    powershell -Command "(New-Object Net.WebClient).DownloadFile('%JSON_URL%', '%JSON_ZIP_FILE%')"
+    if !errorlevel! neq 0 (
+        echo Error: Failed to download nlohmann/json
+        exit /b 1
+    )
+
+    echo Extracting nlohmann/json...
+    powershell -Command "Expand-Archive -Path '%JSON_ZIP_FILE%' -DestinationPath 'Extern'"
+    if !errorlevel! neq 0 (
+        echo Error: Failed to extract nlohmann/json files
+        del "%JSON_ZIP_FILE%" 2>nul
+        exit /b 1
+    )
+
+    :: 重命名目录
+    if exist "Extern\json-develop" (
+        move "Extern\json-develop" "%JSON_TARGET_DIR%" >nul
+        echo nlohmann/json installed successfully at %JSON_TARGET_DIR%
+    ) else (
+        echo Error: Extracted json directory not found
+        exit /b 1
+    )
+    del "%JSON_ZIP_FILE%" 2>nul
+) else (
+    echo nlohmann/json already exists at %JSON_TARGET_DIR%
 )
 
 endlocal
