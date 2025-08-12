@@ -52,7 +52,11 @@ namespace ImGuiWidget
         float m_DragStartSplitterPos = 0.0f;
         std::vector<ImRect> m_PartRects;  // 缓存部分区域
         std::vector<ImRect> m_BarRects;    // 缓存分隔条区域
-
+    private:
+        virtual ImSlot* CreateSlot(ImWidget* Content)override
+        {
+            return new ImHorizontalSplitterSlot(Content);
+        }
     public:
         ImHorizontalSplitter(const std::string& WidgetName)
             : ImPanelWidget(WidgetName)
@@ -79,6 +83,54 @@ namespace ImGuiWidget
             }
         }
 
+        virtual ImSlot* AddChild(ImWidget* Child, ImVec2 RelativePosition = ImVec2(FLT_MIN, FLT_MIN)) override
+        {
+            // 如果没有指定相对位置，添加到末尾
+            if (RelativePosition.x == FLT_MIN) {
+                return AddPart(Child, 1.0f); // 使用AddPart添加并设置默认比例
+            }
+
+            // 计算在分割器中的相对位置
+            float relativeX = RelativePosition.x;
+
+            // 如果没有子项，直接添加到末尾
+            if (GetSlotNum() == 0) {
+                return AddPart(Child, 1.0f);
+            }
+
+            // 确保布局是最新的
+            HandleLayout();
+
+            // 遍历所有部分区域，寻找插入位置
+            int insertIndex = GetSlotNum(); // 默认插入到最后
+            float accumulatedWidth = 0.0f;
+
+            for (int i = 0; i < GetSlotNum(); i++) {
+                const ImRect& partRect = m_PartRects[i];
+                float partWidth = partRect.GetWidth();
+
+                // 如果位置在当前部分中点之前，插入在当前位置
+                if (relativeX <= accumulatedWidth + partWidth * 0.5f) {
+                    insertIndex = i;
+                    break;
+                }
+
+                accumulatedWidth += partWidth;
+
+                // 如果不是最后一部分，加上分隔条宽度
+                if (i < static_cast<int>(m_BarRects.size())) {
+                    accumulatedWidth += m_BarRects[i].GetWidth();
+                }
+            }
+
+            // 使用ImPanelWidget提供的API插入子项
+            ImSlot* newSlot = InsertChildAt(insertIndex, Child);
+            if (!newSlot) return nullptr;
+
+            SetLayoutDirty();
+
+            return newSlot;
+        }
     private:
         // 绘制分隔条
         void RenderSplitterBar(const ImRect& barRect, const ImVec2& MousePos, int barIndex)

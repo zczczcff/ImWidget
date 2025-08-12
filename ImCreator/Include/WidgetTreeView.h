@@ -431,14 +431,14 @@ public:
 
 			if (!parentPanel) return false; // 没有父控件或父控件不是容器
 
+			if (view->SelectedWidget && view->SelectedWidget->IsInTree(childToDelete))
+			{
+				view->SelectedWidget = nullptr;
+				OnSelectionChanged(nullptr);
+			}
+
 			// 3. 从父控件中删除子控件
 			parentPanel->RemoveChild(childToDelete); // 完全删除
-
-			// 4. 清理相关状态
-			view->m_ExpandedNode.erase(childToDelete);
-			if (view->SelectedWidget == childToDelete) {
-				view->SelectedWidget = nullptr;
-			}
 
 			// 5. 刷新视图
 			Refresh();

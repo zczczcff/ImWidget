@@ -112,6 +112,7 @@ namespace ImGuiWidget
         case PropertyType::String: return "std::string";
         case PropertyType::Vec2: return "ImVec2";
         case PropertyType::Struct: return "PropertyStruct";
+        case PropertyType::Enum:return "std::string";
         default: return "UnknownType";
         }
     }

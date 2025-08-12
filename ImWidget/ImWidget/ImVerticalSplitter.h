@@ -392,9 +392,53 @@ namespace ImGuiWidget
         }
 
     public:
-        virtual ImSlot* AddChild(ImWidget* child, ImVec2 RelativePosition = ImVec2(FLT_MIN, FLT_MIN))
+        virtual ImSlot* AddChild(ImWidget* Child, ImVec2 RelativePosition = ImVec2(FLT_MIN, FLT_MIN))
         {
-            return AddChildInternal<ImVerticalSplitterSlot>(child);
+            // 如果没有指定相对位置，添加到末尾
+            if (RelativePosition.y == FLT_MIN) {
+                return AddPart(Child, 1.0f); // 使用AddPart添加并设置默认比例
+            }
+
+            // 计算在分割器中的相对位置
+            float relativeY = RelativePosition.y;
+
+            // 如果没有子项，直接添加到末尾
+            if (GetSlotNum() == 0) {
+                return AddPart(Child, 1.0f);
+            }
+
+            // 确保布局是最新的
+            HandleLayout();
+
+            // 遍历所有部分区域，寻找插入位置
+            int insertIndex = GetSlotNum(); // 默认插入到最后
+            float accumulatedHeight = 0.0f;
+
+            for (int i = 0; i < GetSlotNum(); i++) {
+                const ImRect& partRect = m_PartRects[i];
+                float partHeight = partRect.GetHeight();
+
+                // 如果位置在当前部分中点之前，插入在当前位置
+                if (relativeY <= accumulatedHeight + partHeight * 0.5f) {
+                    insertIndex = i;
+                    break;
+                }
+
+                accumulatedHeight += partHeight;
+
+                // 如果不是最后一部分，加上分隔条高度
+                if (i < static_cast<int>(m_BarRects.size())) {
+                    accumulatedHeight += m_BarRects[i].GetHeight();
+                }
+            }
+
+            // 使用ImPanelWidget提供的API插入子项
+            ImSlot* newSlot = InsertChildAt(insertIndex, Child);
+            if (!newSlot) return nullptr;
+            // 标记需要重新布局
+            SetLayoutDirty();
+
+            return newSlot;
         }
 
         virtual void Render() override
