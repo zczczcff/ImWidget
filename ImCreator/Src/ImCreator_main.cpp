@@ -36,17 +36,14 @@ public:
     ImCreatorUIPageManager* m_CenterPageManager;
     ImGuiWidget::ImVerticalSplitter* m_WidgetList_WidgetTreeSplitter;
     ImGuiWidget::ImVerticalBox* m_WidgetList;
+    ImGuiWidget::ImScrollBox* m_WidgetListScrollBox;
     WidgetTreeView* m_WidgetTreeView;
 
     //DesiginPanel* m_DesiginPanel;
 
     DetailList* m_DetailList;
-    //ImGuiWidget::ImVerticalBox* m_DetailList;
 
     ImGuiWidget::ImScrollingTextList* m_LogList;
-
-    ImGuiWidget::ImInputText* m_InputTextTest;
-    ImGuiWidget::ImCheckBox* m_CheckBoxTest;
 
     //ImGuiWidget::ImScrollBox* m_LogBox;
     ExampleWidget* m_Example_Button;
@@ -90,10 +87,12 @@ public:
 
         m_WidgetList_WidgetTreeSplitter= new ImGuiWidget::ImVerticalSplitter("WidgetList_WidgetTreeSplitter");
         m_WidgetList = new ImGuiWidget::ImVerticalBox("WidgetList");
+        m_WidgetListScrollBox = new ImGuiWidget::ImScrollBox("WidgetListScrollBox");
+        m_WidgetListScrollBox->SetContent(m_WidgetList);
         m_WidgetTreeView = new WidgetTreeView("WidgetTreeView");
-        m_WidgetList_WidgetTreeSplitter->AddPart(m_WidgetList);
+        m_WidgetList_WidgetTreeSplitter->AddPart(m_WidgetListScrollBox);
         m_WidgetList_WidgetTreeSplitter->AddPart(m_WidgetTreeView);
-
+        
         //m_DesiginPanel = new DesiginPanel("CenterPanel");
        // m_DetailList= new ImGuiWidget::ImVerticalBox("DetailList");
         m_DetailList = new DetailList("DetailList");

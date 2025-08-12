@@ -13,6 +13,8 @@ namespace ImGuiWidget
         bool m_VerticalScrollEnabled = true;       // 垂直滚动是否启用
         bool m_ShowHorizontalScrollbar = true;     // 是否显示水平滚动条
         bool m_ShowVerticalScrollbar = true;       // 是否显示垂直滚动条
+        bool bHaveHorizonScrollbar = false;
+        bool bHaveVerticalScrollbar = false;
         float m_ScrollbarThickness = 16.0f;        // 滚动条厚度
         ImU32 m_ScrollbarBgColor = IM_COL32(40, 40, 40, 255);   // 滚动条背景色
         ImU32 m_ScrollbarGrabColor = IM_COL32(100, 100, 100, 255); // 滚动条抓取颜色
@@ -98,9 +100,9 @@ namespace ImGuiWidget
             if (GetSlotNum() > 0 && GetSlotAt(0) && GetSlotAt(0)->GetContent()) {
                 // 计算内容区域可用空间（排除滚动条）
                 ImVec2 contentAvail = Size;
-                if (m_ShowVerticalScrollbar && m_VerticalScrollEnabled)
+                if (bHaveVerticalScrollbar)
                     contentAvail.x -= m_ScrollbarThickness;
-                if (m_ShowHorizontalScrollbar && m_HorizontalScrollEnabled)
+                if (bHaveHorizonScrollbar)
                     contentAvail.y -= m_ScrollbarThickness;
 
                 // 创建裁剪区域
@@ -167,12 +169,16 @@ namespace ImGuiWidget
         // 自定义滚动条渲染
         void RenderCustomScrollbars()
         {
+            bHaveHorizonScrollbar = false;
+            bHaveVerticalScrollbar = false;
+
             ImGuiWindow* window = ImGui::GetCurrentWindow();
             const ImRect scrollArea(Position, Position + Size);
 
             // 渲染水平滚动条（仅在启用水平滚动时）
             if (m_HorizontalScrollEnabled && m_ShowHorizontalScrollbar && m_ContentSize.x > Size.x - (m_ShowVerticalScrollbar ? m_ScrollbarThickness : 0))
             {
+                bHaveHorizonScrollbar = true;
                 ImRect scrollbarRect(
                     ImVec2(Position.x, Position.y + Size.y - m_ScrollbarThickness),
                     ImVec2(Position.x + Size.x - (m_ShowVerticalScrollbar ? m_ScrollbarThickness : 0),
@@ -207,6 +213,7 @@ namespace ImGuiWidget
             // 渲染垂直滚动条（仅在启用垂直滚动时）
             if (m_VerticalScrollEnabled && m_ShowVerticalScrollbar && m_ContentSize.y > Size.y - (m_ShowHorizontalScrollbar ? m_ScrollbarThickness : 0))
             {
+                bHaveVerticalScrollbar = true;
                 ImRect scrollbarRect(
                     ImVec2(Position.x + Size.x - m_ScrollbarThickness, Position.y),
                     ImVec2(Position.x + Size.x,
@@ -302,9 +309,9 @@ namespace ImGuiWidget
 
                 // 计算内容区域可用空间（排除滚动条）
                 ImVec2 contentAvail = Size;
-                if (m_ShowVerticalScrollbar && m_VerticalScrollEnabled)
+                if (bHaveVerticalScrollbar)
                     contentAvail.x -= m_ScrollbarThickness;
-                if (m_ShowHorizontalScrollbar && m_HorizontalScrollEnabled)
+                if (bHaveHorizonScrollbar)
                     contentAvail.y -= m_ScrollbarThickness;
 
                 // 计算内容尺寸
@@ -315,8 +322,8 @@ namespace ImGuiWidget
                 );
 
                 // 设置Slot属性（而不是直接设置控件）
-                slot->SetSlotPosition(ImVec2(0, 0)); // 相对位置
-                slot->SetSlotSize(m_ContentSize);    // 内容尺寸
+                slot->SetSlotPosition(Position-m_ScrollPosition); // 相对位置
+                slot->SetSlotSize(contentAvail);    // 内容尺寸
 
                 // 应用布局（这会设置实际控件的位置和大小）
                 slot->ApplyLayout();
