@@ -8,13 +8,16 @@ namespace ImGuiWidget
     ImApplication* GlobalApp;
 }
 
+void ImApplication::Render()
+{
+    ImGui::PushFont(GetFont(DefalutFontSize, DefaultFont));
+    ImTick();
+    ImGui::PopFont();
+}
+
+//根据平台区分入口函数
 #if defined(_WIN32)
 #include "Application/ImWin64Application.h"
-
-void ImWin64Application::Render()
-{
-    ImTick();
-}
 
 int WINAPI wWinMain(
     _In_ HINSTANCE hInstance,
@@ -34,10 +37,6 @@ int WINAPI wWinMain(
 #elif defined(__linux__)
 #include "Application/ImPiApplication.h"
 
-void ImPiApplication::Render()
-{
-    ImTick();
-}
 
 int main(int argc, char** argv) {
     ImPiApplication app;

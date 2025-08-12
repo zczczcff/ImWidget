@@ -20,7 +20,7 @@ public:
 
     bool Initialize();
     void Run();
-    void Render() ; 
+    ; 
         // 新增纹理加载函数
     ImTextureID LoadTextureFromFile(const char* filename,int& width,int& height)override;
     void ReleaseTexture(ImTextureID TextureID)override; // 新增释放函数

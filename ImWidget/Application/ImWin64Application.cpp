@@ -51,7 +51,6 @@ bool ImWin64Application::Initialize()
     ImGui::StyleColorsDark();
     ImGui_ImplWin32_Init(m_hWnd);
     ImGui_ImplDX11_Init(m_pd3dDevice, m_pd3dDeviceContext);
-
     return true;
 }
 

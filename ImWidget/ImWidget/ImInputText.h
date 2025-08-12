@@ -32,8 +32,32 @@ namespace ImGuiWidget
         const float CURSOR_BLINK_RATE = 0.5f; // 闪烁频率
 
         std::function<void(const std::string&)> OnTextChanged;
+	protected:
+		// 获取UTF-8字符串中的字符数量
+		size_t Utf8StrLen(const std::string& str) const {
+			size_t len = 0;
+			for (char c : str) {
+				// 只统计UTF-8起始字节 (0xxxxxxx 或 11xxxxxx)
+				if ((c & 0xC0) != 0x80) len++;
+			}
+			return len;
+		}
 
-    public:
+		// 获取第n个字符的字节位置
+		int Utf8CharPos(int charIndex) const {
+			int bytePos = 0;
+			int currentChar = 0;
+			const char* text = m_Text.c_str();
+
+			while (*text && currentChar < charIndex) {
+				unsigned int c;
+				text += ImTextCharFromUtf8(&c, text, nullptr);
+				bytePos += text - (m_Text.c_str() + bytePos);
+				currentChar++;
+			}
+			return bytePos;
+		}
+	public:
         ImInputText(const std::string& WidgetName)
             : ImWidget(WidgetName), m_PreviousText("")
         {}
@@ -106,27 +130,35 @@ namespace ImGuiWidget
                     CheckTextChanged();
                 }
 
-                if (m_IsFocused) {
-                    // 保存当前文本作为比较基准
-                    m_PreviousText = m_Text;
-
-                    // 设置光标位置
+                // 修改鼠标点击位置计算逻辑
+                if (clicked && m_IsFocused) {
                     ImVec2 textPos = Position + ImVec2(4, (Size.y - ImGui::GetTextLineHeight()) * 0.5f);
                     float mouseX = io.MousePos.x - textPos.x;
 
-                    // 计算鼠标点击处的字符位置
                     m_CursorPos = 0;
+                    const char* text = m_Text.c_str();
                     float currentWidth = 0.0f;
-                    for (int i = 0; i < static_cast<int>(m_Text.size()); ++i) {
-                        char c = m_Text[i];
-                        float charWidth = ImGui::CalcTextSize(&c, &c + 1).x;
+                    int bytePos = 0;
+
+                    // 按字符遍历计算位置
+                    while (*text) {
+                        unsigned int c = 0;
+                        const char* prevText = text;
+                        text += ImTextCharFromUtf8(&c, text, nullptr);
+                        int charSize = static_cast<int>(text - prevText);
+
+                        // 计算字符宽度
+                        float charWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.f, prevText, prevText + charSize).x;
+
+                        // 检查鼠标位置是否在当前字符范围内
                         if (mouseX < currentWidth + charWidth * 0.5f) {
                             break;
                         }
+
                         currentWidth += charWidth;
-                        m_CursorPos++;
+                        bytePos += charSize;
+                        m_CursorPos = bytePos;
                     }
-                    m_CursorBlinkTimer = 0.0f; // 重置光标闪烁
                 }
             }
 
@@ -140,36 +172,75 @@ namespace ImGuiWidget
             ImVec2 textPos = Position + ImVec2(4, (Size.y - ImGui::GetTextLineHeight()) * 0.5f);
             drawList->AddText(textPos, m_TextColor, m_Text.c_str());
 
-            // 绘制选择区域
+            // 在Render函数中修改选择区域绘制部分
             if (m_SelectionStart != -1 && m_SelectionEnd != -1) {
                 int start = ImMin(m_SelectionStart, m_SelectionEnd);
                 int end = ImMax(m_SelectionStart, m_SelectionEnd);
 
                 ImVec2 selectionStartPos = textPos;
-                for (int i = 0; i < start; ++i) {
-                    char c = m_Text[i];
-                    selectionStartPos.x += ImGui::CalcTextSize(&c, &c + 1).x;
+                ImVec2 selectionEndPos = textPos;
+                const char* text = m_Text.c_str();
+                int bytePos = 0;
+
+                // 计算选择开始位置
+                while (bytePos < start && *text) {
+                    unsigned int c = 0;
+                    const char* prevText = text;
+                    text += ImTextCharFromUtf8(&c, text, nullptr);
+                    int charSize = static_cast<int>(text - prevText);
+
+                    if (bytePos + charSize > start) break;
+
+                    float charWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.f, prevText, prevText + charSize).x;
+                    selectionStartPos.x += charWidth;
+                    selectionEndPos.x += charWidth;
+                    bytePos += charSize;
                 }
 
-                ImVec2 selectionEndPos = selectionStartPos;
-                for (int i = start; i < end; ++i) {
-                    char c = m_Text[i];
-                    selectionEndPos.x += ImGui::CalcTextSize(&c, &c + 1).x;
+                // 计算选择结束位置
+                while (bytePos < end && *text) {
+                    unsigned int c = 0;
+                    const char* prevText = text;
+                    text += ImTextCharFromUtf8(&c, text, nullptr);
+                    int charSize = static_cast<int>(text - prevText);
+
+                    if (bytePos + charSize > end) break;
+
+                    float charWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.f, prevText, prevText + charSize).x;
+                    selectionEndPos.x += charWidth;
+                    bytePos += charSize;
                 }
 
                 drawList->AddRectFilled(
                     ImVec2(selectionStartPos.x, Position.y + 2),
                     ImVec2(selectionEndPos.x, Position.y + Size.y - 2),
-                    IM_COL32(100, 150, 250, 100) // 半透明蓝色
+                    IM_COL32(100, 150, 250, 100)
                 );
             }
 
             // 绘制光标（聚焦且闪烁可见时）
             if (m_IsFocused && (static_cast<int>(m_CursorBlinkTimer / CURSOR_BLINK_RATE) % 2 == 0)) {
                 ImVec2 cursorStart = textPos;
-                for (int i = 0; i < m_CursorPos; ++i) {
-                    char c = m_Text[i];
-                    cursorStart.x += ImGui::CalcTextSize(&c, &c + 1).x;
+                const char* text = m_Text.c_str();
+                int byteCount = 0;
+
+                // 遍历每个字符直到光标位置
+                while (byteCount < m_CursorPos && *text) 
+                {
+                    unsigned int c = 0;
+                    const char* prevText = text;
+                    text += ImTextCharFromUtf8(&c, text, nullptr);
+                    int charSize = static_cast<int>(text - prevText);
+
+                    // 确保不超过光标位置
+                    if (byteCount + charSize > m_CursorPos) break;
+
+                    // 计算字符宽度
+                    //float fontsize = ImGui::GetFontSize(); 
+                    //float charWidth = ImGui::CalcTextSize(prevText, prevText + charSize).x - (charSize > 1 ? fontsize/20.f : fontsize/36.f);
+                    float charWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.f, prevText, prevText + charSize).x;
+                    cursorStart.x += charWidth;
+                    byteCount += charSize;
                 }
 
                 drawList->AddLine(
@@ -263,24 +334,27 @@ namespace ImGuiWidget
                 }
             }
 
-            // 退格键
+            // 替换原有的退格键处理
             if (ImGui::IsKeyPressed(ImGuiKey_Backspace)) {
                 if (m_SelectionStart != -1 && m_SelectionEnd != -1) {
                     DeleteSelection();
                 }
                 else if (m_CursorPos > 0) {
-                    m_Text.erase(m_CursorPos - 1, 1);
-                    m_CursorPos--;
+                    // 获取前一个字符的起始位置
+                    int prevCharPos = Utf8PrevChar(m_CursorPos);
+                    m_Text.erase(prevCharPos, m_CursorPos - prevCharPos);
+                    m_CursorPos = prevCharPos;
                 }
             }
 
-            // 删除键
+            // 替换原有的删除键处理
             if (ImGui::IsKeyPressed(ImGuiKey_Delete)) {
                 if (m_SelectionStart != -1 && m_SelectionEnd != -1) {
                     DeleteSelection();
                 }
                 else if (m_CursorPos < static_cast<int>(m_Text.size())) {
-                    m_Text.erase(m_CursorPos, 1);
+                    int nextCharPos = Utf8NextChar(m_CursorPos);
+                    m_Text.erase(m_CursorPos, nextCharPos - m_CursorPos);
                 }
             }
 
@@ -315,16 +389,18 @@ namespace ImGuiWidget
                     DeleteSelection();
                 }
 
-                // 插入字符
+                // 插入字符 - 支持UTF-8编码
                 if (c == '\t') {
                     // Tab替换为4个空格
                     m_Text.insert(m_CursorPos, 4, ' ');
                     m_CursorPos += 4;
                 }
                 else {
-                    // 普通可打印字符
-                    m_Text.insert(m_CursorPos, 1, static_cast<char>(c));
-                    m_CursorPos++;
+                    // 处理UTF-8字符（最多4字节）
+                    char utf8_char[5] = { 0 };
+                    ImTextCharToUtf8(utf8_char, c);
+                    m_Text.insert(m_CursorPos, utf8_char);
+                    m_CursorPos += static_cast<int>(strlen(utf8_char));
                 }
             }
 
@@ -361,12 +437,47 @@ namespace ImGuiWidget
             CheckTextChanged(); // 通知文本变化
         }
 
-        void MoveCursor(int direction) {
+        // 获取下一个字符的字节位置
+        int Utf8NextChar(int currentPos) const 
+        {
+            if (currentPos >= static_cast<int>(m_Text.size()))
+                return currentPos;
+
+            const char* str = m_Text.c_str() + currentPos;
+            unsigned int c;
+            int charLen = ImTextCharFromUtf8(&c, str, str + 4);
+            return currentPos + (charLen > 0 ? charLen : 1);
+        }
+
+        // 获取上一个字符的字节位置
+        int Utf8PrevChar(int currentPos) const 
+        {
+            if (currentPos <= 0)
+                return 0;
+
+            const char* start = m_Text.c_str();
+            const char* pos = start + currentPos;
+
+            // 回溯直到找到字符起始字节
+            while (pos > start) {
+                pos--;
+                // UTF-8起始字节特征：最高位为0（ASCII）或最高两位为11（多字节）
+                if ((*pos & 0xC0) != 0x80) // 不是连续字节
+                    return static_cast<int>(pos - start);
+            }
+            return 0;
+        }
+
+        // 修改MoveCursor函数
+        void MoveCursor(int direction) 
+        {
             if (direction < 0 && m_CursorPos > 0) {
-                m_CursorPos--;
+                // 向左移动一个字符
+                m_CursorPos = Utf8PrevChar(m_CursorPos);
             }
             else if (direction > 0 && m_CursorPos < static_cast<int>(m_Text.size())) {
-                m_CursorPos++;
+                // 向右移动一个字符
+                m_CursorPos = Utf8NextChar(m_CursorPos);
             }
             m_CursorBlinkTimer = 0.0f; // 重置光标闪烁
         }

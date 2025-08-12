@@ -14,6 +14,8 @@
 #include "FileUtil.h"
 #include "ImCreator_PageManager.h"
 #include "ImCreator_Projectconfig.h"
+
+#include "CHFONT.h"
 class MyApp
 {
 public:
@@ -331,10 +333,13 @@ public:
 };
 
 MyApp* app;
+
 int ImInit()
 {
     app = new MyApp;
     app->Init();
+
+    
     return 1;
 }
 

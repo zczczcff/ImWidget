@@ -141,6 +141,7 @@ set(LIB_SOURCES
     ImWidget/ImWidgetFactory.cpp
     
     # 应用框架
+    Application/CHFONT.cpp
     Application/ImPiApplication.cpp
     Application/ImWin64Application.cpp
     

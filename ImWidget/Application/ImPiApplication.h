@@ -15,7 +15,6 @@ public:
 
     bool Initialize();
     void Run();
-    void Render();
 
     ImTextureID LoadTextureFromFile(const char* filename, int& width, int& height);
     void ReleaseTexture(ImTextureID textureID);

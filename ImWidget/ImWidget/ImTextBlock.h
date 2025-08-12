@@ -1,7 +1,7 @@
 #pragma once
 #include "ImWidget.h"
 #include <imgui_internal.h>
-
+#include "Application/ImApplication.h"
 
 namespace ImGuiWidget
 {
@@ -21,6 +21,7 @@ namespace ImGuiWidget
 			Bottom
 		};
 	protected:
+		int TextSize = 14;
 		std::string m_Text;
         ImU32 m_TextColor;
         TextAlignment_Horizontal halign = TextAlignment_Horizontal::Center;
@@ -30,7 +31,10 @@ namespace ImGuiWidget
         {}
         virtual ImVec2 GetMinSize() 
         { 
-            return ImVec2(ImGui::CalcTextSize(m_Text.c_str()).x, 16.f);//需根据字体计算，待修改
+			ImGui::PushFont(ImApplication::GetFont(TextSize));
+			ImVec2 MinSize = ImVec2(ImGui::CalcTextSize(m_Text.c_str()).x, TextSize);
+			ImGui::PopFont();
+			return MinSize;
         }
 		void SetText(const std::string& Text)
 		{
@@ -42,6 +46,7 @@ namespace ImGuiWidget
         }
 		virtual void Render() 
 		{
+			ImGui::PushFont(ImApplication::GetFont(TextSize));
             ImGuiContext& g = *GImGui;
             ImGuiWindow* window = g.CurrentWindow;
             // 计算文本尺寸（不换行）
@@ -76,6 +81,8 @@ namespace ImGuiWidget
 
             // 绘制文本（不限制绘制区域）
             window->DrawList->AddText(textPos, m_TextColor, m_Text.c_str());
+
+			ImGui::PopFont();
 		}
 
         void SetHorizontalAlignment(TextAlignment_Horizontal NewSetting)
@@ -100,7 +107,14 @@ namespace ImGuiWidget
                 [this](void* val) { this->SetText(*static_cast<std::string*>(val)); },
                 [this]() { return static_cast<void*>(&this->m_Text); }
                 });
-
+			props.insert
+			({
+				"TextFontSize",
+				PropertyType::Int,
+				"Content",
+				[this](void* v) { this->TextSize = *static_cast<int*>(v); },
+				[this]() -> void* { return &this->TextSize; }
+				});
             // 文本颜色
             props.insert({
                 "TextColor",
