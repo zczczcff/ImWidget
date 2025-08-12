@@ -102,7 +102,11 @@ namespace ImGuiWidget
         float m_DragStartSplitterPos = 0.0f;
         std::vector<ImRect> m_PartRects;  // 缓存部分区域
         std::vector<ImRect> m_BarRects;    // 缓存分隔条区域
-
+    protected:
+        virtual ImSlot* CreateSlot(ImWidget* Content)override
+        {
+            return new ImVerticalSplitterSlot(Content);
+        }
     public:
         ImVerticalSplitter(const std::string& WidgetName)
             : ImPanelWidget(WidgetName)
@@ -388,6 +392,11 @@ namespace ImGuiWidget
         }
 
     public:
+        virtual ImSlot* AddChild(ImWidget* child, ImVec2 RelativePosition = ImVec2(FLT_MIN, FLT_MIN))
+        {
+            return AddChildInternal<ImVerticalSplitterSlot>(child);
+        }
+
         virtual void Render() override
         {
             ImGuiWindow* window = ImGui::GetCurrentWindow();

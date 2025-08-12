@@ -118,14 +118,7 @@ public:
         
         m_CenterPageManager = new ImCreatorUIPageManager;
 
-        m_CenterPageManager->SetOnWidgetSelected([this](ImGuiWidget::ImWidget* selectedwidget)
-            {
-                if (selectedwidget)
-                {
-                    m_DetailList->SetCurrentWidget(selectedwidget);
-                }
-            });
-        m_CenterPageManager->SetOnWidgetDragedOn([this](ImGuiWidget::ImWidget*) {m_WidgetTreeView->Refresh(); });
+
 
         //m_CenterPageManager = new ImWindows::ImPageManager("CenterPageManager",ImWindows::TabDockPosition::Top);
         //m_CenterPageManager->AddPage("test", m_DesiginPanel);
@@ -297,9 +290,20 @@ public:
                 });
         }
 
+        m_CenterPageManager->SetOnWidgetSelected([this](ImGuiWidget::ImWidget* selectedwidget)
+            {
+                if (selectedwidget)
+                {
+                    m_WidgetTreeView->SetSelectedWidget(selectedwidget);
+                    m_DetailList->SetCurrentWidget(selectedwidget);
+                }
+            });
+        m_CenterPageManager->SetOnWidgetDragedOn([this](ImGuiWidget::ImWidget*) {m_WidgetTreeView->Refresh(); });
+
         m_WidgetTreeView->SetOnSelectionChanged([this](ImGuiWidget::ImWidget* SelectedWidget) 
             {
                 m_CenterPageManager->GetCurrentMainPanel()->SetSelectedWidget(SelectedWidget);
+                m_DetailList->SetCurrentWidget(SelectedWidget);
             });
 
         m_WidgetTreeView->SetOnWidgetDeleted([this](ImGuiWidget::ImWidget* DeletedWidget) 
