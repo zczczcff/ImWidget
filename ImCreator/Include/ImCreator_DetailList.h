@@ -34,7 +34,7 @@ public:
 		auto it = AllFileVerticalBoxes.find(FileName);
 		if (it != AllFileVerticalBoxes.end())
 		{
-			SetRootWidget(it->second);
+			SetRootWidget(it->second, false);
 			m_CurrentActiveRoot = it->second;
 		}
 	}

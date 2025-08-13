@@ -287,6 +287,7 @@ public:
             FileChooseButton->SetOnPressed([FileName,FullFileName,this]()
                 {
                     if (!m_CenterPageManager->AddEditedPage(FileName,FullFileName))return;
+                    m_CenterPageManager->SetActivePage(FileName);
                     m_DetailList->CreateNewFileDetail(FileName);
                     m_DetailList->SetActiveFileDetail(FileName);
                     m_WidgetTreeView->CreateNewTreeView(FileName, m_CenterPageManager->GetMainPanelByName(FileName));
@@ -316,6 +317,12 @@ public:
                 {
                     m_DetailList->SetCurrentWidget(nullptr);
                 }
+            });
+
+        m_CenterPageManager->SetOnPageSwitched([this](const std::string& Title) 
+            {
+                m_WidgetTreeView->SetActiveTreeView(Title);
+                m_DetailList->SetActiveFileDetail(Title);
             });
 
     }

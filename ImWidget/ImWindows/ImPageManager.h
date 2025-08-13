@@ -251,6 +251,7 @@ namespace ImWindows
 
         // 页面关闭回调函数
         std::function<void(const std::string&)> m_OnPageClosed;
+        std::function<void(const std::string&)> OnActivePageChanged;
 
     public:
         ImPageManager(const std::string& name, TabDockPosition dockPosition = TabDockPosition::Top)
@@ -300,13 +301,23 @@ namespace ImWindows
             SetupButtonStyle(newPage.tabButton);
 
             // 设置按钮回调
-            newPage.tabButton->SetOnPressed([this, index = m_Pages.size()]() {
-                SetActivePage(index);
+            newPage.tabButton->SetOnPressed([this, title]() 
+            {
+                if(OnActivePageChanged)
+                {
+                    OnActivePageChanged(title);
+                }
+                SetActivePage(title);
             });
 
             // 设置关闭回调
-            newPage.tabItem->SetOnClose([this, title]() {
-                ClosePage(title);
+            newPage.tabItem->SetOnClose([this, title]() 
+                {
+                    if (m_OnPageClosed)
+                    {
+                        m_OnPageClosed(title);
+                    }
+                    ClosePage(title);
                 });
 
             // 添加到选项卡栏
@@ -380,11 +391,6 @@ namespace ImWindows
                 {
                     int index = std::distance(m_Pages.begin(), it);
 
-                    // 触发回调
-                    if (m_OnPageClosed)
-                    {
-                        m_OnPageClosed(title);
-                    }
 
                     // 从选项卡栏移除
                     if (auto hbox = dynamic_cast<ImGuiWidget::ImHorizontalBox*>(m_TabBar))
@@ -397,8 +403,8 @@ namespace ImWindows
                     }
 
                     // 删除资源
-                    delete it->tabButton;
-                    delete it->tabItem;
+                    //delete it->tabButton;
+                    //delete it->tabItem;
 
                     // 从列表中移除
                     m_Pages.erase(it);
@@ -409,7 +415,12 @@ namespace ImWindows
                         m_ActivePageIndex = -1;
                         if (!m_Pages.empty())
                         {
-                            SetActivePage(index >= (int)m_Pages.size() ? m_Pages.size() - 1 : index);
+                            int newindex = index >= (int)m_Pages.size() ? m_Pages.size() - 1 : index;
+                            SetActivePage(newindex);
+                            if (OnActivePageChanged)
+                            {
+                                OnActivePageChanged(m_Pages[newindex].title);
+                            }
                         }
                     }
                     else if (index < m_ActivePageIndex)
@@ -435,6 +446,21 @@ namespace ImWindows
                 UpdateButtonStyle(m_Pages[i].tabButton, i == index);
             }
         }
+
+        void SetActivePage(const std::string& Title)
+        {
+            int i = 0;
+            for (auto& page : m_Pages)
+            {
+                if (page.title == Title)
+                {
+                    SetActivePage(i);
+                    return;
+                }
+                i++;
+            }
+        }
+
 
         void SetActivePageByContent(ImWidget* content)
         {
@@ -463,6 +489,8 @@ namespace ImWindows
         {
             m_OnPageClosed = callback;
         }
+
+        void SetOnActivePageChanged(std::function<void(const std::string&)> callback) { OnActivePageChanged = callback; }
 
         // 设置选项卡栏厚度
         void SetTabBarThickness(float thickness) { m_TabBarThickness = thickness; }

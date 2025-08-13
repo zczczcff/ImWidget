@@ -13,11 +13,25 @@ private:
 	std::map<std::string, DesiginPanel*> AllUIDesiginPages;
 	std::function<void(ImWidget*)> OnWidgetSelected;
 	std::function<void(ImWidget*)> OnDragWidgetOn;
+	std::function<void(const std::string&)> OnPageSwitched;
+	void HandleClosePage(const std::string& Title)
+	{
+		auto it = AllUIDesiginPages.find(Title);
+		if (it != AllUIDesiginPages.end())
+		{
+			delete it->second;
+			AllUIDesiginPages.erase(it);
+		}
+	}
 public:
 	ImCreatorUIPageManager():ImGuiWidget::ImUserWidget("ImCreatorUIPageManager")
 	{
 		m_RootPageManager = new ImWindows::ImPageManager("ImCreatorUIPageManager_RootPageManager");
 		SetRootWidget(m_RootPageManager);
+		m_RootPageManager->SetOnPageClosed([this](const std::string& Title) 
+			{
+				HandleClosePage(Title);
+			});
 	}
 
 	bool AddEditedPage(const std::string& FileName,const std::string& FilePath)
@@ -135,8 +149,16 @@ public:
 		}
 		return nullptr;
 	}
+
+	void SetActivePage(const std::string& Title)
+	{
+		m_RootPageManager->SetActivePage(Title);
+	}
+
 	void SetOnWidgetDragedOn(std::function<void(ImWidget*)> callback)
 	{
 		OnDragWidgetOn = callback;
 	}
+
+	void SetOnPageSwitched(std::function<void(const std::string&)> callback) { m_RootPageManager->SetOnActivePageChanged(callback); }
 };
