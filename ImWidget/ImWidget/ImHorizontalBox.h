@@ -160,8 +160,8 @@ namespace ImGuiWidget
 
         virtual ImVec2 GetMinSize() override
         {
-            float minWidth = 30.f;
-            float minHeight = 10.f;
+            float minWidth = 0.f;
+            float minHeight = 0.f;
             for (int i = 0; i < GetSlotNum(); i++)
             {
                 ImHorizontalBoxSlot* slot = static_cast<ImHorizontalBoxSlot*>(GetSlotAt(i));
@@ -175,7 +175,7 @@ namespace ImGuiWidget
                     minHeight = ImMax(minHeight, slotHeight);
                 }
             }
-            return ImVec2(minWidth, minHeight);
+            return ImVec2(ImMax(minWidth,10.f), ImMax(minHeight,10.f));
         }
         virtual std::string GetRegisterTypeName()override { return "ImHorizontalBox"; }
 

@@ -355,6 +355,22 @@ public:
 			auto it = view->WidgetToHeaderButton.find(widget);
 			it->second->GetNormalStyle().BackgroundColor = HIGHLIGHT_COLOR;
 			view->SelectedHeaderButton = it->second;
+
+			ImGuiWidget::ImButton* HeaderButton = view->WidgetToHeaderButton.find(widget)->second;
+			ImWidget* CurrentNode = HeaderButton;
+			while (CurrentNode != view->TreeViewRoot)
+			{
+				if (ImGuiWidget::ImButton* NextHeadButton = dynamic_cast<ImGuiWidget::ImButton*>(CurrentNode))
+				{
+					HeaderButton = NextHeadButton;
+				}
+				if (ImGuiWidget::ImExpandableBox* expandablebox = dynamic_cast<ImGuiWidget::ImExpandableBox*>(CurrentNode))
+				{
+					expandablebox->SetExpandedState(true);
+					view->m_ExpandedNode.insert(view->HeaderButtonToWidget.find(HeaderButton)->second);
+				}
+				CurrentNode = CurrentNode->GetParents();
+			}
 		}
 	}
 
