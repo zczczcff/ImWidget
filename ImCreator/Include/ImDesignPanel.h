@@ -113,6 +113,11 @@ protected:
 			NewWidget = new ImGuiWidget::ImSlider("ImSlider");
 			break;
 		}
+		case WidgetType::ImSimpleFigure:
+		{
+			NewWidget = new ImGuiWidget::ImSimpleFigure("ImSimpleFigure");
+			break;
+		}
 		default:
 			break;
 		}

@@ -57,6 +57,7 @@ public:
     ExampleWidget* m_Example_ScrollingTextList;
     ExampleWidget* m_Example_Slider;
     ExampleWidget* m_Example_TextBlock;
+    ExampleWidget* m_Example_SimpleFigure;
     
     ExampleWidget* m_Example_ImCanvasPanel;
     ExampleWidget* m_Example_HorizontalBox;
@@ -140,6 +141,7 @@ public:
         m_Example_ScrollingTextList = new ExampleWidget("Example_ScrollingTextList", "ScrollingTextList ", WidgetType::ImScrollingTextList);
         m_Example_Slider = new ExampleWidget("Example_Slider ", "Slider", WidgetType::ImSlider);
         m_Example_TextBlock = new ExampleWidget("Example_TextBlock", "TextBlock", WidgetType::ImTextBlock);
+        m_Example_SimpleFigure = new ExampleWidget("Example_SimpleFigure", "SimpleFigure", WidgetType::ImSimpleFigure);
 
         m_Example_ImCanvasPanel = new ExampleWidget("Example_CanvasPanel", "CanvasPanel", WidgetType::ImCanvasPanel);
         m_Example_HorizontalBox = new ExampleWidget("Example_HorizontalBox", "HorizontalBox", WidgetType::ImHorizontalBox);
@@ -161,7 +163,8 @@ public:
         m_WidgetList->AddChildToVerticalBox(m_Example_ScrollingTextList)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_Slider)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_TextBlock)->SetIfAutoSize(false);
-        
+        m_WidgetList->AddChildToVerticalBox(m_Example_SimpleFigure)->SetIfAutoSize(false);
+
         m_WidgetList->AddChildToVerticalBox(m_Example_ImCanvasPanel)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_HorizontalBox)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_HorizontalSplitter)->SetIfAutoSize(false);

@@ -26,7 +26,8 @@ enum class WidgetType
 	ImSlider,
 	ImTextBlock,
 	ImVerticalBox,
-	ImVerticalSplitter
+	ImVerticalSplitter,
+	ImSimpleFigure
 };
 
 

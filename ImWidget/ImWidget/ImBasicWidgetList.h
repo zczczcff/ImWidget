@@ -19,3 +19,4 @@
 #include "ImTextBlock.h"
 #include "ImVerticalBox.h"
 #include "ImVerticalSplitter.h"
+#include "ImSimpleFigure.h"

@@ -24,10 +24,13 @@ void ImGuiWidget::ImWidgetFactory::Initialize()
     RegisterType<ImExpandableBox>("ImExpandableBox");
     RegisterType<ImImage>("ImImage");
     RegisterType<ImInputText>("ImInputText");
+    RegisterType<ImIntInput>("ImIntInput");
+    RegisterType<ImFloatInput>("ImFloatInput");
     RegisterType<ImMultiLineTextBlock>("ImMultiLineTextBlock");
     RegisterType<ImResizableBox>("ImResizableBox");
     RegisterType<ImScrollBox>("ImScrollBox");
     RegisterType<ImScrollingTextList>("ImScrollingTextList");
     RegisterType<ImSlider>("ImSlider");
     RegisterType<ImTextBlock>("ImTextBlock");
+    RegisterType<ImSimpleFigure>("ImSimpleFigure");
 }

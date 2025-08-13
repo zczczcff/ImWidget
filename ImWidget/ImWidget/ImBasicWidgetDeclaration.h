@@ -23,4 +23,5 @@ namespace ImGuiWidget
 	class ImTextBlock;
 	class ImVerticalBox;
 	class ImVerticalSplitter;
+	class ImSimpleFigure;
 }
