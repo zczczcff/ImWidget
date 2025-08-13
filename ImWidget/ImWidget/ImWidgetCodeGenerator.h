@@ -331,7 +331,7 @@ namespace ImGuiWidget
 
         // 创建头文件和源文件路径
         std::string headerPath = headerdir + widgetName + ".h";
-        std::string sourcePath = cppdir + widgetName + ".cpp";
+        std::string sourcePath = cppdir + widgetName + "_Init.cpp";
 
         // 收集所有控件（包括子控件）
         std::vector<ImWidget*> allWidgets;
