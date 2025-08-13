@@ -26,6 +26,7 @@ namespace ImGuiWidget
 		bool m_IsDragTarget = false;
 		bool bDragFinishedLastTick = false;
 		//允许拖拽动作
+		bool bAllowButtonBehavior = false;
 		bool bAllowDrag = false;//允许被拖拽
 		bool bAllowDragOn = false;//允许拖拽放置此处
 		ImDragHandle* m_CurrentDragHandle = nullptr;
@@ -115,6 +116,11 @@ namespace ImGuiWidget
 			bAllowDragOn = NewSetting;
 		}
 
+		void SetAllowButtonBehavior(bool NewSetting)
+		{
+			bAllowButtonBehavior = NewSetting;
+		}
+
 		// ================ 新增样式设置方法 ================ //
 		// 背景设置
 		void SetBackgroundEnabled(bool enable) { m_EnableBackground = enable; }
@@ -136,43 +142,46 @@ namespace ImGuiWidget
 		//处理交互
 		virtual void HandleInteraction()
 		{
-			ImGuiWindow* window = ImGui::GetCurrentWindow();
-			const ImGuiID id = window->GetID(m_WidgetID.c_str());
-			const ImRect bb(Position, Position + Size);
+			if (bAllowButtonBehavior)
+			{
+				ImGuiWindow* window = ImGui::GetCurrentWindow();
+				const ImGuiID id = window->GetID(m_WidgetID.c_str());
+				const ImRect bb(Position, Position + Size);
 
-			// 添加控件到交互系统
-			if (!ImGui::ItemAdd(bb, id)) return;
+				// 添加控件到交互系统
+				if (!ImGui::ItemAdd(bb, id)) return;
 
-			bool hovered = false, held = false;
-			bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, m_ButtonFlag);
-			// ================ 新增事件检测 ================ //
-			// 悬停状态变化检测
-			if (hovered && !m_WasHovered) {
-				if (OnHovered) OnHovered();
-			}
-			if (!hovered && m_WasHovered) {
-				if (OnUnhovered) OnUnhovered();
-			}
-			m_WasHovered = hovered;
+				bool hovered = false, held = false;
+				bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, m_ButtonFlag);
+				// ================ 新增事件检测 ================ //
+				// 悬停状态变化检测
+				if (hovered && !m_WasHovered) {
+					if (OnHovered) OnHovered();
+				}
+				if (!hovered && m_WasHovered) {
+					if (OnUnhovered) OnUnhovered();
+				}
+				m_WasHovered = hovered;
 
-			// 点击状态变化检测
-			if (held && !m_LastFrameHeld) {
-				if (OnPressed) OnPressed();
-			}
-			if (!held && m_LastFrameHeld) {
-				if (OnReleased) OnReleased();
-			}
-			m_LastFrameHeld = held;
+				// 点击状态变化检测
+				if (held && !m_LastFrameHeld) {
+					if (OnPressed) OnPressed();
+				}
+				if (!held && m_LastFrameHeld) {
+					if (OnReleased) OnReleased();
+				}
+				m_LastFrameHeld = held;
 
-			// 焦点状态变化检测
-			bool isFocused = ImGui::IsItemFocused();
-			if (isFocused && !m_HadFocus) {
-				if (OnFocusReceived) OnFocusReceived();
+				// 焦点状态变化检测
+				bool isFocused = ImGui::IsItemFocused();
+				if (isFocused && !m_HadFocus) {
+					if (OnFocusReceived) OnFocusReceived();
+				}
+				if (!isFocused && m_HadFocus) {
+					if (OnFocusLost) OnFocusLost();
+				}
+				m_HadFocus = isFocused;
 			}
-			if (!isFocused && m_HadFocus) {
-				if (OnFocusLost) OnFocusLost();
-			}
-			m_HadFocus = isFocused;
 			// ================ 事件检测结束 ================ //
 
 			if (bAllowDrag || bAllowDragOn)
@@ -309,7 +318,6 @@ namespace ImGuiWidget
 			{
 				m_RootWidget->Render();
 			}
-
 			// ================ 新增边框绘制 ================ //
 			if (m_EnableBorder && m_BorderThickness > 0.0f)
 			{
