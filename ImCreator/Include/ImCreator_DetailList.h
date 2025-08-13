@@ -260,6 +260,26 @@ public:
 		}
 		case ImGuiWidget::PropertyType::Enum:
 		{
+			ImGuiWidget::ImHorizontalBox* StructBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_StructBox");
+			ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
+			PropertyName->SetText(SingleProperty.name);
+			ImGuiWidget::ImComboBox* Options = new ImGuiWidget::ImComboBox(m_WidgetID + "_ComboBox");
+
+			std::vector<std::string> AllOptionsCopy = *(std::vector<std::string>*)SingleProperty.getter();
+			std::string SelectedOption = AllOptionsCopy.back();
+			AllOptionsCopy.pop_back();
+			Options->SetItems(AllOptionsCopy);
+			Options->SetSelectedItem(SelectedOption);
+			
+			Options->SetOnSelectionChanged([SingleProperty, AllOptionsCopy](int NewIndex) 
+				{
+					std::string OptionSelect = AllOptionsCopy[NewIndex];
+					SingleProperty.setter(&OptionSelect);
+				});
+			StructBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
+			StructBox->AddChildToHorizontalBox(Options)->SetIfAutoSize(true);
+			CurrentVerticalBox->AddChildToVerticalBox(StructBox)->SetIfAutoSize(false);
+			break;
 			break;
 		}
 		default:

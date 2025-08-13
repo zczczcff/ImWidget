@@ -17,11 +17,11 @@ namespace ImGuiWidget
     protected:
         FigureType m_Type = FigureType::SQUARE; // 当前图形类型
         float m_SizeRatio = 0.8f;               // 尺寸系数 (0.0~1.0)
-        ImU32 m_FillColor = IM_COL32(255, 255, 255, 255); // 填充颜色
+        ImU32 m_FillColor = IM_COL32(180, 180, 180, 255); // 填充颜色
         bool m_HasBorder = false;               // 是否显示边框
         ImU32 m_BorderColor = IM_COL32(0, 0, 0, 255); // 边框颜色
         float m_BorderThickness = 1.0f;          // 边框粗细
-
+        
     public:
         ImSimpleFigure(const std::string& WidgetName) : ImWidget(WidgetName) {}
 
@@ -56,6 +56,7 @@ namespace ImGuiWidget
             }
         }
 
+        virtual ImVec2 GetMinSize() { return ImVec2(1.f, 1.f); }
     protected:
         // 渲染等边三角形
         void RenderTriangle(ImGuiWindow* window, const ImVec2& center, float radius)

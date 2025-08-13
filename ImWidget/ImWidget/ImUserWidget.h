@@ -26,7 +26,6 @@ namespace ImGuiWidget
 		bool m_IsDragTarget = false;
 		bool bDragFinishedLastTick = false;
 		//允许拖拽动作
-		bool bAllowButtonBehavior = false;
 		bool bAllowDrag = false;//允许被拖拽
 		bool bAllowDragOn = false;//允许拖拽放置此处
 		ImDragHandle* m_CurrentDragHandle = nullptr;
@@ -116,10 +115,6 @@ namespace ImGuiWidget
 			bAllowDragOn = NewSetting;
 		}
 
-		void SetAllowButtonBehavior(bool NewSetting)
-		{
-			bAllowButtonBehavior = NewSetting;
-		}
 
 		// ================ 新增样式设置方法 ================ //
 		// 背景设置
@@ -142,7 +137,8 @@ namespace ImGuiWidget
 		//处理交互
 		virtual void HandleInteraction()
 		{
-			if (bAllowButtonBehavior)
+
+			if (bAllowDrag || bAllowDragOn)
 			{
 				ImGuiWindow* window = ImGui::GetCurrentWindow();
 				const ImGuiID id = window->GetID(m_WidgetID.c_str());
@@ -181,11 +177,6 @@ namespace ImGuiWidget
 					if (OnFocusLost) OnFocusLost();
 				}
 				m_HadFocus = isFocused;
-			}
-			// ================ 事件检测结束 ================ //
-
-			if (bAllowDrag || bAllowDragOn)
-			{
 				if (bAllowDrag)
 				{
 					// ================= 拖拽源处理 ================= //

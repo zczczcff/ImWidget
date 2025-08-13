@@ -106,6 +106,20 @@ namespace ImGuiWidget
                 m_SelectedIndex = index;
         }
 
+        void SetSelectedItem(const std::string& SelectedItem)
+        {
+            int i = 0;
+            for (auto& item : m_Items)
+            {
+                if (item == SelectedItem)
+                {
+                    m_SelectedIndex = i;
+                    return;
+                }
+                i++;
+            }
+        }
+
         // 获取当前选中项
         int GetSelectedIndex() const { return m_SelectedIndex; }
 
