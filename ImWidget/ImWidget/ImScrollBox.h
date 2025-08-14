@@ -332,7 +332,7 @@ namespace ImGuiWidget
 
         virtual void HandleChildSizeDirty() override
         {
-            SetLayoutDirty(); // 内容尺寸变化需要重新布局
+            MarkLayoutDirty(); // 内容尺寸变化需要重新布局
         }
 
     public:

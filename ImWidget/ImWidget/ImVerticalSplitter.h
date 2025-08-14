@@ -4,7 +4,7 @@
 
 namespace ImGuiWidget
 {
-    struct ImSplitterStyle : public PropertyStruct {
+    struct ImVerticalSplitterStyle : public PropertyStruct {
         float BarHeight = 4.0f;
         ImU32 Color = IM_COL32(100, 100, 100, 255);
         ImU32 HoveredColor = IM_COL32(120, 120, 120, 255);
@@ -96,7 +96,7 @@ namespace ImGuiWidget
     class ImVerticalSplitter : public ImPanelWidget
     {
     private:
-        ImSplitterStyle m_Style;
+        ImVerticalSplitterStyle m_Style;
         int m_DraggingIndex = -1;
         float m_DragStartPos = 0.0f;
         float m_DragStartSplitterPos = 0.0f;
@@ -113,7 +113,7 @@ namespace ImGuiWidget
         {
         }
 
-        void SetSplitterStyle(const ImSplitterStyle& style) {
+        void SetSplitterStyle(const ImVerticalSplitterStyle& style) {
             m_Style = style;
         }
 
@@ -132,7 +132,7 @@ namespace ImGuiWidget
             if (ImSlot* slot = GetSlotAt(index)) {
                 if (auto* splitterSlot = dynamic_cast<ImVerticalSplitterSlot*>(slot)) {
                     splitterSlot->MinSize = minSize;
-                    SetLayoutDirty();  // 标记需要重新布局
+                    MarkLayoutDirty();  // 标记需要重新布局
                 }
             }
         }
@@ -323,7 +323,7 @@ namespace ImGuiWidget
                             topSlot->Ratio = totalRatio * newTopHeight / (newTopHeight + newBottomHeight);
                             bottomSlot->Ratio = totalRatio - topSlot->Ratio;
 
-                            SetLayoutDirty(); // 标记需要重新布局
+                            MarkLayoutDirty(); // 标记需要重新布局
                         }
                     }
                 }
@@ -436,7 +436,7 @@ namespace ImGuiWidget
             ImSlot* newSlot = InsertChildAt(insertIndex, Child);
             if (!newSlot) return nullptr;
             // 标记需要重新布局
-            SetLayoutDirty();
+            MarkLayoutDirty();
 
             return newSlot;
         }
@@ -471,13 +471,13 @@ namespace ImGuiWidget
                 "SplitterStyle",
                 PropertyType::Struct,
                 "Appearance",
-                [this](void* val) { this->m_Style = *static_cast<ImSplitterStyle*>(val); },
+                [this](void* val) { this->m_Style = *static_cast<ImVerticalSplitterStyle*>(val); },
                 [this]() { return static_cast<void*>(&this->m_Style); }
                 });
 
             return props;
         }
 
-        virtual std::string GetRegisterTypeName()override { return "ImHorizontalSplitter"; }
+        virtual std::string GetRegisterTypeName()override { return "ImVerticalSplitter"; }
     };
 }

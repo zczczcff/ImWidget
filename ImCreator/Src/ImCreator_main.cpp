@@ -59,6 +59,7 @@ public:
     ExampleWidget* m_Example_TextBlock;
     ExampleWidget* m_Example_SimpleFigure;
     
+    ExampleWidget* m_Example_Border;
     ExampleWidget* m_Example_ImCanvasPanel;
     ExampleWidget* m_Example_HorizontalBox;
     ExampleWidget* m_Example_HorizontalSplitter;
@@ -94,37 +95,10 @@ public:
         m_WidgetList_WidgetTreeSplitter->AddPart(m_WidgetListScrollBox);
         m_WidgetList_WidgetTreeSplitter->AddPart(m_WidgetTreeView);
         
-        //m_DesiginPanel = new DesiginPanel("CenterPanel");
-       // m_DetailList= new ImGuiWidget::ImVerticalBox("DetailList");
         m_DetailList = new DetailList("DetailList");
-
-
-        //m_DesiginPanel->SetOnSelected([this](ImGuiWidget::ImWidget* selectedwidget) 
-        //    {
-        //        if (selectedwidget)
-        //        {
-        //            m_DetailList->SetCurrentWidget(selectedwidget);
-        //        }
-        //    });
-        //m_DesiginPanel->SetOnDragWidgetOn([this](ImGuiWidget::ImWidget* NewWidget) 
-        //    {
-        //        if (!m_WidgetTreeView->GetTargetWidget())
-        //        {
-        //            m_WidgetTreeView->SetTargetWidget(NewWidget);
-        //        }
-        //        else
-        //        {
-        //            m_WidgetTreeView->Refresh();
-        //        }
-        //    });
         
         m_CenterPageManager = new ImCreatorUIPageManager;
 
-
-
-        //m_CenterPageManager = new ImWindows::ImPageManager("CenterPageManager",ImWindows::TabDockPosition::Top);
-        //m_CenterPageManager->AddPage("test", m_DesiginPanel);
-        //m_CenterPageManager->SetTabBarThickness(20.f);
 
         m_MiddleSplitter->AddPart(m_WidgetList_WidgetTreeSplitter);
         m_MiddleSplitter->AddPart(m_CenterPageManager)->Ratio = 5.0f;
@@ -143,6 +117,7 @@ public:
         m_Example_TextBlock = new ExampleWidget("Example_TextBlock", "TextBlock", WidgetType::ImTextBlock);
         m_Example_SimpleFigure = new ExampleWidget("Example_SimpleFigure", "SimpleFigure", WidgetType::ImSimpleFigure);
 
+        m_Example_Border = new ExampleWidget("Example_Border", "Border", WidgetType::ImBorder);
         m_Example_ImCanvasPanel = new ExampleWidget("Example_CanvasPanel", "CanvasPanel", WidgetType::ImCanvasPanel);
         m_Example_HorizontalBox = new ExampleWidget("Example_HorizontalBox", "HorizontalBox", WidgetType::ImHorizontalBox);
         m_Example_HorizontalSplitter = new ExampleWidget("Example_HorizontalSplitter", "HorizontalSplitter", WidgetType::ImHorizontalSplitter);
@@ -165,6 +140,7 @@ public:
         m_WidgetList->AddChildToVerticalBox(m_Example_TextBlock)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_SimpleFigure)->SetIfAutoSize(false);
 
+        m_WidgetList->AddChildToVerticalBox(m_Example_Border)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_ImCanvasPanel)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_HorizontalBox)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_HorizontalSplitter)->SetIfAutoSize(false);
@@ -196,32 +172,10 @@ public:
         m_MenuButton_Project->GetHoveredStyle().BackgroundColor = IM_COL32(230, 200, 170, 120);
         m_MenuButton_Project->GetPressedStyle().BackgroundColor = IM_COL32(250, 220, 190, 120);
         m_MenuButton_Project->SetTooltipText("Project");
-        //m_MenuButton_Project_History = new ImWindows::ImMenuButton("MenuButton_Project_History");
-        //m_MenuButton_Project_History->SetDockDirection(ImWindows::MenuDockDirection::Dock_Right);
-        //m_MenuButton_Project_History1 = new ImWindows::ImMenuButton("MenuButton_Project_History1");
-        //m_MenuButton_Project_History1->SetDockDirection(ImWindows::MenuDockDirection::Dock_Right);
         ImGuiWidget::ImTextBlock* Button_Project_Text = new ImGuiWidget::ImTextBlock("Button_Project_Text");
         Button_Project_Text->SetText("Project");
         
         m_MenuButton_Project->SetContent(Button_Project_Text);
-        //ImGuiWidget::ImButton* m_MenuButton_Project;
-        //auto properties = m_MenuButton_Project->GetProperties();
-        //for (auto& SingleProperty : properties)
-        //{
-        //    if (SingleProperty.name == "TooltipText")
-        //    {
-        //        //设置TooltipText
-        //        std::string Temp_TooltipText = "Test";
-        //        SingleProperty.setter(&Temp_TooltipText);
-        //    }
-        //    else if (SingleProperty.name == "NormalStyle")
-        //    {
-        //        //此处递归展开生成代码
-        //    }
-        //}
-        
-        //ImGuiWidget::LoadWidgetFromFile(m_MenuButton_Project, "test.imui");
-        
         
         ImWindows::ImMenuButton* Button_NewUI = new ImWindows::ImMenuButton("Button_NewUI");
         ImGuiWidget::ImTextBlock* NewUI_MenuText = new ImGuiWidget::ImTextBlock("NewUI_MenuText");

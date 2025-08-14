@@ -33,4 +33,5 @@ void ImGuiWidget::ImWidgetFactory::Initialize()
     RegisterType<ImSlider>("ImSlider");
     RegisterType<ImTextBlock>("ImTextBlock");
     RegisterType<ImSimpleFigure>("ImSimpleFigure");
+    RegisterType<ImBorder>("ImBorder");
 }

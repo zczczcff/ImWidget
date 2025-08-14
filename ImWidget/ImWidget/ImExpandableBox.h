@@ -173,7 +173,7 @@ namespace ImGuiWidget
 				{
 					bIsExpanded = false;
 					MarkSizeDirty();
-					SetLayoutDirty();
+					MarkLayoutDirty();
 					if (OnExpandedStateChanged)
 					{
 						OnExpandedStateChanged(bIsExpanded);
@@ -191,7 +191,7 @@ namespace ImGuiWidget
 				{
 					bIsExpanded = true;
 					MarkSizeDirty();
-					SetLayoutDirty();
+					MarkLayoutDirty();
 					if (OnExpandedStateChanged)
 					{
 						OnExpandedStateChanged(bIsExpanded);
@@ -238,7 +238,7 @@ namespace ImGuiWidget
 		{
 			bIsExpanded = newstate; 
 			MarkSizeDirty();
-			SetLayoutDirty();
+			MarkLayoutDirty();
 			if (OnExpandedStateChanged)
 			{
 				OnExpandedStateChanged(bIsExpanded);

@@ -30,7 +30,7 @@ namespace ImGuiWidget
 			}
 		}
 		
-		void SetLayoutDirty()
+		void MarkLayoutDirty()
 		{
 			bLayOutDirty = true;
 		}
@@ -53,15 +53,15 @@ namespace ImGuiWidget
 		{
 			SlotType* newslot = new SlotType(child);
 			m_Slots.push_back(newslot);
-			SetLayoutDirty();
+			MarkLayoutDirty();
 			child->SetParents(this);
 			return newslot;
 		}
-		void SetChildAt(int index, ImWidget* child)
+		void SetChildAt(int index, ImWidget* child,bool DeleteOld = true)
 		{
 			if (m_Slots.size() > index)
 			{
-				if (m_Slots[index])
+				if (m_Slots[index] && DeleteOld)
 				{
 					delete m_Slots[index]->GetContent();
 				}
@@ -76,7 +76,7 @@ namespace ImGuiWidget
 				}
 				m_Slots.push_back(CreateSlot(child));
 			}
-			SetLayoutDirty();
+			MarkLayoutDirty();
 			child->SetParents(this);
 		}
 		// 插入子控件到指定位置
@@ -87,13 +87,13 @@ namespace ImGuiWidget
 			}
 			ImSlot* newSlot = CreateSlot(child);
 			m_Slots.insert(m_Slots.begin() + index, newSlot);
-			SetLayoutDirty();
+			MarkLayoutDirty();
 			child->SetParents(this);
 			return newSlot;
 		}
 		virtual void HandleChildSizeDirty() 
 		{
-			SetLayoutDirty();
+			MarkLayoutDirty();
 		}
 	public:
 		ImPanelWidget(const std::string& WidgetName)
@@ -146,7 +146,7 @@ namespace ImGuiWidget
 				}
 				delete m_Slots[index]; // 删除slot对象
 				m_Slots.erase(m_Slots.begin() + index);
-				SetLayoutDirty();
+				MarkLayoutDirty();
 			}
 		}
 
@@ -162,7 +162,7 @@ namespace ImGuiWidget
 			{
 				delete* it; // 删除slot对象
 				m_Slots.erase(it);
-				SetLayoutDirty();
+				MarkLayoutDirty();
 				delete child;
 				return true;
 			}
@@ -181,7 +181,7 @@ namespace ImGuiWidget
 				ImWidget* child = m_Slots[index]->GetContent();
 				delete m_Slots[index]; // 删除slot对象
 				m_Slots.erase(m_Slots.begin() + index);
-				SetLayoutDirty();
+				MarkLayoutDirty();
 				return child;
 			}
 			return nullptr;
@@ -305,13 +305,13 @@ namespace ImGuiWidget
 		virtual void SetPosition(ImVec2 Pos)override
 		{
 			Position = Pos;
-			SetLayoutDirty();
+			MarkLayoutDirty();
 		}
 
 		virtual void SetSize(ImVec2 size)override
 		{
 			Size = size;
-			SetLayoutDirty();
+			MarkLayoutDirty();
 		}
 
 		virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override

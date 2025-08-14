@@ -193,111 +193,14 @@ private:
 
 	virtual void OnDragOn(ImGuiWidget::ImDragHandle* OriginalHandle)override
 	{
-		static int count = 0;
+
 		ImVec2 MousePos = ImGui::GetMousePos();
 		ExampleWidgetDragHandle* Target_ExampleWidgetDragHandle = dynamic_cast<ExampleWidgetDragHandle*>(OriginalHandle);
 		if (!Target_ExampleWidgetDragHandle) return;
 		FileStruct* CurrentView = GetActiveFileStruct();
 		if (!CurrentView) return;
 
-		ImGuiWidget::ImWidget* NewWidget = nullptr;
-
-		switch (Target_ExampleWidgetDragHandle->widgettype)
-		{
-		case WidgetType::ImButton:
-		{
-			NewWidget = new ImGuiWidget::ImButton("Button_" + std::to_string(count));
-			break;
-		}
-		case WidgetType::ImTextBlock:
-		{
-			NewWidget = new ImGuiWidget::ImTextBlock("TextBlock_" + std::to_string(count));
-			break;
-		}
-		case WidgetType::ImCheckBox:
-		{
-			NewWidget = new ImGuiWidget::ImCheckBox("ImCheckBox");
-			break;
-		}
-		case WidgetType::ImImage:
-		{
-			NewWidget = new ImGuiWidget::ImImage("Image_" + std::to_string(count));
-			break;
-		}
-		case WidgetType::ImCanvasPanel:
-		{
-			NewWidget = new ImGuiWidget::ImCanvasPanel("CanvasPanel_" + std::to_string(count));
-			break;
-		}
-		case WidgetType::ImHorizontalBox:
-		{
-			NewWidget = new ImGuiWidget::ImHorizontalBox("HorizontalBox_" + std::to_string(count));
-			break;
-		}
-		case WidgetType::ImVerticalBox:
-		{
-			NewWidget = new ImGuiWidget::ImVerticalBox("VerticalBox_" + std::to_string(count));
-			break;
-		}
-		case WidgetType::ImComboBox:
-		{
-			NewWidget = new ImGuiWidget::ImComboBox("ComboBox_" + std::to_string(count));
-			break;
-		}
-		case WidgetType::ImVerticalSplitter:
-		{
-			NewWidget = new ImGuiWidget::ImVerticalSplitter("VerticalSplitter");
-			break;
-		}
-		case WidgetType::ImHorizontalSplitter:
-		{
-			NewWidget = new ImGuiWidget::ImHorizontalSplitter("ImHorizontalSplitter");
-			break;
-		}
-		case WidgetType::ImExpandableBox:
-		{
-			NewWidget = new ImGuiWidget::ImExpandableBox("ImExpandableBox");
-			break;
-		}
-		case WidgetType::ImInputText:
-		{
-			NewWidget = new ImGuiWidget::ImInputText("ImInputText");
-			break;
-		}
-		case WidgetType::ImIntInput:
-		{
-			NewWidget = new ImGuiWidget::ImIntInput("ImIntInput");
-			break;
-		}
-		case WidgetType::ImFloatInput:
-		{
-			NewWidget = new ImGuiWidget::ImFloatInput("ImFloatInput");
-			break;
-		}
-		case WidgetType::ImMultiLineTextBlock:
-		{
-			NewWidget = new ImGuiWidget::ImMultiLineTextBlock("ImMultiLineTextBlock");
-			break;
-		}
-		case WidgetType::ImScrollBox:
-		{
-			NewWidget = new ImGuiWidget::ImScrollBox("ImScrollBox");
-			break;
-		}
-		case WidgetType::ImScrollingTextList:
-		{
-			NewWidget = new ImGuiWidget::ImScrollingTextList("ImScrollingTextList");
-			break;
-		}
-		case WidgetType::ImSlider:
-		{
-			NewWidget = new ImGuiWidget::ImSlider("ImSlider");
-			break;
-		}
-		default:
-			break;
-		}
-		count++;
+		ImGuiWidget::ImWidget* NewWidget = CreateNewWidget(Target_ExampleWidgetDragHandle->widgettype);
 		if (NewWidget)
 		{
 			auto widget = CurrentView->TreeViewRoot->ChildHitTest(MousePos);
