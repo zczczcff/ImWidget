@@ -21,7 +21,7 @@ namespace ImGuiWidget
         bool m_HasBorder = false;               // ÊÇ·ñÏÔÊ¾±ß¿ò
         ImU32 m_BorderColor = IM_COL32(0, 0, 0, 255); // ±ß¿òÑÕÉ«
         float m_BorderThickness = 1.0f;          // ±ß¿ò´ÖÏ¸
-        
+        float m_MinSize = 10.f;
     public:
         ImSimpleFigure(const std::string& WidgetName) : ImWidget(WidgetName) {}
 
@@ -56,7 +56,12 @@ namespace ImGuiWidget
             }
         }
 
-        virtual ImVec2 GetMinSize() { return ImVec2(1.f, 1.f); }
+        virtual ImVec2 GetMinSize() { return ImVec2(m_MinSize, m_MinSize); }
+
+        void SetFillColor(ImU32 NewColor)
+        {
+            m_FillColor = NewColor;
+        }
     protected:
         // äÖÈ¾µÈ±ßÈý½ÇÐÎ
         void RenderTriangle(ImGuiWindow* window, const ImVec2& center, float radius)
@@ -153,6 +158,13 @@ namespace ImGuiWidget
                 [this]() -> void* { return &this->m_SizeRatio; }
                 });
 
+            props.insert({
+                "MinSize", PropertyType::Float, "Appearance",
+                [this](void* v) {
+                    this->m_MinSize = *static_cast<float*>(v);
+                },
+                [this]() -> void* { return &this->m_MinSize; }
+                });
             // Ìî³äÑÕÉ«
             props.insert({
                 "FillColor", PropertyType::Color, "Colors",
