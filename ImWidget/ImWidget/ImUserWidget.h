@@ -41,6 +41,7 @@ namespace ImGuiWidget
 		virtual void OnDragOn(ImDragHandle* OriginalHandle) {}
 		virtual void OnDragComplete() {}
 		virtual void OnDragCancel() {}
+		virtual void Tick(){}
 		void HandleDragFinish()
 		{
 			delete m_CurrentDragHandle;
@@ -321,6 +322,7 @@ namespace ImGuiWidget
 					m_BorderThickness
 				);
 			}
+			Tick();
 		}
 
 		void SetRootWidget(ImWidget* RootWidget,bool DeleteOldRoot=true)
