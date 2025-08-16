@@ -31,6 +31,11 @@ namespace ImGuiWidget
         float m_CursorBlinkTimer = 0.0f;
         const float CURSOR_BLINK_RATE = 0.5f; // 闪烁频率
 
+        int m_VisibleStart = 0;     // 可见区域的起始字符索引
+        int m_VisibleEnd = 0;       // 可见区域的结束字符索引
+        int m_TotalChars = 0;       // 文本总字符数
+        float m_VisibleWidth = 0.0f; // 可见区域的宽度（像素）
+
         std::function<void(const std::string&)> OnTextChanged;
 	protected:
 		// 获取UTF-8字符串中的字符数量
@@ -57,17 +62,124 @@ namespace ImGuiWidget
 			}
 			return bytePos;
 		}
+
+        // 计算可见区域
+        void UpdateVisibleRange() {
+            ImFont* font = ImGui::GetFont();
+            const float fontSize = ImGui::GetFontSize();
+            const float padding = 4.0f;
+            const float innerWidth = Size.x - padding * 2;
+
+            m_TotalChars = Utf8StrLen(m_Text);
+            m_VisibleWidth = innerWidth;
+
+            // 如果没有文本或宽度不足
+            if (m_TotalChars == 0 || innerWidth <= 0) {
+                m_VisibleStart = 0;
+                m_VisibleEnd = 0;
+                return;
+            }
+
+            // 确保光标在可见区域内
+            int cursorCharIndex = ByteIndexToCharIndex(m_CursorPos);
+            if (cursorCharIndex < m_VisibleStart) {
+                m_VisibleStart = cursorCharIndex;
+            }
+            else if (cursorCharIndex > m_VisibleEnd) {
+                m_VisibleStart = cursorCharIndex - CalculateVisibleChars();
+            }
+            m_VisibleStart = ImClamp(m_VisibleStart, 0, m_TotalChars - 1);
+
+            // 计算可见字符结束位置
+            m_VisibleEnd = m_VisibleStart;
+            float currentWidth = 0.0f;
+            const char* textPtr = m_Text.c_str();
+            int byteStart = CharIndexToByteIndex(m_VisibleStart);
+            int charIndex = m_VisibleStart;
+
+            while (charIndex < m_TotalChars && currentWidth < innerWidth) {
+                unsigned int c;
+                const char* prevPtr = textPtr;
+                textPtr += ImTextCharFromUtf8(&c, textPtr, nullptr);
+                int charSize = static_cast<int>(textPtr - prevPtr);
+
+                float charWidth = font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, prevPtr, textPtr).x;
+
+                if (currentWidth + charWidth <= innerWidth) {
+                    currentWidth += charWidth;
+                    m_VisibleEnd = charIndex + 1;
+                    charIndex++;
+                }
+                else {
+                    break;
+                }
+            }
+        }
+
+        // 字节索引转字符索引
+        int ByteIndexToCharIndex(int byteIndex) const {
+            if (byteIndex <= 0) return 0;
+            if (byteIndex >= static_cast<int>(m_Text.size())) return m_TotalChars;
+
+            const char* text = m_Text.c_str();
+            int charIndex = 0;
+            int currentByte = 0;
+
+            while (currentByte < byteIndex && *text) {
+                unsigned int c;
+                const char* next = text + ImTextCharFromUtf8(&c, text, nullptr);
+                int charSize = static_cast<int>(next - text);
+
+                if (currentByte + charSize > byteIndex) break;
+
+                currentByte += charSize;
+                charIndex++;
+                text = next;
+            }
+
+            return charIndex;
+        }
+
+        // 字符索引转字节索引
+        int CharIndexToByteIndex(int charIndex) const {
+            if (charIndex <= 0) return 0;
+            if (charIndex >= m_TotalChars) return static_cast<int>(m_Text.size());
+
+            const char* text = m_Text.c_str();
+            int byteIndex = 0;
+            int currentChar = 0;
+
+            while (currentChar < charIndex && *text) {
+                unsigned int c;
+                const char* next = text + ImTextCharFromUtf8(&c, text, nullptr);
+                byteIndex += static_cast<int>(next - text);
+                currentChar++;
+                text = next;
+            }
+
+            return byteIndex;
+        }
+
+        // 计算可见字符数量
+        int CalculateVisibleChars() const {
+            ImFont* font = ImGui::GetFont();
+            const float fontSize = ImGui::GetFontSize();
+            const float avgCharWidth = font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, "W").x;
+            return ImMax(1, static_cast<int>(m_VisibleWidth / avgCharWidth));
+        }
 	public:
         ImInputText(const std::string& WidgetName)
             : ImWidget(WidgetName), m_PreviousText("")
         {}
 
-        virtual void SetText(const std::string& text) {
+        virtual void SetText(const std::string& text) 
+        {
             m_Text = text;
             m_PreviousText = text;
             m_CursorPos = static_cast<int>(m_Text.size());
             m_SelectionStart = -1;
             m_SelectionEnd = -1;
+            UpdateVisibleRange();
         }
 
         const std::string& GetText() const { return m_Text; }
@@ -97,7 +209,9 @@ namespace ImGuiWidget
             return ImVec2(ImMax(MinWidth, textwidth + ImGui::GetFontSize()), height);
         }
 
-        virtual void Render() override {
+        virtual void Render() override 
+        {
+            UpdateVisibleRange(); // 更新可见区域
             ImDrawList* drawList = ImGui::GetWindowDrawList();
 
             // 绘制背景和边框
@@ -169,87 +283,101 @@ namespace ImGuiWidget
                 UpdateCursorBlink();
             }
 
+            ImVec2 textPos;
             // 绘制文本
-            ImVec2 textPos = Position + ImVec2(4, (Size.y - ImGui::GetTextLineHeight()) * 0.5f);
-            drawList->AddText(textPos, m_TextColor, m_Text.c_str());
+            if (m_VisibleStart < m_TotalChars) {
+                int startByte = CharIndexToByteIndex(m_VisibleStart);
+                int endByte = CharIndexToByteIndex(m_VisibleEnd);
+                std::string visibleText = m_Text.substr(startByte, endByte - startByte);
 
-            // 在Render函数中修改选择区域绘制部分
-            if (m_SelectionStart != -1 && m_SelectionEnd != -1) {
-                int start = ImMin(m_SelectionStart, m_SelectionEnd);
-                int end = ImMax(m_SelectionStart, m_SelectionEnd);
-
-                ImVec2 selectionStartPos = textPos;
-                ImVec2 selectionEndPos = textPos;
-                const char* text = m_Text.c_str();
-                int bytePos = 0;
-
-                // 计算选择开始位置
-                while (bytePos < start && *text) {
-                    unsigned int c = 0;
-                    const char* prevText = text;
-                    text += ImTextCharFromUtf8(&c, text, nullptr);
-                    int charSize = static_cast<int>(text - prevText);
-
-                    if (bytePos + charSize > start) break;
-
-                    float charWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.f, prevText, prevText + charSize).x;
-                    selectionStartPos.x += charWidth;
-                    selectionEndPos.x += charWidth;
-                    bytePos += charSize;
-                }
-
-                // 计算选择结束位置
-                while (bytePos < end && *text) {
-                    unsigned int c = 0;
-                    const char* prevText = text;
-                    text += ImTextCharFromUtf8(&c, text, nullptr);
-                    int charSize = static_cast<int>(text - prevText);
-
-                    if (bytePos + charSize > end) break;
-
-                    float charWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.f, prevText, prevText + charSize).x;
-                    selectionEndPos.x += charWidth;
-                    bytePos += charSize;
-                }
-
-                drawList->AddRectFilled(
-                    ImVec2(selectionStartPos.x, Position.y + 2),
-                    ImVec2(selectionEndPos.x, Position.y + Size.y - 2),
-                    IM_COL32(100, 150, 250, 100)
-                );
+                textPos = Position + ImVec2(4, (Size.y - ImGui::GetTextLineHeight()) * 0.5f);
+                drawList->AddText(textPos, m_TextColor, visibleText.c_str());
             }
 
+            //// 在Render函数中修改选择区域绘制部分
+            //if (m_SelectionStart != -1 && m_SelectionEnd != -1) {
+            //    int start = ImMin(m_SelectionStart, m_SelectionEnd);
+            //    int end = ImMax(m_SelectionStart, m_SelectionEnd);
+
+            //    ImVec2 selectionStartPos = textPos;
+            //    ImVec2 selectionEndPos = textPos;
+            //    const char* text = m_Text.c_str();
+            //    int bytePos = 0;
+
+            //    // 计算选择开始位置
+            //    while (bytePos < start && *text) {
+            //        unsigned int c = 0;
+            //        const char* prevText = text;
+            //        text += ImTextCharFromUtf8(&c, text, nullptr);
+            //        int charSize = static_cast<int>(text - prevText);
+
+            //        if (bytePos + charSize > start) break;
+
+            //        float charWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.f, prevText, prevText + charSize).x;
+            //        selectionStartPos.x += charWidth;
+            //        selectionEndPos.x += charWidth;
+            //        bytePos += charSize;
+            //    }
+
+            //    // 计算选择结束位置
+            //    while (bytePos < end && *text) {
+            //        unsigned int c = 0;
+            //        const char* prevText = text;
+            //        text += ImTextCharFromUtf8(&c, text, nullptr);
+            //        int charSize = static_cast<int>(text - prevText);
+
+            //        if (bytePos + charSize > end) break;
+
+            //        float charWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.f, prevText, prevText + charSize).x;
+            //        selectionEndPos.x += charWidth;
+            //        bytePos += charSize;
+            //    }
+
+            //    drawList->AddRectFilled(
+            //        ImVec2(selectionStartPos.x, Position.y + 2),
+            //        ImVec2(selectionEndPos.x, Position.y + Size.y - 2),
+            //        IM_COL32(100, 150, 250, 100)
+            //    );
+            //}
+
             // 绘制光标（聚焦且闪烁可见时）
-            if (m_IsFocused && (static_cast<int>(m_CursorBlinkTimer / CURSOR_BLINK_RATE) % 2 == 0)) {
-                ImVec2 cursorStart = textPos;
-                const char* text = m_Text.c_str();
-                int byteCount = 0;
+            if (m_IsFocused && (static_cast<int>(m_CursorBlinkTimer / CURSOR_BLINK_RATE) % 2 == 0)) 
+            {
+                int cursorCharIndex = ByteIndexToCharIndex(m_CursorPos);
 
-                // 遍历每个字符直到光标位置
-                while (byteCount < m_CursorPos && *text) 
+                if (cursorCharIndex >= m_VisibleStart && cursorCharIndex <= m_VisibleEnd)
                 {
-                    unsigned int c = 0;
-                    const char* prevText = text;
-                    text += ImTextCharFromUtf8(&c, text, nullptr);
-                    int charSize = static_cast<int>(text - prevText);
+                    ImVec2 cursorStart = textPos;
+                    const char* text = m_Text.c_str();
+                    int byteCount = 0;
 
-                    // 确保不超过光标位置
-                    if (byteCount + charSize > m_CursorPos) break;
+                    // 遍历每个字符直到光标位置
+                    while (byteCount < m_CursorPos && *text)
+                    {
+                        unsigned int c = 0;
+                        const char* prevText = text;
+                        text += ImTextCharFromUtf8(&c, text, nullptr);
+                        int charSize = static_cast<int>(text - prevText);
 
-                    // 计算字符宽度
-                    //float fontsize = ImGui::GetFontSize(); 
-                    //float charWidth = ImGui::CalcTextSize(prevText, prevText + charSize).x - (charSize > 1 ? fontsize/20.f : fontsize/36.f);
-                    float charWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.f, prevText, prevText + charSize).x;
-                    cursorStart.x += charWidth;
-                    byteCount += charSize;
+                        // 确保不超过光标位置
+                        if (byteCount + charSize > m_CursorPos) break;
+
+                        // 计算字符宽度
+                        //float fontsize = ImGui::GetFontSize(); 
+                        //float charWidth = ImGui::CalcTextSize(prevText, prevText + charSize).x - (charSize > 1 ? fontsize/20.f : fontsize/36.f);
+                        float charWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.f, prevText, prevText + charSize).x;
+                        cursorStart.x += charWidth;
+                        byteCount += charSize;
+                    }
+
+                    drawList->AddLine(
+                        ImVec2(cursorStart.x, Position.y + 4),
+                        ImVec2(cursorStart.x, Position.y + Size.y - 4),
+                        m_TextColor,
+                        1.0f
+                    );
                 }
 
-                drawList->AddLine(
-                    ImVec2(cursorStart.x, Position.y + 4),
-                    ImVec2(cursorStart.x, Position.y + Size.y - 4),
-                    m_TextColor,
-                    1.0f
-                );
             }
         }
 
@@ -362,9 +490,11 @@ namespace ImGuiWidget
             // ==================== 3. 光标移动 ====================
             if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow)) {
                 HandleArrowKey(-1);
+                UpdateVisibleRange();
             }
             if (ImGui::IsKeyPressed(ImGuiKey_RightArrow)) {
                 HandleArrowKey(1);
+                UpdateVisibleRange();
             }
             if (ImGui::IsKeyPressed(ImGuiKey_Home)) {
                 m_CursorPos = 0;
@@ -395,6 +525,7 @@ namespace ImGuiWidget
                     // Tab替换为4个空格
                     m_Text.insert(m_CursorPos, 4, ' ');
                     m_CursorPos += 4;
+                    UpdateVisibleRange();
                 }
                 else {
                     // 处理UTF-8字符（最多4字节）
@@ -402,6 +533,7 @@ namespace ImGuiWidget
                     ImTextCharToUtf8(utf8_char, c);
                     m_Text.insert(m_CursorPos, utf8_char);
                     m_CursorPos += static_cast<int>(strlen(utf8_char));
+                    UpdateVisibleRange();
                 }
             }
 
