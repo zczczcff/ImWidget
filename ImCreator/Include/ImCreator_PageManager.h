@@ -9,8 +9,14 @@
 class ImCreatorUIPageManager :public ImGuiWidget::ImUserWidget
 {
 private:
+	struct PageInfor
+	{
+		DesiginPanel* PanelWidget;
+		std::string OutPutOffset;
+	};
+private:
 	ImWindows::ImPageManager* m_RootPageManager;
-	std::map<std::string, DesiginPanel*> AllUIDesiginPages;
+	std::map<std::string, PageInfor> AllUIDesiginPages;
 	std::function<void(ImWidget*)> OnWidgetSelected;
 	std::function<void(ImWidget*)> OnDragWidgetOn;
 	std::function<void(const std::string&)> OnPageSwitched;
@@ -19,7 +25,7 @@ private:
 		auto it = AllUIDesiginPages.find(Title);
 		if (it != AllUIDesiginPages.end())
 		{
-			delete it->second;
+			delete it->second.PanelWidget;
 			AllUIDesiginPages.erase(it);
 		}
 	}
@@ -34,12 +40,12 @@ public:
 			});
 	}
 
-	bool AddEditedPage(const std::string& FileName,const std::string& FilePath)
+	bool AddEditedPage(const std::string& FileName,const std::string& FilePath,const std::string& OutPutOffset)
 	{
 		auto it = AllUIDesiginPages.find(FileName);
 		if ( it != AllUIDesiginPages.end())
 		{
-			m_RootPageManager->SetActivePageByContent(it->second);			
+			m_RootPageManager->SetActivePageByContent(it->second.PanelWidget);			
 			return false;
 		}
 		DesiginPanel* NewDesiginPanel = new DesiginPanel(FileName + "_DesiginPanel");
@@ -56,7 +62,9 @@ public:
 				}
 			});
 		NewDesiginPanel->SetOnDragWidgetOn([this](ImGuiWidget::ImWidget* NewWidget) {OnDragWidgetOn(NewWidget); });
-		AllUIDesiginPages.insert(std::make_pair(FileName, NewDesiginPanel));
+
+		PageInfor NewPage = { NewDesiginPanel ,OutPutOffset };
+		AllUIDesiginPages.insert(std::make_pair(FileName, NewPage));
 		m_RootPageManager->AddPage(FileName, NewDesiginPanel);
 		return true;
 	}
@@ -77,7 +85,9 @@ public:
 				}
 			});
 		NewDesiginPanel->SetOnDragWidgetOn([this](ImGuiWidget::ImWidget* NewWidget) {OnDragWidgetOn(NewWidget); });
-		AllUIDesiginPages.insert(std::make_pair(file, NewDesiginPanel));
+
+		PageInfor NewPage = { NewDesiginPanel ,""};
+		AllUIDesiginPages.insert(std::make_pair(file, NewPage));
 		m_RootPageManager->AddPage(file, NewDesiginPanel);
 		return false;
 	}
@@ -88,17 +98,27 @@ public:
 		if (ActiveDesiginPanel)
 		{
 			std::string FileName;
+			PageInfor CurrentInfor;
 			for (auto& e : AllUIDesiginPages)
 			{
-				if (e.second == ActiveDesiginPanel)
+				if (e.second.PanelWidget == ActiveDesiginPanel)
 				{
 					FileName = e.first;
+					CurrentInfor = e.second;
 				}
 			}
 			if (FileName.empty())return false;
 			ImGuiWidget::ImWidget* ActiveRootWidget = ((DesiginPanel*)ActiveDesiginPanel)->GetRootContent();
-
-			ImGuiWidget::SaveWidgetTreeToFile(ActiveRootWidget, OutPutFolder + FileName + ".imui");
+			std::string OutPutPath = OutPutFolder;
+			if (!CurrentInfor.OutPutOffset.empty())
+			{
+				OutPutPath.append("/");
+				OutPutPath.append(CurrentInfor.OutPutOffset);
+				OutPutPath.append("/");
+			}
+			OutPutPath.append(FileName);
+			OutPutPath.append(".imui");
+			ImGuiWidget::SaveWidgetTreeToFile(ActiveRootWidget, OutPutPath);
 		}
 		return true;
 	}
@@ -109,17 +129,34 @@ public:
 		if (ActiveDesiginPanel)
 		{
 			std::string FileName;
+			PageInfor CurrentInfor;
 			for (auto& e : AllUIDesiginPages)
 			{
-				if (e.second == ActiveDesiginPanel)
+				if (e.second.PanelWidget == ActiveDesiginPanel)
 				{
 					FileName = e.first;
+					CurrentInfor = e.second;
 				}
 			}
 			if (FileName.empty())return false;
 			ImGuiWidget::ImWidget* ActiveRootWidget = ((DesiginPanel*)ActiveDesiginPanel)->GetRootContent();
 
-			ImGuiWidget::ExportUserWidgetToFiles(ActiveRootWidget, FileName, CppoutputDirectory, HeaderoutputDirectory);
+			std::string CppOutPutDir = CppoutputDirectory;
+			std::string HeaderOutPutDir = HeaderoutputDirectory;
+			if (!CurrentInfor.OutPutOffset.empty())
+			{
+				CppOutPutDir.append("/");
+				CppOutPutDir.append(CurrentInfor.OutPutOffset);
+				HeaderOutPutDir.append("/");
+				HeaderOutPutDir.append(CurrentInfor.OutPutOffset);
+
+			}
+			if (!FileUtil::createDirectory(CppOutPutDir) || !FileUtil::createDirectory(HeaderOutPutDir))
+			{
+				return false;
+			}
+
+			return ImGuiWidget::ExportUserWidgetToFiles(ActiveRootWidget, FileName, CppOutPutDir, HeaderOutPutDir);
 		}
 		return true;
 	}
@@ -145,7 +182,7 @@ public:
 		auto it = AllUIDesiginPages.find(Name);
 		if (it != AllUIDesiginPages.end())
 		{
-			return it->second->GetMainPanel();
+			return it->second.PanelWidget->GetMainPanel();
 		}
 		return nullptr;
 	}

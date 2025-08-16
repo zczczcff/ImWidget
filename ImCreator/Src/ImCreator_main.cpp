@@ -228,19 +228,22 @@ public:
         m_MainBox->AddChildToVerticalBox(m_VSplitter);
 
 
-        auto AllUiFilesPath = FileUtil::getFilesWithExtension(m_Config.UIFolder, ".imui");
+        auto AllUiFilesPath = FileUtil::getFilesWithExtension(m_Config.UIFolder, ".imui", true);
+
 
         for (auto& FullFileName : AllUiFilesPath)
         {
+            std::string RelativePath = FileUtil::getRelativePath(m_Config.UIFolder, FileUtil::getParentDirectory(FullFileName));
+
             std::string FileName = FileUtil::getPureFileName(FullFileName);
             ImWindows::ImMenuButton* FileChooseButton = new ImWindows::ImMenuButton("FileChooseButton");
             ImGuiWidget::ImTextBlock* FileChooseButtonText = new ImGuiWidget::ImTextBlock("FileChooseButtonText");
             FileChooseButtonText->SetText(FileName);
             FileChooseButton->SetContent(FileChooseButtonText);
             m_MenuButton_Project->AddMenuOption(FileChooseButton);
-            FileChooseButton->SetOnPressed([FileName,FullFileName,this]()
+            FileChooseButton->SetOnPressed([FileName,FullFileName, RelativePath,this]()
                 {
-                    if (!m_CenterPageManager->AddEditedPage(FileName,FullFileName))return;
+                    if (!m_CenterPageManager->AddEditedPage(FileName,FullFileName,RelativePath))return;
                     m_CenterPageManager->SetActivePage(FileName);
                     m_DetailList->CreateNewFileDetail(FileName);
                     m_DetailList->SetActiveFileDetail(FileName);

@@ -15,11 +15,12 @@
 class FileUtil 
 {
 public:
-    // 获取文件夹下指定后缀名的文件（不区分大小写）
+    // 获取文件夹下指定后缀名的文件（不区分大小写，可选择递归）
     static std::vector<std::string> getFilesWithExtension(
         const std::string& folder_path,
-        const std::string& extension
-    ) 
+        const std::string& extension,
+        bool recursive = false  // 新增递归参数，默认不递归
+    )
     {
         std::vector<std::string> result;
 
@@ -29,19 +30,35 @@ public:
             return result;
         }
 
-        // 统一后缀名格式（确保以 '.' 开头）
+        // 统一后缀名格式
         std::string normalized_ext = normalizeExtension(extension);
 
-        // 遍历目录中的所有文件
-        for (const auto &entry : fs::directory_iterator(dir))
-        {
-            // 修改点：使用统一的文件状态检查方式
-            if (fs::is_regular_file(entry.status()))
+        // 根据递归参数选择迭代器类型
+        if (recursive) {
+            // 递归遍历所有子目录
+            for (const auto& entry : fs::recursive_directory_iterator(dir))
             {
-                const std::string ext = entry.path().extension().string();
-                if (caseInsensitiveCompare(normalized_ext, ext))
+                if (fs::is_regular_file(entry.status()))
                 {
-                    result.push_back(entry.path().string());
+                    const std::string ext = entry.path().extension().string();
+                    if (caseInsensitiveCompare(normalized_ext, ext))
+                    {
+                        result.push_back(entry.path().string());
+                    }
+                }
+            }
+        }
+        else {
+            // 非递归只遍历当前目录
+            for (const auto& entry : fs::directory_iterator(dir))
+            {
+                if (fs::is_regular_file(entry.status()))
+                {
+                    const std::string ext = entry.path().extension().string();
+                    if (caseInsensitiveCompare(normalized_ext, ext))
+                    {
+                        result.push_back(entry.path().string());
+                    }
                 }
             }
         }
@@ -49,10 +66,72 @@ public:
         return result;
     }
 
+    // 创建目录（如果不存在）
+    static bool createDirectory(const std::string& folder_path)
+    {
+        fs::path dir(folder_path);
+
+        // 如果路径已存在且是目录，直接返回成功
+        if (fs::exists(dir) && fs::is_directory(dir)) {
+            return true;
+        }
+
+        // 尝试创建目录（包括所有必要的父目录）
+        std::error_code ec; // 使用错误码避免异常
+        bool success = fs::create_directories(dir, ec);
+
+        // 返回创建结果（成功或失败）
+        return success && !ec;
+    }
+
     static std::string getFileNameWithExtension(const std::string& file_path) 
     {
         return fs::path(file_path).filename().string();
     }
+
+    // 新增函数：获取路径B相对于路径A的相对路径（跨平台）
+    static std::string getRelativePath(
+        const std::string& folderA,
+        const std::string& folderB
+    )
+    {
+        fs::path base(folderA);
+        fs::path target(folderB);
+
+        // 规范化路径（处理点号/双点号）
+        base = base.lexically_normal();
+        target = target.lexically_normal();
+
+        // 检查是否在同一个根路径下
+        if (base.root_path() != target.root_path()) {
+            return target.string(); // 不同根路径时返回绝对路径
+        }
+
+        // 计算相对路径
+        fs::path relative = target.lexically_relative(base);
+
+        // 处理相同路径的特殊情况
+        if (relative.empty()) {
+            return "."; // 表示当前目录
+        }
+
+        return relative.string();
+    }
+
+    //获取输入文件路径的所在文件夹路径
+    static std::string getParentDirectory(const std::string& file_path)
+    {
+        fs::path p(file_path);
+
+        // 处理根目录的特殊情况
+        if (p.has_parent_path()) {
+            return p.parent_path().string();
+        }
+
+        // 当路径为根目录时返回空字符串
+        return "";
+    }
+
 
     // 获取纯净文件名（不含路径和后缀）
     // 示例："/home/user/document.txt" -> "document"
