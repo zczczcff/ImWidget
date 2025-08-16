@@ -84,16 +84,17 @@ namespace ImGuiWidget
 
         virtual ImVec2 GetMinSize() override {
             ImFont* font = ImGui::GetFont();
-            float width = font->CalcTextSizeA(
+            float MinWidth = font->CalcTextSizeA(
                 ImGui::GetFontSize(),
                 FLT_MAX,
                 0.0f,
                 "W" // 使用单个字符估算宽度
             ).x * 10; // 默认10个字符宽度
 
+            float textwidth = font->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, 0.0f, m_Text.c_str()).x;
             float height = ImGui::GetTextLineHeight() + 8; // 上下留空
 
-            return ImVec2(width, height);
+            return ImVec2(ImMax(MinWidth, textwidth + ImGui::GetFontSize()), height);
         }
 
         virtual void Render() override {
