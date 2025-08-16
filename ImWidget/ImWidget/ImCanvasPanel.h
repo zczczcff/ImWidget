@@ -46,8 +46,9 @@ namespace ImGuiWidget
 			{
 				if (auto slot = (ImCanvasPanelSlot*)GetSlotAt(i))
 				{
-					slot->SetSlotPosition(Position + slot->RelativePosition);
-					slot->SetSlotSize(slot->SlotSize);
+
+					slot->SetSlotPosition(Position + (slot->RelativePosition)*Size);
+					slot->SetSlotSize(slot->SlotSize*Size);
 					slot->ApplyLayout();
 				}
 			}
@@ -65,7 +66,8 @@ namespace ImGuiWidget
 		virtual ImSlot* AddChild(ImWidget* Child, ImVec2 RelativePosition = ImVec2(FLT_MIN, FLT_MIN))override
 		{
 			ImCanvasPanelSlot* slot = AddChildToCanvasPanel(Child);
-			slot->RelativePosition = RelativePosition == ImVec2(FLT_MIN, FLT_MIN) ? ImVec2(0.f, 0.f) : RelativePosition;
+			slot->RelativePosition = RelativePosition == ImVec2(FLT_MIN, FLT_MIN) ? ImVec2(0.f, 0.f) : RelativePosition / Size;
+			slot->SlotSize = ImVec2(0.1f, 0.1f);
 			return  slot;
 		}
 		virtual ImVec2 GetMinSize()override
