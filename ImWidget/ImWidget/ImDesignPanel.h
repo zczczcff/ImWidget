@@ -155,8 +155,7 @@ namespace ImGuiWidget
                     slot->ApplyLayout(); // 应用布局
                 }
             }
-            // 通过基类方法渲染子控件
-            RenderChild();
+
             // 渲染选中控件效果
             if (m_SelectedWidget)
             {
@@ -166,6 +165,18 @@ namespace ImGuiWidget
                     m_ResizableBox->SetPosition(m_SelectedWidget->GetPosition());
                     m_ResizableBox->SetSize(m_SelectedWidget->GetSize());
                     m_ResizableBox->Render();
+                }
+            }
+
+            // 通过基类方法渲染子控件
+            RenderChild();
+
+            // 处理左键点击
+            if (m_SelectedWidget)
+            {
+                if (m_ResizableBox)
+                {
+                    m_ResizableBox->DrawController();
                 }
                 else
                 {
@@ -181,7 +192,7 @@ namespace ImGuiWidget
                     );
                 }
             }
-            // 处理左键点击
+
 
 			if (!bJumpMouseClidkTestThisTick && !bIsInResize && is_mouse_clicked)
 			{

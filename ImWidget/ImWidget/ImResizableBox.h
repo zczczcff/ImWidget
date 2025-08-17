@@ -15,6 +15,14 @@ namespace ImGuiWidget
     class ImResizableBox : public ImPanelWidget
     {
     private:
+
+        // 定义8个控制点（4个角点 + 4个边中点）+ 中心点
+        enum ControlPoint {
+            TopLeft, TopCenter, TopRight,
+            MidRight, BottomRight, BottomCenter,
+            BottomLeft, MidLeft, Center, COUNT
+        };
+    private:
         ImVec2 min_size = ImVec2(10.f, 10.f);
 
         // 存储拖动状态
@@ -31,6 +39,7 @@ namespace ImGuiWidget
         ImU32 m_BoxBorderColor = IM_COL32(0, 0, 0, 255);
         float m_BoxBorderThickness = 1.0f;
 
+        ImVec2 points[ControlPoint::COUNT];
     public:
         // 回调函数
         std::function<void(ImVec2, ImVec2)> OnResizing;  // 拖动过程中回调
@@ -104,15 +113,7 @@ namespace ImGuiWidget
             ImVec2 rectMin = Position;
             ImVec2 rectMax = Position + Size;
 
-            // 绘制矩形边框
-            window->DrawList->AddRect(
-                rectMin,
-                rectMax,
-                m_BoxBorderColor,
-                0.0f,
-                0,
-                m_BoxBorderThickness
-            );
+
 
             // 通过基类API渲染子控件
             RenderChild();
@@ -120,14 +121,8 @@ namespace ImGuiWidget
             bool changed = false;
             const ImVec2 rect_size = Size;
 
-            // 定义8个控制点（4个角点 + 4个边中点）+ 中心点
-            enum ControlPoint {
-                TopLeft, TopCenter, TopRight,
-                MidRight, BottomRight, BottomCenter,
-                BottomLeft, MidLeft, Center, COUNT
-            };
 
-            ImVec2 points[ControlPoint::COUNT];
+            
             points[TopLeft] = rectMin;
             points[TopCenter] = ImVec2(rectMin.x + rect_size.x * 0.5f, rectMin.y);
             points[TopRight] = ImVec2(rectMax.x, rectMin.y);
@@ -285,6 +280,22 @@ namespace ImGuiWidget
                 }
                 dragging_point_index = -1;
             }
+        }
+
+        void DrawController()
+        {
+            ImGuiContext& g = *ImGui::GetCurrentContext();
+            ImGuiWindow* window = g.CurrentWindow;
+
+            // 绘制矩形边框
+            window->DrawList->AddRect(
+                points[ControlPoint::TopLeft],
+                points[ControlPoint::BottomRight],
+                m_BoxBorderColor,
+                0.0f,
+                0,
+                m_BoxBorderThickness
+            );
 
             // 绘制控制点
             for (int i = 0; i < ControlPoint::COUNT; ++i) {
