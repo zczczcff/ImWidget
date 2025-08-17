@@ -120,27 +120,26 @@ namespace ImGuiWidget
             const bool is_right_clicked = ImGui::IsMouseClicked(ImGuiMouseButton_Right);
             const bool is_right_down = ImGui::IsMouseDown(ImGuiMouseButton_Right);
 
-            // 处理右键拖动面板
-            if (is_right_clicked)
-            {
-                const ImRect panel_rect(Position, Position + Size);
-                if (panel_rect.Contains(mouse_pos))
-                {
-                    m_IsDraggingPanel = true;
-                    m_DragStartMousePos = mouse_pos;
-                    m_DragStartPanelPos = Position;
-                }
-            }
-
-            if (m_IsDraggingPanel && is_right_down)
-            {
-                const ImVec2 delta = mouse_pos - m_DragStartMousePos;
-                Position = m_DragStartPanelPos + delta;
-            }
-            else
-            {
-                m_IsDraggingPanel = false;
-            }
+            //// 处理右键拖动面板
+            //if (is_right_clicked)
+            //{
+            //    const ImRect panel_rect(Position, Position + Size);
+            //    if (panel_rect.Contains(mouse_pos))
+            //    {
+            //        m_IsDraggingPanel = true;
+            //        m_DragStartMousePos = mouse_pos;
+            //        m_DragStartPanelPos = Position;
+            //    }
+            //}
+            //if (m_IsDraggingPanel && is_right_down)
+            //{
+            //    const ImVec2 delta = mouse_pos - m_DragStartMousePos;
+            //    Position = m_DragStartPanelPos + delta;
+            //}
+            //else
+            //{
+            //    m_IsDraggingPanel = false;
+            //}
 
             // 渲染背景
             RenderBackGround();
@@ -220,6 +219,25 @@ namespace ImGuiWidget
 			}
             bJumpMouseClidkTestThisTick = false;
 
+            if (m_ResizableBox)
+            {
+                if (ImGui::IsKeyPressed(ImGuiKey_LeftArrow))
+                {
+                    m_ResizableBox->OuterReSize(m_ResizableBox->GetPosition() + ImVec2(-1.f, 0.f), m_ResizableBox->GetSize());
+                }
+                if (ImGui::IsKeyPressed(ImGuiKey_RightArrow))
+                {
+                    m_ResizableBox->OuterReSize(m_ResizableBox->GetPosition() + ImVec2(1.f, 0.f), m_ResizableBox->GetSize());
+                }
+                if (ImGui::IsKeyPressed(ImGuiKey_UpArrow))
+                {
+                    m_ResizableBox->OuterReSize(m_ResizableBox->GetPosition() + ImVec2(0.f, -1.f), m_ResizableBox->GetSize());
+                }
+                if (ImGui::IsKeyPressed(ImGuiKey_DownArrow))
+                {
+                    m_ResizableBox->OuterReSize(m_ResizableBox->GetPosition() + ImVec2(0.f, 1.f), m_ResizableBox->GetSize());
+                }
+            }
 
           
         }

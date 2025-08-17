@@ -308,6 +308,17 @@ namespace ImGuiWidget
             }
         }
 
+        //外部重设位置
+        void OuterReSize(ImVec2 Pos, ImVec2 size,bool bTriggleCallBack=true)
+        {
+            Position = Pos;
+            Size = size;
+            if (bTriggleCallBack&&OnResizing)
+            {
+                OnResizing(Pos, size);
+            }
+        }
+
         virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
         {
             auto baseProps = ImPanelWidget::GetProperties();
