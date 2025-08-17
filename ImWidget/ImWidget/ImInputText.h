@@ -251,10 +251,11 @@ namespace ImGuiWidget
                     float mouseX = io.MousePos.x - textPos.x;
 
                     m_CursorPos = 0;
-                    const char* text = m_Text.c_str();
+                    //const char* text = m_Text.c_str();
                     float currentWidth = 0.0f;
-                    int bytePos = 0;
-
+                    //int bytePos = 0;
+                    int bytePos = CharIndexToByteIndex(m_VisibleStart);
+                    const char* text = m_Text.c_str() + bytePos;
                     // 按字符遍历计算位置
                     while (*text) {
                         unsigned int c = 0;
@@ -365,10 +366,15 @@ namespace ImGuiWidget
                         // 计算字符宽度
                         //float fontsize = ImGui::GetFontSize(); 
                         //float charWidth = ImGui::CalcTextSize(prevText, prevText + charSize).x - (charSize > 1 ? fontsize/20.f : fontsize/36.f);
-                        float charWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.f, prevText, prevText + charSize).x;
-                        cursorStart.x += charWidth;
+                        //
+
+
                         byteCount += charSize;
                     }
+                    int textstartbyte = CharIndexToByteIndex(m_VisibleStart);
+                    float charWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.f, m_Text.c_str() + textstartbyte, text).x;
+                    cursorStart.x += charWidth;
+
 
                     drawList->AddLine(
                         ImVec2(cursorStart.x, Position.y + 4),
