@@ -63,7 +63,6 @@ namespace ImGuiWidget
 			return bytePos;
 		}
 
-        // 计算可见区域
         void UpdateVisibleRange() {
             ImFont* font = ImGui::GetFont();
             const float fontSize = ImGui::GetFontSize();
@@ -85,36 +84,133 @@ namespace ImGuiWidget
             if (cursorCharIndex < m_VisibleStart) {
                 m_VisibleStart = cursorCharIndex;
             }
-            else if (cursorCharIndex > m_VisibleEnd) {
-                m_VisibleStart = cursorCharIndex - CalculateVisibleChars();
+            else if (cursorCharIndex >= m_VisibleEnd) {
+                // 向后滚动时，重新计算可见区域起始位置
+                m_VisibleStart = FindVisibleStartForCursor(cursorCharIndex, innerWidth);
             }
             m_VisibleStart = ImClamp(m_VisibleStart, 0, m_TotalChars - 1);
 
-            // 计算可见字符结束位置
+            // 计算可见字符结束位置（基于实际内容）
+            CalculateVisibleEnd(innerWidth);
+        }
+
+        // 基于实际内容计算可见结束位置
+        void CalculateVisibleEnd(float maxWidth) {
+            ImFont* font = ImGui::GetFont();
+            const float fontSize = ImGui::GetFontSize();
+
             m_VisibleEnd = m_VisibleStart;
             float currentWidth = 0.0f;
-            const char* textPtr = m_Text.c_str();
-            int byteStart = CharIndexToByteIndex(m_VisibleStart);
+            const char* textPtr = m_Text.c_str() + CharIndexToByteIndex(m_VisibleStart);
             int charIndex = m_VisibleStart;
+            int endByteIndex = CharIndexToByteIndex(m_VisibleStart);
 
-            while (charIndex < m_TotalChars && currentWidth < innerWidth) {
+            while (charIndex < m_TotalChars && currentWidth < maxWidth) {
                 unsigned int c;
                 const char* prevPtr = textPtr;
                 textPtr += ImTextCharFromUtf8(&c, textPtr, nullptr);
                 int charSize = static_cast<int>(textPtr - prevPtr);
 
+                // 使用实际字符宽度
                 float charWidth = font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, prevPtr, textPtr).x;
 
-                if (currentWidth + charWidth <= innerWidth) {
-                    currentWidth += charWidth;
-                    m_VisibleEnd = charIndex + 1;
-                    charIndex++;
-                }
-                else {
+                // 检查是否超出宽度
+                if (currentWidth + charWidth > maxWidth && charIndex > m_VisibleStart) {
                     break;
                 }
+
+                currentWidth += charWidth;
+                m_VisibleEnd = charIndex + 1;
+                charIndex++;
+                endByteIndex += charSize;
             }
         }
+
+        // 根据光标位置计算可见起始位置
+        int FindVisibleStartForCursor(int cursorCharIndex, float maxWidth) {
+            ImFont* font = ImGui::GetFont();
+            const float fontSize = ImGui::GetFontSize();
+
+            // 从光标位置向前计算，直到填满可见区域
+            float currentWidth = 0.0f;
+            int startChar = cursorCharIndex;
+            const char* textPtr = m_Text.c_str() + CharIndexToByteIndex(cursorCharIndex);
+
+            // 向后遍历直到填满可见区域
+            while (startChar > 0 && currentWidth < maxWidth) {
+                // 移动到前一个字符
+                int prevByte = Utf8PrevChar(CharIndexToByteIndex(startChar));
+                const char* charStart = m_Text.c_str() + prevByte;
+                unsigned int c;
+                ImTextCharFromUtf8(&c, charStart, nullptr);
+
+                // 计算字符宽度
+                int charSize = CharIndexToByteIndex(startChar) - prevByte;
+                float charWidth = font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, charStart, charStart + charSize).x;
+
+                // 检查是否超出宽度
+                if (currentWidth + charWidth > maxWidth && startChar < cursorCharIndex) {
+                    break;
+                }
+
+                currentWidth += charWidth;
+                startChar--;
+            }
+
+            return startChar;
+        }
+
+        // 获取字符在屏幕上的像素位置
+        float GetCharPixelPosition(int charIndex) {
+            if (charIndex < 0) return 0.0f;
+            if (charIndex >= m_TotalChars)
+            {
+                charIndex = m_TotalChars;
+            }
+
+            ImFont* font = ImGui::GetFont();
+            const float fontSize = ImGui::GetFontSize();
+
+            float position = 0.0f;
+            const char* textPtr = m_Text.c_str();
+            int currentChar = 0;
+            int currentByte = 0;
+
+            while (currentChar < charIndex && *textPtr) {
+                unsigned int c;
+                const char* prevPtr = textPtr;
+                textPtr += ImTextCharFromUtf8(&c, textPtr, nullptr);
+                int charSize = static_cast<int>(textPtr - prevPtr);
+
+                // 计算字符宽度
+                float charWidth = font->CalcTextSizeA(fontSize, FLT_MAX, 0.0f, prevPtr, textPtr).x;
+                position += charWidth;
+
+                currentChar++;
+                currentByte += charSize;
+            }
+
+            return position;
+        }
+
+        // 确保光标可见（基于实际内容）
+        void EnsureCursorVisible() {
+            if (m_CursorPos < 0) return;
+
+            int cursorCharIndex = ByteIndexToCharIndex(m_CursorPos);
+
+            // 如果光标在可见区域之前
+            if (cursorCharIndex < m_VisibleStart) {
+                m_VisibleStart = cursorCharIndex;
+                CalculateVisibleEnd(m_VisibleWidth);
+            }
+            // 如果光标在可见区域之后
+            else if (cursorCharIndex >= m_VisibleEnd) {
+                m_VisibleStart = FindVisibleStartForCursor(cursorCharIndex, m_VisibleWidth);
+                CalculateVisibleEnd(m_VisibleWidth);
+            }
+        }
+
 
         // 字节索引转字符索引
         int ByteIndexToCharIndex(int byteIndex) const {
@@ -341,49 +437,21 @@ namespace ImGuiWidget
             //    );
             //}
 
-            // 绘制光标（聚焦且闪烁可见时）
-            if (m_IsFocused && (static_cast<int>(m_CursorBlinkTimer / CURSOR_BLINK_RATE) % 2 == 0)) 
-            {
+ // 在Render()函数中修改光标绘制
+            if (m_IsFocused && (static_cast<int>(m_CursorBlinkTimer / CURSOR_BLINK_RATE) % 2 == 0)) {
                 int cursorCharIndex = ByteIndexToCharIndex(m_CursorPos);
 
-                if (cursorCharIndex >= m_VisibleStart && cursorCharIndex <= m_VisibleEnd)
-                {
-                    ImVec2 cursorStart = textPos;
-                    const char* text = m_Text.c_str();
-                    int byteCount = 0;
-
-                    // 遍历每个字符直到光标位置
-                    while (byteCount < m_CursorPos && *text)
-                    {
-                        unsigned int c = 0;
-                        const char* prevText = text;
-                        text += ImTextCharFromUtf8(&c, text, nullptr);
-                        int charSize = static_cast<int>(text - prevText);
-
-                        // 确保不超过光标位置
-                        if (byteCount + charSize > m_CursorPos) break;
-
-                        // 计算字符宽度
-                        //float fontsize = ImGui::GetFontSize(); 
-                        //float charWidth = ImGui::CalcTextSize(prevText, prevText + charSize).x - (charSize > 1 ? fontsize/20.f : fontsize/36.f);
-                        //
-
-
-                        byteCount += charSize;
-                    }
-                    int textstartbyte = CharIndexToByteIndex(m_VisibleStart);
-                    float charWidth = ImGui::GetFont()->CalcTextSizeA(ImGui::GetFontSize(), FLT_MAX, -1.f, m_Text.c_str() + textstartbyte, text).x;
-                    cursorStart.x += charWidth;
-
+                if (cursorCharIndex >= m_VisibleStart && cursorCharIndex <= m_VisibleEnd) {
+                    // 计算光标的像素位置（相对于可见区域）
+                    float cursorX = GetCharPixelPosition(cursorCharIndex) - GetCharPixelPosition(m_VisibleStart) + 4.0f;
 
                     drawList->AddLine(
-                        ImVec2(cursorStart.x, Position.y + 4),
-                        ImVec2(cursorStart.x, Position.y + Size.y - 4),
+                        ImVec2(Position.x + cursorX, Position.y + 4),
+                        ImVec2(Position.x + cursorX, Position.y + Size.y - 4),
                         m_TextColor,
                         1.0f
                     );
                 }
-
             }
         }
 
