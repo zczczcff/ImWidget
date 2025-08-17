@@ -77,6 +77,7 @@ namespace ImGuiWidget
 		virtual void Render() override
 		{
 			HandleLayout();
+			RenderBackGround();
 			RenderChild();
 		}
 		virtual std::string GetRegisterTypeName()override { return "ImCanvasPanel"; }
