@@ -168,4 +168,5 @@ private:
                     std::tolower(static_cast<unsigned char>(b));
             });
     }
+
 };
