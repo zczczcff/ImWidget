@@ -13,15 +13,15 @@ project(ImWidget
 if(NOT DEFINED IMWIDGET_PLATFORM AND NOT DEFINED BUILD_PLATFORM)
     # 自动检测默认平台
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
-        set(IMWIDGET_PLATFORM "pi" CACHE STRING "Target platform (pi or win64)")
+        set(IMWIDGET_PLATFORM "linux-arm" CACHE STRING "Target platform (linux-arm or win64)")
     else()
-        set(IMWIDGET_PLATFORM "win64" CACHE STRING "Target platform (pi or win64)")
+        set(IMWIDGET_PLATFORM "win64" CACHE STRING "Target platform (linux-arm or win64)")
     endif()
 elseif(DEFINED BUILD_PLATFORM)
     set(IMWIDGET_PLATFORM ${BUILD_PLATFORM} CACHE STRING "" FORCE)
 endif()
 
-set_property(CACHE IMWIDGET_PLATFORM PROPERTY STRINGS pi win64)
+set_property(CACHE IMWIDGET_PLATFORM PROPERTY STRINGS linux-arm win64)
 message(STATUS "Building for platform: ${IMWIDGET_PLATFORM}")
 
 # 公共配置选项
@@ -33,40 +33,14 @@ option(IMWIDGET_EXPORT_API "Export library symbols" ON)
 #-----------------------------------------------
 # 平台特定配置
 #-----------------------------------------------
-if(IMWIDGET_PLATFORM STREQUAL "pi")
-    #使用Opengl es2.0
+if(IMWIDGET_PLATFORM STREQUAL "linux-arm")
+    # 使用Opengl es2.0
     add_definitions(-DIMGUI_IMPL_OPENGL_ES2)
 
-    # 树莓派交叉编译设置
+    # 设置sysroot
     if(NOT DEFINED IMWIDGET_SYSROOT)
-        set(IMWIDGET_SYSROOT "/home/book/PI/PiRoot" CACHE PATH "Sysroot for Raspberry Pi")
+        set(IMWIDGET_SYSROOT "/home/book/PI/PiRoot" CACHE PATH "Sysroot for Linux ARM")
     endif()
-    
-    if(NOT DEFINED IMWIDGET_C_COMPILER)
-        set(IMWIDGET_C_COMPILER 
-            "/home/book/tools/arm-bcm2708/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc"
-            CACHE FILEPATH "C compiler for Pi")
-    endif()
-    
-    if(NOT DEFINED IMWIDGET_CXX_COMPILER)
-        set(IMWIDGET_CXX_COMPILER 
-            "/home/book/tools/arm-bcm2708/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-g++"
-            CACHE FILEPATH "C++ compiler for Pi")
-    endif()
-    
-    # 设置编译器
-    set(CMAKE_C_COMPILER ${IMWIDGET_C_COMPILER})
-    set(CMAKE_CXX_COMPILER ${IMWIDGET_CXX_COMPILER})
-    set(CMAKE_SYSROOT ${IMWIDGET_SYSROOT})
-    
-    # 编译器选项
-    add_compile_options(
-        -O2
-        -Wall
-        -std=c++17
-        -fPIC
-        --sysroot=${IMWIDGET_SYSROOT}
-    )
     
     # 后端设置
     set(BACKEND_SRCS
@@ -80,13 +54,11 @@ if(IMWIDGET_PLATFORM STREQUAL "pi")
         ${IMWIDGET_SYSROOT}/usr/include/EGL
         ${IMWIDGET_SYSROOT}/usr/include/GLFW
         ${IMWIDGET_SYSROOT}/usr/include
-        $/home/book/tools/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian-x64/lib/gcc/arm-linux-gnueabihf/4.8.3/include
     )
     
     # 链接库
     set(IMWIDGET_LIBS glfw GLESv2 EGL m dl pthread stdc++fs)
     
-    # 编译器选项--------------
 elseif(IMWIDGET_PLATFORM STREQUAL "win64")
     # 设置Unicode字符集
     add_definitions(-DUNICODE -D_UNICODE)
@@ -99,8 +71,6 @@ elseif(IMWIDGET_PLATFORM STREQUAL "win64")
     if(MSVC)
         # 设置入口点和字符集
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ENTRY:wWinMainCRTStartup")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /DUNICODE /D_UNICODE")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /DUNICODE /D_UNICODE")
         
         # 编译器选项
         add_compile_options(/W4 /EHsc /D_CRT_SECURE_NO_WARNINGS /permissive-)
@@ -127,6 +97,9 @@ elseif(IMWIDGET_PLATFORM STREQUAL "win64")
     # 链接库
     set(IMWIDGET_LIBS d3d11.lib d3dcompiler.lib dxgi.lib)
 endif()
+
+
+
 
 #-----------------------------------------------
 # 公共配置（所有平台）

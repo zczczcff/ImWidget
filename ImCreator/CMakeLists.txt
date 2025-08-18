@@ -1,37 +1,38 @@
 cmake_minimum_required(VERSION 3.15)
-project(ImCreator)
-#imgui配置文件
-add_definitions(-DIMGUI_USER_CONFIG=<ImWidgetConfig.h>)
 
-#-----------------------------------------------
-# 统一平台配置（与ImWidget兼容）
-#-----------------------------------------------
+# 平台选择提前到project()之前
 if(NOT DEFINED BUILD_PLATFORM)
-    # 自动检测默认平台（与ImWidget逻辑保持一致）
+    # 自动检测默认平台
     if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
-        set(BUILD_PLATFORM "pi" CACHE STRING "Target platform (pi or win64)")
+        set(BUILD_PLATFORM "linux-arm" CACHE STRING "Target platform (linux-arm or win64)")
     else()
-        set(BUILD_PLATFORM "win64" CACHE STRING "Target platform (pi or win64)")
+        set(BUILD_PLATFORM "win64" CACHE STRING "Target platform (linux-arm or win64)")
     endif()
 endif()
-set_property(CACHE BUILD_PLATFORM PROPERTY STRINGS pi win64)
+set_property(CACHE BUILD_PLATFORM PROPERTY STRINGS linux-arm win64)
+
+# 根据平台加载工具链文件
+if(BUILD_PLATFORM STREQUAL "linux-arm")
+    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/linux-arm-toolchain.cmake"
+        CACHE FILEPATH "Linux ARM toolchain file")
+elseif(BUILD_PLATFORM STREQUAL "win64")
+    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/win64-toolchain.cmake"
+        CACHE FILEPATH "Windows 64-bit toolchain file")
+endif()
+
+project(ImCreator)
+
+# imgui配置文件
+add_definitions(-DIMGUI_USER_CONFIG=<ImWidgetConfig.h>)
+
 message(STATUS "Building ImCreator for platform: ${BUILD_PLATFORM}")
 
 #-----------------------------------------------
-# 平台特定编译设置
+# 平台特定编译设置 (仅保留项目特有设置)
 #-----------------------------------------------
-if(BUILD_PLATFORM STREQUAL "pi")
-# 强制设置交叉编译器（移除条件判断）
-    set(CMAKE_C_COMPILER 
-    "/home/book/tools/arm-bcm2708/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-gcc"
-    CACHE FILEPATH "C compiler for Pi" FORCE)  # 添加FORCE
-
-    set(CMAKE_CXX_COMPILER 
-    "/home/book/tools/arm-bcm2708/gcc-linaro-7.5.0-2019.12-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf-g++"
-    CACHE FILEPATH "C++ compiler for Pi" FORCE)  # 添加FORCE
-
-    # 树莓派编译选项
-    add_compile_options(-fPIC -std=c++17 --sysroot=${IMWIDGET_SYSROOT})
+if(BUILD_PLATFORM STREQUAL "linux-arm")
+    # 通用Linux ARM设置
+    add_compile_options(-fPIC -std=c++17)
     set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --sysroot=${IMWIDGET_SYSROOT}")
 
 elseif(BUILD_PLATFORM STREQUAL "win64")
@@ -62,12 +63,10 @@ add_subdirectory(../ImWidget ${CMAKE_CURRENT_BINARY_DIR}/ImWidget)
 #-----------------------------------------------
 set(TARGET_NAME ImCreator_${BUILD_PLATFORM})
 
-# 收集所有头文件
 file(GLOB_RECURSE All_Headers ./Include/*.h)
 file(GLOB_RECURSE All_Resource ./Src/*cpp)
 
 add_executable(${TARGET_NAME})
-
 target_sources(${TARGET_NAME} PRIVATE ${All_Resource} ${All_Headers} ../ImMain.cpp)
 
 # 自动继承ImWidget的头文件设置
@@ -93,9 +92,8 @@ if(BUILD_PLATFORM STREQUAL "win64" AND MSVC)
     )
 endif()
 
-# 树莓派运行时配置
-if(BUILD_PLATFORM STREQUAL "pi")
-    # 添加rpath确保找到动态库
+# Linux ARM运行时配置
+if(BUILD_PLATFORM STREQUAL "linux-arm")
     set_target_properties(${TARGET_NAME} PROPERTIES
         INSTALL_RPATH "${IMWIDGET_SYSROOT}/usr/lib/arm-linux-gnueabihf"
         BUILD_WITH_INSTALL_RPATH ON
