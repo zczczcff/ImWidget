@@ -56,6 +56,24 @@ namespace ImGuiWidget
             show_value(true)
         {}
 
+        void SetValue(float NewValue)
+        {
+            if (NewValue <= v_Min)
+            {
+                v = v_Min;
+            }
+            else if (NewValue >= v_Max)
+            {
+                v = v_Max;
+            }
+            else
+            {
+                v = NewValue;
+            }
+        }
+
+
+
         virtual ImVec2 GetMinSize() { return ImVec2(50.f, 10.f); }
 
         virtual void Render()
