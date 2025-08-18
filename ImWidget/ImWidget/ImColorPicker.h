@@ -22,7 +22,7 @@ namespace ImGuiWidget
         float m_AlphaBarHeight = 15.0f;
         float m_PreviewHeight = 30.0f;
         float m_Spacing = 5.0f;
-        float m_InputWidth = 70.0f;
+        float m_InputWidth = 80.0f;
 
         //  ‰»Îøÿº˛
         ImFloatInput m_RInput;
@@ -517,7 +517,7 @@ namespace ImGuiWidget
             ImVec2 inputCurrentPos = inputAreaPos;
 
             // RGBA ‰»Î
-            float inputHeight = ImGui::GetTextLineHeight()+7;
+            float inputHeight = ImGui::GetTextLineHeight()+2;
             float inputWidth = m_InputWidth;
 
             // R

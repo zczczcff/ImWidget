@@ -191,8 +191,8 @@ public:
             {
                 std::string NewFileName = NewUI_InputNameBox->GetText();
                 if (m_CenterPageManager->CreateNewUIFile(NewFileName))return;
-                m_DetailList->CreateNewFileDetail(NewFileName);
-                m_DetailList->SetActiveFileDetail(NewFileName);
+                //m_DetailList->CreateNewFileDetail(NewFileName);
+                //m_DetailList->SetActiveFileDetail(NewFileName);
                 m_WidgetTreeView->CreateNewTreeView(NewFileName, m_CenterPageManager->GetMainPanelByName(NewFileName));
                 m_WidgetTreeView->SetActiveTreeView(NewFileName);
             });
@@ -245,8 +245,8 @@ public:
                 {
                     if (!m_CenterPageManager->AddEditedPage(FileName,FullFileName,RelativePath))return;
                     m_CenterPageManager->SetActivePage(FileName);
-                    m_DetailList->CreateNewFileDetail(FileName);
-                    m_DetailList->SetActiveFileDetail(FileName);
+                    //m_DetailList->CreateNewFileDetail(FileName);
+                    //m_DetailList->SetActiveFileDetail(FileName);
                     m_WidgetTreeView->CreateNewTreeView(FileName, m_CenterPageManager->GetMainPanelByName(FileName));
                     m_WidgetTreeView->SetActiveTreeView(FileName);
                 });
@@ -279,7 +279,8 @@ public:
         m_CenterPageManager->SetOnPageSwitched([this](const std::string& Title) 
             {
                 m_WidgetTreeView->SetActiveTreeView(Title);
-                m_DetailList->SetActiveFileDetail(Title);
+                m_DetailList->SetCurrentWidget(m_WidgetTreeView->GetSelectedWidget());
+                //m_DetailList->SetActiveFileDetail(Title);
             });
 
     }

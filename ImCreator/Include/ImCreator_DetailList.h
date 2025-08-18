@@ -1,43 +1,41 @@
 #pragma once
 #include "ImWidget/ImUserWidget.h"
-#include "ImWidget/ImVerticalBox.h"
-#include "ImWidget/ImExpandableBox.h"
-#include "ImWidget/ImHorizontalBox.h"
-#include "ImWidget/ImTextBlock.h"
-#include "ImWidget/ImCheckBox.h"
-#include "ImWidget/ImColorPicker.h"
+#include "ImBasicWidgetList.h"
 ;
 class DetailList :public ImGuiWidget::ImUserWidget
 {
 private:
-	std::map<std::string, ImGuiWidget::ImVerticalBox*>AllFileVerticalBoxes;
-	ImGuiWidget::ImVerticalBox* m_CurrentActiveRoot;
+
+private:
+	//std::map<std::string, ImGuiWidget::ImVerticalBox*>AllFileVerticalBoxes;
+	std::map<ImGuiWidget::ImWidget*, ImGuiWidget::ImVerticalBox*> CachedDetails;
+	ImGuiWidget::ImScrollBox* m_RootScrollBox;
 	//ImGuiWidget::ImVerticalBox* m_VerticalBox;
 	ImGuiWidget::ImWidget* CurrentWidget;
 public:
 	DetailList(const std::string& WidgetName)
 		:ImUserWidget(WidgetName),
 		//m_VerticalBox(new ImGuiWidget::ImVerticalBox(WidgetName + "_VerticalBox")),
-		m_CurrentActiveRoot(nullptr),
+		m_RootScrollBox(new ImGuiWidget::ImScrollBox(WidgetName+"RootScrollBox")),
 		CurrentWidget(nullptr)
 	{
-		//SetRootWidget(m_VerticalBox);
+		SetRootWidget(m_RootScrollBox);
 	}
 
-	void CreateNewFileDetail(const std::string& FileName)
-	{
-		AllFileVerticalBoxes.emplace(std::make_pair(FileName, new ImGuiWidget::ImVerticalBox(m_WidgetID + "_VerticalBox")));		
-	}
+	//void CreateNewFileDetail(const std::string& FileName)
+	//{
+	//	AllFileVerticalBoxes.emplace(std::make_pair(FileName, new ImGuiWidget::ImVerticalBox(m_WidgetID + "_VerticalBox")));		
+	//}
 
-	void SetActiveFileDetail(const std::string& FileName)
-	{
-		auto it = AllFileVerticalBoxes.find(FileName);
-		if (it != AllFileVerticalBoxes.end())
-		{
-			SetRootWidget(it->second, false);
-			m_CurrentActiveRoot = it->second;
-		}
-	}
+	//void SetActiveFileDetail(const std::string& FileName)
+	//{
+	//	auto it = AllFileVerticalBoxes.find(FileName);
+	//	if (it != AllFileVerticalBoxes.end())
+	//	{
+	//		//SetRootWidget(it->second, false);
+	//		VBox = it->second;
+	//	}
+	//}
 
 	ImGuiWidget::ImHorizontalBox* HandleAddStringItem(const ImGuiWidget::PropertyInfo& SingleProperty, std::string& SingleString, ImGuiWidget::ImVerticalBox* StringListBox)
 	{
@@ -289,14 +287,26 @@ public:
 
 	void SetCurrentWidget(ImGuiWidget::ImWidget* widget)
 	{
-		if (!m_CurrentActiveRoot)return;
 		CurrentWidget = widget;
-		m_CurrentActiveRoot->RemoveAllChild();
-		if (!widget)return;
-
+		if (!widget)
+		{
+			m_RootScrollBox->SetContent(nullptr, false);
+			return;
+		}
+		auto it = CachedDetails.find(widget);
+		if (it != CachedDetails.end())
+		{
+			m_RootScrollBox->SetContent(it->second, false);
+			return;
+		}
+		//if (!VBox)return;
+		
+		//VBox->RemoveAllChild();
+		
+		ImGuiWidget::ImVerticalBox* VBox = new ImGuiWidget::ImVerticalBox(widget->GetWidgetName() + "detaailvbox");
 		ImGuiWidget::ImTextBlock* WidgetName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_WidgetName");
-		WidgetName->SetText(widget->GetWidgetName());
-		m_CurrentActiveRoot->AddChildToVerticalBox(WidgetName)->SetIfAutoSize(false);
+		WidgetName->SetText(widget->GetRegisterTypeName());
+		VBox->AddChildToVerticalBox(WidgetName)->SetIfAutoSize(false);
 
 		if (auto Slot = widget->GetSlot())
 		{
@@ -310,13 +320,16 @@ public:
 			{
 				HandleSingleProperty(SubSingleProperty, SlotPropertyBox);
 			}
-			m_CurrentActiveRoot->AddChildToVerticalBox(SlotBox)->SetIfAutoSize(false);
+			VBox->AddChildToVerticalBox(SlotBox)->SetIfAutoSize(false);
 		}
 
 
 		for (auto& SingleProperty:widget->GetProperties())
 		{
-			HandleSingleProperty(SingleProperty, m_CurrentActiveRoot);
+			HandleSingleProperty(SingleProperty, VBox);
 		}
+
+		CachedDetails.insert(std::make_pair(widget, VBox));
+		m_RootScrollBox->SetContent(VBox, false);
 	}
 };

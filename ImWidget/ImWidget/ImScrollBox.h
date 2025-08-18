@@ -30,10 +30,23 @@ namespace ImGuiWidget
         ImScrollBox(const std::string& WidgetName) : ImPanelWidget(WidgetName) {}
 
         // ÉèÖÃÄÚÈÝ¿Ø¼þ
-        ImSlot* SetContent(ImWidget* content)
+        ImSlot* SetContent(ImWidget* content,bool DeleteOld=true)
         {
+            if (!content)
+            {
+                if (DeleteOld)
+                {
+                    RemoveChildAt(0);
+                }
+                else
+                {
+                    ExtractChildAt(0);
+                }
+                return nullptr;
+            }
+
             if (GetSlotNum() > 0) {
-                SetChildAt(0, content);
+                SetChildAt(0, content, DeleteOld);
             }
             else {
                 AddChild(content);
