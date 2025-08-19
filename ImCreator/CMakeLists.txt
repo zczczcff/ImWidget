@@ -12,13 +12,13 @@ cmake_minimum_required(VERSION 3.15)
 #set_property(CACHE BUILD_PLATFORM PROPERTY STRINGS linux-arm win64)
 
 # 根据平台加载工具链文件
-#if(BUILD_PLATFORM STREQUAL "linux-arm")
-#    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/linux-arm-toolchain.cmake"
-#        CACHE FILEPATH "Linux ARM toolchain file")
-#elseif(BUILD_PLATFORM STREQUAL "win64")
-#    set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/win64-toolchain.cmake"
-#        CACHE FILEPATH "Windows 64-bit toolchain file")
-#endif()
+if(BUILD_PLATFORM STREQUAL "linux-arm")
+   set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/linux-arm-toolchain.cmake"
+       CACHE FILEPATH "Linux ARM toolchain file")
+elseif(BUILD_PLATFORM STREQUAL "win64")
+   set(CMAKE_TOOLCHAIN_FILE "${CMAKE_CURRENT_SOURCE_DIR}/cmake/win64-toolchain.cmake"
+       CACHE FILEPATH "Windows 64-bit toolchain file")
+endif()
 
 project(ImCreator)
 
