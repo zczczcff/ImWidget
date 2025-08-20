@@ -25,7 +25,7 @@ namespace ImGuiWidget
 
         // 回调函数
         std::function<void(ImWidget*)> OnSelected;
-        //std::function<void()> OnUnSelected;
+        std::function<void()> OnUnSelected;
         void HandleSelectWidget(ImGuiWidget::ImWidget* hitWidget, bool bTriggerCallBack = true)
         {
             // 更新选中状态
@@ -101,7 +101,7 @@ namespace ImGuiWidget
         }
         // 设置回调函数
         void SetOnSelected(std::function<void(ImWidget*)> callback) { OnSelected = callback; }
-        //void SetOnUnSelected(std::function<void()> callback) { OnUnSelected = callback; }
+        void SetOnUnSelected(std::function<void()> callback) { OnUnSelected = callback; }
 
         // 获取当前选中的控件
         ImWidget* GetSelectedWidget() const
@@ -213,7 +213,7 @@ namespace ImGuiWidget
 						m_SelectedSlot = nullptr;
 
 						if (OnSelected) OnSelected(nullptr);
-						//if (OnUnSelected) OnUnSelected();
+						if (OnUnSelected) OnUnSelected();
 					}
 				}
 			}

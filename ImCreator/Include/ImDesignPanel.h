@@ -10,6 +10,10 @@ private:
 	ImGuiWidget::ImDesignPanel* m_MainPanel;
 
 	std::function<void(ImWidget*)> OnDragWidgetOn;
+	std::function<void(ImWidget*)> OnCopyWidget;
+	std::function<void()> OnPasteWidget;
+	std::function<void(ImWidget*)> OnSelectedWidget;
+	bool bIsWidgetSlectedAndPanelFocused = false;
 protected:
 	virtual void OnDragOn(ImGuiWidget::ImDragHandle* OriginalHandle) override
 	{
@@ -72,9 +76,24 @@ public:
 	{
 		SetAllowDragOn(true);
 		SetRootWidget(m_MainPanel);
+		m_MainPanel->SetOnSelected([this](ImWidget* selectedwidget)
+			{
+				if (OnSelectedWidget)
+				{
+					OnSelectedWidget(selectedwidget);
+				}
+				if (selectedwidget)
+				{
+					bIsWidgetSlectedAndPanelFocused = true;
+				}
+			});
+		m_MainPanel->SetOnUnSelected([this]() 
+			{
+				bIsWidgetSlectedAndPanelFocused = false;
+			});
 	}
 
-	void SetOnSelected(std::function<void(ImWidget*)> callback) { m_MainPanel->SetOnSelected(callback); }
+	void SetOnSelected(std::function<void(ImWidget*)> callback) { OnSelectedWidget = callback; }
 	void SetOnDragWidgetOn(std::function<void(ImWidget*)>callback) { OnDragWidgetOn = callback; }
 
 	bool InitFromFile(const std::string& file)
@@ -89,5 +108,21 @@ public:
 	ImGuiWidget::ImWidget* GetRootContent()
 	{
 		return m_MainPanel->GetChildAt(0);
+	}
+
+	virtual void Tick() override
+	{
+		if (bIsWidgetSlectedAndPanelFocused)
+		{
+			ImGuiIO& io = ImGui::GetIO();
+			if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_C))
+			{
+				ImGuiWidget::ImWidget* CopyedWidget = m_MainPanel->GetSelectedWidget();
+				if (CopyedWidget&&OnCopyWidget)
+				{
+					OnCopyWidget(CopyedWidget);
+				}
+			}
+		}
 	}
 };

@@ -146,7 +146,7 @@ namespace ImGuiWidget
 				const ImRect bb(Position, Position + Size);
 
 				// 添加控件到交互系统
-				if (!ImGui::ItemAdd(bb, id)) return;
+				if (!ImGui::ItemAdd(bb, id,0, ImGuiItemFlags_AllowOverlap)) return;
 
 				bool hovered = false, held = false;
 				bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, m_ButtonFlag);

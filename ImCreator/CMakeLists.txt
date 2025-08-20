@@ -43,7 +43,7 @@ elseif(BUILD_PLATFORM STREQUAL "win64")
     
     if(MSVC)
         set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /ENTRY:wWinMainCRTStartup")
-        add_compile_options(/W4 /EHsc /D_CRT_SECURE_NO_WARNINGS /permissive- /DNOMINMAX)
+        add_compile_options(/W4 /EHsc /D_CRT_SECURE_NO_WARNINGS /permissive- /DNOMINMAX /bigobj)
     else()
         add_compile_options(-Wall -Wextra -DIMWIDGET_WIN64_PLATFORM)
     endif()
