@@ -118,8 +118,8 @@ namespace ImGuiWidget
 			{
 				if (slot&&slot->GetContent())
 				{
-					auto newwidget = slot->GetContent();
-					auto newslot = slot->CopySlot();
+					auto newwidget = slot->GetContent()->CopyWidget();
+					auto newslot = slot->CopySlot()->CopySlot();
 					newslot->SetContent(newwidget);
 					newwidget->SetParents(this);
 					m_Slots.push_back(newslot);
