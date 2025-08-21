@@ -30,7 +30,14 @@ namespace ImGuiWidget
 		{
 
 		}
-
+		void SetContent(ImWidget* ContentToSet)
+		{
+			if (ContentToSet)
+			{
+				Content = ContentToSet;
+				Content->SetSlot(this);
+			}
+		}
 		ImWidget* GetContent() { return Content; }
 		virtual void ApplyLayout()
 		{
