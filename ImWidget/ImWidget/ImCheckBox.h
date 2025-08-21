@@ -113,5 +113,10 @@ namespace ImGuiWidget
             return props;
         }
         virtual std::string GetRegisterTypeName()override { return "ImCheckBox"; }
+
+        virtual ImWidget* CopyWidget()
+        {
+            return new ImCheckBox(*this);
+        }
     };
 }

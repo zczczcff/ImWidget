@@ -518,5 +518,10 @@ namespace ImGuiWidget
         }
 
         virtual std::string GetRegisterTypeName()override { return "ImComboBox"; }
+
+        virtual ImWidget* CopyWidget()
+        {
+            return new ImComboBox(*this);
+        }
     };
 }

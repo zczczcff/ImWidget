@@ -91,6 +91,11 @@ namespace ImGuiWidget
 
             return props;
         }
+
+        virtual ImSlot* CopySlot() override
+        {
+            return new ImVerticalSplitterSlot(*this);
+        }
     };
 
     class ImVerticalSplitter : public ImPanelWidget
@@ -479,5 +484,10 @@ namespace ImGuiWidget
         }
 
         virtual std::string GetRegisterTypeName()override { return "ImVerticalSplitter"; }
+
+        virtual ImWidget* CopyWidget()
+        {
+            return new ImVerticalSplitter(*this);
+        }
     };
 }

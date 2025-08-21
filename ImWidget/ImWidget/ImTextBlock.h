@@ -179,5 +179,10 @@ namespace ImGuiWidget
 		}
 
         virtual std::string GetRegisterTypeName()override { return "ImTextBlock"; }
+
+		virtual ImWidget* CopyWidget()
+		{
+			return new ImTextBlock(*this);
+		}
 	};
 }

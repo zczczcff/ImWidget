@@ -15,7 +15,8 @@ namespace ImGuiWidget
         float m_LineSpacing = -1.0f; // 负值表示使用默认值
 
         // 新增：滚动条样式
-        struct ScrollbarStyle {
+        struct ScrollbarStyle 
+        {
             ImU32 BackgroundColor = IM_COL32(200, 200, 200, 255);
             ImU32 GrabColor = IM_COL32(120, 120, 120, 255);
             float Width = ImGui::GetStyle().ScrollbarSize;
@@ -24,14 +25,16 @@ namespace ImGuiWidget
         } m_ScrollbarStyle;
 
 
-        struct TextLine {
+        struct TextLine 
+        {
             std::string Text;
             ImVec2 Position;
             ImVec2 Size;
             std::vector<float> CharOffsets; // 每个字符的x偏移量
         };
 
-        struct TextItem {
+        struct TextItem 
+        {
             std::string Original;
             std::vector<TextLine> Lines;
             ImU32 Color = IM_COL32(0, 0, 0, 255); // 默认黑色
@@ -47,7 +50,8 @@ namespace ImGuiWidget
         float m_ScrollbarGrabDelta = 0.0f;
 
         // 选中状态
-        struct SelectionPoint {
+        struct SelectionPoint 
+        {
             int ItemIndex = -1;
             int LineIndex = -1;
             int CharIndex = -1;
@@ -777,5 +781,10 @@ namespace ImGuiWidget
         }
 
         virtual std::string GetRegisterTypeName()override { return "ImScrollingTextList"; }
+
+        virtual ImWidget* CopyWidget()
+        {
+            return new ImScrollingTextList(*this);
+        }
     };
 }

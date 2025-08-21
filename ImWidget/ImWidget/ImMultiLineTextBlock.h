@@ -564,6 +564,11 @@ namespace ImGuiWidget
         }
 
         virtual std::string GetRegisterTypeName()override { return "ImMultiLineTextBlock"; }
+
+        virtual ImWidget* CopyWidget()
+        {
+            return new ImMultiLineTextBlock(*this);
+        }
     };
 
     // 静态成员定义

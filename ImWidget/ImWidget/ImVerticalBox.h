@@ -25,6 +25,11 @@ namespace ImGuiWidget
 
             return props;
         }
+
+        virtual ImSlot* CopySlot() override
+        {
+            return new ImVerticalBoxSlot(*this);
+        }
 	};
 
 
@@ -224,5 +229,10 @@ namespace ImGuiWidget
 		}
 
         virtual std::string GetRegisterTypeName()override { return "ImVerticalBox"; }
+
+        virtual ImWidget* CopyWidget()
+        {
+            return new ImVerticalBox(*this);
+        }
 	};
 }

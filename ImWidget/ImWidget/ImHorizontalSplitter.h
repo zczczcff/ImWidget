@@ -87,6 +87,11 @@ namespace ImGuiWidget
 
             return baseProps;
         }
+
+        virtual ImSlot* CopySlot() override
+        {
+            return new ImHorizontalSplitterSlot(*this);
+        }
     };
 
     class ImHorizontalSplitter : public ImPanelWidget
@@ -468,5 +473,10 @@ namespace ImGuiWidget
         }
 
         virtual std::string GetRegisterTypeName()override { return "ImHorizontalSplitter"; }
+
+        virtual ImWidget* CopyWidget()
+        {
+            return new ImHorizontalSplitter(*this);
+        }
     };
 }

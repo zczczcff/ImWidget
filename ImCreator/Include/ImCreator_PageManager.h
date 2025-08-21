@@ -17,9 +17,13 @@ private:
 private:
 	ImWindows::ImPageManager* m_RootPageManager;
 	std::map<std::string, PageInfor> AllUIDesiginPages;
+public:
 	std::function<void(ImWidget*)> OnWidgetSelected;
 	std::function<void(ImWidget*)> OnDragWidgetOn;
 	std::function<void(const std::string&)> OnPageSwitched;
+	std::function<void(ImWidget*)> OnCopyWidget;
+	std::function<void()> OnPasteWidget;
+private:
 	void HandleClosePage(const std::string& Title)
 	{
 		auto it = AllUIDesiginPages.find(Title);
@@ -62,6 +66,22 @@ public:
 				}
 			});
 		NewDesiginPanel->SetOnDragWidgetOn([this](ImGuiWidget::ImWidget* NewWidget) {OnDragWidgetOn(NewWidget); });
+
+		NewDesiginPanel->SetOnCopyWidget([this](ImGuiWidget::ImWidget* CopyWidget) 
+			{
+				if (OnCopyWidget)
+				{
+					OnCopyWidget(CopyWidget);
+				}
+			});
+
+		NewDesiginPanel->SetOnPasteWidget([this]() 
+			{
+				if (OnPasteWidget)
+				{
+					OnPasteWidget();
+				}
+			});
 
 		PageInfor NewPage = { NewDesiginPanel ,OutPutOffset };
 		AllUIDesiginPages.insert(std::make_pair(FileName, NewPage));

@@ -455,32 +455,7 @@ namespace ImGuiWidget
             }
         }
 
-        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override {
-            std::unordered_set<PropertyInfo, PropertyInfo::Hasher> props = {
-                {"Text", PropertyType::String, "Data",
-                    [this](void* v) {
-                        std::string newText = *static_cast<std::string*>(v);
-                        SetText(newText);
-                    },
-                    [this]() -> void* { return &m_Text; }},
-                {"TextColor", PropertyType::Color, "Style",
-                    [this](void* v) { m_TextColor = *static_cast<ImU32*>(v); },
-                    [this]() -> void* { return &m_TextColor; }},
-                {"BackgroundColor", PropertyType::Color, "Style",
-                    [this](void* v) { m_BackgroundColor = *static_cast<ImU32*>(v); },
-                    [this]() -> void* { return &m_BackgroundColor; }},
-                {"BorderColor", PropertyType::Color, "Style",
-                    [this](void* v) { m_BorderColor = *static_cast<ImU32*>(v); },
-                    [this]() -> void* { return &m_BorderColor; }},
-                {"BorderThickness", PropertyType::Float, "Style",
-                    [this](void* v) { m_BorderThickness = *static_cast<float*>(v); },
-                    [this]() -> void* { return &m_BorderThickness; }},
-                {"Rounding", PropertyType::Float, "Style",
-                    [this](void* v) { m_Rounding = *static_cast<float*>(v); },
-                    [this]() -> void* { return &m_Rounding; }}
-            };
-            return props;
-        }
+       
 
     protected:
         // 检查文本是否变化并触发回调
@@ -717,7 +692,45 @@ namespace ImGuiWidget
             m_SelectionStart = -1;
             m_SelectionEnd = -1;
         }
-    };
+
+	public:
+		virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
+		{
+			std::unordered_set<PropertyInfo, PropertyInfo::Hasher> props =
+			{
+				{"Text", PropertyType::String, "Data",
+					[this](void* v) {
+						std::string newText = *static_cast<std::string*>(v);
+						SetText(newText);
+					},
+					[this]() -> void* { return &m_Text; }},
+				{"TextColor", PropertyType::Color, "Style",
+					[this](void* v) { m_TextColor = *static_cast<ImU32*>(v); },
+					[this]() -> void* { return &m_TextColor; }},
+				{"BackgroundColor", PropertyType::Color, "Style",
+					[this](void* v) { m_BackgroundColor = *static_cast<ImU32*>(v); },
+					[this]() -> void* { return &m_BackgroundColor; }},
+				{"BorderColor", PropertyType::Color, "Style",
+					[this](void* v) { m_BorderColor = *static_cast<ImU32*>(v); },
+					[this]() -> void* { return &m_BorderColor; }},
+				{"BorderThickness", PropertyType::Float, "Style",
+					[this](void* v) { m_BorderThickness = *static_cast<float*>(v); },
+					[this]() -> void* { return &m_BorderThickness; }},
+				{"Rounding", PropertyType::Float, "Style",
+					[this](void* v) { m_Rounding = *static_cast<float*>(v); },
+					[this]() -> void* { return &m_Rounding; }}
+			};
+			return props;
+		}
+
+        virtual std::string GetRegisterTypeName()override { return "ImInputText"; }
+
+        virtual ImWidget* CopyWidget()
+        {
+            return new ImInputText(*this);
+        }
+
+	};
 
 
     class ImIntInput : public ImInputText
@@ -949,6 +962,13 @@ namespace ImGuiWidget
             );
 
             return props;
+        }
+
+        virtual std::string GetRegisterTypeName()override { return "ImIntInput"; }
+
+        virtual ImWidget* CopyWidget()
+        {
+            return new ImIntInput(*this);
         }
 
         // 设置整数值改变回调
@@ -1250,7 +1270,12 @@ public:
             return props;
         }
 
-        virtual std::string GetRegisterTypeName()override { return "ImInPutText"; }
+        virtual std::string GetRegisterTypeName()override { return "ImFloatInput"; }
+
+        virtual ImWidget* CopyWidget()
+        {
+            return new ImFloatInput(*this);
+        }
         // 设置浮点数值改变回调
         void SetOnFloatValueChanged(std::function<void(float)> callback)
         {

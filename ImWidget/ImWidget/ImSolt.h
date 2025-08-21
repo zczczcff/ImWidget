@@ -22,6 +22,15 @@ namespace ImGuiWidget
 				Content->SetSlot(this);
 			}
 		}
+		ImSlot(const ImSlot& other)
+			:Content(nullptr),
+			bAutoSize(other.bAutoSize),
+			SlotPosition(other.SlotPosition),
+			SlotSize(other.SlotSize)
+		{
+
+		}
+
 		ImWidget* GetContent() { return Content; }
 		virtual void ApplyLayout()
 		{
@@ -104,6 +113,11 @@ namespace ImGuiWidget
 		{
 			//delete Content;
 		}
+
+		virtual ImSlot* CopySlot()
+		{
+			return new ImSlot(*this);
+		}
 	};
 
 	class ImPaddingSlot :public ImSlot
@@ -166,6 +180,11 @@ namespace ImGuiWidget
 				[this]() -> void* { return &PaddingRight; }
 				});
 			return props;
+		}
+
+		virtual ImSlot* CopySlot() override
+		{
+			return new ImPaddingSlot(*this);
 		}
 	};
 

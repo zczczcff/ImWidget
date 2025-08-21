@@ -462,5 +462,11 @@ namespace ImGuiWidget
         }
 
         virtual std::string GetRegisterTypeName()override { return "ImSlider"; }
+
+        virtual ImWidget* CopyWidget()
+        {
+            return new ImSlider(*this);
+        }
+
 	};
 }

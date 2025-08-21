@@ -38,9 +38,46 @@ namespace ImGuiWidget
 			m_Parents(nullptr),
 			bSizeDirty(false)
 		{
+			m_WidgetID += std::to_string(GetConstructCounter());
+		}
+		// 拷贝构造函数（深拷贝自身属性）
+		ImWidget(const ImWidget& other)
+			: m_WidgetID(GetRegisterTypeName()), // 生成新ID（唯一标识）
+			m_WidgetName(other.m_WidgetName),
+			Position(other.Position),
+			Size(other.Size),
+			Visibility(other.Visibility),
+			m_Slot(nullptr),        // 不拷贝slot指针
+			m_Parents(nullptr),     // 不拷贝父项指针
+			bSizeDirty(other.bSizeDirty)
+		{
+			m_WidgetID += std::to_string(GetConstructCounter());
+		}
+
+		// 赋值运算符（深拷贝自身属性）
+		ImWidget& operator=(const ImWidget& other) 
+		{
+			if (this != &other) 
+			{
+				// 仅拷贝可复制属性
+				m_WidgetName = other.m_WidgetName;
+				Position = other.Position;
+				Size = other.Size;
+				Visibility = other.Visibility;
+				bSizeDirty = other.bSizeDirty;
+				m_WidgetID = GetRegisterTypeName();
+				m_WidgetID+= std::to_string(GetConstructCounter());
+				// 明确不拷贝的成员：
+				// m_Slot 保持为nullptr (不拷贝slot关系)
+				// m_Parents 保持为nullptr (不拷贝父项关系)
+			}
+			return *this;
+		}
+		static int GetConstructCounter()
+		{
 			static int counter = 0;
-			m_WidgetID += std::to_string(counter);
 			counter++;
+			return counter;
 		}
 		void SetParents(ImWidget* parents)
 		{
@@ -148,6 +185,11 @@ namespace ImGuiWidget
 				}
 			}
 			return false;
+		}
+
+		virtual ImWidget* CopyWidget()
+		{
+			return nullptr;
 		}
 	};
 }

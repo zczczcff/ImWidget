@@ -22,6 +22,11 @@ namespace ImGuiWidget
                 });
             return props;
         }
+
+        virtual ImSlot* CopySlot() override
+        {
+            return new ImHorizontalBoxSlot(*this);
+        }
     };
 
     class ImHorizontalBox : public ImPanelWidget
@@ -179,5 +184,9 @@ namespace ImGuiWidget
         }
         virtual std::string GetRegisterTypeName()override { return "ImHorizontalBox"; }
 
+        virtual ImWidget* CopyWidget()
+        {
+            return new ImHorizontalBox(*this);
+        }
     };
 }

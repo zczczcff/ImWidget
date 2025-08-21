@@ -285,5 +285,10 @@ namespace ImGuiWidget
 		}
 
 		virtual std::string GetRegisterTypeName()override { return "ImExpandableBox"; }
+
+		virtual ImWidget* CopyWidget()
+		{
+			return new ImExpandableBox(*this);
+		}
 	};
 }

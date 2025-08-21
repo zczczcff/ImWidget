@@ -95,6 +95,8 @@ public:
 
 	void SetOnSelected(std::function<void(ImWidget*)> callback) { OnSelectedWidget = callback; }
 	void SetOnDragWidgetOn(std::function<void(ImWidget*)>callback) { OnDragWidgetOn = callback; }
+	void SetOnCopyWidget(std::function<void(ImWidget*)> callback) { OnCopyWidget = callback; }
+	void SetOnPasteWidget(std::function<void()> callback) { OnPasteWidget = callback; }
 
 	bool InitFromFile(const std::string& file)
 	{
@@ -115,13 +117,25 @@ public:
 		if (bIsWidgetSlectedAndPanelFocused)
 		{
 			ImGuiIO& io = ImGui::GetIO();
-			if (io.KeyCtrl && ImGui::IsKeyPressed(ImGuiKey_C))
+			if (io.KeyCtrl)
 			{
-				ImGuiWidget::ImWidget* CopyedWidget = m_MainPanel->GetSelectedWidget();
-				if (CopyedWidget&&OnCopyWidget)
+				if (ImGui::IsKeyPressed(ImGuiKey_C))
 				{
-					OnCopyWidget(CopyedWidget);
+					ImGuiWidget::ImWidget* CopyedWidget = m_MainPanel->GetSelectedWidget();
+					if (CopyedWidget && OnCopyWidget)
+					{
+						OnCopyWidget(CopyedWidget);
+					}
 				}
+
+				if (ImGui::IsKeyPressed(ImGuiKey_V))
+				{
+					if (OnPasteWidget)
+					{
+						OnPasteWidget();
+					}
+				}
+
 			}
 		}
 	}

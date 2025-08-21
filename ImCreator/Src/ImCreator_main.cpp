@@ -68,7 +68,9 @@ public:
     ExampleWidget* m_Example_ExpandableBox;
     ExampleWidget* m_Example_ScrollBox;
 
-    ImCreator_ProjectConfig m_Config;
+    ImCreator_ProjectConfig m_Config;//全局配置
+    ImGuiWidget::ImWidget* CopyedWidget = nullptr;//全局复制控件暂存
+    ImGuiWidget::ImSlot* CopyedSlot = nullptr;//对应的slot缓存
     void Init()
     {
         ImGuiStyle& style = ImGui::GetStyle();
@@ -283,6 +285,50 @@ public:
                 //m_DetailList->SetActiveFileDetail(Title);
             });
 
+        m_CenterPageManager->OnCopyWidget = [this](ImGuiWidget::ImWidget* CopyWidget)
+        {
+            if (CopyedWidget)
+            {
+                delete CopyedWidget;
+                CopyedWidget = nullptr;
+            }
+            if (CopyedSlot)
+            {
+                delete CopyedSlot;
+                CopyedSlot = nullptr;
+            }
+
+            if (CopyWidget)
+            {
+                CopyedWidget = CopyWidget->CopyWidget();
+                if (ImGuiWidget::ImSlot* slot = CopyWidget->GetSlot())
+                {
+                    CopyedSlot = slot->CopySlot();
+                }
+            }
+
+
+        };
+
+        m_CenterPageManager->OnPasteWidget = [this]()
+        {
+            if (!CopyedWidget) return;
+            auto currentselectedwidget = m_WidgetTreeView->GetSelectedWidget();
+            if (auto panel = dynamic_cast<ImGuiWidget::ImPanelWidget*>(currentselectedwidget))
+            {
+                ImGuiWidget::ImSlot* slot = panel->AddChild(CopyedWidget->CopyWidget());
+                if (CopyedSlot)
+                {
+                    for (auto& slotproperty : CopyedSlot->GetProperties())
+                    {
+                        slot->SetProperty(slotproperty.name, slotproperty.getter());
+                    }
+                }
+
+                m_WidgetTreeView->Refresh();
+            }
+            
+        };
     }
     void Render()
     {

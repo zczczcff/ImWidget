@@ -33,6 +33,10 @@ namespace ImGuiWidget
 				});
 			return props;
 		}
+		virtual ImSlot* CopySlot() override
+		{
+			return new ImCanvasPanelSlot(*this);
+		}
 	};
 
 	class ImCanvasPanel :public ImPanelWidget
@@ -81,5 +85,11 @@ namespace ImGuiWidget
 			RenderChild();
 		}
 		virtual std::string GetRegisterTypeName()override { return "ImCanvasPanel"; }
+
+		virtual ImWidget* CopyWidget()
+		{
+			return new ImCanvasPanel(*this);
+		}
+
 	};
 }

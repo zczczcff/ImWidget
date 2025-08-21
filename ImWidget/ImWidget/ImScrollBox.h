@@ -415,5 +415,10 @@ namespace ImGuiWidget
         }
 
         virtual std::string GetRegisterTypeName()override { return "ImScrollBox"; }
+
+        virtual ImWidget* CopyWidget()
+        {
+            return new ImScrollBox(*this);
+        }
     };
 }

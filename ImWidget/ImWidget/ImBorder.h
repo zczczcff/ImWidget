@@ -49,5 +49,10 @@ namespace ImGuiWidget
 		}
 
 		virtual std::string GetRegisterTypeName() override { return "ImBorder"; }
+
+		virtual ImWidget* CopyWidget() override
+		{
+			return new ImBorder(*this);
+		}
 	};
 }

@@ -296,5 +296,10 @@ namespace ImGuiWidget
         }
 
         virtual std::string GetRegisterTypeName()override { return "ImButton"; }
+
+        virtual ImWidget* CopyWidget() override
+        {
+            return new ImButton(*this);
+        }
     };
 }

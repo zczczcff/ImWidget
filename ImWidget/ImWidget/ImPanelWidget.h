@@ -103,7 +103,37 @@ namespace ImGuiWidget
 			bHaveBorder(true),
 			bHaveBackGround(true)
 		{}
+		// 拷贝构造函数（深拷贝自身属性）
+		ImPanelWidget(const ImPanelWidget& other)
+			: ImWidget(other),  // 调用基类拷贝构造
+			WidgetHitTestPadding(other.WidgetHitTestPadding),
+			BgColor(other.BgColor),
+			BorderColor(other.BorderColor),
+			bHaveBorder(other.bHaveBorder),
+			bHaveBackGround(other.bHaveBackGround),
+			bLayOutDirty(other.bLayOutDirty)
+			// 注意：m_Slots 不拷贝（保持为空vector）
+		{}
 
+		// 赋值运算符（深拷贝自身属性）
+		ImPanelWidget& operator=(const ImPanelWidget& other) {
+			if (this != &other) {
+				// 拷贝基类属性
+				ImWidget::operator=(other);
+
+				// 拷贝自身属性
+				WidgetHitTestPadding = other.WidgetHitTestPadding;
+				BgColor = other.BgColor;
+				BorderColor = other.BorderColor;
+				bHaveBorder = other.bHaveBorder;
+				bHaveBackGround = other.bHaveBackGround;
+				bLayOutDirty = other.bLayOutDirty;
+
+				// 明确不拷贝的成员：
+				// m_Slots 保持为空（不拷贝子项列表）
+			}
+			return *this;
+		}
 		virtual ImSlot* CreateSlot(ImWidget* Content)
 		{
 			return new ImSlot(Content);
@@ -352,5 +382,10 @@ namespace ImGuiWidget
 		}
 
 		virtual std::string GetRegisterTypeName()override { return "ImPanelWidget"; }
+
+		virtual ImWidget* CopyWidget() override
+		{
+			return nullptr;
+		}
 	};
 }
