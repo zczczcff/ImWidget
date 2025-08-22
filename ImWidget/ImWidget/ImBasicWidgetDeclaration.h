@@ -25,4 +25,6 @@ namespace ImGuiWidget
 	class ImVerticalSplitter;
 	class ImSimpleFigure;
 	class ImBorder;
+
+	class ImCurve;
 }

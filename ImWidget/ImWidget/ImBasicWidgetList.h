@@ -21,3 +21,4 @@
 #include "ImVerticalSplitter.h"
 #include "ImSimpleFigure.h"
 #include "ImBorder.h"
+#include "ImCurve.h"

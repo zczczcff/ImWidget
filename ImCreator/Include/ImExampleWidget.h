@@ -13,9 +13,9 @@ private:
 	//ImGuiWidget::ImButton* m_Button;
 	ImGuiWidget::ImTextBlock* m_Text;
 	std::string Display;
-	WidgetType widgettype;
+	std::string widgettype;
 public:
-	ExampleWidget(const std::string& WidgetName, const std::string& DisplayText,WidgetType widgettype):ImUserWidget(WidgetName),widgettype(widgettype)
+	ExampleWidget(const std::string& WidgetName, const std::string& DisplayText,const std::string& widgettype):ImUserWidget(WidgetName),widgettype(widgettype)
 	{
 		//m_Button = new ImGuiWidget::ImButton(WidgetName + "_Button");
 		m_Text = new ImGuiWidget::ImTextBlock(WidgetName + "_Text");

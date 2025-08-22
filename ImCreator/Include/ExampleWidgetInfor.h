@@ -2,41 +2,41 @@
 
 #include "ImWidget/ImUserWidget.h"
 #include "ImWidget/ImTextBlock.h"
+#include "ImWidget/ImWidgetFactory.h"
 
+//enum class WidgetType
+//{
+//	ImButton,
+//	ImCanvasPanel,
+//	ImCheckBox,
+//	ImColorPicker,
+//	ImComboBox,
+//	ImDesignPanel,
+//	ImExpandableBox,
+//	ImHorizontalBox,
+//	ImHorizontalSplitter,
+//	ImImage,
+//	ImInputText,
+//	ImIntInput,
+//	ImFloatInput,
+//	ImMultiLineTextBlock,
+//	ImResizableBox,
+//	ImScrollBox,
+//	ImScrollingTextList,
+//	ImSlider,
+//	ImTextBlock,
+//	ImVerticalBox,
+//	ImVerticalSplitter,
+//	ImSimpleFigure,
+//	ImBorder
+//};
 
-enum class WidgetType
-{
-	ImButton,
-	ImCanvasPanel,
-	ImCheckBox,
-	ImColorPicker,
-	ImComboBox,
-	ImDesignPanel,
-	ImExpandableBox,
-	ImHorizontalBox,
-	ImHorizontalSplitter,
-	ImImage,
-	ImInputText,
-	ImIntInput,
-	ImFloatInput,
-	ImMultiLineTextBlock,
-	ImResizableBox,
-	ImScrollBox,
-	ImScrollingTextList,
-	ImSlider,
-	ImTextBlock,
-	ImVerticalBox,
-	ImVerticalSplitter,
-	ImSimpleFigure,
-	ImBorder
-};
-
-ImGuiWidget::ImWidget* CreateNewWidget(WidgetType type)
+ImGuiWidget::ImWidget* CreateNewWidget(const std::string& type)
 {
 	static int count = 0;
 	ImGuiWidget::ImWidget* NewWidget = nullptr;
-
-	switch (type)
+	NewWidget = ImGuiWidget::ImWidgetFactory::GetInstance().CreateWidget(type, type + "_" + std::to_string(count));
+	/*switch (type)
 	{
 	case WidgetType::ImButton:
 	{
@@ -140,7 +140,7 @@ ImGuiWidget::ImWidget* CreateNewWidget(WidgetType type)
 	}
 	default:
 		break;
-	}
+	}*/
 	count++;
 	return NewWidget;
 }
@@ -149,9 +149,9 @@ class ExampleWidgetDragHandle :public ImGuiWidget::ImDragHandle
 {
 public:
 
-	WidgetType widgettype;
+	std::string widgettype;
 
-	ExampleWidgetDragHandle(const std::string& DisplayText,WidgetType widgettype):widgettype(widgettype)
+	ExampleWidgetDragHandle(const std::string& DisplayText,std::string widgettype):widgettype(widgettype)
 	{
 		ImGuiWidget::ImTextBlock* PreviewText = new  ImGuiWidget::ImTextBlock("test");
 		PreviewText->SetText(DisplayText);

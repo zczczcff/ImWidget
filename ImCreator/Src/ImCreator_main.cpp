@@ -58,6 +58,7 @@ public:
     ExampleWidget* m_Example_Slider;
     ExampleWidget* m_Example_TextBlock;
     ExampleWidget* m_Example_SimpleFigure;
+    ExampleWidget* m_Example_Curve;
     
     ExampleWidget* m_Example_Border;
     ExampleWidget* m_Example_ImCanvasPanel;
@@ -67,6 +68,7 @@ public:
     ExampleWidget* m_Example_VerticalSplitter;
     ExampleWidget* m_Example_ExpandableBox;
     ExampleWidget* m_Example_ScrollBox;
+    
 
     ImCreator_ProjectConfig m_Config;//全局配置
     ImGuiWidget::ImWidget* CopyedWidget = nullptr;//全局复制控件暂存
@@ -106,27 +108,28 @@ public:
         m_MiddleSplitter->AddPart(m_CenterPageManager)->Ratio = 5.0f;
         m_MiddleSplitter->AddPart(m_DetailList);
         
-        m_Example_Button = new ExampleWidget("Example_Button", "Button", WidgetType::ImButton);
-        m_Example_CheckBox = new ExampleWidget("Example_CheckBox", "CheckBox", WidgetType::ImCheckBox);
-        m_Example_ComboBox = new ExampleWidget("Example_ComboBox", "ComboBox", WidgetType::ImComboBox);
-        m_Example_Image = new ExampleWidget("Example_Image", "Image", WidgetType::ImImage);
-        m_Example_InputText = new ExampleWidget("Example_InputText", "InputText", WidgetType::ImInputText);
-        m_Example_IntInput = new ExampleWidget("Example_IntInput", "IntInput", WidgetType::ImIntInput);
-        m_Example_FloatInput = new ExampleWidget("Example_FloatInput", "FloatInput", WidgetType::ImFloatInput);
-        m_Example_MultiLineTextBlock = new ExampleWidget("Example_MultiLineTextBlock", "MultiLineTextBlock", WidgetType::ImMultiLineTextBlock);
-        m_Example_ScrollingTextList = new ExampleWidget("Example_ScrollingTextList", "ScrollingTextList ", WidgetType::ImScrollingTextList);
-        m_Example_Slider = new ExampleWidget("Example_Slider ", "Slider", WidgetType::ImSlider);
-        m_Example_TextBlock = new ExampleWidget("Example_TextBlock", "TextBlock", WidgetType::ImTextBlock);
-        m_Example_SimpleFigure = new ExampleWidget("Example_SimpleFigure", "SimpleFigure", WidgetType::ImSimpleFigure);
+        m_Example_Button = new ExampleWidget("Example_Button", "Button", "ImButton");
+        m_Example_CheckBox = new ExampleWidget("Example_CheckBox", "CheckBox", "ImCheckBox");
+        m_Example_ComboBox = new ExampleWidget("Example_ComboBox", "ComboBox", "ImComboBox");
+        m_Example_Image = new ExampleWidget("Example_Image", "Image", "ImImage");
+        m_Example_InputText = new ExampleWidget("Example_InputText", "InputText", "ImInputText");
+        m_Example_IntInput = new ExampleWidget("Example_IntInput", "IntInput", "ImIntInput");
+        m_Example_FloatInput = new ExampleWidget("Example_FloatInput", "FloatInput", "ImFloatInput");
+        m_Example_MultiLineTextBlock = new ExampleWidget("Example_MultiLineTextBlock", "MultiLineTextBlock", "ImMultiLineTextBlock");
+        m_Example_ScrollingTextList = new ExampleWidget("Example_ScrollingTextList", "ScrollingTextList ", "ImScrollingTextList");
+        m_Example_Slider = new ExampleWidget("Example_Slider ", "Slider", "ImSlider");
+        m_Example_TextBlock = new ExampleWidget("Example_TextBlock", "TextBlock", "ImTextBlock");
+        m_Example_SimpleFigure = new ExampleWidget("Example_SimpleFigure", "SimpleFigure", "ImSimpleFigure");
+        m_Example_Curve=new ExampleWidget("Example_Curve", "Curve", "ImCurve");
 
-        m_Example_Border = new ExampleWidget("Example_Border", "Border", WidgetType::ImBorder);
-        m_Example_ImCanvasPanel = new ExampleWidget("Example_CanvasPanel", "CanvasPanel", WidgetType::ImCanvasPanel);
-        m_Example_HorizontalBox = new ExampleWidget("Example_HorizontalBox", "HorizontalBox", WidgetType::ImHorizontalBox);
-        m_Example_HorizontalSplitter = new ExampleWidget("Example_HorizontalSplitter", "HorizontalSplitter", WidgetType::ImHorizontalSplitter);
-        m_Example_VerticalBox = new ExampleWidget("Example_VerticalBox", "VerticalBox", WidgetType::ImVerticalBox);
-        m_Example_VerticalSplitter = new ExampleWidget("Example_VerticalSplitter", "VerticalSplitter", WidgetType::ImVerticalSplitter);
-        m_Example_ExpandableBox = new ExampleWidget("Example_ExpandableBox", "ExpandableBox", WidgetType::ImExpandableBox);
-        m_Example_ScrollBox = new ExampleWidget("Example_ScrollBox", "ScrollBox", WidgetType::ImScrollBox);
+        m_Example_Border = new ExampleWidget("Example_Border", "Border", "ImBorder");
+        m_Example_ImCanvasPanel = new ExampleWidget("Example_CanvasPanel", "CanvasPanel", "ImCanvasPanel");
+        m_Example_HorizontalBox = new ExampleWidget("Example_HorizontalBox", "HorizontalBox", "ImHorizontalBox");
+        m_Example_HorizontalSplitter = new ExampleWidget("Example_HorizontalSplitter", "HorizontalSplitter", "ImHorizontalSplitter");
+        m_Example_VerticalBox = new ExampleWidget("Example_VerticalBox", "VerticalBox", "ImVerticalBox");
+        m_Example_VerticalSplitter = new ExampleWidget("Example_VerticalSplitter", "VerticalSplitter", "ImVerticalSplitter");
+        m_Example_ExpandableBox = new ExampleWidget("Example_ExpandableBox", "ExpandableBox", "ImExpandableBox");
+        m_Example_ScrollBox = new ExampleWidget("Example_ScrollBox", "ScrollBox", "ImScrollBox");
 
         //ImGuiWidget::ImButton* button_test = new ImGuiWidget::ImButton("buttontest");
         m_WidgetList->AddChildToVerticalBox(m_Example_Button)->SetIfAutoSize(false);
@@ -141,6 +144,7 @@ public:
         m_WidgetList->AddChildToVerticalBox(m_Example_Slider)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_TextBlock)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_SimpleFigure)->SetIfAutoSize(false);
+        m_WidgetList->AddChildToVerticalBox(m_Example_Curve)->SetIfAutoSize(false);
 
         m_WidgetList->AddChildToVerticalBox(m_Example_Border)->SetIfAutoSize(false);
         m_WidgetList->AddChildToVerticalBox(m_Example_ImCanvasPanel)->SetIfAutoSize(false);
