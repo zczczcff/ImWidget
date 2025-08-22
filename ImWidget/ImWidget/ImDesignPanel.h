@@ -60,9 +60,10 @@ namespace ImGuiWidget
                             // 更新slot的位置和大小
                             if (auto canvasSlot = dynamic_cast<ImCanvasPanelSlot*>(m_SelectedSlot))
                             {
+                                ImWidget* Parent_SelecteWidget = m_SelectedWidget->GetParents();
                                 // 使用相对位置（相对于设计面板）
-                                canvasSlot->RelativePosition = (newPos - Position)/Size;
-                                canvasSlot->SlotSize = newSize/Size;
+                                canvasSlot->RelativePosition = (newPos - Parent_SelecteWidget->GetPosition())/ Parent_SelecteWidget->GetSize();
+                                canvasSlot->SlotSize = newSize/ Parent_SelecteWidget->GetSize();
                             }
                             bIsInResize = true;
                         }
