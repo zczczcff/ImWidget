@@ -65,6 +65,9 @@ namespace ImGuiWidget
         ImVec2 m_XAxisNameOffset = ImVec2(0.0f, 0.0f);
         ImVec2 m_YAxisNameOffset = ImVec2(0.0f, 0.0f);
 
+        // Í¼ÀýÎ»ÖÃÆ«ÒÆ
+        ImVec2 m_LegendOffset = ImVec2(0.0f, 0.0f);
+
         // ×ø±êÖá¿Ì¶ÈÉèÖÃ
         float m_XTickInterval = 1.0f;
         float m_YTickInterval = 0.5f;
@@ -369,6 +372,11 @@ namespace ImGuiWidget
             }
         }
 
+        void SetLegendOffset(const ImVec2& offset) 
+        {
+            m_LegendOffset = offset;
+        }
+
         // »æÖÆÍ¼Àý
         void DrawLegend(ImDrawList* drawList)
         {
@@ -380,7 +388,7 @@ namespace ImGuiWidget
             const float sampleWidth = 40.0f;
             const float sampleLineHeight = 2.0f;
 
-            ImVec2 legendPos = Position + ImVec2(Size.x - padding, padding);
+            ImVec2 legendPos = Position + ImVec2(Size.x - padding, padding) + m_LegendOffset;
             ImVec2 currentPos = legendPos;
 
             for (const auto& curve : m_Curves)
@@ -642,10 +650,16 @@ namespace ImGuiWidget
                 "YAxisNameOffset", PropertyType::Vec2, "Axis Labels",
                 [this](void* val) { m_YAxisNameOffset = *static_cast<ImVec2*>(val); },
                 [this]() { return static_cast<void*>(&m_YAxisNameOffset); }
-                });
-
-            // ¿Ì¶È¼ä¸ô
-            props.insert({
+				});
+			props.insert({
+				"LegendOffset",
+				PropertyType::Vec2,
+				"Legend",
+				[this](void* val) { m_LegendOffset = *static_cast<ImVec2*>(val); },
+				[this]() { return static_cast<void*>(&m_LegendOffset); }
+				});
+			// ¿Ì¶È¼ä¸ô
+			props.insert({
                 "XTickInterval", PropertyType::Float, "Axis",
                 [this](void* val) { m_XTickInterval = *static_cast<float*>(val); },
                 [this]() { return static_cast<void*>(&m_XTickInterval); }

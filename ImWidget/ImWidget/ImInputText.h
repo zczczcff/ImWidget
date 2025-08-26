@@ -696,31 +696,31 @@ namespace ImGuiWidget
 	public:
 		virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
 		{
-			std::unordered_set<PropertyInfo, PropertyInfo::Hasher> props =
-			{
-				{"Text", PropertyType::String, "Data",
+            auto baseProps = ImWidget::GetProperties();
+
+			baseProps.insert({ "Text", PropertyType::String, "Data",
 					[this](void* v) {
 						std::string newText = *static_cast<std::string*>(v);
 						SetText(newText);
 					},
-					[this]() -> void* { return &m_Text; }},
-				{"TextColor", PropertyType::Color, "Style",
+					[this]() -> void* { return &m_Text; } });
+			baseProps.insert({ "TextColor", PropertyType::Color, "Style",
 					[this](void* v) { m_TextColor = *static_cast<ImU32*>(v); },
-					[this]() -> void* { return &m_TextColor; }},
-				{"BackgroundColor", PropertyType::Color, "Style",
+					[this]() -> void* { return &m_TextColor; } });
+			baseProps.insert({ "BackgroundColor", PropertyType::Color, "Style",
 					[this](void* v) { m_BackgroundColor = *static_cast<ImU32*>(v); },
-					[this]() -> void* { return &m_BackgroundColor; }},
-				{"BorderColor", PropertyType::Color, "Style",
+					[this]() -> void* { return &m_BackgroundColor; } });
+			baseProps.insert({ "BorderColor", PropertyType::Color, "Style",
 					[this](void* v) { m_BorderColor = *static_cast<ImU32*>(v); },
-					[this]() -> void* { return &m_BorderColor; }},
-				{"BorderThickness", PropertyType::Float, "Style",
+					[this]() -> void* { return &m_BorderColor; } });
+			baseProps.insert({ "BorderThickness", PropertyType::Float, "Style",
 					[this](void* v) { m_BorderThickness = *static_cast<float*>(v); },
-					[this]() -> void* { return &m_BorderThickness; }},
-				{"Rounding", PropertyType::Float, "Style",
+					[this]() -> void* { return &m_BorderThickness; } });
+			baseProps.insert({ "Rounding", PropertyType::Float, "Style",
 					[this](void* v) { m_Rounding = *static_cast<float*>(v); },
-					[this]() -> void* { return &m_Rounding; }}
-			};
-			return props;
+					[this]() -> void* { return &m_Rounding; } });
+			
+			return baseProps;
 		}
 
         virtual std::string GetRegisterTypeName()override { return "ImInputText"; }
