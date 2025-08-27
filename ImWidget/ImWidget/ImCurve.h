@@ -401,7 +401,7 @@ namespace ImGuiWidget
                 // »æÖÆ±êÇ©
                 ImVec2 textPos = currentPos - ImVec2(sampleWidth + padding, -lineHeight / 2) -
                     ImVec2(0, ImGui::GetFontSize() / 2);
-                drawList->AddText(textPos, IM_COL32_WHITE, curve.label.c_str());
+                drawList->AddText(textPos, curve.color, curve.label.c_str());
 
                 currentPos.y += lineHeight;
             }
