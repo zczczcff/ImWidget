@@ -1,15 +1,15 @@
 cmake_minimum_required(VERSION 3.15)
 
 # 平台选择提前到project()之前
-#if(NOT DEFINED BUILD_PLATFORM)
-    # 自动检测默认平台
-#    if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
-#        set(BUILD_PLATFORM "linux-arm" CACHE STRING "Target platform (linux-arm or win64)")
-#    else()
-#        set(BUILD_PLATFORM "win64" CACHE STRING "Target platform (linux-arm or win64)")
-#    endif()
-#endif()
-#set_property(CACHE BUILD_PLATFORM PROPERTY STRINGS linux-arm win64)
+if(NOT DEFINED BUILD_PLATFORM)
+    #自动检测默认平台
+   if(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SYSTEM_PROCESSOR MATCHES "arm")
+       set(BUILD_PLATFORM "linux-arm" CACHE STRING "Target platform (linux-arm or win64)")
+   else()
+       set(BUILD_PLATFORM "win64" CACHE STRING "Target platform (linux-arm or win64)")
+   endif()
+endif()
+set_property(CACHE BUILD_PLATFORM PROPERTY STRINGS linux-arm win64)
 
 # 根据平台加载工具链文件
 if(BUILD_PLATFORM STREQUAL "linux-arm")
