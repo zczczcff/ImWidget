@@ -80,9 +80,6 @@ public:
         // 设置工具提示文本颜色
         style.Colors[ImGuiCol_Text] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
 
-        std::function<void()> testf = []() {};
-        Subscribe("test", testf);
-
         m_Box = new ImGuiWidget::ImVerticalBox("Box0");
         m_MiddleSplitter = new ImGuiWidget::ImHorizontalSplitter("Splitter0");
         m_VSplitter = new ImGuiWidget::ImVerticalSplitter("VSplitter0");
@@ -161,11 +158,12 @@ public:
         m_VSplitter->AddPart(m_BottomBox);
 
         m_LogList = new ImGuiWidget::ImScrollingTextList("LogList");
-        for (int i = 0; i < 20; i++)
+        std::function<void(const char*)> AddLog = [this](const char* log)
         {
-            m_LogList->AddItem("abcdesafsafefa tesrt skanf isf nin aifn ansifasf nia fni asfaf",IM_COL32(150,100,10*i,255));
-        }
-        
+            m_LogList->AddItem(log);
+        };
+        SubscribeEvent("AddLog", AddLog);
+        PublishEvent("AddLog", "Log system init");
 
         m_BottomBox->AddChildToVerticalBox(m_LogList)->SetIfAutoSize(true);
 
