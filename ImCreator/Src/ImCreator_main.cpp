@@ -1,7 +1,4 @@
 #include <ImWidget/ImBasicWidgetList.h>
-//#include "ImWidget/ImWidgetCodeGenerator.h"
-
-//#include "ImWidget/ImWidgetSerializer.h"
 
 #include <ImWindows/ImMenuButton.h>
 #include <ImWindows/ImPageManager.h>
@@ -16,6 +13,8 @@
 #include "ImCreator_Projectconfig.h"
 
 #include "CHFONT.h"
+
+#include "EventBus.h"
 class MyApp
 {
 public:
@@ -81,6 +80,8 @@ public:
         // 设置工具提示文本颜色
         style.Colors[ImGuiCol_Text] = ImVec4(0.0f, 0.0f, 0.0f, 1.0f);
 
+        std::function<void()> testf = []() {};
+        Subscribe("test", testf);
 
         m_Box = new ImGuiWidget::ImVerticalBox("Box0");
         m_MiddleSplitter = new ImGuiWidget::ImHorizontalSplitter("Splitter0");

@@ -303,11 +303,13 @@ public:
 		
 		//VBox->RemoveAllChild();
 		
+		//控件名称
 		ImGuiWidget::ImVerticalBox* VBox = new ImGuiWidget::ImVerticalBox(widget->GetWidgetName() + "detaailvbox");
 		ImGuiWidget::ImTextBlock* WidgetName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_WidgetName");
 		WidgetName->SetText(widget->GetRegisterTypeName());
 		VBox->AddChildToVerticalBox(WidgetName)->SetIfAutoSize(false);
 
+		//控件父项槽属性
 		if (auto Slot = widget->GetSlot())
 		{
 			ImGuiWidget::ImExpandableBox* SlotBox = new ImGuiWidget::ImExpandableBox(m_WidgetID + "_SlotBox");
@@ -323,7 +325,7 @@ public:
 			VBox->AddChildToVerticalBox(SlotBox)->SetIfAutoSize(false);
 		}
 
-
+		//控件自身属性
 		for (auto& SingleProperty:widget->GetProperties())
 		{
 			HandleSingleProperty(SingleProperty, VBox);
