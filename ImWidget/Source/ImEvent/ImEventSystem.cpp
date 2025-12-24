@@ -220,8 +220,31 @@ namespace ImGuiWidget
     }
 
     void ImGuiWidget::ImEventSystem::CollectDragEvents(ImGuiIO& io) {
-        // 拖拽事件处理
-        // 需要与现有的拖拽系统集成
+        ImModifierKeys mods = ImModifierKeys::GetCurrent();
+        // 检查是否开始拖拽
+        if (!m_isDragging && ImGui::IsMouseDragging(0)) { // 左键拖拽
+            // 检查拖拽阈值（避免误触）
+            ImVec2 dragDelta = ImGui::GetMouseDragDelta(0);
+            if ( ImVec2Distance(ImVec2(0,0), dragDelta) > 2.0f) { // 5像素阈值
+                StartDrag(io.MousePos- dragDelta, mods);
+            }
+        }
+
+        // 处理拖拽更新
+        if (m_isDragging) {
+            if (ImGui::IsMouseDragging(0)) {
+                UpdateDrag(io.MousePos, mods);
+            }
+            else {
+                // 鼠标释放，结束拖拽
+                EndDrag(io.MousePos, mods);
+            }
+        }
+
+        // 处理拖放目标
+        if (m_isDragging) {
+            ProcessDropTargets(io.MousePos, mods);
+        }
     }
 
     // 事件分发
@@ -340,5 +363,117 @@ namespace ImGuiWidget
         float dx = a.x - b.x;
         float dy = a.y - b.y;
         return std::sqrt(dx * dx + dy * dy);
+    }
+
+    void ImEventSystem::StartDrag(const ImVec2& pos, const ImModifierKeys& mods) {
+        m_isDragging = true;
+        m_dragStartPos = pos;
+        m_dragSourceWidget = m_lastHoveredWidget;
+
+        // 创建拖拽开始事件
+        auto event = std::make_unique<ImDragStartEvent>();
+        event->SetTarget(m_dragSourceWidget);
+        event->SetPosition(pos);
+        event->SetModifiers(mods);
+
+        // 如果源控件存在，从中获取拖拽数据
+        //if (m_dragSourceWidget) {
+        //    // 查询控件是否支持拖拽
+        //    if (auto dragData = m_dragSourceWidget->GetDragData()) {
+        //        event->SetDragData(dragData, m_dragSourceWidget->GetDragDataType());
+        //    }
+        //}
+
+        m_eventQueue.push_back(std::move(event));
+    }
+
+    void ImEventSystem::UpdateDrag(const ImVec2& pos, const ImModifierKeys& mods) {
+        auto event = std::make_unique<ImDragUpdateEvent>();
+        event->SetPosition(pos);
+        event->SetTarget(m_dragSourceWidget);
+        event->SetDelta(ImVec2(pos.x - m_lastDragPos.x, pos.y - m_lastDragPos.y));
+        event->SetModifiers(mods);
+
+        // 继承源控件的拖拽数据
+        //if (m_dragSourceWidget && m_dragSourceWidget->GetDragData()) {
+        //    event->SetDragData(m_dragSourceWidget->GetDragData(),
+        //        m_dragSourceWidget->GetDragDataType());
+        //}
+
+        m_eventQueue.push_back(std::move(event));
+        m_lastDragPos = pos;
+    }
+
+    void ImEventSystem::EndDrag(const ImVec2& pos, const ImModifierKeys& mods) {
+        auto event = std::make_unique<ImDragEndEvent>();
+        event->SetPosition(pos);
+        event->SetTarget(m_dragSourceWidget);
+        event->SetModifiers(mods);
+
+        // 处理拖放
+        ImWidget* dropTarget = HitTest(m_rootWidget, pos);
+        if (dropTarget && dropTarget != m_dragSourceWidget) {
+            ProcessDrop(dropTarget, pos, mods);
+        }
+
+        m_eventQueue.push_back(std::move(event));
+
+        // 重置拖拽状态
+        m_isDragging = false;
+        m_dragSourceWidget = nullptr;
+        m_lastDragPos = ImVec2(0, 0);
+    }
+
+    void ImEventSystem::ProcessDropTargets(const ImVec2& pos, const ImModifierKeys& mods) {
+        ImWidget* currentTarget = HitTest(m_rootWidget, pos);
+
+        // 处理拖拽进入/离开事件
+        if (currentTarget != m_lastDragHoveredWidget) {
+            // 发送拖拽离开事件给之前的控件
+            if (m_lastDragHoveredWidget) {
+                auto leaveEvent = std::make_unique<ImDragEvent>(ImEventType::DragLeave);
+                leaveEvent->SetPosition(pos);
+                leaveEvent->SetModifiers(mods);
+                leaveEvent->SetTarget(m_lastDragHoveredWidget);
+                m_eventQueue.push_back(std::move(leaveEvent));
+            }
+
+            // 发送拖拽进入事件给新控件
+            if (currentTarget) {
+                auto enterEvent = std::make_unique<ImDragEvent>(ImEventType::DragEnter);
+                enterEvent->SetPosition(pos);
+                enterEvent->SetModifiers(mods);
+                enterEvent->SetTarget(currentTarget);
+                m_eventQueue.push_back(std::move(enterEvent));
+            }
+
+            m_lastDragHoveredWidget = currentTarget;
+        }
+
+        // 发送拖拽经过事件给当前控件
+        if (currentTarget) {
+            auto overEvent = std::make_unique<ImDragEvent>(ImEventType::DragOver);
+            overEvent->SetPosition(pos);
+            overEvent->SetModifiers(mods);
+            overEvent->SetTarget(currentTarget);
+            m_eventQueue.push_back(std::move(overEvent));
+        }
+    }
+
+    void ImEventSystem::ProcessDrop(ImWidget* target, const ImVec2& pos, const ImModifierKeys& mods) {
+        if (!m_dragSourceWidget) return;
+
+        auto dropEvent = std::make_unique<ImDragEvent>(ImEventType::Drop);
+        dropEvent->SetPosition(pos);
+        dropEvent->SetModifiers(mods);
+        dropEvent->SetTarget(target);
+
+        // 设置拖拽数据
+        //if (m_dragSourceWidget->GetDragData()) {
+        //    dropEvent->SetDragData(m_dragSourceWidget->GetDragData(),
+        //        m_dragSourceWidget->GetDragDataType());
+        //}
+
+        m_eventQueue.push_back(std::move(dropEvent));
     }
 }

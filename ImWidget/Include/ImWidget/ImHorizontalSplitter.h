@@ -1,7 +1,7 @@
 #pragma once
 #include "ImPanelWidget.h"
 #include "imgui_internal.h"
-
+#include "ImEvent/ImDragEvent.h"
 namespace ImGuiWidget
 {
     struct ImHorizontalSplitterStyle : public PropertyStruct
@@ -103,6 +103,10 @@ namespace ImGuiWidget
         float m_DragStartSplitterPos = 0.0f;
         std::vector<ImRect> m_PartRects;  // 缓存部分区域
         std::vector<ImRect> m_BarRects;    // 缓存分隔条区域
+
+     // 拖拽状态
+        bool m_IsDragSource = false; // 当前控件是否是拖拽源
+        ImVec2 m_DragStartPosition; // 拖拽起始位置
     private:
         virtual ImSlot* CreateSlot(ImWidget* Content)override
         {
@@ -113,7 +117,176 @@ namespace ImGuiWidget
             : ImPanelWidget(WidgetName)
         {
         }
+        // 重写事件处理函数，专门处理拖拽事件
+        virtual void HandleEvent(ImEvent* event) override
+        {
+            if (event->IsHandled()) return;
 
+            // 只处理拖拽相关事件
+            if (auto dragEvent = event->As<ImDragEvent>()) {
+                HandleDragEvent(dragEvent);
+            }
+        }
+
+    private:
+        // 专门处理拖拽事件
+        void HandleDragEvent(ImDragEvent* dragEvent)
+        {
+            const ImVec2 mousePos = dragEvent->GetPosition();
+
+            switch (dragEvent->GetType()) {
+            case ImEventType::DragEnter:
+                HandleDragEnter(mousePos, dragEvent);
+                break;
+            case ImEventType::DragOver:
+                HandleDragOver(mousePos, dragEvent);
+                break;
+            case ImEventType::DragLeave:
+                HandleDragLeave(mousePos, dragEvent);
+                break;
+            case ImEventType::Drop:
+                HandleDrop(mousePos, dragEvent);
+                break;
+            case ImEventType::MouseDragStart:
+                HandleDragStart(mousePos, dragEvent);
+                break;
+            case ImEventType::MouseDrag:
+                HandleDragUpdate(mousePos, dragEvent);
+                break;
+            case ImEventType::MouseDragEnd:
+                HandleDragEnd(mousePos, dragEvent);
+                break;
+            default:
+                break;
+            }
+        }
+
+        // 拖拽进入分隔条区域
+        void HandleDragEnter(const ImVec2& mousePos, ImDragEvent* dragEvent)
+        {
+            // 检查拖拽源是否来自本控件内部的分隔条
+            if (IsDragFromOwnBars(dragEvent)) {
+                // 设置拖拽光标样式
+                // 这里可以设置鼠标光标为 resize-ew
+                dragEvent->StopPropagation();
+            }
+        }
+
+        // 拖拽在分隔条上方移动
+        void HandleDragOver(const ImVec2& mousePos, ImDragEvent* dragEvent)
+        {
+            // 只有来自本控件内部的分隔条拖拽才处理
+            if (IsDragFromOwnBars(dragEvent)) {
+                // 可以在这里实现拖拽时的视觉反馈
+                dragEvent->StopPropagation();
+            }
+        }
+
+        // 拖拽离开分隔条区域
+        void HandleDragLeave(const ImVec2& mousePos, ImDragEvent* dragEvent)
+        {
+            if (IsDragFromOwnBars(dragEvent)) {
+                // 恢复正常光标
+                dragEvent->StopPropagation();
+            }
+        }
+
+        // 拖拽放下（在分隔条上释放）
+        void HandleDrop(const ImVec2& mousePos, ImDragEvent* dragEvent)
+        {
+            // 分隔条不接受外部拖拽放下，只处理内部拖拽
+            if (IsDragFromOwnBars(dragEvent)) {
+                dragEvent->StopPropagation();
+            }
+        }
+
+        // 拖拽开始（检查是否在分隔条上开始拖拽）
+        void HandleDragStart(const ImVec2& mousePos, ImDragEvent* dragEvent)
+        {
+            // 检查鼠标位置是否在某个分隔条上
+            for (int i = 0; i < m_BarRects.size(); i++) {
+                if (m_BarRects[i].Contains(mousePos)) {
+                    m_DraggingIndex = i;
+                    m_DragStartPos = mousePos.x;
+                    m_DragStartSplitterPos = m_BarRects[i].GetCenter().x;
+                    m_IsDragSource = true;
+                    m_DragStartPosition = mousePos;
+
+                    // 设置拖拽数据（可以存储分隔条索引等信息）
+                    dragEvent->SetDragData(this, "HorizontalSplitterBar");
+
+                    dragEvent->StopPropagation();
+                    break;
+                }
+            }
+        }
+
+        // 拖拽更新
+        void HandleDragUpdate(const ImVec2& mousePos, ImDragEvent* dragEvent)
+        {
+            // 只有当前控件是拖拽源时才处理
+            if (m_IsDragSource && m_DraggingIndex >= 0) {
+                float newSplitterPos = m_DragStartSplitterPos + (mousePos.x - m_DragStartPos);
+                UpdateSplitterPosition(m_DraggingIndex, newSplitterPos);
+
+                dragEvent->StopPropagation();
+            }
+        }
+
+        // 拖拽结束
+        void HandleDragEnd(const ImVec2& mousePos, ImDragEvent* dragEvent)
+        {
+            if (m_IsDragSource) {
+                m_DraggingIndex = -1;
+                m_IsDragSource = false;
+                dragEvent->StopPropagation();
+            }
+        }
+
+        // 检查拖拽是否来自本控件的分隔条
+        bool IsDragFromOwnBars(ImDragEvent* dragEvent)
+        {
+            // 通过拖拽数据类型或拖拽源来判断
+            if (dragEvent->GetDragType() == "HorizontalSplitterBar") {
+                return dragEvent->GetDragData<ImHorizontalSplitter>() == this;
+            }
+            return false;
+        }
+
+        // 更新分隔条位置（保持不变）
+        void UpdateSplitterPosition(int barIndex, float newSplitterPos)
+        {
+            int leftIndex = barIndex;
+            int rightIndex = barIndex + 1;
+
+            if (auto* leftSlot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(leftIndex))) {
+                if (auto* rightSlot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(rightIndex))) {
+                    // 计算新宽度
+                    float newLeftWidth = newSplitterPos - m_PartRects[leftIndex].Min.x - m_Style.BarWidth * 0.5f;
+                    float newRightWidth = m_PartRects[rightIndex].Max.x - newSplitterPos - m_Style.BarWidth * 0.5f;
+
+                    // 应用最小尺寸约束
+                    if (newLeftWidth < leftSlot->MinSize) {
+                        newLeftWidth = leftSlot->MinSize;
+                        newRightWidth = (m_PartRects[leftIndex].GetWidth() +
+                            m_PartRects[rightIndex].GetWidth()) - newLeftWidth;
+                    }
+                    if (newRightWidth < rightSlot->MinSize) {
+                        newRightWidth = rightSlot->MinSize;
+                        newLeftWidth = (m_PartRects[leftIndex].GetWidth() +
+                            m_PartRects[rightIndex].GetWidth()) - newRightWidth;
+                    }
+
+                    // 更新比例
+                    float totalRatio = leftSlot->Ratio + rightSlot->Ratio;
+                    leftSlot->Ratio = totalRatio * newLeftWidth / (newLeftWidth + newRightWidth);
+                    rightSlot->Ratio = totalRatio - leftSlot->Ratio;
+
+                    MarkLayoutDirty();
+                }
+            }
+        }
+    public:
         void SetSplitterStyle(const ImHorizontalSplitterStyle& style) {
             m_Style = style;
         }
@@ -189,16 +362,14 @@ namespace ImGuiWidget
             ImGuiWindow* window = ImGui::GetCurrentWindow();
             ImU32 color;
 
-            if (m_DraggingIndex == barIndex)
-            {
+            // 基于拖拽状态设置颜色
+            if (m_IsDragSource && m_DraggingIndex == barIndex) {
                 color = m_Style.ActiveColor;
             }
-            else if (barRect.Contains(MousePos))
-            {
+            else if (barRect.Contains(MousePos)) {
                 color = m_Style.HoveredColor;
             }
-            else
-            {
+            else {
                 color = m_Style.Color;
             }
 
@@ -209,6 +380,7 @@ namespace ImGuiWidget
                 m_Style.Rounding
             );
         }
+
 
         // 应用最小尺寸约束
         void ApplyMinSizeConstraints(std::vector<float>& widths, float availableWidth)
@@ -441,19 +613,32 @@ namespace ImGuiWidget
         {
             ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-            const ImVec2 mousePos = ImGui::GetIO().MousePos;
-            // 处理拖动事件
-            ProcessDragEvents(mousePos);
-            HandleLayout(); // 确保布局是最新的
+            // 只处理布局，不处理交互
+            HandleLayout();
 
-            // 渲染背景和子控件（使用基类提供的接口）
+            // 渲染背景和子控件
             RenderBackGround();
             RenderChild();
 
-            // 渲染所有分隔条
+            // 渲染所有分隔条（使用当前鼠标位置获取悬停状态）
+            const ImVec2 mousePos = ImGui::GetIO().MousePos;
             for (int i = 0; i < m_BarRects.size(); i++) {
                 RenderSplitterBar(m_BarRects[i], mousePos, i);
             }
+        }
+
+        // 修改HitTest，确保分隔条能够接收拖拽事件
+        virtual ImWidget* ChildHitTest(ImVec2 Pos) override
+        {
+            // 首先检查是否在分隔条上
+            for (int i = 0; i < m_BarRects.size(); i++) {
+                if (m_BarRects[i].Contains(Pos)) {
+                    return this; // 分隔条事件由分割器本身处理
+                }
+            }
+
+            // 如果不是分隔条，调用基类的HitTest
+            return ImPanelWidget::ChildHitTest(Pos);
         }
 
         virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override

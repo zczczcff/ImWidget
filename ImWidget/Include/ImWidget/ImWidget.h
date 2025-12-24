@@ -19,7 +19,7 @@ namespace ImGuiWidget
 		class ImSlot* m_Slot;
 		class ImWidget* m_Parents;
 		bool bSizeDirty;
-		bool bVisible;
+		bool bVisible = true;
 		//处理子控件最小尺寸发生变化的情况
 		virtual void HandleChildSizeDirty(){}
 

@@ -15,7 +15,6 @@ namespace ImGuiWidget
         // 状态跟踪
         ImWidget* m_hoveredWidget = nullptr;
         ImWidget* m_focusedWidget = nullptr;
-        ImWidget* m_dragSourceWidget = nullptr;
         ImWidget* m_lastHoveredWidget = nullptr;
         ImVec2 m_lastMousePos;
         double m_lastClickTime[5] = { 0 };  // 每个按钮的上次点击时间
@@ -67,6 +66,20 @@ namespace ImGuiWidget
         static bool ImVec2Equals(const ImVec2& a, const ImVec2& b, float epsilon = 0.001f);
 
         static float ImVec2Distance(const ImVec2& a, const ImVec2& b);
+
+        // 拖拽状态跟踪
+        bool m_isDragging = false;
+        ImWidget* m_dragSourceWidget = nullptr;
+        ImWidget* m_lastDragHoveredWidget = nullptr;
+        ImVec2 m_dragStartPos;
+        ImVec2 m_lastDragPos;
+
+        // 拖拽相关方法
+        void StartDrag(const ImVec2& pos, const ImModifierKeys& mods);
+        void UpdateDrag(const ImVec2& pos, const ImModifierKeys& mods);
+        void EndDrag(const ImVec2& pos, const ImModifierKeys& mods);
+        void ProcessDropTargets(const ImVec2& pos, const ImModifierKeys& mods);
+        void ProcessDrop(ImWidget* target, const ImVec2& pos, const ImModifierKeys& mods);
     };
 
 }
