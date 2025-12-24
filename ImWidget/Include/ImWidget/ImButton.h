@@ -3,7 +3,8 @@
 #include "ImPanelWidget.h"
 #include "imgui_internal.h"
 #include <functional>
-
+#include "ImEvent/ImMouseEvent.h"
+#include "ImEvent/ImFocusEvent.h"
 namespace ImGuiWidget
 {
     class ButtonStateStyle : public PropertyStruct 
@@ -54,72 +55,48 @@ namespace ImGuiWidget
     class ImButton : public ImPanelWidget
     {
     protected:
-        bool m_LastFrameHeld = false; // 跟踪上一帧的按下状态
+        // 按钮状态
+        bool m_IsHovered = false;
+        bool m_IsPressed = false;
+        bool m_IsFocused = false;
+
         std::string m_TooltipText;
+
         // 回调函数
         std::function<void(void)> OnPressed;
         std::function<void(void)> OnReleased;
         std::function<void(void)> OnHoverBegin;
         std::function<void(void)> OnHoverEnd;
-
-        ImGuiButtonFlags m_ButtonFlag = ImGuiButtonFlags_AllowOverlap;
+        std::function<void(void)> OnFocusGained;
+        std::function<void(void)> OnFocusLost;
 
         // 分别存储三种状态的样式
         ButtonStateStyle m_NormalStyle;
         ButtonStateStyle m_HoveredStyle;
         ButtonStateStyle m_PressedStyle;
+        ButtonStateStyle m_FocusedStyle;
 
-        bool m_WasHovered = false;  // 上一帧悬停状态
         void RenderButton()
         {
             ImGuiWindow* window = ImGui::GetCurrentWindow();
-            ImGuiContext& g = *GImGui;
-            const ImGuiID id = window->GetID(m_WidgetID.c_str());
-            ImRect bb(Position, Position + Size);
-
-            //ImGui::ItemSize(Size, g.Style.FramePadding.y);
-            if (!ImGui::ItemAdd(bb, id)) {}
-
-            // 检测按钮行为
-            bool hovered, held;
-            bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, m_ButtonFlag);
-
-            // 处理悬停状态变化
-            if (hovered && !m_WasHovered && OnHoverBegin)
-            {
-                OnHoverBegin();
-            }
-            if (!hovered && m_WasHovered && OnHoverEnd)
-            {
-                OnHoverEnd();
-            }
-            m_WasHovered = hovered;
-
-            // 处理按下/松开事件
-            if (held && !m_LastFrameHeld && OnPressed)
-            {
-                OnPressed();
-            }
-            if (!held && m_LastFrameHeld && OnReleased)
-            {
-                OnReleased();
-            }
-            m_LastFrameHeld = held;
 
             // 根据当前状态选择样式
             const ButtonStateStyle* currentStyle = &m_NormalStyle;
-            if (held)
+
+            if (m_IsPressed)
             {
                 currentStyle = &m_PressedStyle;
             }
-            else if (hovered)
+            else if (m_IsHovered)
             {
-                if (m_WidgetID == "CloseButton_test")
-                {
-                    printf("test");
-                }
                 currentStyle = &m_HoveredStyle;
             }
+            else if (m_IsFocused)
+            {
+                currentStyle = &m_FocusedStyle;
+            }
+
+            ImRect bb(Position, Position + Size);
 
             // 绘制按钮背景
             window->DrawList->AddRectFilled(
@@ -138,19 +115,18 @@ namespace ImGuiWidget
                     bb.Max,
                     currentStyle->BorderColor,
                     currentStyle->Rounding,
-                    0, // 默认全部圆角
+                    0,
                     currentStyle->BorderThickness
                 );
             }
 
-            if (hovered && !m_TooltipText.empty() &&
-                ImGui::IsItemHovered(ImGuiHoveredFlags_DelayNormal))
+            // 工具提示（如果悬停且设置了工具提示文本）
+            if (m_IsHovered && !m_TooltipText.empty())
             {
-                ImGui::BeginTooltip();
-                ImGui::TextUnformatted(m_TooltipText.c_str());
-                ImGui::EndTooltip();
+                ImGui::SetTooltip("%s", m_TooltipText.c_str());
             }
         }
+
         virtual void Relayout() override
         {
             auto slot = GetSlotAt(0);
@@ -161,81 +137,223 @@ namespace ImGuiWidget
                 slot->ApplyLayout();
             }
         }
-        virtual ImSlot* CreateSlot(ImWidget* Content)override
+
+        virtual ImSlot* CreateSlot(ImWidget* Content) override
         {
             return new ImPaddingSlot(Content);
         }
+
+        // 事件处理
+        virtual void HandleEventInternal(ImEvent* event) override
+        {
+            if (event->IsHandled()) return;
+
+            switch (event->GetType())
+            {
+            case ImEventType::MouseEnter:
+                HandleMouseEnter(event->As<ImMouseEnterEvent>());
+                break;
+
+            case ImEventType::MouseLeave:
+                HandleMouseLeave(event->As<ImMouseLeaveEvent>());
+                break;
+
+            case ImEventType::MouseDown:
+                HandleMouseDown(event->As<ImMouseDownEvent>());
+                break;
+
+            case ImEventType::MouseUp:
+                HandleMouseUp(event->As<ImMouseUpEvent>());
+                break;
+
+            case ImEventType::FocusIn:
+                HandleFocusIn(event->As<ImFocusInEvent>());
+                break;
+
+            case ImEventType::FocusOut:
+                HandleFocusOut(event->As<ImFocusOutEvent>());
+                break;
+
+            case ImEventType::MouseClick:
+                // 可以选择处理点击事件，或者继续冒泡
+                break;
+
+            case ImEventType::MouseDoubleClick:
+                // 处理双击事件
+                break;
+
+            default:
+                // 其他事件继续冒泡
+                break;
+            }
+        }
+
+        void HandleMouseEnter(ImMouseEnterEvent* event)
+        {
+            if (!m_IsHovered)
+            {
+                m_IsHovered = true;
+                if (OnHoverBegin)
+                {
+                    OnHoverBegin();
+                }
+            }
+            event->StopPropagation(); // 阻止事件继续冒泡
+        }
+
+        void HandleMouseLeave(ImMouseLeaveEvent* event)
+        {
+            if (m_IsHovered)
+            {
+                m_IsHovered = false;
+                if (OnHoverEnd)
+                {
+                    OnHoverEnd();
+                }
+            }
+            event->StopPropagation();
+        }
+
+        void HandleMouseDown(ImMouseDownEvent* event)
+        {
+            if (event->GetButton() == ImMouseButton::Left)
+            {
+                m_IsPressed = true;
+                if (OnPressed)
+                {
+                    OnPressed();
+                }
+
+                // 请求焦点
+                RequestFocus();
+                event->StopPropagation();
+            }
+        }
+
+        void HandleMouseUp(ImMouseUpEvent* event)
+        {
+            if (event->GetButton() == ImMouseButton::Left && m_IsPressed)
+            {
+                m_IsPressed = false;
+                if (OnReleased)
+                {
+                    OnReleased();
+                }
+                event->StopPropagation();
+            }
+        }
+
+        void HandleFocusIn(ImFocusInEvent* event)
+        {
+            if (!m_IsFocused)
+            {
+                m_IsFocused = true;
+                if (OnFocusGained)
+                {
+                    OnFocusGained();
+                }
+            }
+        }
+
+        void HandleFocusOut(ImFocusOutEvent* event)
+        {
+            if (m_IsFocused)
+            {
+                m_IsFocused = false;
+                m_IsPressed = false; // 失去焦点时释放按下状态
+                if (OnFocusLost)
+                {
+                    OnFocusLost();
+                }
+            }
+        }
+
+        // 请求焦点
+        void RequestFocus()
+        {
+            // 这里需要实现焦点请求逻辑，可能需要通过事件系统
+            // 暂时留空，待事件系统完善后实现
+        }
+
     public:
         ImButton(const std::string& WidgetName) : ImPanelWidget(WidgetName)
         {
-            // 使用ImGui默认样式初始化
-            //const ImGuiStyle& style = ImGui::GetStyle();
-
+            // 初始化默认样式
             m_NormalStyle = {
                 IM_COL32(0, 102, 204, 255),
-                0.f,
-                false,
+                4.0f,
+                true,
                 1.0f,
-                IM_COL32(255, 255, 255, 255)
+                IM_COL32(200, 200, 200, 255)
             };
 
             m_HoveredStyle = {
                 IM_COL32(51, 153, 255, 255),
-                0.f,
-                false,
+                4.0f,
+                true,
                 1.0f,
-                IM_COL32(255, 255, 255, 255)
+                IM_COL32(100, 150, 255, 255)
             };
 
             m_PressedStyle = {
                 IM_COL32(0, 51, 153, 255),
-                0.f,
-                false,
-                1.0f,
-                IM_COL32(255, 255, 255, 255)
+                4.0f,
+                true,
+                2.0f,
+                IM_COL32(50, 100, 200, 255)
             };
+
+            m_FocusedStyle = {
+                IM_COL32(0, 102, 204, 255),
+                4.0f,
+                true,
+                2.0f,
+                IM_COL32(255, 255, 100, 255)
+            };
+
             bHaveBackGround = false;
-            
         }
 
         // 设置内容
-        void SetContent(ImWidget* child) 
+        void SetContent(ImWidget* child)
         {
             SetChildAt(0, child);
-            //ImSlot* newslot = new ImSlot(child);
-            //if (m_Slots.size() == 1)
-            //{
-            //    delete m_Slots[0];
-            //    m_Slots[0] = newslot;
-            //}
-            //else
-            //{
-            //    m_Slots.push_back(newslot);
-            //}
         }
+
         ImPaddingSlot* GetContentSlot()
         {
             return (ImPaddingSlot*)GetSlotAt(0);
         }
+
         // 设置工具提示文本
         void SetTooltipText(const std::string& text) { m_TooltipText = text; }
+
         // 设置回调函数
         void SetOnPressed(std::function<void(void)> callback) { OnPressed = callback; }
         void SetOnReleased(std::function<void(void)> callback) { OnReleased = callback; }
         void SetOnHoverBegin(std::function<void(void)> callback) { OnHoverBegin = callback; }
         void SetOnHoverEnd(std::function<void(void)> callback) { OnHoverEnd = callback; }
+        void SetOnFocusGained(std::function<void(void)> callback) { OnFocusGained = callback; }
+        void SetOnFocusLost(std::function<void(void)> callback) { OnFocusLost = callback; }
 
-        // 设置状态样式 - 提供独立设置每种状态的方法
+        // 设置状态样式
         void SetNormalStyle(const ButtonStateStyle& style) { m_NormalStyle = style; }
         void SetHoveredStyle(const ButtonStateStyle& style) { m_HoveredStyle = style; }
         void SetPressedStyle(const ButtonStateStyle& style) { m_PressedStyle = style; }
+        void SetFocusedStyle(const ButtonStateStyle& style) { m_FocusedStyle = style; }
 
         // 获取状态样式
         ButtonStateStyle& GetNormalStyle() { return m_NormalStyle; }
         ButtonStateStyle& GetHoveredStyle() { return m_HoveredStyle; }
         ButtonStateStyle& GetPressedStyle() { return m_PressedStyle; }
+        ButtonStateStyle& GetFocusedStyle() { return m_FocusedStyle; }
 
-        virtual ImVec2 GetMinSize() 
+        // 获取当前状态
+        bool IsHovered() const { return m_IsHovered; }
+        bool IsPressed() const { return m_IsPressed; }
+        bool IsFocused() const { return m_IsFocused; }
+
+        virtual ImVec2 GetMinSize()
         {
             auto content = GetChildAt(0);
             if (content)
@@ -243,11 +361,6 @@ namespace ImGuiWidget
                 ImVec2 ContentMinSize = content->GetMinSize();
                 return ImVec2(ImMax(ContentMinSize.x, 30.f), ImMax(ContentMinSize.y, 10.f));
             }
-            //if (m_Slots.size() > 0 && m_Slots[0])
-            //{
-            //    ImVec2 ContentMinSize = m_Slots[0]->GetContent()->GetMinSize();
-            //    return ImVec2(max(ContentMinSize.x, 30.f), max(ContentMinSize.y, 10.f));
-            //}
             else
             {
                 return ImVec2(30, 10);
@@ -257,7 +370,7 @@ namespace ImGuiWidget
         virtual void Render()
         {
             HandleLayout();
-            RenderButton();
+            RenderButton();        // 专注于渲染
             RenderBackGround();
             RenderChild();
         }
@@ -292,10 +405,16 @@ namespace ImGuiWidget
                  [this]() -> void* { return const_cast<ButtonStateStyle*>(&m_PressedStyle); } }
             );
 
+            baseProps.insert(
+                { "FocusedStyle", PropertyType::Struct, "Style",
+                 [this](void* v) { m_FocusedStyle = *(ButtonStateStyle*)v; },
+                 [this]() -> void* { return const_cast<ButtonStateStyle*>(&m_FocusedStyle); } }
+            );
+
             return baseProps;
         }
 
-        virtual std::string GetRegisterTypeName()override { return "ImButton"; }
+        virtual std::string GetRegisterTypeName() override { return "ImButton"; }
 
         virtual ImWidget* CopyWidget() override
         {

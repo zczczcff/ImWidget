@@ -351,13 +351,13 @@ public:
 
 MyApp* app;
 
-int ImInit()
+ImGuiWidget::ImWidget* ImInit()
 {
     app = new MyApp;
     app->Init();
 
     
-    return 1;
+    return app->m_MainBox;
 }
 
 void ImTick()

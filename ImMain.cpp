@@ -1,6 +1,6 @@
 #include "Application/ImApplication.h"
 
-extern int ImInit();
+extern ImGuiWidget::ImWidget* ImInit();
 extern void ImTick();
 
 namespace ImGuiWidget
@@ -11,9 +11,20 @@ namespace ImGuiWidget
 void ImApplication::Render()
 {
     ImGui::PushFont(GetFont(DefalutFontSize, DefaultFont));
+    m_EventSys->ProcessEvents();
     ImTick();
     ImGui::PopFont();
 }
+
+void AbstractMainFun(ImApplication* app)
+{
+    ImGuiWidget::GlobalApp = app;
+    if (!app->Initialize())
+        return ;
+    app->SetRootWidget(ImInit());
+    app->Run();
+}
+
 
 //根据平台区分入口函数
 #if defined(_WIN32)
@@ -26,11 +37,7 @@ int WINAPI wWinMain(
     _In_ int nShowCmd
 ){
     ImWin64Application app(hInstance, nShowCmd);
-    ImGuiWidget::GlobalApp = &app;
-    if (!app.Initialize())
-        return 1;
-    ImInit();
-    app.Run();
+    AbstractMainFun(&app);
     return 0;
 }
 
@@ -40,11 +47,7 @@ int WINAPI wWinMain(
 
 int main(int argc, char** argv) {
     ImPiApplication app;
-    ImGuiWidget::GlobalApp = &app;
-
-    if (!app.Initialize()) return 1;
-    ImInit();
-    app.Run();
+    AbstractMainFun(&app);
     return 0;
 }
 

@@ -19,6 +19,7 @@ namespace ImGuiWidget
 		class ImSlot* m_Slot;
 		class ImWidget* m_Parents;
 		bool bSizeDirty;
+		bool bVisible;
 		//处理子控件最小尺寸发生变化的情况
 		virtual void HandleChildSizeDirty(){}
 
@@ -187,9 +188,17 @@ namespace ImGuiWidget
 			return false;
 		}
 
+		bool IsVisible() { return bVisible; }
+
 		virtual ImWidget* CopyWidget()
 		{
 			return nullptr;
 		}
+
+		// 事件系统新增：事件处理入口
+		virtual void HandleEvent(class ImEvent* event);
+	protected:
+		virtual void HandleEventInternal(class ImEvent* event)
+		{}
 	};
 }

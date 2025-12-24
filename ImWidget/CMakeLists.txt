@@ -107,39 +107,17 @@ endif()
 # 完整包含目录设置
 add_definitions(-DIMGUI_USER_CONFIG=<ImWidgetConfig.h>)
 
-# 源文件列表
-set(LIB_SOURCES
-    # ImWidget核心
-    ImWidget/ImMultiLineTextBlock.cpp
-    ImWidget/ImWidgetFactory.cpp
-    
-    # 应用框架
-    Application/CHFONT.cpp
-    Application/ImPiApplication.cpp
-    Application/ImWin64Application.cpp
-    
-    # ImGui核心
-    Extern/imgui-master/imgui.cpp
-    Extern/imgui-master/imgui_draw.cpp
-    Extern/imgui-master/imgui_tables.cpp
-    Extern/imgui-master/imgui_widgets.cpp
-    Extern/imgui-master/imgui_demo.cpp
-    
-    # 平台特定实现
-    $<IF:$<STREQUAL:${IMWIDGET_PLATFORM},pi>,
-        Application/ImPiApplication.cpp,
-        Application/ImWin64Application.cpp>
-    
-    # 后端实现
-    ${BACKEND_SRCS}
-)
 
-# 收集所有头文件
-file(GLOB_RECURSE LIB_HEADERS
-    ./*.h      # 匹配 .h 文件
-    ./*.hpp    # 匹配 .hpp 文件
-    ./*.hxx    # 匹配 .hxx 文件
-    ./*.hh     # 匹配 .hh 文件
+file(GLOB_RECURSE LIB_HEADERS *.h)
+file(GLOB_RECURSE LIB_SOURCES ./Source/*cpp)
+
+# 然后添加额外的文件
+list(APPEND LIB_SOURCES
+    "${CMAKE_CURRENT_SOURCE_DIR}/Extern/imgui-master/imgui.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Extern/imgui-master/imgui_draw.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Extern/imgui-master/imgui_tables.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/Extern/imgui-master/imgui_widgets.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/${BACKEND_SRCS}"
 )
 
 #-----------------------------------------------
@@ -147,7 +125,7 @@ file(GLOB_RECURSE LIB_HEADERS
 #-----------------------------------------------
 add_library(ImWidget STATIC ${LIB_SOURCES} ${LIB_HEADERS})
 # 创建源文件和头文件过滤器
-    source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR} 
+    source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}
         PREFIX "Source" 
         FILES ${LIB_SOURCES}
     )
@@ -177,9 +155,10 @@ endif()
 target_include_directories(ImWidget PUBLIC
     # 使用生成器表达式安全地设置包含路径
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ImWidget>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/ImWindows>
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Application>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include/ImWidget>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include/ImWindows>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Include/Application>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Extern/imgui-master>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Extern/imgui-master/backends>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Extern/nlohmann_json/single_include/nlohmann>
