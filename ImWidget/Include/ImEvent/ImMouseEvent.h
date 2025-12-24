@@ -21,6 +21,7 @@ namespace ImGuiWidget
         ImVec2 m_delta;         // 移动距离
         ImMouseButton m_button;
         int m_clickCount;
+        ImModifierKeys m_modifiers;  // 新增：修饰键状态
 
     public:
         ImMouseEvent(ImEventType type, ImMouseButton button = ImMouseButton::Left,
@@ -32,11 +33,13 @@ namespace ImGuiWidget
         ImVec2 GetDelta() const { return m_delta; }
         ImMouseButton GetButton() const { return m_button; }
         int GetClickCount() const { return m_clickCount; }
+        ImModifierKeys GetModifiers() const { return m_modifiers; }
 
         // 设置位置（事件系统内部使用）
         void SetPosition(const ImVec2& pos) { m_position = pos; }
         void SetLocalPosition(const ImVec2& pos) { m_localPosition = pos; }
         void SetDelta(const ImVec2& delta) { m_delta = delta; }
+        void SetModifiers(const ImModifierKeys& mods) { m_modifiers = mods; }
 
         // 坐标转换
         ImVec2 GetPositionRelativeTo(ImWidget* widget) const;
@@ -108,4 +111,67 @@ namespace ImGuiWidget
             return new ImMouseLeaveEvent(*this);
         }
     };
+
+    class ImMouseClickEvent : public ImMouseEvent {
+    public:
+        ImMouseClickEvent(ImMouseButton button, int clickCount = 1)
+            : ImMouseEvent(ImEventType::MouseClick, button, clickCount) {}
+
+        virtual ImMouseClickEvent* Clone() const override {
+            return new ImMouseClickEvent(*this);
+        }
+    };
+
+    class ImMouseDoubleClickEvent : public ImMouseEvent {
+    public:
+        ImMouseDoubleClickEvent(ImMouseButton button)
+            : ImMouseEvent(ImEventType::MouseDoubleClick, button, 2) {}
+
+        virtual ImMouseDoubleClickEvent* Clone() const override {
+            return new ImMouseDoubleClickEvent(*this);
+        }
+    };
+
+    //// 新增：鼠标悬停事件
+    //class ImMouseHoverEvent : public ImMouseEvent {
+    //private:
+    //    float m_hoverTime;  // 悬停时间（秒）
+
+    //public:
+    //    ImMouseHoverEvent(float hoverTime = 0.0f)
+    //        : ImMouseEvent(ImEventType::MouseHover, ImMouseButton::Left, 1, false), m_hoverTime(hoverTime) {}
+
+    //    float GetHoverTime() const { return m_hoverTime; }
+
+    //    virtual ImMouseHoverEvent* Clone() const override {
+    //        return new ImMouseHoverEvent(*this);
+    //    }
+    //};
+
+    //// 新增：滚轮按下事件
+    //class ImMouseWheelClickEvent : public ImMouseEvent {
+    //public:
+    //    ImMouseWheelClickEvent()
+    //        : ImMouseEvent(ImEventType::MouseWheelClick, ImMouseButton::Middle, 1) {}
+
+    //    virtual ImMouseWheelClickEvent* Clone() const override {
+    //        return new ImMouseWheelClickEvent(*this);
+    //    }
+    //};
+
+    //// 新增：滚轮倾斜事件
+    //class ImMouseWheelTiltEvent : public ImMouseEvent {
+    //private:
+    //    ImVec2 m_tiltDelta;
+
+    //public:
+    //    ImMouseWheelTiltEvent(const ImVec2& tiltDelta)
+    //        : ImMouseEvent(ImEventType::MouseWheelTilt), m_tiltDelta(tiltDelta) {}
+
+    //    ImVec2 GetTiltDelta() const { return m_tiltDelta; }
+
+    //    virtual ImMouseWheelTiltEvent* Clone() const override {
+    //        return new ImMouseWheelTiltEvent(*this);
+    //    }
+    //};
 }

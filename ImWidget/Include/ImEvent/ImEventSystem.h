@@ -12,15 +12,15 @@ namespace ImGuiWidget
     private:
         class ImWidget* m_rootWidget;
         std::vector<std::unique_ptr<ImEvent>> m_eventQueue;
-
         // 状态跟踪
         ImWidget* m_hoveredWidget = nullptr;
         ImWidget* m_focusedWidget = nullptr;
         ImWidget* m_dragSourceWidget = nullptr;
+        ImWidget* m_lastHoveredWidget = nullptr;
         ImVec2 m_lastMousePos;
         double m_lastClickTime[5] = { 0 };  // 每个按钮的上次点击时间
         ImVec2 m_lastClickPos[5];         // 每个按钮的上次点击位置
-
+        double m_hoverStartTime = 0.f;
         // 双击检测参数
         const double DOUBLE_CLICK_TIME = 0.3;  // 300ms
         const float DOUBLE_CLICK_DISTANCE = 5.0f;  // 5像素
@@ -36,6 +36,10 @@ namespace ImGuiWidget
         void CollectEventsFromImGui();
 
         void CollectMouseEvents(ImGuiIO& io);
+
+        void HandleMouseButtonEvent(ImEventType type, int button, const ImVec2& pos, const ImModifierKeys& mods);
+
+        void CollectHoverEvents(ImGuiIO& io);
 
         void HandleMouseButtonEvent(ImEventType type, int button, const ImVec2& pos);
 

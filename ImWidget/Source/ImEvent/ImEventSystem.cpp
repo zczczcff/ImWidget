@@ -25,15 +25,20 @@ namespace ImGuiWidget
         CollectKeyboardEvents(io);
         CollectFocusEvents(io);
         CollectDragEvents(io);
+        CollectHoverEvents(io); 
     }
 
-    void ImGuiWidget::ImEventSystem::CollectMouseEvents(ImGuiIO& io) {
+    void ImEventSystem::CollectMouseEvents(ImGuiIO& io) {
+        // 获取当前修饰键状态
+        ImModifierKeys mods = ImModifierKeys::GetCurrent();
+
         // 鼠标移动事件
         if (!ImVec2Equals(io.MousePos, m_lastMousePos)) {
             auto event = std::make_unique<ImMouseMoveEvent>();
             event->SetPosition(io.MousePos);
             event->SetDelta(ImVec2(io.MousePos.x - m_lastMousePos.x,
                 io.MousePos.y - m_lastMousePos.y));
+            event->SetModifiers(mods);
             m_eventQueue.push_back(std::move(event));
             m_lastMousePos = io.MousePos;
         }
@@ -42,12 +47,12 @@ namespace ImGuiWidget
         for (int button = 0; button < 5; ++button) {
             // 鼠标按下
             if (ImGui::IsMouseClicked(button)) {
-                HandleMouseButtonEvent(ImEventType::MouseDown, button, io.MousePos);
+                HandleMouseButtonEvent(ImEventType::MouseDown, button, io.MousePos, mods);
             }
 
             // 鼠标释放
             if (ImGui::IsMouseReleased(button)) {
-                HandleMouseButtonEvent(ImEventType::MouseUp, button, io.MousePos);
+                HandleMouseButtonEvent(ImEventType::MouseUp, button, io.MousePos, mods);
             }
         }
 
@@ -56,35 +61,117 @@ namespace ImGuiWidget
             auto event = std::make_unique<ImMouseWheelEvent>(
                 ImVec2(io.MouseWheelH, io.MouseWheel));
             event->SetPosition(io.MousePos);
+            event->SetModifiers(mods);
             m_eventQueue.push_back(std::move(event));
+        }
+
+        // 新增：滚轮按下检测
+        //if (ImGui::IsMouseClicked(2)) { // 中键按下
+        //    auto event = std::make_unique<ImMouseWheelClickEvent>();
+        //    event->SetPosition(io.MousePos);
+        //    event->SetModifiers(mods);
+        //    m_eventQueue.push_back(std::move(event));
+        //}
+
+        // 新增：滚轮倾斜检测（如果ImGui支持）
+        // 注意：ImGui目前可能不支持滚轮倾斜检测，这里预留接口
+        if (io.MouseWheel != 0 || io.MouseWheelH != 0) {
+            // 可以在这里添加倾斜检测逻辑
         }
     }
 
-    void ImGuiWidget::ImEventSystem::HandleMouseButtonEvent(ImEventType type, int button, const ImVec2& pos) {
-        ImMouseButton mouseButton = static_cast<ImMouseButton>(button);
-        int clickCount = CalculateClickCount(button, pos);
+	void ImEventSystem::HandleMouseButtonEvent(ImEventType type, int button, const ImVec2& pos, const ImModifierKeys& mods) {
+		ImMouseButton mouseButton = static_cast<ImMouseButton>(button);
+		int clickCount = CalculateClickCount(button, pos);
 
-        std::unique_ptr<ImMouseEvent> event;
+		std::unique_ptr<ImMouseEvent> event;
 
-        if (type == ImEventType::MouseDown) {
-            event = std::make_unique<ImMouseDownEvent>(mouseButton, clickCount);
-        }
-        else {
-            event = std::make_unique<ImMouseUpEvent>(mouseButton, clickCount);
+		if (type == ImEventType::MouseDown) {
+			event = std::make_unique<ImMouseDownEvent>(mouseButton, clickCount);
+		}
+		else {
+			event = std::make_unique<ImMouseUpEvent>(mouseButton, clickCount);
 
             // 如果是鼠标释放，额外发送点击事件
             if (clickCount > 0) {
-                auto clickEvent = std::make_unique<ImMouseEvent>(
-                    clickCount >= 2 ? ImEventType::MouseDoubleClick : ImEventType::MouseClick,
-                    mouseButton, clickCount);
+                std::unique_ptr<ImMouseEvent> clickEvent;
+                if (clickCount >= 2) {
+                    clickEvent = std::make_unique<ImMouseDoubleClickEvent>(mouseButton);
+                }
+                else {
+                    clickEvent = std::make_unique<ImMouseClickEvent>(mouseButton, clickCount);
+                }
                 clickEvent->SetPosition(pos);
+                clickEvent->SetModifiers(mods);
                 m_eventQueue.push_back(std::move(clickEvent));
             }
         }
 
         event->SetPosition(pos);
+        event->SetModifiers(mods);
         m_eventQueue.push_back(std::move(event));
     }
+
+    void ImEventSystem::CollectHoverEvents(ImGuiIO& io) {
+        // 检测当前鼠标下的控件
+        ImWidget* currentHovered = HitTest(m_rootWidget, io.MousePos);
+
+        // 处理鼠标进入/离开事件
+        if (currentHovered != m_lastHoveredWidget) {
+            // 发送离开事件给之前悬停的控件
+            if (m_lastHoveredWidget != nullptr) {
+                auto leaveEvent = std::make_unique<ImMouseLeaveEvent>();
+                leaveEvent->SetPosition(io.MousePos);
+                leaveEvent->SetTarget(m_lastHoveredWidget);
+                m_eventQueue.push_back(std::move(leaveEvent));
+            }
+
+            // 发送进入事件给新悬停的控件
+            if (currentHovered != nullptr) {
+                auto enterEvent = std::make_unique<ImMouseEnterEvent>();
+                enterEvent->SetPosition(io.MousePos);
+                enterEvent->SetTarget(currentHovered);
+                m_eventQueue.push_back(std::move(enterEvent));
+
+                // 开始悬停计时
+                m_hoverStartTime = ImGui::GetTime();
+                m_hoveredWidget = currentHovered;
+            }
+            else {
+                m_hoverStartTime = 0.0;
+                m_hoveredWidget = nullptr;
+            }
+
+            m_lastHoveredWidget = currentHovered;
+        }
+
+        // 更新当前悬停控件
+        m_hoveredWidget = currentHovered;
+    }
+
+    //void ImEventSystem::ProcessHoverEvents() {
+    //    if (m_hoveredWidget != nullptr && m_hoverStartTime > 0) {
+    //        double currentTime = ImGui::GetTime();
+    //        double hoverDuration = currentTime - m_hoverStartTime;
+
+    //        // 悬停时间阈值（例如0.5秒）
+    //        const double HOVER_THRESHOLD = 0.5;
+
+    //        if (hoverDuration >= HOVER_THRESHOLD) {
+    //            auto hoverEvent = std::make_unique<ImMouseHoverEvent>(static_cast<float>(hoverDuration));
+    //            hoverEvent->SetPosition(m_lastMousePos);
+    //            hoverEvent->SetModifiers(ImModifierKeys::GetCurrent());
+
+    //            // 直接分发给悬停控件
+    //            hoverEvent->SetTarget(m_hoveredWidget);
+    //            hoverEvent->SetLocalPosition(CalculateLocalPosition(m_lastMousePos, m_hoveredWidget));
+    //            DispatchEventThroughHierarchy(hoverEvent.get(), m_hoveredWidget);
+
+    //            // 重置悬停计时，避免重复触发
+    //            m_hoverStartTime = 0.0;
+    //        }
+    //    }
+    //}
 
     int ImGuiWidget::ImEventSystem::CalculateClickCount(int button, const ImVec2& pos) {
         double currentTime = ImGui::GetTime();
@@ -147,18 +234,32 @@ namespace ImGuiWidget
             std::unique_ptr<ImEvent> event(eventPtr->Clone());
 
             // 设置目标控件
-            ImWidget* target = FindEventTarget(event.get());
-            if (!target) continue;
+            if (ImWidget* target = event->GetTarget())
+            {
+                // 计算本地坐标
+                if (auto mouseEvent = event->As<ImMouseEvent>()) {
+                    mouseEvent->SetLocalPosition(CalculateLocalPosition(mouseEvent->GetPosition(), target));
+                }
 
-            event->SetTarget(target);
+                // 事件传播
+                DispatchEventThroughHierarchy(event.get(), target);
+            }
+            else
+            {
+                target = FindEventTarget(event.get());
+                if (!target) continue;
 
-            // 计算本地坐标
-            if (auto mouseEvent = event->As<ImMouseEvent>()) {
-                mouseEvent->SetLocalPosition(CalculateLocalPosition(mouseEvent->GetPosition(), target));
+                event->SetTarget(target);
+
+                // 计算本地坐标
+                if (auto mouseEvent = event->As<ImMouseEvent>()) {
+                    mouseEvent->SetLocalPosition(CalculateLocalPosition(mouseEvent->GetPosition(), target));
+                }
+
+                // 事件传播
+                DispatchEventThroughHierarchy(event.get(), target);
             }
 
-            // 事件传播
-            DispatchEventThroughHierarchy(event.get(), target);
         }
 
         m_eventQueue.clear();
