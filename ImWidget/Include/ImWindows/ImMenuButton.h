@@ -86,6 +86,7 @@ namespace ImWindows
 			m_MenuWindow->bIsResizable = false;
 			m_MenuWindow->bAllowBringToFrontOnFocus = true;
 			m_MenuWindow->SetIsOpen(false);
+			m_MenuWindow->bAutoCloseWhenLostFocus = true;
 			//SetOnPressed([this]() {m_IsMenuOpen = !m_IsMenuOpen; });
 		}
 		
@@ -188,53 +189,70 @@ namespace ImWindows
 
 		virtual void HandleEventInternal(ImGuiWidget::ImEvent* event) override
 		{
+			if (event->IsHandled()) return;
 			ImGuiWidget::ImButton::HandleEventInternal(event);
 
-			if (event->IsHandled()) return;
+			
 			if (event->GetPhase() == ImGuiWidget::ImEventPhase::Capture)return;
 			ImVec2 menuPos = CalculateMenuPosition();
 			ImVec2 m_MenuWindowSize = m_Menu->GetMinSize();
-			if (event->GetType() == ImGuiWidget::ImEventType::MouseClick)
+			if (event->GetType() == ImGuiWidget::ImEventType::MouseDown)
 			{
-
-				m_IsMenuOpen = !m_IsMenuOpen;
+				if (m_MenuWindow->IsOpen())
+				{
+					m_MenuWindow->SetIsOpen(false);
+				}
+				else
+				{
+					//m_IsMenuOpen = !m_IsMenuOpen;
+					m_MenuWindow->SetIsOpen(true);
+					m_MenuWindow->SetSize(m_MenuWindowSize);
+					m_MenuWindow->SetPosition(menuPos);
+					m_Menu->SetPosition(menuPos);
+					m_Menu->SetSize(m_MenuWindowSize);
+					ImGuiWidget::GetGlobalApp()->GetWindowManager()->SetActiveWindow(m_MenuWindow);
+					if (Parents)
+					{
+						Parents->m_HaveChildActived = true;
+					}
+				}
 
 				
 			}
-			else if (event->GetType() == ImGuiWidget::ImEventType::FocusOut)
-			{
+			//else if (event->GetType() == ImGuiWidget::ImEventType::FocusOut)
+			//{
 
-				ImVec2 mousePos = ImGui::GetMousePos();
-				ImRect buttonRect(Position, Position + Size);
-				ImRect menuRect(menuPos, menuPos + m_MenuWindowSize);
+			//	ImVec2 mousePos = ImGui::GetMousePos();
+			//	ImRect buttonRect(Position, Position + Size);
+			//	ImRect menuRect(menuPos, menuPos + m_MenuWindowSize);
 
-				// 如果点击在按钮和菜单外部
-				if (!buttonRect.Contains(mousePos) && !menuRect.Contains(mousePos))
-				{
-					if (!m_HaveChildActived)//如果子项都不活跃
-					{
-						m_IsMenuOpen = false;
-					}
+			//	// 如果点击在按钮和菜单外部
+			//	if (!buttonRect.Contains(mousePos) && !menuRect.Contains(mousePos))
+			//	{
+			//		if (!m_HaveChildActived)//如果子项都不活跃
+			//		{
+			//			m_IsMenuOpen = false;
+			//		}
 
-				}
-			}
-			else
-			{
-				return;
-			}
-			m_MenuWindow->SetIsOpen(m_IsMenuOpen);
-			if (m_IsMenuOpen)
-			{
-				m_MenuWindow->SetSize(m_MenuWindowSize);
-				m_MenuWindow->SetPosition(menuPos);
-				m_Menu->SetPosition(menuPos);
-				m_Menu->SetSize(m_MenuWindowSize);
-				ImGuiWidget::GetGlobalApp()->GetWindowManager()->SetActiveWindow(m_MenuWindow);
-				if (Parents)
-				{
-					Parents->m_HaveChildActived = true;
-				}
-			}
+			//	}
+			//}
+			//else
+			//{
+			//	return;
+			//}
+			//m_MenuWindow->SetIsOpen(m_IsMenuOpen);
+			//if (m_IsMenuOpen)
+			//{
+			//	m_MenuWindow->SetSize(m_MenuWindowSize);
+			//	m_MenuWindow->SetPosition(menuPos);
+			//	m_Menu->SetPosition(menuPos);
+			//	m_Menu->SetSize(m_MenuWindowSize);
+			//	ImGuiWidget::GetGlobalApp()->GetWindowManager()->SetActiveWindow(m_MenuWindow);
+			//	if (Parents)
+			//	{
+			//		Parents->m_HaveChildActived = true;
+			//	}
+			//}
 		}
 	};
 }

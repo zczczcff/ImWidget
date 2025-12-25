@@ -67,14 +67,11 @@ namespace ImGuiWidget
         bool open = bIsOpen;
         if (bFillSysWindow)
         {
-            ImGui::SetNextWindowPos(ImVec2(0, 0));            // 左上角开始
-            ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize); // 覆盖整个窗口
+            m_position = ImVec2(0, 0);
+            m_size = ImGui::GetIO().DisplaySize;
         }
-        else
-        {
-            ImGui::SetNextWindowPos(m_position);
-            ImGui::SetNextWindowSize(m_size);
-        }
+        ImGui::SetNextWindowPos(m_position);
+        ImGui::SetNextWindowSize(m_size);
         ImGui::Begin(m_windowId.c_str(), nullptr, flags);
 
         // 如果窗口被关闭

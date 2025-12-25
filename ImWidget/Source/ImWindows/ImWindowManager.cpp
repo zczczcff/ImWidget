@@ -115,6 +115,10 @@ namespace ImGuiWidget
         if (m_activeWindow)
         {
             m_activeWindow->SetIsActive(false);
+            if (m_activeWindow->bAutoCloseWhenLostFocus)
+            {
+                m_activeWindow->SetIsOpen(false);
+            }
 
             // 发送失去焦点事件
             // 这里可以添加焦点变化事件处理
@@ -179,6 +183,7 @@ namespace ImGuiWidget
             LastactiveWindow->ProcessEvents();
         }
 
+        bool bHaveWindowJustOpen = false;
         // 处理其他窗口的事件
         for (auto& window : m_windows)
         {
@@ -186,11 +191,23 @@ namespace ImGuiWidget
             {
                 window->ProcessEvents();
             }
+            if (window->m_JustOpened)
+            {
+                bHaveWindowJustOpen = true;
+            }
         }
 
         // 检查窗口点击，更新活动窗口
-        UpdateActiveWindowFromInput();
+        if (!bHaveWindowJustOpen)
+        {
+            UpdateActiveWindowFromInput();
+        }
+        
 
+        for (auto& window : m_windows)//清除刚打开标志
+        {
+            window->m_JustOpened = false;
+        }
         // 清理已关闭的窗口
         //CleanupClosedWindows();
     }

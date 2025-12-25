@@ -30,7 +30,9 @@ namespace ImGuiWidget
         ImU32 m_bgColor = IM_COL32(255, 255, 255, 255);
         ImU32 m_borderColor = IM_COL32(0, 0, 0, 255);
         float m_borderThickness = 1.0f;
+        bool bAutoCloseWhenLostFocus = false;
 
+        bool m_JustOpened = false;
     public:
         ImWindow(const std::string& title, const ImVec2& size, const ImVec2& pos,const std::string& ID);
         virtual ~ImWindow();
@@ -51,7 +53,14 @@ namespace ImGuiWidget
         void SetPosition(const ImVec2& pos) { m_position = pos; }
         const ImVec2& GetPosition() const { return m_position; }
 
-        void SetIsOpen(bool open) { bIsOpen = open; }
+        void SetIsOpen(bool open) 
+        { 
+            bIsOpen = open; 
+            if (open)
+            {
+                m_JustOpened = true;
+            }
+        }
         bool IsOpen() const { return bIsOpen; }
 
         void SetIsActive(bool active) { bIsActive = active; }
