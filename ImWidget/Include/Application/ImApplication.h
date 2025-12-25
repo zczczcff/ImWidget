@@ -16,15 +16,16 @@ protected:
 	static int DefalutFontSize;
 	static std::string DefaultFont;
 	static std::map<int, ImFont*> DefalutFonts;
-	ImGuiWidget::ImEventSystem* m_EventSys;
+	//ImGuiWidget::ImEventSystem* m_EventSys;
 	ImGuiWidget::ImWindowManager* m_windowManager = nullptr; // 新增窗口管理器
 protected:
 	static ImFont* LoadDefaultFontInternal(int Size);
 public:
+	ImApplication();
 	void RenderTick();
 	void SetRootWidget(ImGuiWidget::ImWidget* RootWidget);
 
-	void AddWindow(ImGuiWidget::ImWindow* window); // 新增：添加窗口
+	//void AddWindow(ImGuiWidget::ImWindow* window); // 新增：添加窗口
 
 	// 获取窗口管理器
 	ImGuiWidget::ImWindowManager* GetWindowManager() const { return m_windowManager; }
