@@ -2,6 +2,7 @@
 #include "ImPanelWidget.h"
 #include "imgui_internal.h"
 #include "ImEvent/ImDragEvent.h"
+
 namespace ImGuiWidget
 {
     struct ImHorizontalSplitterStyle : public PropertyStruct
@@ -12,7 +13,8 @@ namespace ImGuiWidget
         ImU32 ActiveColor = IM_COL32(150, 150, 150, 255);
         float Rounding = 0.0f;
 
-        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override {
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
+        {
             std::unordered_set<PropertyInfo, PropertyInfo::Hasher> props;
 
             props.insert({
@@ -104,9 +106,14 @@ namespace ImGuiWidget
         std::vector<ImRect> m_PartRects;  // 缓存部分区域
         std::vector<ImRect> m_BarRects;    // 缓存分隔条区域
 
-     // 拖拽状态
+        // 拖拽状态
         bool m_IsDragSource = false; // 当前控件是否是拖拽源
         ImVec2 m_DragStartPosition; // 拖拽起始位置
+
+        // 鼠标悬停状态
+        int m_HoveredBarIndex = -1; // 当前悬停的分隔条索引
+        bool m_IsMouseOver = false; // 鼠标是否在控件上方
+
     private:
         virtual ImSlot* CreateSlot(ImWidget* Content)override
         {
@@ -117,24 +124,112 @@ namespace ImGuiWidget
             : ImPanelWidget(WidgetName)
         {
         }
-        // 重写事件处理函数，专门处理拖拽事件
+
+        // 重写事件处理函数
         virtual void HandleEvent(ImEvent* event) override
         {
             if (event->IsHandled()) return;
 
-            // 只处理拖拽相关事件
-            if (auto dragEvent = event->As<ImDragEvent>()) {
+            // 处理拖拽相关事件
+            if (auto dragEvent = event->As<ImDragEvent>())
+            {
                 HandleDragEvent(dragEvent);
+            }
+
+            // 处理鼠标悬停事件
+            if (auto mouseEvent = event->As<ImMouseEvent>())
+            {
+                HandleMouseEvent(mouseEvent);
             }
         }
 
     private:
+        // 处理鼠标事件（悬停检测）
+        void HandleMouseEvent(ImMouseEvent* mouseEvent)
+        {
+            const ImVec2 mousePos = mouseEvent->GetPosition();
+
+            switch (mouseEvent->GetType())
+            {
+            case ImEventType::MouseEnter:
+                HandleMouseEnter(mousePos, mouseEvent);
+                break;
+            case ImEventType::MouseLeave:
+                HandleMouseLeave(mousePos, mouseEvent);
+                break;
+            case ImEventType::MouseMove:
+                HandleMouseMove(mousePos, mouseEvent);
+                break;
+            default:
+                break;
+            }
+        }
+
+        // 鼠标进入控件
+        void HandleMouseEnter(const ImVec2& mousePos, ImMouseEvent* mouseEvent)
+        {
+            m_IsMouseOver = true;
+            UpdateHoveredBar(mousePos);
+        }
+
+        // 鼠标离开控件
+        void HandleMouseLeave(const ImVec2& mousePos, ImMouseEvent* mouseEvent)
+        {
+            m_IsMouseOver = false;
+            m_HoveredBarIndex = -1;
+        }
+
+        // 鼠标移动
+        void HandleMouseMove(const ImVec2& mousePos, ImMouseEvent* mouseEvent)
+        {
+            if (m_IsMouseOver)
+            {
+                UpdateHoveredBar(mousePos);
+            }
+        }
+
+        // 更新悬停的分隔条索引
+        void UpdateHoveredBar(const ImVec2& mousePos)
+        {
+            int newHoveredIndex = -1;
+
+            // 检查鼠标位置是否在某个分隔条上
+            for (int i = 0; i < m_BarRects.size(); i++)
+            {
+                if (m_BarRects[i].Contains(mousePos))
+                {
+                    newHoveredIndex = i;
+                    break;
+                }
+            }
+
+            // 如果悬停状态发生变化
+            if (newHoveredIndex != m_HoveredBarIndex)
+            {
+                // 发送离开事件给之前悬停的分隔条
+                if (m_HoveredBarIndex >= 0)
+                {
+                    // 可以在这里处理分隔条悬停离开的视觉反馈
+                }
+
+                // 更新悬停索引
+                m_HoveredBarIndex = newHoveredIndex;
+
+                // 发送进入事件给新悬停的分隔条
+                if (m_HoveredBarIndex >= 0)
+                {
+                    // 可以在这里处理分隔条悬停进入的视觉反馈
+                }
+            }
+        }
+
         // 专门处理拖拽事件
         void HandleDragEvent(ImDragEvent* dragEvent)
         {
             const ImVec2 mousePos = dragEvent->GetPosition();
 
-            switch (dragEvent->GetType()) {
+            switch (dragEvent->GetType())
+            {
             case ImEventType::DragEnter:
                 HandleDragEnter(mousePos, dragEvent);
                 break;
@@ -165,7 +260,8 @@ namespace ImGuiWidget
         void HandleDragEnter(const ImVec2& mousePos, ImDragEvent* dragEvent)
         {
             // 检查拖拽源是否来自本控件内部的分隔条
-            if (IsDragFromOwnBars(dragEvent)) {
+            if (IsDragFromOwnBars(dragEvent))
+            {
                 // 设置拖拽光标样式
                 // 这里可以设置鼠标光标为 resize-ew
                 dragEvent->StopPropagation();
@@ -176,7 +272,8 @@ namespace ImGuiWidget
         void HandleDragOver(const ImVec2& mousePos, ImDragEvent* dragEvent)
         {
             // 只有来自本控件内部的分隔条拖拽才处理
-            if (IsDragFromOwnBars(dragEvent)) {
+            if (IsDragFromOwnBars(dragEvent))
+            {
                 // 可以在这里实现拖拽时的视觉反馈
                 dragEvent->StopPropagation();
             }
@@ -185,7 +282,8 @@ namespace ImGuiWidget
         // 拖拽离开分隔条区域
         void HandleDragLeave(const ImVec2& mousePos, ImDragEvent* dragEvent)
         {
-            if (IsDragFromOwnBars(dragEvent)) {
+            if (IsDragFromOwnBars(dragEvent))
+            {
                 // 恢复正常光标
                 dragEvent->StopPropagation();
             }
@@ -195,7 +293,8 @@ namespace ImGuiWidget
         void HandleDrop(const ImVec2& mousePos, ImDragEvent* dragEvent)
         {
             // 分隔条不接受外部拖拽放下，只处理内部拖拽
-            if (IsDragFromOwnBars(dragEvent)) {
+            if (IsDragFromOwnBars(dragEvent))
+            {
                 dragEvent->StopPropagation();
             }
         }
@@ -204,8 +303,10 @@ namespace ImGuiWidget
         void HandleDragStart(const ImVec2& mousePos, ImDragEvent* dragEvent)
         {
             // 检查鼠标位置是否在某个分隔条上
-            for (int i = 0; i < m_BarRects.size(); i++) {
-                if (m_BarRects[i].Contains(mousePos)) {
+            for (int i = 0; i < m_BarRects.size(); i++)
+            {
+                if (m_BarRects[i].Contains(mousePos))
+                {
                     m_DraggingIndex = i;
                     m_DragStartPos = mousePos.x;
                     m_DragStartSplitterPos = m_BarRects[i].GetCenter().x;
@@ -225,7 +326,8 @@ namespace ImGuiWidget
         void HandleDragUpdate(const ImVec2& mousePos, ImDragEvent* dragEvent)
         {
             // 只有当前控件是拖拽源时才处理
-            if (m_IsDragSource && m_DraggingIndex >= 0) {
+            if (m_IsDragSource && m_DraggingIndex >= 0)
+            {
                 float newSplitterPos = m_DragStartSplitterPos + (mousePos.x - m_DragStartPos);
                 UpdateSplitterPosition(m_DraggingIndex, newSplitterPos);
 
@@ -236,7 +338,8 @@ namespace ImGuiWidget
         // 拖拽结束
         void HandleDragEnd(const ImVec2& mousePos, ImDragEvent* dragEvent)
         {
-            if (m_IsDragSource) {
+            if (m_IsDragSource)
+            {
                 m_DraggingIndex = -1;
                 m_IsDragSource = false;
                 dragEvent->StopPropagation();
@@ -253,25 +356,29 @@ namespace ImGuiWidget
             return false;
         }
 
-        // 更新分隔条位置（保持不变）
+        // 更新分隔条位置
         void UpdateSplitterPosition(int barIndex, float newSplitterPos)
         {
             int leftIndex = barIndex;
             int rightIndex = barIndex + 1;
 
-            if (auto* leftSlot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(leftIndex))) {
-                if (auto* rightSlot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(rightIndex))) {
+            if (auto* leftSlot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(leftIndex)))
+            {
+                if (auto* rightSlot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(rightIndex)))
+                {
                     // 计算新宽度
                     float newLeftWidth = newSplitterPos - m_PartRects[leftIndex].Min.x - m_Style.BarWidth * 0.5f;
                     float newRightWidth = m_PartRects[rightIndex].Max.x - newSplitterPos - m_Style.BarWidth * 0.5f;
 
                     // 应用最小尺寸约束
-                    if (newLeftWidth < leftSlot->MinSize) {
+                    if (newLeftWidth < leftSlot->MinSize)
+                    {
                         newLeftWidth = leftSlot->MinSize;
                         newRightWidth = (m_PartRects[leftIndex].GetWidth() +
                             m_PartRects[rightIndex].GetWidth()) - newLeftWidth;
                     }
-                    if (newRightWidth < rightSlot->MinSize) {
+                    if (newRightWidth < rightSlot->MinSize)
+                    {
                         newRightWidth = rightSlot->MinSize;
                         newLeftWidth = (m_PartRects[leftIndex].GetWidth() +
                             m_PartRects[rightIndex].GetWidth()) - newRightWidth;
@@ -287,20 +394,24 @@ namespace ImGuiWidget
             }
         }
     public:
-        void SetSplitterStyle(const ImHorizontalSplitterStyle& style) {
+        void SetSplitterStyle(const ImHorizontalSplitterStyle& style)
+        {
             m_Style = style;
         }
 
-        ImHorizontalSplitterSlot* AddPart(ImWidget* widget, float ratio = 1.0f) 
+        ImHorizontalSplitterSlot* AddPart(ImWidget* widget, float ratio = 1.0f)
         {
             auto* slot = AddChildInternal<ImHorizontalSplitterSlot>(widget);
             slot->Ratio = ratio;
             return slot;
         }
 
-        void SetMinSize(int index, float minSize) {
-            if (ImSlot* slot = GetSlotAt(index)) {
-                if (auto* splitterSlot = dynamic_cast<ImHorizontalSplitterSlot*>(slot)) {
+        void SetMinSize(int index, float minSize)
+        {
+            if (ImSlot* slot = GetSlotAt(index))
+            {
+                if (auto* splitterSlot = dynamic_cast<ImHorizontalSplitterSlot*>(slot))
+                {
                     splitterSlot->MinSize = minSize;
                     MarkLayoutDirty();  // 标记需要重新布局
                 }
@@ -310,7 +421,8 @@ namespace ImGuiWidget
         virtual ImSlot* AddChild(ImWidget* Child, ImVec2 RelativePosition = ImVec2(FLT_MIN, FLT_MIN)) override
         {
             // 如果没有指定相对位置，添加到末尾
-            if (RelativePosition.x == FLT_MIN) {
+            if (RelativePosition.x == FLT_MIN)
+            {
                 return AddPart(Child, 1.0f); // 使用AddPart添加并设置默认比例
             }
 
@@ -318,7 +430,8 @@ namespace ImGuiWidget
             float relativeX = RelativePosition.x;
 
             // 如果没有子项，直接添加到末尾
-            if (GetSlotNum() == 0) {
+            if (GetSlotNum() == 0)
+            {
                 return AddPart(Child, 1.0f);
             }
 
@@ -329,12 +442,14 @@ namespace ImGuiWidget
             int insertIndex = GetSlotNum(); // 默认插入到最后
             float accumulatedWidth = 0.0f;
 
-            for (int i = 0; i < GetSlotNum(); i++) {
+            for (int i = 0; i < GetSlotNum(); i++)
+            {
                 const ImRect& partRect = m_PartRects[i];
                 float partWidth = partRect.GetWidth();
 
                 // 如果位置在当前部分中点之前，插入在当前位置
-                if (relativeX <= accumulatedWidth + partWidth * 0.5f) {
+                if (relativeX <= accumulatedWidth + partWidth * 0.5f)
+                {
                     insertIndex = i;
                     break;
                 }
@@ -342,7 +457,8 @@ namespace ImGuiWidget
                 accumulatedWidth += partWidth;
 
                 // 如果不是最后一部分，加上分隔条宽度
-                if (i < static_cast<int>(m_BarRects.size())) {
+                if (i < static_cast<int>(m_BarRects.size()))
+                {
                     accumulatedWidth += m_BarRects[i].GetWidth();
                 }
             }
@@ -363,13 +479,20 @@ namespace ImGuiWidget
             ImU32 color;
 
             // 基于拖拽状态设置颜色
-            if (m_IsDragSource && m_DraggingIndex == barIndex) {
+            if (m_IsDragSource && m_DraggingIndex == barIndex)
+            {
                 color = m_Style.ActiveColor;
+                // 设置拖拽光标
+                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
             }
-            else if (barRect.Contains(MousePos)) {
+            else if (barIndex == m_HoveredBarIndex)
+            {
                 color = m_Style.HoveredColor;
+                // 设置悬停光标
+                ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
             }
-            else {
+            else
+            {
                 color = m_Style.Color;
             }
 
@@ -381,7 +504,6 @@ namespace ImGuiWidget
             );
         }
 
-
         // 应用最小尺寸约束
         void ApplyMinSizeConstraints(std::vector<float>& widths, float availableWidth)
         {
@@ -390,16 +512,21 @@ namespace ImGuiWidget
 
             // 计算总的最小宽度
             float totalMinWidth = 0;
-            for (int i = 0; i < numParts; i++) {
-                if (auto* slot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(i))) {
+            for (int i = 0; i < numParts; i++)
+            {
+                if (auto* slot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(i)))
+                {
                     totalMinWidth += slot->MinSize;
                 }
             }
 
             // 如果可用空间小于最小总宽度，按比例分配
-            if (availableWidth < totalMinWidth) {
-                for (int i = 0; i < numParts; i++) {
-                    if (auto* slot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(i))) {
+            if (availableWidth < totalMinWidth)
+            {
+                for (int i = 0; i < numParts; i++)
+                {
+                    if (auto* slot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(i)))
+                    {
                         widths[i] = (slot->MinSize / totalMinWidth) * availableWidth;
                     }
                 }
@@ -408,15 +535,19 @@ namespace ImGuiWidget
 
             // 应用最小尺寸约束
             bool needsAdjustment;
-            do {
+            do
+            {
                 needsAdjustment = false;
                 float remainingWidth = availableWidth;
                 float totalDynamicRatio = 0.0f;
 
                 // 设置所有部件的最小尺寸
-                for (int i = 0; i < numParts; i++) {
-                    if (auto* slot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(i))) {
-                        if (widths[i] < slot->MinSize) {
+                for (int i = 0; i < numParts; i++)
+                {
+                    if (auto* slot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(i)))
+                    {
+                        if (widths[i] < slot->MinSize)
+                        {
                             widths[i] = slot->MinSize;
                             needsAdjustment = true;
                         }
@@ -425,25 +556,34 @@ namespace ImGuiWidget
                 }
 
                 // 如果空间不足，需要重新分配
-                if (remainingWidth < 0) {
+                if (remainingWidth < 0)
+                {
                     // 计算动态部分的总比例
                     totalDynamicRatio = 0;
-                    for (int i = 0; i < numParts; i++) {
-                        if (auto* slot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(i))) {
-                            if (widths[i] > slot->MinSize) {
+                    for (int i = 0; i < numParts; i++)
+                    {
+                        if (auto* slot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(i)))
+                        {
+                            if (widths[i] > slot->MinSize)
+                            {
                                 totalDynamicRatio += slot->Ratio;
                             }
                         }
                     }
 
                     // 按比例调整动态部分
-                    if (totalDynamicRatio > 0) {
-                        for (int i = 0; i < numParts; i++) {
-                            if (auto* slot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(i))) {
-                                if (widths[i] > slot->MinSize) {
+                    if (totalDynamicRatio > 0)
+                    {
+                        for (int i = 0; i < numParts; i++)
+                        {
+                            if (auto* slot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(i)))
+                            {
+                                if (widths[i] > slot->MinSize)
+                                {
                                     float reduction = (remainingWidth * slot->Ratio / totalDynamicRatio);
                                     widths[i] += reduction;
-                                    if (widths[i] < slot->MinSize) {
+                                    if (widths[i] < slot->MinSize)
+                                    {
                                         widths[i] = slot->MinSize;
                                         needsAdjustment = true;
                                     }
@@ -463,8 +603,10 @@ namespace ImGuiWidget
 
             // 计算总比例
             float totalRatio = 0.0f;
-            for (int i = 0; i < numParts; i++) {
-                if (auto* slot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(i))) {
+            for (int i = 0; i < numParts; i++)
+            {
+                if (auto* slot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(i)))
+                {
                     totalRatio += slot->Ratio;
                 }
             }
@@ -472,82 +614,16 @@ namespace ImGuiWidget
             // 计算初始宽度
             widths.clear();
             widths.resize(numParts, 0.0f);
-            for (int i = 0; i < numParts; i++) {
-                if (auto* slot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(i))) {
+            for (int i = 0; i < numParts; i++)
+            {
+                if (auto* slot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(i)))
+                {
                     widths[i] = (slot->Ratio / totalRatio) * contentWidth;
                 }
             }
 
             // 应用最小尺寸约束
             ApplyMinSizeConstraints(widths, contentWidth);
-        }
-
-        // 处理拖动事件
-        void ProcessDragEvents(const ImVec2& mousePos)
-        {
-            ImGuiWindow* window = ImGui::GetCurrentWindow();
-            const int numBars = m_BarRects.size();
-
-            for (int i = 0; i < numBars; i++) {
-                ImRect& barRect = m_BarRects[i];
-                ImGuiID barId = window->GetID((m_WidgetID + "_Bar" + std::to_string(i)).c_str());
-
-                // 注册交互区域
-                ImGui::ItemAdd(barRect, barId);
-                ImGui::SetItemAllowOverlap();
-
-                // 鼠标悬停效果
-                if (ImGui::IsItemHovered()) {
-                    ImGui::SetMouseCursor(ImGuiMouseCursor_ResizeEW);
-                }
-
-                // 开始拖动
-                if (ImGui::IsMouseClicked(ImGuiMouseButton_Left) && ImGui::IsItemHovered()) {
-                    m_DraggingIndex = i;
-                    m_DragStartPos = mousePos.x;
-                    m_DragStartSplitterPos = barRect.GetCenter().x;
-                }
-            }
-
-            // 处理拖动中的更新
-            if (m_DraggingIndex >= 0 && m_DraggingIndex < numBars) {
-                if (ImGui::IsMouseDragging(ImGuiMouseButton_Left)) {
-                    float newSplitterPos = m_DragStartSplitterPos + (mousePos.x - m_DragStartPos);
-
-                    int leftIndex = m_DraggingIndex;
-                    int rightIndex = m_DraggingIndex + 1;
-
-                    if (auto* leftSlot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(leftIndex))) {
-                        if (auto* rightSlot = dynamic_cast<ImHorizontalSplitterSlot*>(GetSlotAt(rightIndex))) {
-                            // 计算新宽度
-                            float newLeftWidth = newSplitterPos - m_PartRects[leftIndex].Min.x - m_Style.BarWidth * 0.5f;
-                            float newRightWidth = m_PartRects[rightIndex].Max.x - newSplitterPos - m_Style.BarWidth * 0.5f;
-
-                            // 应用最小尺寸约束
-                            if (newLeftWidth < leftSlot->MinSize) {
-                                newLeftWidth = leftSlot->MinSize;
-                                newRightWidth = (m_PartRects[leftIndex].GetWidth() +
-                                    m_PartRects[rightIndex].GetWidth()) - newLeftWidth;
-                            }
-                            if (newRightWidth < rightSlot->MinSize) {
-                                newRightWidth = rightSlot->MinSize;
-                                newLeftWidth = (m_PartRects[leftIndex].GetWidth() +
-                                    m_PartRects[rightIndex].GetWidth()) - newRightWidth;
-                            }
-
-                            // 更新比例
-                            float totalRatio = leftSlot->Ratio + rightSlot->Ratio;
-                            leftSlot->Ratio = totalRatio * newLeftWidth / (newLeftWidth + newRightWidth);
-                            rightSlot->Ratio = totalRatio - leftSlot->Ratio;
-
-                            MarkLayoutDirty(); // 标记需要重新布局
-                        }
-                    }
-                }
-                else if (!ImGui::IsMouseDown(ImGuiMouseButton_Left)) {
-                    m_DraggingIndex = -1; // 结束拖动
-                }
-            }
         }
 
         // 重写布局计算
@@ -573,7 +649,8 @@ namespace ImGuiWidget
             m_BarRects.clear();
 
             // 计算每个部分的矩形区域
-            for (int i = 0; i < numParts; i++) {
+            for (int i = 0; i < numParts; i++)
+            {
                 // 部件区域
                 m_PartRects.emplace_back(
                     cursorX,
@@ -584,7 +661,8 @@ namespace ImGuiWidget
                 cursorX += widths[i];
 
                 // 如果不是最后一部分，添加分隔条
-                if (i < numBars) {
+                if (i < numBars)
+                {
                     m_BarRects.emplace_back(
                         cursorX,
                         Position.y,
@@ -596,9 +674,12 @@ namespace ImGuiWidget
             }
 
             // 设置子控件的位置和大小
-            for (int i = 0; i < numParts; i++) {
-                if (ImSlot* slot = GetSlotAt(i)) {
-                    if (slot->IsValid()) {
+            for (int i = 0; i < numParts; i++)
+            {
+                if (ImSlot* slot = GetSlotAt(i))
+                {
+                    if (slot->IsValid())
+                    {
                         // 只需设置slot的位置和大小
                         slot->SetSlotPosition(m_PartRects[i].Min);
                         slot->SetSlotSize(m_PartRects[i].GetSize());
@@ -622,8 +703,15 @@ namespace ImGuiWidget
 
             // 渲染所有分隔条（使用当前鼠标位置获取悬停状态）
             const ImVec2 mousePos = ImGui::GetIO().MousePos;
-            for (int i = 0; i < m_BarRects.size(); i++) {
+            for (int i = 0; i < m_BarRects.size(); i++)
+            {
                 RenderSplitterBar(m_BarRects[i], mousePos, i);
+            }
+
+            // 如果没有分隔条被悬停或拖拽，恢复默认光标
+            if (m_HoveredBarIndex == -1 && !m_IsDragSource)
+            {
+                // 可以在这里恢复默认光标，如果需要的话
             }
         }
 
@@ -631,8 +719,10 @@ namespace ImGuiWidget
         virtual ImWidget* ChildHitTest(ImVec2 Pos) override
         {
             // 首先检查是否在分隔条上
-            for (int i = 0; i < m_BarRects.size(); i++) {
-                if (m_BarRects[i].Contains(Pos)) {
+            for (int i = 0; i < m_BarRects.size(); i++)
+            {
+                if (m_BarRects[i].Contains(Pos))
+                {
                     return this; // 分隔条事件由分割器本身处理
                 }
             }
