@@ -27,6 +27,7 @@ namespace ImGuiWidget
         // 焦点事件
         FocusIn,
         FocusOut,
+        FocusRequest,
 
         // 拖拽事件
         DragEnter,
@@ -70,3 +71,12 @@ namespace ImGuiWidget
         }
     };
 }
+
+//焦点变化原因
+enum class ImFocusReason {
+    Unknown,        // 未知原因
+    User,           // 用户操作（点击、Tab键等）
+    Programmatic,   // 程序设置
+    Navigation,     // 导航（方向键等）
+    Restore         // 恢复先前焦点
+};

@@ -76,6 +76,29 @@ namespace ImGuiWidget
         void EndDrag(const ImVec2& pos, const ImModifierKeys& mods);
         void ProcessDropTargets(const ImVec2& pos, const ImModifierKeys& mods);
         void ProcessDrop(ImWidget* target, const ImVec2& pos, const ImModifierKeys& mods);
+
+        //焦点相关方法
+
+        // 设置焦点到指定控件
+        bool SetFocus(ImWidget* widget, ImFocusReason reason = ImFocusReason::User);
+
+        // 获取当前焦点控件
+        ImWidget* GetFocusedWidget() const;
+
+        // 清除焦点
+        void ClearFocus(ImFocusReason reason = ImFocusReason::User);
+
+        // Tab键导航到下一个可聚焦控件
+        bool FocusNextWidget(bool reverse = false);
+
+        // 收集所有可聚焦的控件
+        void CollectFocusableWidgets(ImWidget* root, std::vector<ImWidget*>& result);
+
+        // 立即分发事件（不加入队列）
+        void DispatchEventImmediately(ImEvent* event);
+
+        // 沿着控件树向上查找第一个可聚焦的控件
+        ImWidget* FindFocusableAncestor(ImWidget* widget);
     };
 
 }

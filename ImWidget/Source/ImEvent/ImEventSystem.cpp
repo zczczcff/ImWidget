@@ -7,423 +7,681 @@
 #include "ImEvent/ImDragEvent.h"
 namespace ImGuiWidget
 {
-    ImGuiWidget::ImEventSystem::ImEventSystem(ImWidget* root) : m_rootWidget(root) {}
+	ImGuiWidget::ImEventSystem::ImEventSystem(ImWidget* root) : m_rootWidget(root) {}
 
-    // 主处理入口
+	// 主处理入口
 
-    void ImGuiWidget::ImEventSystem::ProcessEvents() {
-        CollectEventsFromImGui();
-        DispatchEvents();
-    }
+	void ImGuiWidget::ImEventSystem::ProcessEvents()
+	{
+		CollectEventsFromImGui();
+		DispatchEvents();
+	}
 
-    // 从ImGui收集事件
+	// 从ImGui收集事件
 
-    void ImGuiWidget::ImEventSystem::CollectEventsFromImGui() {
-        ImGuiIO& io = ImGui::GetIO();
+	void ImGuiWidget::ImEventSystem::CollectEventsFromImGui()
+	{
+		ImGuiIO& io = ImGui::GetIO();
 
-        CollectMouseEvents(io);
-        CollectKeyboardEvents(io);
-        CollectDragEvents(io);
-        CollectHoverEvents(io); 
-    }
+		CollectMouseEvents(io);
+		CollectKeyboardEvents(io);
+		CollectDragEvents(io);
+		CollectHoverEvents(io);
+	}
 
-    void ImEventSystem::CollectMouseEvents(ImGuiIO& io) {
-        // 获取当前修饰键状态
-        ImModifierKeys mods = ImModifierKeys::GetCurrent();
+	void ImEventSystem::CollectMouseEvents(ImGuiIO& io)
+	{
+		// 获取当前修饰键状态
+		ImModifierKeys mods = ImModifierKeys::GetCurrent();
 
-        // 鼠标移动事件
-        if (!ImVec2Equals(io.MousePos, m_lastMousePos)) {
-            auto event = std::make_unique<ImMouseMoveEvent>();
-            event->SetPosition(io.MousePos);
-            event->SetDelta(ImVec2(io.MousePos.x - m_lastMousePos.x,
-                io.MousePos.y - m_lastMousePos.y));
-            event->SetModifiers(mods);
-            m_eventQueue.push_back(std::move(event));
-            m_lastMousePos = io.MousePos;
-        }
+		// 鼠标移动事件
+		if (!ImVec2Equals(io.MousePos, m_lastMousePos))
+		{
+			auto event = std::make_unique<ImMouseMoveEvent>();
+			event->SetPosition(io.MousePos);
+			event->SetDelta(ImVec2(io.MousePos.x - m_lastMousePos.x,
+				io.MousePos.y - m_lastMousePos.y));
+			event->SetModifiers(mods);
+			m_eventQueue.push_back(std::move(event));
+			m_lastMousePos = io.MousePos;
+		}
 
-        // 鼠标按钮事件
-        for (int button = 0; button < 5; ++button) {
-            // 鼠标按下
-            if (ImGui::IsMouseClicked(button)) {
-                HandleMouseButtonEvent(ImEventType::MouseDown, button, io.MousePos, mods);
-            }
+		// 鼠标按钮事件
+		for (int button = 0; button < 5; ++button)
+		{
+			// 鼠标按下
+			if (ImGui::IsMouseClicked(button))
+			{
+				HandleMouseButtonEvent(ImEventType::MouseDown, button, io.MousePos, mods);
+			}
 
-            // 鼠标释放
-            if (ImGui::IsMouseReleased(button)) {
-                HandleMouseButtonEvent(ImEventType::MouseUp, button, io.MousePos, mods);
-            }
-        }
+			// 鼠标释放
+			if (ImGui::IsMouseReleased(button))
+			{
+				HandleMouseButtonEvent(ImEventType::MouseUp, button, io.MousePos, mods);
+			}
+		}
 
-        // 鼠标滚轮
-        if (io.MouseWheel != 0 || io.MouseWheelH != 0) {
-            auto event = std::make_unique<ImMouseWheelEvent>(
-                ImVec2(io.MouseWheelH, io.MouseWheel));
-            event->SetPosition(io.MousePos);
-            event->SetModifiers(mods);
-            m_eventQueue.push_back(std::move(event));
-        }
+		// 鼠标滚轮
+		if (io.MouseWheel != 0 || io.MouseWheelH != 0)
+		{
+			auto event = std::make_unique<ImMouseWheelEvent>(
+				ImVec2(io.MouseWheelH, io.MouseWheel));
+			event->SetPosition(io.MousePos);
+			event->SetModifiers(mods);
+			m_eventQueue.push_back(std::move(event));
+		}
 
-        // 新增：滚轮按下检测
-        //if (ImGui::IsMouseClicked(2)) { // 中键按下
-        //    auto event = std::make_unique<ImMouseWheelClickEvent>();
-        //    event->SetPosition(io.MousePos);
-        //    event->SetModifiers(mods);
-        //    m_eventQueue.push_back(std::move(event));
-        //}
+		// 新增：滚轮按下检测
+		//if (ImGui::IsMouseClicked(2)) { // 中键按下
+		//    auto event = std::make_unique<ImMouseWheelClickEvent>();
+		//    event->SetPosition(io.MousePos);
+		//    event->SetModifiers(mods);
+		//    m_eventQueue.push_back(std::move(event));
+		//}
 
-        // 新增：滚轮倾斜检测（如果ImGui支持）
-        // 注意：ImGui目前可能不支持滚轮倾斜检测，这里预留接口
-        if (io.MouseWheel != 0 || io.MouseWheelH != 0) {
-            // 可以在这里添加倾斜检测逻辑
-        }
-    }
+		// 新增：滚轮倾斜检测（如果ImGui支持）
+		// 注意：ImGui目前可能不支持滚轮倾斜检测，这里预留接口
+		if (io.MouseWheel != 0 || io.MouseWheelH != 0)
+		{
+			// 可以在这里添加倾斜检测逻辑
+		}
+	}
 
-	void ImEventSystem::HandleMouseButtonEvent(ImEventType type, int button, const ImVec2& pos, const ImModifierKeys& mods) {
+	void ImEventSystem::HandleMouseButtonEvent(ImEventType type, int button, const ImVec2& pos, const ImModifierKeys& mods)
+	{
 		ImMouseButton mouseButton = static_cast<ImMouseButton>(button);
 		int clickCount = CalculateClickCount(button, pos);
 
 		std::unique_ptr<ImMouseEvent> event;
 
-		if (type == ImEventType::MouseDown) {
+		if (type == ImEventType::MouseDown)
+		{
 			event = std::make_unique<ImMouseDownEvent>(mouseButton, clickCount);
+
+			// 改进的焦点处理逻辑
+			ImWidget* hitTarget = HitTest(m_rootWidget, pos);
+			if (hitTarget)
+			{
+				// 查找第一个可聚焦的控件（沿着控件树向上）
+				ImWidget* focusTarget = FindFocusableAncestor(hitTarget);
+				if (focusTarget && focusTarget->IsFocusable())
+				{
+					// 发送焦点请求事件
+					//auto focusRequest = std::make_unique<ImFocusRequestEvent>(focusTarget, ImFocusReason::User);
+					//focusRequest->SetTarget(focusTarget);
+					//m_eventQueue.push_back(std::move(focusRequest));
+					//焦点请求暂不实现，暂时只使用强制设置焦点及强制清除焦点
+					// 直接设置焦点
+					SetFocus(focusTarget, ImFocusReason::User);
+				}
+				else if (m_focusedWidget)
+				{
+					// 点击非可聚焦区域，清除焦点
+					ClearFocus(ImFocusReason::User);
+				}
+			}
 		}
-		else {
+		else
+		{
 			event = std::make_unique<ImMouseUpEvent>(mouseButton, clickCount);
 
-            // 如果是鼠标释放，额外发送点击事件
-            if (clickCount > 0) {
-                std::unique_ptr<ImMouseEvent> clickEvent;
-                if (clickCount >= 2) {
-                    clickEvent = std::make_unique<ImMouseDoubleClickEvent>(mouseButton);
-                }
-                else {
-                    clickEvent = std::make_unique<ImMouseClickEvent>(mouseButton, clickCount);
-                }
-                clickEvent->SetPosition(pos);
-                clickEvent->SetModifiers(mods);
-                m_eventQueue.push_back(std::move(clickEvent));
-            }
-        }
+			// 如果是鼠标释放，额外发送点击事件
+			if (clickCount > 0)
+			{
+				std::unique_ptr<ImMouseEvent> clickEvent;
+				if (clickCount >= 2)
+				{
+					clickEvent = std::make_unique<ImMouseDoubleClickEvent>(mouseButton);
+				}
+				else
+				{
+					clickEvent = std::make_unique<ImMouseClickEvent>(mouseButton, clickCount);
+				}
+				clickEvent->SetPosition(pos);
+				clickEvent->SetModifiers(mods);
+				m_eventQueue.push_back(std::move(clickEvent));
+			}
+		}
 
-        event->SetPosition(pos);
-        event->SetModifiers(mods);
-        m_eventQueue.push_back(std::move(event));
-    }
+		event->SetPosition(pos);
+		event->SetModifiers(mods);
+		m_eventQueue.push_back(std::move(event));
+	}
 
-    void ImEventSystem::CollectHoverEvents(ImGuiIO& io) {
-        // 检测当前鼠标下的控件
-        ImWidget* currentHovered = HitTest(m_rootWidget, io.MousePos);
+	void ImEventSystem::CollectHoverEvents(ImGuiIO& io)
+	{
+		// 检测当前鼠标下的控件
+		ImWidget* currentHovered = HitTest(m_rootWidget, io.MousePos);
 
-        // 处理鼠标进入/离开事件
-        if (currentHovered != m_lastHoveredWidget) {
-            // 发送离开事件给之前悬停的控件
-            if (m_lastHoveredWidget != nullptr) {
-                auto leaveEvent = std::make_unique<ImMouseLeaveEvent>();
-                leaveEvent->SetPosition(io.MousePos);
-                leaveEvent->SetTarget(m_lastHoveredWidget);
-                m_eventQueue.push_back(std::move(leaveEvent));
-            }
+		// 处理鼠标进入/离开事件
+		if (currentHovered != m_lastHoveredWidget)
+		{
+			// 发送离开事件给之前悬停的控件
+			if (m_lastHoveredWidget != nullptr)
+			{
+				auto leaveEvent = std::make_unique<ImMouseLeaveEvent>();
+				leaveEvent->SetPosition(io.MousePos);
+				leaveEvent->SetTarget(m_lastHoveredWidget);
+				m_eventQueue.push_back(std::move(leaveEvent));
+			}
 
-            // 发送进入事件给新悬停的控件
-            if (currentHovered != nullptr) {
-                auto enterEvent = std::make_unique<ImMouseEnterEvent>();
-                enterEvent->SetPosition(io.MousePos);
-                enterEvent->SetTarget(currentHovered);
-                m_eventQueue.push_back(std::move(enterEvent));
+			// 发送进入事件给新悬停的控件
+			if (currentHovered != nullptr)
+			{
+				auto enterEvent = std::make_unique<ImMouseEnterEvent>();
+				enterEvent->SetPosition(io.MousePos);
+				enterEvent->SetTarget(currentHovered);
+				m_eventQueue.push_back(std::move(enterEvent));
 
-                // 开始悬停计时
-                m_hoverStartTime = ImGui::GetTime();
-                m_hoveredWidget = currentHovered;
-            }
-            else {
-                m_hoverStartTime = 0.0;
-                m_hoveredWidget = nullptr;
-            }
+				// 开始悬停计时
+				m_hoverStartTime = ImGui::GetTime();
+				m_hoveredWidget = currentHovered;
+			}
+			else
+			{
+				m_hoverStartTime = 0.0;
+				m_hoveredWidget = nullptr;
+			}
 
-            m_lastHoveredWidget = currentHovered;
-        }
+			m_lastHoveredWidget = currentHovered;
+		}
 
-        // 更新当前悬停控件
-        m_hoveredWidget = currentHovered;
-    }
+		// 更新当前悬停控件
+		m_hoveredWidget = currentHovered;
+	}
 
-    int ImGuiWidget::ImEventSystem::CalculateClickCount(int button, const ImVec2& pos) {
-        double currentTime = ImGui::GetTime();
-        int buttonIndex = static_cast<int>(button);
+	int ImGuiWidget::ImEventSystem::CalculateClickCount(int button, const ImVec2& pos)
+	{
+		double currentTime = ImGui::GetTime();
+		int buttonIndex = static_cast<int>(button);
 
-        // 检查是否在双击时间和距离范围内
-        bool isDoubleClick = (currentTime - m_lastClickTime[buttonIndex] <= DOUBLE_CLICK_TIME) &&
-            (ImVec2Distance(pos, m_lastClickPos[buttonIndex]) <= DOUBLE_CLICK_DISTANCE);
+		// 检查是否在双击时间和距离范围内
+		bool isDoubleClick = (currentTime - m_lastClickTime[buttonIndex] <= DOUBLE_CLICK_TIME) &&
+			(ImVec2Distance(pos, m_lastClickPos[buttonIndex]) <= DOUBLE_CLICK_DISTANCE);
 
-        int clickCount = isDoubleClick ? 2 : 1;
+		int clickCount = isDoubleClick ? 2 : 1;
 
-        // 更新上次点击信息
-        m_lastClickTime[buttonIndex] = currentTime;
-        m_lastClickPos[buttonIndex] = pos;
+		// 更新上次点击信息
+		m_lastClickTime[buttonIndex] = currentTime;
+		m_lastClickPos[buttonIndex] = pos;
 
-        return clickCount;
-    }
+		return clickCount;
+	}
 
-    void ImGuiWidget::ImEventSystem::CollectKeyboardEvents(ImGuiIO& io) {
-        // 处理按键事件
-        for (int key = ImGuiKey_NamedKey_BEGIN; key < ImGuiKey_NamedKey_END; ++key) {
-            if (ImGui::IsKeyPressed((ImGuiKey)key, false)) {  // false表示不重复触发
-                auto event = std::make_unique<ImKeyDownEvent>(key);
-                m_eventQueue.push_back(std::move(event));
-            }
+	void ImGuiWidget::ImEventSystem::CollectKeyboardEvents(ImGuiIO& io)
+	{
+		// 处理按键事件
+		for (int key = ImGuiKey_NamedKey_BEGIN; key < ImGuiKey_NamedKey_END; ++key)
+		{
+			if (ImGui::IsKeyPressed((ImGuiKey)key, false))
+			{  // false表示不重复触发
+				auto event = std::make_unique<ImKeyDownEvent>(key);
+				m_eventQueue.push_back(std::move(event));
+			}
 
-            if (ImGui::IsKeyReleased((ImGuiKey)key)) {
-                auto event = std::make_unique<ImKeyUpEvent>(key);
-                m_eventQueue.push_back(std::move(event));
-            }
-        }
+			if (ImGui::IsKeyReleased((ImGuiKey)key))
+			{
+				auto event = std::make_unique<ImKeyUpEvent>(key);
+				m_eventQueue.push_back(std::move(event));
+			}
+		}
 
-        // 处理输入字符
-        for (int i = 0; i < io.InputQueueCharacters.Size; i++) {
-            unsigned int c = io.InputQueueCharacters[i];
-            if (c > 0 && c < 0x10000) {  // 有效字符
-                auto event = std::make_unique<ImKeyPressEvent>(static_cast<char>(c));
-                m_eventQueue.push_back(std::move(event));
-            }
-        }
-    }
+		// 处理输入字符
+		for (int i = 0; i < io.InputQueueCharacters.Size; i++)
+		{
+			unsigned int c = io.InputQueueCharacters[i];
+			if (c > 0 && c < 0x10000)
+			{  // 有效字符
+				auto event = std::make_unique<ImKeyPressEvent>(static_cast<char>(c));
+				m_eventQueue.push_back(std::move(event));
+			}
+		}
 
-    void ImGuiWidget::ImEventSystem::CollectDragEvents(ImGuiIO& io) {
-        ImModifierKeys mods = ImModifierKeys::GetCurrent();
-        // 检查是否开始拖拽
-        if (!m_isDragging && ImGui::IsMouseDragging(0)) { // 左键拖拽
-            // 检查拖拽阈值（避免误触）
-            ImVec2 dragDelta = ImGui::GetMouseDragDelta(0);
-            if ( ImVec2Distance(ImVec2(0,0), dragDelta) > 2.0f) { // 2像素阈值
-                StartDrag(io.MousePos- dragDelta, mods);
-            }
-        }
+		if (ImGui::IsKeyPressed(ImGuiKey_Tab, false))
+		{
+			bool reverse = io.KeyShift; // Shift+Tab反向导航
+			FocusNextWidget(reverse);
+		}
+	}
 
-        // 处理拖拽更新
-        if (m_isDragging) {
-            if (ImGui::IsMouseDragging(0)) {
-                UpdateDrag(io.MousePos, mods);
-            }
-            else {
-                // 鼠标释放，结束拖拽
-                EndDrag(io.MousePos, mods);
-            }
-        }
+	void ImGuiWidget::ImEventSystem::CollectDragEvents(ImGuiIO& io)
+	{
+		ImModifierKeys mods = ImModifierKeys::GetCurrent();
+		// 检查是否开始拖拽
+		if (!m_isDragging && ImGui::IsMouseDragging(0))
+		{ // 左键拖拽
+// 检查拖拽阈值（避免误触）
+			ImVec2 dragDelta = ImGui::GetMouseDragDelta(0);
+			if (ImVec2Distance(ImVec2(0, 0), dragDelta) > 2.0f)
+			{ // 2像素阈值
+				StartDrag(io.MousePos - dragDelta, mods);
+			}
+		}
 
-        // 处理拖放目标
-        if (m_isDragging) {
-            ProcessDropTargets(io.MousePos, mods);
-        }
-    }
+		// 处理拖拽更新
+		if (m_isDragging)
+		{
+			if (ImGui::IsMouseDragging(0))
+			{
+				UpdateDrag(io.MousePos, mods);
+			}
+			else
+			{
+				// 鼠标释放，结束拖拽
+				EndDrag(io.MousePos, mods);
+			}
+		}
 
-    // 事件分发
+		// 处理拖放目标
+		if (m_isDragging)
+		{
+			ProcessDropTargets(io.MousePos, mods);
+		}
+	}
 
-    void ImGuiWidget::ImEventSystem::DispatchEvents() {
-        for (auto& eventPtr : m_eventQueue) {
-            if (!eventPtr) continue;
+	// 事件分发
 
-            // 克隆事件用于分发
-            std::unique_ptr<ImEvent> event(eventPtr->Clone());
+	void ImGuiWidget::ImEventSystem::DispatchEvents()
+	{
+		for (auto& eventPtr : m_eventQueue)
+		{
+			if (!eventPtr) continue;
 
-            // 设置目标控件
-            if (ImWidget* target = event->GetTarget())
-            {
-                // 计算本地坐标
-                if (auto mouseEvent = event->As<ImMouseEvent>()) {
-                    mouseEvent->SetLocalPosition(CalculateLocalPosition(mouseEvent->GetPosition(), target));
-                }
+			// 克隆事件用于分发
+			std::unique_ptr<ImEvent> event(eventPtr->Clone());
 
-                // 事件传播
-                DispatchEventThroughHierarchy(event.get(), target);
-            }
-            else
-            {
-                target = FindEventTarget(event.get());
-                if (!target) continue;
+			// 设置目标控件
+			if (ImWidget* target = event->GetTarget())
+			{
+				// 计算本地坐标
+				if (auto mouseEvent = event->As<ImMouseEvent>())
+				{
+					mouseEvent->SetLocalPosition(CalculateLocalPosition(mouseEvent->GetPosition(), target));
+				}
 
-                event->SetTarget(target);
+				// 事件传播
+				DispatchEventThroughHierarchy(event.get(), target);
+			}
+			else
+			{
+				target = FindEventTarget(event.get());
+				if (!target) continue;
 
-                // 计算本地坐标
-                if (auto mouseEvent = event->As<ImMouseEvent>()) {
-                    mouseEvent->SetLocalPosition(CalculateLocalPosition(mouseEvent->GetPosition(), target));
-                }
+				event->SetTarget(target);
 
-                // 事件传播
-                DispatchEventThroughHierarchy(event.get(), target);
-            }
+				// 计算本地坐标
+				if (auto mouseEvent = event->As<ImMouseEvent>())
+				{
+					mouseEvent->SetLocalPosition(CalculateLocalPosition(mouseEvent->GetPosition(), target));
+				}
 
-        }
+				// 事件传播
+				DispatchEventThroughHierarchy(event.get(), target);
+			}
 
-        m_eventQueue.clear();
-    }
+		}
 
-    ImWidget* ImGuiWidget::ImEventSystem::FindEventTarget(ImEvent* event) {
-        if (auto mouseEvent = event->As<ImMouseEvent>()) {
-            return HitTest(m_rootWidget, mouseEvent->GetPosition());
-        }
-        return m_focusedWidget;  // 键盘事件发送给焦点控件
-    }
+		m_eventQueue.clear();
+	}
 
-    ImVec2 ImGuiWidget::ImEventSystem::CalculateLocalPosition(const ImVec2& globalPos, ImWidget* widget) {
-        if (!widget) return globalPos;
-        return ImVec2(globalPos.x - widget->GetPosition().x,
-            globalPos.y - widget->GetPosition().y);
-    }
+	ImWidget* ImGuiWidget::ImEventSystem::FindEventTarget(ImEvent* event)
+	{
+		if (auto mouseEvent = event->As<ImMouseEvent>())
+		{
+			return HitTest(m_rootWidget, mouseEvent->GetPosition());
+		}
+		return m_focusedWidget;  // 键盘事件发送给焦点控件
+	}
 
-    void ImGuiWidget::ImEventSystem::DispatchEventThroughHierarchy(ImEvent* event, ImWidget* target) {
-        // 构建传播路径
-        std::vector<ImWidget*> path;
-        ImWidget* current = target;
-        while (current) {
-            path.push_back(current);
-            current = current->GetParents();
-        }
+	ImVec2 ImGuiWidget::ImEventSystem::CalculateLocalPosition(const ImVec2& globalPos, ImWidget* widget)
+	{
+		if (!widget) return globalPos;
+		return ImVec2(globalPos.x - widget->GetPosition().x,
+			globalPos.y - widget->GetPosition().y);
+	}
 
-        // 捕获阶段（从根到目标）
-        event->SetPhase(ImEventPhase::Capture);
-        for (auto it = path.rbegin(); it != path.rend() && !event->IsHandled(); ++it) {
-            event->SetCurrentTarget(*it);
-            (*it)->HandleEvent(event);
-        }
+	void ImGuiWidget::ImEventSystem::DispatchEventThroughHierarchy(ImEvent* event, ImWidget* target)
+	{
+		// 构建传播路径
+		std::vector<ImWidget*> path;
+		ImWidget* current = target;
+		while (current)
+		{
+			path.push_back(current);
+			current = current->GetParents();
+		}
 
-        // 目标阶段
-        if (!event->IsHandled()) {
-            event->SetPhase(ImEventPhase::Target);
-            event->SetCurrentTarget(target);
-            target->HandleEvent(event);
-        }
+		// 捕获阶段（从根到目标）
+		event->SetPhase(ImEventPhase::Capture);
+		for (auto it = path.rbegin(); it != path.rend() && !event->IsHandled(); ++it)
+		{
+			event->SetCurrentTarget(*it);
+			(*it)->HandleEvent(event);
+		}
 
-        // 冒泡阶段（从目标到根）
-        if (event->Bubbles() && !event->IsHandled()) {
-            event->SetPhase(ImEventPhase::Bubble);
-            for (auto it = path.begin(); it != path.end() && !event->IsHandled(); ++it) {
-                event->SetCurrentTarget(*it);
-                (*it)->HandleEvent(event);
-            }
-        }
-    }
+		// 目标阶段
+		if (!event->IsHandled())
+		{
+			event->SetPhase(ImEventPhase::Target);
+			event->SetCurrentTarget(target);
+			target->HandleEvent(event);
+		}
 
-    // HitTest实现（与之前相同）
+		// 冒泡阶段（从目标到根）
+		if (event->Bubbles() && !event->IsHandled())
+		{
+			event->SetPhase(ImEventPhase::Bubble);
+			for (auto it = path.begin(); it != path.end() && !event->IsHandled(); ++it)
+			{
+				event->SetCurrentTarget(*it);
+				(*it)->HandleEvent(event);
+			}
+		}
+	}
 
-    ImWidget* ImGuiWidget::ImEventSystem::HitTest(ImWidget* widget, const ImVec2& point) {
-        if (!widget || !widget->IsVisible()) return nullptr;
+	// HitTest实现（与之前相同）
 
-        if (auto panel = dynamic_cast<ImPanelWidget*>(widget)) {
-            for (int i = panel->GetSlotNum() - 1; i >= 0; --i) {
-                if (auto child = panel->GetChildAt(i)) {
-                    if (auto result = HitTest(child, point)) {
-                        return result;
-                    }
-                }
-            }
-        }
+	ImWidget* ImGuiWidget::ImEventSystem::HitTest(ImWidget* widget, const ImVec2& point)
+	{
+		if (!widget || !widget->IsVisible()) return nullptr;
 
-        ImRect rect(widget->GetPosition(), widget->GetPosition() + widget->GetSize());
-        return rect.Contains(point) ? widget : nullptr;
-    }
+		if (auto panel = dynamic_cast<ImPanelWidget*>(widget))
+		{
+			for (int i = panel->GetSlotNum() - 1; i >= 0; --i)
+			{
+				if (auto child = panel->GetChildAt(i))
+				{
+					if (auto result = HitTest(child, point))
+					{
+						return result;
+					}
+				}
+			}
+		}
 
-    // 工具函数
+		ImRect rect(widget->GetPosition(), widget->GetPosition() + widget->GetSize());
+		return rect.Contains(point) ? widget : nullptr;
+	}
 
-    bool ImGuiWidget::ImEventSystem::ImVec2Equals(const ImVec2& a, const ImVec2& b, float epsilon) {
-        return std::abs(a.x - b.x) < epsilon && std::abs(a.y - b.y) < epsilon;
-    }
+	// 工具函数
 
-    float ImGuiWidget::ImEventSystem::ImVec2Distance(const ImVec2& a, const ImVec2& b) {
-        float dx = a.x - b.x;
-        float dy = a.y - b.y;
-        return std::sqrt(dx * dx + dy * dy);
-    }
+	bool ImGuiWidget::ImEventSystem::ImVec2Equals(const ImVec2& a, const ImVec2& b, float epsilon)
+	{
+		return std::abs(a.x - b.x) < epsilon && std::abs(a.y - b.y) < epsilon;
+	}
 
-    void ImEventSystem::StartDrag(const ImVec2& pos, const ImModifierKeys& mods) {
-        m_isDragging = true;
-        m_dragStartPos = pos;
-        m_dragSourceWidget = m_lastHoveredWidget;
+	float ImGuiWidget::ImEventSystem::ImVec2Distance(const ImVec2& a, const ImVec2& b)
+	{
+		float dx = a.x - b.x;
+		float dy = a.y - b.y;
+		return std::sqrt(dx * dx + dy * dy);
+	}
 
-        // 创建拖拽开始事件
-        auto event = std::make_unique<ImDragStartEvent>();
-        event->SetTarget(m_dragSourceWidget);
-        event->SetPosition(pos);
-        event->SetModifiers(mods);
+	void ImEventSystem::StartDrag(const ImVec2& pos, const ImModifierKeys& mods)
+	{
+		m_isDragging = true;
+		m_dragStartPos = pos;
+		m_dragSourceWidget = m_lastHoveredWidget;
 
-        m_eventQueue.push_back(std::move(event));
-    }
+		// 创建拖拽开始事件
+		auto event = std::make_unique<ImDragStartEvent>();
+		event->SetTarget(m_dragSourceWidget);
+		event->SetPosition(pos);
+		event->SetModifiers(mods);
 
-    void ImEventSystem::UpdateDrag(const ImVec2& pos, const ImModifierKeys& mods) {
-        auto event = std::make_unique<ImDragUpdateEvent>();
-        event->SetPosition(pos);
-        event->SetTarget(m_dragSourceWidget);
-        event->SetDelta(ImVec2(pos.x - m_lastDragPos.x, pos.y - m_lastDragPos.y));
-        event->SetModifiers(mods);
+		m_eventQueue.push_back(std::move(event));
+	}
 
-        m_eventQueue.push_back(std::move(event));
-        m_lastDragPos = pos;
-    }
+	void ImEventSystem::UpdateDrag(const ImVec2& pos, const ImModifierKeys& mods)
+	{
+		auto event = std::make_unique<ImDragUpdateEvent>();
+		event->SetPosition(pos);
+		event->SetTarget(m_dragSourceWidget);
+		event->SetDelta(ImVec2(pos.x - m_lastDragPos.x, pos.y - m_lastDragPos.y));
+		event->SetModifiers(mods);
 
-    void ImEventSystem::EndDrag(const ImVec2& pos, const ImModifierKeys& mods) {
-        auto event = std::make_unique<ImDragEndEvent>();
-        event->SetPosition(pos);
-        event->SetTarget(m_dragSourceWidget);
-        event->SetModifiers(mods);
+		m_eventQueue.push_back(std::move(event));
+		m_lastDragPos = pos;
+	}
 
-        // 处理拖放
-        ImWidget* dropTarget = HitTest(m_rootWidget, pos);
-        if (dropTarget && dropTarget != m_dragSourceWidget) {
-            ProcessDrop(dropTarget, pos, mods);
-        }
+	void ImEventSystem::EndDrag(const ImVec2& pos, const ImModifierKeys& mods)
+	{
+		auto event = std::make_unique<ImDragEndEvent>();
+		event->SetPosition(pos);
+		event->SetTarget(m_dragSourceWidget);
+		event->SetModifiers(mods);
 
-        m_eventQueue.push_back(std::move(event));
+		// 处理拖放
+		ImWidget* dropTarget = HitTest(m_rootWidget, pos);
+		if (dropTarget && dropTarget != m_dragSourceWidget)
+		{
+			ProcessDrop(dropTarget, pos, mods);
+		}
 
-        // 重置拖拽状态
-        m_isDragging = false;
-        m_dragSourceWidget = nullptr;
-        m_lastDragPos = ImVec2(0, 0);
-    }
+		m_eventQueue.push_back(std::move(event));
 
-    void ImEventSystem::ProcessDropTargets(const ImVec2& pos, const ImModifierKeys& mods) {
-        ImWidget* currentTarget = HitTest(m_rootWidget, pos);
+		// 重置拖拽状态
+		m_isDragging = false;
+		m_dragSourceWidget = nullptr;
+		m_lastDragPos = ImVec2(0, 0);
+		ImDragEvent::SetDragData(nullptr);
+	}
 
-        // 处理拖拽进入/离开事件
-        if (currentTarget != m_lastDragHoveredWidget) {
-            // 发送拖拽离开事件给之前的控件
-            if (m_lastDragHoveredWidget) {
-                auto leaveEvent = std::make_unique<ImDragEvent>(ImEventType::DragLeave);
-                leaveEvent->SetPosition(pos);
-                leaveEvent->SetModifiers(mods);
-                leaveEvent->SetTarget(m_lastDragHoveredWidget);
-                m_eventQueue.push_back(std::move(leaveEvent));
-            }
+	void ImEventSystem::ProcessDropTargets(const ImVec2& pos, const ImModifierKeys& mods)
+	{
+		ImWidget* currentTarget = HitTest(m_rootWidget, pos);
 
-            // 发送拖拽进入事件给新控件
-            if (currentTarget) {
-                auto enterEvent = std::make_unique<ImDragEvent>(ImEventType::DragEnter);
-                enterEvent->SetPosition(pos);
-                enterEvent->SetModifiers(mods);
-                enterEvent->SetTarget(currentTarget);
-                m_eventQueue.push_back(std::move(enterEvent));
-            }
+		// 处理拖拽进入/离开事件
+		if (currentTarget != m_lastDragHoveredWidget)
+		{
+			// 发送拖拽离开事件给之前的控件
+			if (m_lastDragHoveredWidget)
+			{
+				auto leaveEvent = std::make_unique<ImDragEvent>(ImEventType::DragLeave);
+				leaveEvent->SetPosition(pos);
+				leaveEvent->SetModifiers(mods);
+				leaveEvent->SetTarget(m_lastDragHoveredWidget);
+				m_eventQueue.push_back(std::move(leaveEvent));
+			}
 
-            m_lastDragHoveredWidget = currentTarget;
-        }
+			// 发送拖拽进入事件给新控件
+			if (currentTarget)
+			{
+				auto enterEvent = std::make_unique<ImDragEvent>(ImEventType::DragEnter);
+				enterEvent->SetPosition(pos);
+				enterEvent->SetModifiers(mods);
+				enterEvent->SetTarget(currentTarget);
+				m_eventQueue.push_back(std::move(enterEvent));
+			}
 
-        // 发送拖拽经过事件给当前控件
-        if (currentTarget) {
-            auto overEvent = std::make_unique<ImDragEvent>(ImEventType::DragOver);
-            overEvent->SetPosition(pos);
-            overEvent->SetModifiers(mods);
-            overEvent->SetTarget(currentTarget);
-            m_eventQueue.push_back(std::move(overEvent));
-        }
-    }
+			m_lastDragHoveredWidget = currentTarget;
+		}
 
-    void ImEventSystem::ProcessDrop(ImWidget* target, const ImVec2& pos, const ImModifierKeys& mods) {
-        if (!m_dragSourceWidget) return;
+		// 发送拖拽经过事件给当前控件
+		if (currentTarget)
+		{
+			auto overEvent = std::make_unique<ImDragEvent>(ImEventType::DragOver);
+			overEvent->SetPosition(pos);
+			overEvent->SetModifiers(mods);
+			overEvent->SetTarget(currentTarget);
+			m_eventQueue.push_back(std::move(overEvent));
+		}
+	}
 
-        auto dropEvent = std::make_unique<ImDragEvent>(ImEventType::Drop);
-        dropEvent->SetPosition(pos);
-        dropEvent->SetModifiers(mods);
-        dropEvent->SetTarget(target);
+	void ImEventSystem::ProcessDrop(ImWidget* target, const ImVec2& pos, const ImModifierKeys& mods)
+	{
+		if (!m_dragSourceWidget) return;
 
-        m_eventQueue.push_back(std::move(dropEvent));
-    }
+		auto dropEvent = std::make_unique<ImDragEvent>(ImEventType::Drop);
+		dropEvent->SetPosition(pos);
+		dropEvent->SetModifiers(mods);
+		dropEvent->SetTarget(target);
+
+		m_eventQueue.push_back(std::move(dropEvent));
+	}
+
+	// 设置焦点到指定控件
+
+	bool ImEventSystem::SetFocus(ImWidget* widget, ImFocusReason reason)
+	{
+		if (widget && !widget->IsFocusable())
+		{
+			return false;
+		}
+
+		// 如果焦点没有变化，直接返回
+		if (widget == m_focusedWidget)
+		{
+			return true;
+		}
+
+		ImWidget* oldFocus = m_focusedWidget;
+
+		// 发送失去焦点事件
+		if (oldFocus)
+		{
+			auto focusOutEvent = std::make_unique<ImFocusOutEvent>(widget, reason);
+			focusOutEvent->SetTarget(oldFocus);
+			DispatchEventImmediately(focusOutEvent.get());
+			oldFocus->LoseFocus();
+		}
+
+		// 设置新焦点
+		m_focusedWidget = widget;
+
+		// 发送获得焦点事件
+		if (m_focusedWidget)
+		{
+			auto focusInEvent = std::make_unique<ImFocusInEvent>(oldFocus, reason);
+			focusInEvent->SetTarget(m_focusedWidget);
+			DispatchEventImmediately(focusInEvent.get());
+			m_focusedWidget->GetFocus();
+		}
+
+		return true;
+	}
+
+	// 获取当前焦点控件
+
+	ImWidget* ImEventSystem::GetFocusedWidget() const
+	{
+		return m_focusedWidget;
+	}
+
+	// 清除焦点
+
+	void ImEventSystem::ClearFocus(ImFocusReason reason)
+	{
+		SetFocus(nullptr, reason);
+	}
+
+	// Tab键导航到下一个可聚焦控件
+
+	bool ImEventSystem::FocusNextWidget(bool reverse)
+	{
+		if (!m_rootWidget) return false;
+
+		std::vector<ImWidget*> focusableWidgets;
+		CollectFocusableWidgets(m_rootWidget, focusableWidgets);
+
+		if (focusableWidgets.empty()) return false;
+
+		// 如果没有当前焦点，聚焦第一个或最后一个控件
+		if (!m_focusedWidget)
+		{
+			ImWidget* target = reverse ? focusableWidgets.back() : focusableWidgets.front();
+			return SetFocus(target, ImFocusReason::Navigation);
+		}
+
+		// 查找当前焦点在列表中的位置
+		auto it = std::find(focusableWidgets.begin(), focusableWidgets.end(), m_focusedWidget);
+		if (it == focusableWidgets.end())
+		{
+			ImWidget* target = reverse ? focusableWidgets.back() : focusableWidgets.front();
+			return SetFocus(target, ImFocusReason::Navigation);
+		}
+
+		// 计算下一个焦点控件
+		ImWidget* nextFocus = nullptr;
+		if (reverse)
+		{
+			if (it == focusableWidgets.begin())
+			{
+				nextFocus = focusableWidgets.back(); // 循环到最后一个
+			}
+			else
+			{
+				nextFocus = *(it - 1);
+			}
+		}
+		else
+		{
+			if (it + 1 == focusableWidgets.end())
+			{
+				nextFocus = focusableWidgets.front(); // 循环到第一个
+			}
+			else
+			{
+				nextFocus = *(it + 1);
+			}
+		}
+
+		return SetFocus(nextFocus, ImFocusReason::Navigation);
+	}
+
+	// 收集所有可聚焦的控件
+
+	void ImEventSystem::CollectFocusableWidgets(ImWidget* root, std::vector<ImWidget*>& result)
+	{
+		if (!root || !root->IsVisible()) return;
+
+		if (root->IsFocusable())
+		{
+			result.push_back(root);
+		}
+
+		// 递归收集子控件
+		if (auto panel = dynamic_cast<ImPanelWidget*>(root))
+		{
+			for (int i = 0; i < panel->GetSlotNum(); ++i)
+			{
+				if (auto child = panel->GetChildAt(i))
+				{
+					CollectFocusableWidgets(child, result);
+				}
+			}
+		}
+	}
+
+	// 立即分发事件（不加入队列）
+
+	void ImEventSystem::DispatchEventImmediately(ImEvent* event)
+	{
+		if (!event || !event->GetTarget()) return;
+
+		// 计算本地坐标（如果是鼠标事件）
+		if (auto mouseEvent = event->As<ImMouseEvent>())
+		{
+			mouseEvent->SetLocalPosition(CalculateLocalPosition(mouseEvent->GetPosition(), event->GetTarget()));
+		}
+
+		DispatchEventThroughHierarchy(event, event->GetTarget());
+	}
+
+	// 沿着控件树向上查找第一个可聚焦的控件
+
+	ImWidget* ImEventSystem::FindFocusableAncestor(ImWidget* widget)
+	{
+		ImWidget* current = widget;
+		while (current)
+		{
+			if (current->IsFocusable())
+			{
+				return current;
+			}
+			current = current->GetParents();
+		}
+		return nullptr;
+	}
 }

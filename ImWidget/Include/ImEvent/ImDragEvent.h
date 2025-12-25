@@ -25,7 +25,7 @@ namespace ImGuiWidget
         ImVec2 GetDelta() const { return m_dragDelta; }
 
         // ÉèÖÃÍÏ×§Êý¾Ý
-        void SetDragData(ImDragObject* resource) {
+        static void SetDragData(ImDragObject* resource) {
             GlobalDragObject = resource;
         }
         void SetPosition(const ImVec2& pos) { m_dragPosition = pos; }

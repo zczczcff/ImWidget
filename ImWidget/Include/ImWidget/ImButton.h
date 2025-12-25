@@ -58,7 +58,6 @@ namespace ImGuiWidget
         // 按钮状态
         bool m_IsHovered = false;
         bool m_IsPressed = false;
-        bool m_IsFocused = false;
 
         std::string m_TooltipText;
 
@@ -91,7 +90,7 @@ namespace ImGuiWidget
             {
                 currentStyle = &m_HoveredStyle;
             }
-            else if (m_IsFocused)
+            else if (m_hasFocus)
             {
                 currentStyle = &m_FocusedStyle;
             }
@@ -245,9 +244,9 @@ namespace ImGuiWidget
 
         void HandleFocusIn(ImFocusInEvent* event)
         {
-            if (!m_IsFocused)
+            if (!m_hasFocus)
             {
-                m_IsFocused = true;
+                m_hasFocus = true;
                 if (OnFocusGained)
                 {
                     OnFocusGained();
@@ -257,9 +256,9 @@ namespace ImGuiWidget
 
         void HandleFocusOut(ImFocusOutEvent* event)
         {
-            if (m_IsFocused)
+            if (m_hasFocus)
             {
-                m_IsFocused = false;
+                m_hasFocus = false;
                 m_IsPressed = false; // 失去焦点时释放按下状态
                 if (OnFocusLost)
                 {
@@ -268,15 +267,11 @@ namespace ImGuiWidget
             }
         }
 
-        // 请求焦点
-        void RequestFocus()
-        {
-            // 这里需要实现焦点请求逻辑，可能需要通过事件系统
-            // 暂时留空，待事件系统完善后实现
-        }
+
 
     public:
-        ImButton(const std::string& WidgetName) : ImPanelWidget(WidgetName)
+        ImButton(const std::string& WidgetName) : 
+            ImPanelWidget(WidgetName)
         {
             // 初始化默认样式
             m_NormalStyle = {
@@ -312,6 +307,7 @@ namespace ImGuiWidget
             };
 
             bHaveBackGround = false;
+            SetFocusable(true);
         }
 
         // 设置内容
@@ -351,7 +347,6 @@ namespace ImGuiWidget
         // 获取当前状态
         bool IsHovered() const { return m_IsHovered; }
         bool IsPressed() const { return m_IsPressed; }
-        bool IsFocused() const { return m_IsFocused; }
 
         virtual ImVec2 GetMinSize()
         {

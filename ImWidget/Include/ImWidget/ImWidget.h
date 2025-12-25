@@ -16,6 +16,8 @@ namespace ImGuiWidget
 		ImVec2 Position = { 0, 0 };  // 相对位置
 		ImVec2 Size = { 0, 0 };      // 控件尺寸
 		bool Visibility = true;     // 可见性
+		bool m_focusable = false;
+		bool m_hasFocus = false;
 		class ImSlot* m_Slot;
 		class ImWidget* m_Parents;
 		bool bSizeDirty;
@@ -188,7 +190,7 @@ namespace ImGuiWidget
 			return false;
 		}
 
-		bool IsVisible() { return bVisible; }
+		bool IsVisible() const { return bVisible; }
 
 		virtual ImWidget* CopyWidget()
 		{
@@ -200,5 +202,59 @@ namespace ImGuiWidget
 	protected:
 		virtual void HandleEventInternal(class ImEvent* event)
 		{}
+
+	public:
+		// 设置控件是否可获取焦点
+		virtual void SetFocusable(bool focusable)
+		{
+			m_focusable = focusable;
+		}
+
+		// 检查控件是否可获取焦点
+		virtual bool IsFocusable() const
+		{
+			return m_focusable && IsVisible();
+		}
+
+		// 检查控件当前是否有焦点
+		virtual bool HasFocus() const
+		{
+			return m_hasFocus;
+		}
+
+		void SetFocused(bool focused)
+		{
+			m_hasFocus = focused;
+		}
+
+		void GetFocus()
+		{
+			m_hasFocus = true;
+		}
+
+		// 请求焦点
+		virtual bool RequestFocus()
+		{
+			if (!IsFocusable()) return false;
+
+			// 通知事件系统焦点变化
+			if (m_Parents)
+			{
+				// 这里需要事件系统来处理实际的焦点切换
+				// 暂时先直接设置
+				m_hasFocus = true;
+				return true;
+			}
+			return false;
+		}
+
+		// 失去焦点
+		virtual void LoseFocus()
+		{
+			if (m_hasFocus)
+			{
+				m_hasFocus = false;
+			}
+		}
 	};
 }
