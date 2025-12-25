@@ -213,7 +213,7 @@ namespace ImGuiWidget
                     m_DragStartPosition = mousePos;
 
                     // 设置拖拽数据（可以存储分隔条索引等信息）
-                    dragEvent->SetDragData(this, "HorizontalSplitterBar");
+                    //dragEvent->SetDragData(this, "HorizontalSplitterBar");
 
                     dragEvent->StopPropagation();
                     break;
@@ -247,9 +247,9 @@ namespace ImGuiWidget
         bool IsDragFromOwnBars(ImDragEvent* dragEvent)
         {
             // 通过拖拽数据类型或拖拽源来判断
-            if (dragEvent->GetDragType() == "HorizontalSplitterBar") {
-                return dragEvent->GetDragData<ImHorizontalSplitter>() == this;
-            }
+            //if (dragEvent->GetDragType() == "HorizontalSplitterBar") {
+            //    return dragEvent->GetDragData<ImHorizontalSplitter>() == this;
+            //}
             return false;
         }
 

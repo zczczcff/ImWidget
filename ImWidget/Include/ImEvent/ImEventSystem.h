@@ -40,13 +40,9 @@ namespace ImGuiWidget
 
         void CollectHoverEvents(ImGuiIO& io);
 
-        void HandleMouseButtonEvent(ImEventType type, int button, const ImVec2& pos);
-
         int CalculateClickCount(int button, const ImVec2& pos);
 
         void CollectKeyboardEvents(ImGuiIO& io);
-
-        void CollectFocusEvents(ImGuiIO& io);
 
         void CollectDragEvents(ImGuiIO& io);
 

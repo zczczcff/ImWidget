@@ -1,41 +1,36 @@
 #pragma once
 #include "ImEvent/ImEvent.h"
 #include <memory>
+#include "ImEvent/ImDragObject.h"
 
 namespace ImGuiWidget
 {
     class ImDragEvent : public ImEvent {
     private:
-        void* m_dragResource;
+        //void* m_dragResource;
+        static ImDragObject* GlobalDragObject;
         ImVec2 m_dragPosition;
         ImVec2 m_dragDelta;
-        std::string m_dragType;
+        //std::string m_dragType;
         ImModifierKeys m_mods;
     public:
         ImDragEvent(ImEventType type, void* resource = nullptr,
-            const ImVec2& position = ImVec2(0, 0),
-            const std::string& dragType = "")
-            : ImEvent(type), m_dragResource(resource),
-            m_dragPosition(position), m_dragType(dragType) {}
+            const ImVec2& position = ImVec2(0, 0))
+            : ImEvent(type), 
+            m_dragPosition(position){}
 
         // 获取拖拽数据
-        void* GetDragHandle() const { return m_dragResource; }
+        ImDragObject* GetDragHandle() const { return GlobalDragObject; }
         ImVec2 GetPosition() const { return m_dragPosition; }
         ImVec2 GetDelta() const { return m_dragDelta; }
-        const std::string& GetDragType() const { return m_dragType; }
 
         // 设置拖拽数据
-        void SetDragData(void* resource, const std::string& type = "") {
-            m_dragResource = resource;
-            m_dragType = type;
+        void SetDragData(ImDragObject* resource) {
+            GlobalDragObject = resource;
         }
         void SetPosition(const ImVec2& pos) { m_dragPosition = pos; }
         void SetDelta(const ImVec2& delta) { m_dragDelta = delta; }
         void SetModifiers(const ImModifierKeys& mods) { m_mods = mods; }
-        template<typename T>
-        T* GetDragData() const {
-            return static_cast<T*>(m_dragResource);
-        }
 
         virtual ImDragEvent* Clone() const override {
             return new ImDragEvent(*this);

@@ -23,7 +23,6 @@ namespace ImGuiWidget
 
         CollectMouseEvents(io);
         CollectKeyboardEvents(io);
-        CollectFocusEvents(io);
         CollectDragEvents(io);
         CollectHoverEvents(io); 
     }
@@ -149,30 +148,6 @@ namespace ImGuiWidget
         m_hoveredWidget = currentHovered;
     }
 
-    //void ImEventSystem::ProcessHoverEvents() {
-    //    if (m_hoveredWidget != nullptr && m_hoverStartTime > 0) {
-    //        double currentTime = ImGui::GetTime();
-    //        double hoverDuration = currentTime - m_hoverStartTime;
-
-    //        // 悬停时间阈值（例如0.5秒）
-    //        const double HOVER_THRESHOLD = 0.5;
-
-    //        if (hoverDuration >= HOVER_THRESHOLD) {
-    //            auto hoverEvent = std::make_unique<ImMouseHoverEvent>(static_cast<float>(hoverDuration));
-    //            hoverEvent->SetPosition(m_lastMousePos);
-    //            hoverEvent->SetModifiers(ImModifierKeys::GetCurrent());
-
-    //            // 直接分发给悬停控件
-    //            hoverEvent->SetTarget(m_hoveredWidget);
-    //            hoverEvent->SetLocalPosition(CalculateLocalPosition(m_lastMousePos, m_hoveredWidget));
-    //            DispatchEventThroughHierarchy(hoverEvent.get(), m_hoveredWidget);
-
-    //            // 重置悬停计时，避免重复触发
-    //            m_hoverStartTime = 0.0;
-    //        }
-    //    }
-    //}
-
     int ImGuiWidget::ImEventSystem::CalculateClickCount(int button, const ImVec2& pos) {
         double currentTime = ImGui::GetTime();
         int buttonIndex = static_cast<int>(button);
@@ -214,18 +189,13 @@ namespace ImGuiWidget
         }
     }
 
-    void ImGuiWidget::ImEventSystem::CollectFocusEvents(ImGuiIO& io) {
-        // 焦点事件处理（需要与ImGui的焦点系统配合）
-        // 这里简化实现，实际需要更复杂的焦点跟踪
-    }
-
     void ImGuiWidget::ImEventSystem::CollectDragEvents(ImGuiIO& io) {
         ImModifierKeys mods = ImModifierKeys::GetCurrent();
         // 检查是否开始拖拽
         if (!m_isDragging && ImGui::IsMouseDragging(0)) { // 左键拖拽
             // 检查拖拽阈值（避免误触）
             ImVec2 dragDelta = ImGui::GetMouseDragDelta(0);
-            if ( ImVec2Distance(ImVec2(0,0), dragDelta) > 2.0f) { // 5像素阈值
+            if ( ImVec2Distance(ImVec2(0,0), dragDelta) > 2.0f) { // 2像素阈值
                 StartDrag(io.MousePos- dragDelta, mods);
             }
         }
@@ -376,14 +346,6 @@ namespace ImGuiWidget
         event->SetPosition(pos);
         event->SetModifiers(mods);
 
-        // 如果源控件存在，从中获取拖拽数据
-        //if (m_dragSourceWidget) {
-        //    // 查询控件是否支持拖拽
-        //    if (auto dragData = m_dragSourceWidget->GetDragData()) {
-        //        event->SetDragData(dragData, m_dragSourceWidget->GetDragDataType());
-        //    }
-        //}
-
         m_eventQueue.push_back(std::move(event));
     }
 
@@ -393,12 +355,6 @@ namespace ImGuiWidget
         event->SetTarget(m_dragSourceWidget);
         event->SetDelta(ImVec2(pos.x - m_lastDragPos.x, pos.y - m_lastDragPos.y));
         event->SetModifiers(mods);
-
-        // 继承源控件的拖拽数据
-        //if (m_dragSourceWidget && m_dragSourceWidget->GetDragData()) {
-        //    event->SetDragData(m_dragSourceWidget->GetDragData(),
-        //        m_dragSourceWidget->GetDragDataType());
-        //}
 
         m_eventQueue.push_back(std::move(event));
         m_lastDragPos = pos;
@@ -467,12 +423,6 @@ namespace ImGuiWidget
         dropEvent->SetPosition(pos);
         dropEvent->SetModifiers(mods);
         dropEvent->SetTarget(target);
-
-        // 设置拖拽数据
-        //if (m_dragSourceWidget->GetDragData()) {
-        //    dropEvent->SetDragData(m_dragSourceWidget->GetDragData(),
-        //        m_dragSourceWidget->GetDragDataType());
-        //}
 
         m_eventQueue.push_back(std::move(dropEvent));
     }
