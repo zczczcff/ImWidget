@@ -74,24 +74,24 @@ void ImWin64Application::Run()
         ImGui::NewFrame();
 
         // 在 ImGui 渲染循环中
-        ImGui::SetNextWindowPos(ImVec2(0, 0));            // 左上角开始
-        ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize); // 覆盖整个窗口
+        //ImGui::SetNextWindowPos(ImVec2(0, 0));            // 左上角开始
+        //ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize); // 覆盖整个窗口
 
-        // 设置窗口标志（关键步骤）
-        ImGuiWindowFlags window_flags =
-            ImGuiWindowFlags_NoTitleBar |                // 无标题栏
-            ImGuiWindowFlags_NoResize |                  // 不可调整大小
-            ImGuiWindowFlags_NoMove |                    // 不可移动
-            ImGuiWindowFlags_NoScrollbar |               // 无滚动条
-            ImGuiWindowFlags_NoCollapse |                // 不可折叠
-            ImGuiWindowFlags_NoBackground |              // 透明背景
-            ImGuiWindowFlags_NoBringToFrontOnFocus |     // 禁止前置
-            ImGuiWindowFlags_NoSavedSettings;            // 不保存设置
+        //// 设置窗口标志（关键步骤）
+        //ImGuiWindowFlags window_flags =
+        //    ImGuiWindowFlags_NoTitleBar |                // 无标题栏
+        //    ImGuiWindowFlags_NoResize |                  // 不可调整大小
+        //    ImGuiWindowFlags_NoMove |                    // 不可移动
+        //    ImGuiWindowFlags_NoScrollbar |               // 无滚动条
+        //    ImGuiWindowFlags_NoCollapse |                // 不可折叠
+        //    ImGuiWindowFlags_NoBackground |              // 透明背景
+        //    ImGuiWindowFlags_NoBringToFrontOnFocus |     // 禁止前置
+        //    ImGuiWindowFlags_NoSavedSettings;            // 不保存设置
         // 调用渲染函数（由派生类实现）
 
-        ImGui::Begin("MainWindow", nullptr, window_flags);
-        Render();
-        ImGui::End();
+        //ImGui::Begin("MainWindow", nullptr, window_flags);
+        RenderTick();
+        //ImGui::End();
         // 渲染
         ImGui::Render();
         const float clear_color[4] = { 1.f, 1.f, 1.f, 1.00f };

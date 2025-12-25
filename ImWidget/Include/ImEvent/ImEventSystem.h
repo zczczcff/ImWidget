@@ -30,6 +30,7 @@ namespace ImGuiWidget
         // 主处理入口
         void ProcessEvents();
 
+        void SetRootWidget(ImWidget* root) { m_rootWidget = root; }
     private:
         // 从ImGui收集事件
         void CollectEventsFromImGui();

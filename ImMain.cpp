@@ -8,13 +8,15 @@ namespace ImGuiWidget
     ImApplication* GlobalApp;
 }
 
-void ImApplication::Render()
-{
-    ImGui::PushFont(GetFont(DefalutFontSize, DefaultFont));
-    m_EventSys->ProcessEvents();
-    ImTick();
-    ImGui::PopFont();
-}
+//void ImApplication::Render()
+//{
+//    ImGui::PushFont(GetFont(DefalutFontSize, DefaultFont));
+//    m_EventSys->ProcessEvents();
+//    ImTick();
+//    ImGui::PopFont();
+//}
+
+
 
 void AbstractMainFun(ImApplication* app)
 {

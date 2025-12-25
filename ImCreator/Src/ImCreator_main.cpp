@@ -361,5 +361,5 @@ ImGuiWidget::ImWidget* ImInit()
 
 void ImTick()
 {
-    app->Render();
+    //app->Render();
 }
