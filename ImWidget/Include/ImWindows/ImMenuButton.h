@@ -1,7 +1,9 @@
 #pragma once
 #include "ImWidget/ImButton.h"
 #include "ImWidget/ImVerticalBox.h"
-
+#include "ImGlobal.h"
+#include "Application/ImApplication.h"
+#include "ImEvent/ImEventType.h"
 namespace ImWindows
 {
 	// 停靠方向枚举
@@ -23,6 +25,7 @@ namespace ImWindows
 		bool m_IsMenuOpen = false;
 		bool m_JustOpened = false;
 		bool m_HaveChildActived = false;
+		ImGuiWidget::ImWindow* m_MenuWindow = nullptr;
 		void SetParents(ImMenuButton* ParentButton)
 		{
 			Parents = ParentButton;
@@ -75,7 +78,15 @@ namespace ImWindows
 			Parents(nullptr)
 		{
 			m_Menu = new ImGuiWidget::ImVerticalBox(WidgetName + "_Menu");
-			SetOnPressed([this]() {m_IsMenuOpen = !m_IsMenuOpen; });
+			m_MenuWindow= ImGuiWidget::GetGlobalApp()->GetWindowManager()->CreateImWindow(" ", ImVec2(10,10), ImVec2(0, 0));
+			m_MenuWindow->SetRootWidget(m_Menu);
+			m_MenuWindow->bCollapsible = false;
+			m_MenuWindow->bHasTitleBar = false;
+			m_MenuWindow->bIsMovable = false;
+			m_MenuWindow->bIsResizable = false;
+			m_MenuWindow->bAllowBringToFrontOnFocus = true;
+			m_MenuWindow->SetIsOpen(false);
+			//SetOnPressed([this]() {m_IsMenuOpen = !m_IsMenuOpen; });
 		}
 		
 		void AddMenuOption(ImMenuButton* ChildButtton)
@@ -99,7 +110,7 @@ namespace ImWindows
 		{
 			// 先渲染按钮
 			ImButton::Render();
-
+			return;
 			m_HaveChildActived = false;
 
 			// 如果菜单需要打开
@@ -168,6 +179,57 @@ namespace ImWindows
 			if (m_IsMenuOpen)
 			{
 				//通知父项子项还在活跃状态
+				if (Parents)
+				{
+					Parents->m_HaveChildActived = true;
+				}
+			}
+		}
+
+		virtual void HandleEventInternal(ImGuiWidget::ImEvent* event) override
+		{
+			ImGuiWidget::ImButton::HandleEventInternal(event);
+
+			if (event->IsHandled()) return;
+			if (event->GetPhase() == ImGuiWidget::ImEventPhase::Capture)return;
+			ImVec2 menuPos = CalculateMenuPosition();
+			ImVec2 m_MenuWindowSize = m_Menu->GetMinSize();
+			if (event->GetType() == ImGuiWidget::ImEventType::MouseClick)
+			{
+
+				m_IsMenuOpen = !m_IsMenuOpen;
+
+				
+			}
+			else if (event->GetType() == ImGuiWidget::ImEventType::FocusOut)
+			{
+
+				ImVec2 mousePos = ImGui::GetMousePos();
+				ImRect buttonRect(Position, Position + Size);
+				ImRect menuRect(menuPos, menuPos + m_MenuWindowSize);
+
+				// 如果点击在按钮和菜单外部
+				if (!buttonRect.Contains(mousePos) && !menuRect.Contains(mousePos))
+				{
+					if (!m_HaveChildActived)//如果子项都不活跃
+					{
+						m_IsMenuOpen = false;
+					}
+
+				}
+			}
+			else
+			{
+				return;
+			}
+			m_MenuWindow->SetIsOpen(m_IsMenuOpen);
+			if (m_IsMenuOpen)
+			{
+				m_MenuWindow->SetSize(m_MenuWindowSize);
+				m_MenuWindow->SetPosition(menuPos);
+				m_Menu->SetPosition(menuPos);
+				m_Menu->SetSize(m_MenuWindowSize);
+				ImGuiWidget::GetGlobalApp()->GetWindowManager()->SetActiveWindow(m_MenuWindow);
 				if (Parents)
 				{
 					Parents->m_HaveChildActived = true;

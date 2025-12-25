@@ -1,6 +1,7 @@
 #pragma once
 #include "ImButton.h"
-
+#include "ImGlobal.h"
+#include "Application/ImApplication.h"
 namespace ImGuiWidget
 {
     class ImMenuButton : public ImButton
@@ -21,18 +22,31 @@ namespace ImGuiWidget
         MenuDockDirection m_DockDirection = MenuDockDirection::Dock_Down; // 默认停靠方向
         bool m_JustOpened = false;                // 标记是否刚刚打开菜单
         ImVec2 m_MenuWindowSize = ImVec2(200, 150); // 默认菜单大小
-
+        ImWindow* m_MenuWindow = nullptr;
     public:
         ImMenuButton(const std::string& WidgetName)
             : ImButton(WidgetName)
         {
             // 设置按钮点击回调
-            SetOnPressed([this]() {
-                if (!m_IsMenuOpen) {
+            SetOnPressed([this]() 
+                {
+                if (!m_IsMenuOpen) 
+                {
+                    if (m_MenuWindow)
+                    {
+                        m_MenuWindow->SetIsOpen(true);
+                        m_MenuWindow->SetIsActive(true);
+                    }
                     m_IsMenuOpen = true;
                     m_JustOpened = true; // 标记为刚刚打开
                 }
-                else {
+                else 
+                {
+                    if (m_MenuWindow)
+                    {
+                        m_MenuWindow->SetIsOpen(false);
+                        m_MenuWindow->SetIsActive(false);
+                    }
                     m_IsMenuOpen = false;
                 }
                 });
@@ -42,8 +56,12 @@ namespace ImGuiWidget
         void SetMenu(ImWidget* MenuWidget)
         {
             m_MenuWidget = MenuWidget;
-            if (m_MenuWidget) {
-                m_MenuWindowSize = m_MenuWidget->GetMinSize();
+            //if (m_MenuWidget) {
+            //    m_MenuWindowSize = m_MenuWidget->GetMinSize();
+            //}
+            if (!m_MenuWindow)
+            {
+                GetGlobalApp()->GetWindowManager()->CreateImWindow(" ", m_MenuWidget->GetMinSize(), CalculateMenuPosition());
             }
         }
 
@@ -63,59 +81,63 @@ namespace ImGuiWidget
         {
             // 先渲染按钮
             ImButton::Render();
-
-            // 如果菜单需要打开
-            if (m_IsMenuOpen)
+            if (m_IsMenuOpen && m_MenuWindow)
             {
-                // 计算菜单位置
-                ImVec2 menuPos = CalculateMenuPosition();
-                m_MenuWindowSize = m_MenuWidget->GetMinSize();
-                // 设置菜单窗口位置和大小
-                ImGui::SetNextWindowPos(menuPos);
-                ImGui::SetNextWindowSize(m_MenuWindowSize);
-                // 菜单窗口样式
-                ImGuiWindowFlags flags =
-                    ImGuiWindowFlags_NoTitleBar |
-                    ImGuiWindowFlags_NoResize |
-                    ImGuiWindowFlags_NoMove |
-                    ImGuiWindowFlags_NoScrollbar |
-                    ImGuiWindowFlags_NoSavedSettings |
-                    ImGuiWindowFlags_NoFocusOnAppearing;
-
-                ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(200, 200, 200, 255)); // 红色背景
-
-                // 开始菜单窗口
-                if (ImGui::Begin(("##Menu_" + m_WidgetID).c_str(), nullptr, flags))
-                {
-                    // 渲染菜单内容
-                    if (m_MenuWidget)
-                    {
-                        m_MenuWidget->SetPosition(menuPos);
-                        m_MenuWidget->SetSize(m_MenuWindowSize);
-                        m_MenuWidget->Render();
-                    }
-                    ImGui::End();
-                }
-
-                ImGui::PopStyleColor();
-
-                // 检测外部点击（排除刚刚打开的情况）
-                if (!m_JustOpened && ImGui::IsMouseClicked(0))
-                {
-                    ImVec2 mousePos = ImGui::GetMousePos();
-                    ImRect buttonRect(Position, Position + Size);
-                    ImRect menuRect(menuPos, menuPos + m_MenuWindowSize);
-
-                    // 如果点击在按钮和菜单外部
-                    if (!buttonRect.Contains(mousePos) && !menuRect.Contains(mousePos))
-                    {
-                        m_IsMenuOpen = false;
-                    }
-                }
-
-                // 重置刚刚打开标记
-                m_JustOpened = false;
+                m_MenuWindow->SetSize(m_MenuWidget->GetMinSize());
+                m_MenuWindow->SetPosition(CalculateMenuPosition());
             }
+            // 如果菜单需要打开
+            //if (m_IsMenuOpen)
+            //{
+            //    // 计算菜单位置
+            //    ImVec2 menuPos = CalculateMenuPosition();
+            //    m_MenuWindowSize = m_MenuWidget->GetMinSize();
+            //    // 设置菜单窗口位置和大小
+            //    ImGui::SetNextWindowPos(menuPos);
+            //    ImGui::SetNextWindowSize(m_MenuWindowSize);
+            //    // 菜单窗口样式
+            //    ImGuiWindowFlags flags =
+            //        ImGuiWindowFlags_NoTitleBar |
+            //        ImGuiWindowFlags_NoResize |
+            //        ImGuiWindowFlags_NoMove |
+            //        ImGuiWindowFlags_NoScrollbar |
+            //        ImGuiWindowFlags_NoSavedSettings |
+            //        ImGuiWindowFlags_NoFocusOnAppearing;
+
+            //    ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(200, 200, 200, 255)); // 红色背景
+
+            //    // 开始菜单窗口
+            //    if (ImGui::Begin(("##Menu_" + m_WidgetID).c_str(), nullptr, flags))
+            //    {
+            //        // 渲染菜单内容
+            //        if (m_MenuWidget)
+            //        {
+            //            m_MenuWidget->SetPosition(menuPos);
+            //            m_MenuWidget->SetSize(m_MenuWindowSize);
+            //            m_MenuWidget->Render();
+            //        }
+            //        ImGui::End();
+            //    }
+
+            //    ImGui::PopStyleColor();
+
+            //    // 检测外部点击（排除刚刚打开的情况）
+            //    if (!m_JustOpened && ImGui::IsMouseClicked(0))
+            //    {
+            //        ImVec2 mousePos = ImGui::GetMousePos();
+            //        ImRect buttonRect(Position, Position + Size);
+            //        ImRect menuRect(menuPos, menuPos + m_MenuWindowSize);
+
+            //        // 如果点击在按钮和菜单外部
+            //        if (!buttonRect.Contains(mousePos) && !menuRect.Contains(mousePos))
+            //        {
+            //            m_IsMenuOpen = false;
+            //        }
+            //    }
+
+            //    // 重置刚刚打开标记
+            //    m_JustOpened = false;
+            //}
         }
 
     private:

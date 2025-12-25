@@ -91,14 +91,15 @@ namespace ImGuiWidget
 	void ImEventSystem::HandleMouseButtonEvent(ImEventType type, int button, const ImVec2& pos, const ImModifierKeys& mods)
 	{
 		ImMouseButton mouseButton = static_cast<ImMouseButton>(button);
-		int clickCount = CalculateClickCount(button, pos);
+		int clickCount = 1;
 
 		std::unique_ptr<ImMouseEvent> event;
 
 		if (type == ImEventType::MouseDown)
 		{
+			clickCount = CalculateClickCount(button, pos);
 			event = std::make_unique<ImMouseDownEvent>(mouseButton, clickCount);
-
+			
 			// 改进的焦点处理逻辑
 			ImWidget* hitTarget = HitTest(m_rootWidget, pos);
 			if (hitTarget)
@@ -345,7 +346,7 @@ namespace ImGuiWidget
 	{
 		// 构建传播路径
 		std::vector<ImWidget*> path;
-		ImWidget* current = target;
+		ImWidget* current = target->GetParents();
 		while (current)
 		{
 			path.push_back(current);

@@ -150,6 +150,7 @@ namespace ImGuiWidget
 
     void ImWindowManager::Render()
     {
+
         // 先渲染非活动窗口（在背景）
         for (auto& window : m_windows)
         {
@@ -166,21 +167,22 @@ namespace ImGuiWidget
         }
 
         // 清理已关闭的窗口
-        CleanupClosedWindows();
+        //CleanupClosedWindows();
     }
 
     void ImWindowManager::ProcessEvents()
     {
+        ImWindow* LastactiveWindow = m_activeWindow;//在事件处理中可能发生activeWindow的改变，必须先存一份副本
         // 先处理活动窗口的事件（优先处理）
-        if (m_activeWindow && m_activeWindow->IsOpen())
+        if (LastactiveWindow && LastactiveWindow->IsOpen())
         {
-            m_activeWindow->ProcessEvents();
+            LastactiveWindow->ProcessEvents();
         }
 
         // 处理其他窗口的事件
         for (auto& window : m_windows)
         {
-            if (window->IsOpen() && window.get() != m_activeWindow)
+            if (window->IsOpen() && window.get() != LastactiveWindow)
             {
                 window->ProcessEvents();
             }
@@ -190,7 +192,7 @@ namespace ImGuiWidget
         UpdateActiveWindowFromInput();
 
         // 清理已关闭的窗口
-        CleanupClosedWindows();
+        //CleanupClosedWindows();
     }
 
     void ImWindowManager::BringWindowToFront(ImWindow* window)

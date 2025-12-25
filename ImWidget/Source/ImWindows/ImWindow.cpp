@@ -38,7 +38,7 @@ namespace ImGuiWidget
     {
         if (m_rootWidget)
         {
-            delete m_rootWidget;
+            //delete m_rootWidget;
         }
 
         m_rootWidget = rootWidget;
@@ -70,7 +70,12 @@ namespace ImGuiWidget
             ImGui::SetNextWindowPos(ImVec2(0, 0));            // 左上角开始
             ImGui::SetNextWindowSize(ImGui::GetIO().DisplaySize); // 覆盖整个窗口
         }
-        ImGui::Begin(m_title.c_str(), nullptr, flags);
+        else
+        {
+            ImGui::SetNextWindowPos(m_position);
+            ImGui::SetNextWindowSize(m_size);
+        }
+        ImGui::Begin(m_windowId.c_str(), nullptr, flags);
 
         // 如果窗口被关闭
         if (!open)
@@ -91,14 +96,17 @@ namespace ImGuiWidget
         }
 
         // 更新窗口位置和大小
-        m_position = ImGui::GetWindowPos();
-        m_size = ImGui::GetWindowSize();
+        //m_position = ImGui::GetWindowPos();
+        //m_size = ImGui::GetWindowSize();
 
         // 渲染根控件
         if (m_rootWidget)
         {
-            m_rootWidget->SetPosition(ImVec2(1, 1));
-            m_rootWidget->SetSize(ImGui::GetWindowSize() - ImVec2(2.f, 2.f));
+            if (bFillSysWindow)
+            {
+                m_rootWidget->SetPosition(ImVec2(1, 1));
+                m_rootWidget->SetSize(ImGui::GetWindowSize() - ImVec2(2.f, 2.f));
+            }
             m_rootWidget->Render();
         }
 
