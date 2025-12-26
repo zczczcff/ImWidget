@@ -5,6 +5,7 @@
 #include "ImEvent/ImKeyEvent.h"
 #include "ImEvent/ImFocusEvent.h"
 #include "ImEvent/ImDragEvent.h"
+#include "ImEvent/ImInputEvent.h"
 namespace ImGuiWidget
 {
 	ImGuiWidget::ImEventSystem::ImEventSystem(ImWidget* root) : m_rootWidget(root) {}
@@ -212,37 +213,262 @@ namespace ImGuiWidget
 
 	void ImGuiWidget::ImEventSystem::CollectKeyboardEvents(ImGuiIO& io)
 	{
-		// 处理按键事件
+
+
+		const double KEY_REPEAT_DELAY = 0.3;    // 重复按键初始延迟（秒）
+		const double KEY_REPEAT_RATE = 0.05;    // 重复按键速率（秒）
+		double currentTime = ImGui::GetTime();
+
+		ImModifierKeys mods = ImModifierKeys::GetCurrent();
+
+		// 处理所有命名按键事件
 		for (int key = ImGuiKey_NamedKey_BEGIN; key < ImGuiKey_NamedKey_END; ++key)
 		{
-			if (ImGui::IsKeyPressed((ImGuiKey)key, false))
-			{  // false表示不重复触发
-				auto event = std::make_unique<ImKeyDownEvent>(key);
-				m_eventQueue.push_back(std::move(event));
-			}
+			bool isKeyDown = ImGui::IsKeyDown((ImGuiKey)key);
+			bool wasKeyDown = keyStates[key];
 
-			if (ImGui::IsKeyReleased((ImGuiKey)key))
+			// 按键状态变化检测
+			if (isKeyDown && !wasKeyDown)
 			{
+				// 按键按下（首次）
+				auto event = std::make_unique<ImKeyDownEvent>(key, 0, false);
+				event->SetModifiers(mods); // 正确设置修饰键
+				if (m_focusedWidget)
+				{
+					event->SetTarget(m_focusedWidget);
+				}
+				m_eventQueue.push_back(std::move(event));
+
+				keyStates[key] = true;
+				keyPressTime[key] = currentTime;
+				keyRepeatCount[key] = 0;
+			}
+			else if (!isKeyDown && wasKeyDown)
+			{
+				// 按键释放
 				auto event = std::make_unique<ImKeyUpEvent>(key);
+				event->SetModifiers(mods); // 正确设置修饰键
+				if (m_focusedWidget)
+				{
+					event->SetTarget(m_focusedWidget);
+				}
 				m_eventQueue.push_back(std::move(event));
+
+				keyStates[key] = false;
+				keyPressTime[key] = 0.0;
+				keyRepeatCount[key] = 0;
+			}
+			else if (isKeyDown && wasKeyDown)
+			{
+				// 重复按键检测
+				double timeSincePress = currentTime - keyPressTime[key];
+
+				if (timeSincePress > KEY_REPEAT_DELAY)
+				{
+					double repeatInterval = KEY_REPEAT_RATE;
+					int expectedRepeatCount = static_cast<int>((timeSincePress - KEY_REPEAT_DELAY) / repeatInterval) + 1;
+
+					if (expectedRepeatCount > keyRepeatCount[key])
+					{
+						auto event = std::make_unique<ImKeyDownEvent>(key, 0, true);
+						event->SetModifiers(mods); // 正确设置修饰键
+						if (m_focusedWidget)
+						{
+							event->SetTarget(m_focusedWidget);
+						}
+						m_eventQueue.push_back(std::move(event));
+
+						keyRepeatCount[key] = expectedRepeatCount;
+					}
+				}
 			}
 		}
 
-		// 处理输入字符
-		for (int i = 0; i < io.InputQueueCharacters.Size; i++)
+		// 处理字符输入（用于文本输入）
+		if (io.InputQueueCharacters.Size > 0)
 		{
-			unsigned int c = io.InputQueueCharacters[i];
-			if (c > 0 && c < 0x10000)
-			{  // 有效字符
-				auto event = std::make_unique<ImKeyPressEvent>(static_cast<char>(c));
-				m_eventQueue.push_back(std::move(event));
+			std::string inputText;
+
+			// 收集所有输入字符
+			for (int i = 0; i < io.InputQueueCharacters.Size; i++)
+			{
+				ImWchar c = io.InputQueueCharacters[i];
+
+				// 过滤控制字符，只处理可打印字符
+				if ((c >= 32 && c < 127) ||         // 基本ASCII可打印字符
+					(c >= 0xA0 && c < 0x10000) ||   // 扩展字符
+					c == '\t')                       // Tab键（作为文本输入）
+				{
+					// 插入字符 - 支持UTF-8编码
+					if (c == '\t')
+					{
+						// Tab替换为4个空格
+						inputText.append("    ");
+					}
+					else
+					{
+						// 处理UTF-8字符（最多4字节）
+						char utf8_char[5] = { 0 };
+						ImTextCharToUtf8(utf8_char, c);
+						inputText.append(utf8_char);
+					}
+				}
+			}
+
+			if (!inputText.empty())
+			{
+				// 创建文本输入事件
+				auto textEvent = std::make_unique<ImTextInputEvent>(inputText);
+				textEvent->SetModifiers(mods);
+				if (m_focusedWidget)
+				{
+					textEvent->SetTarget(m_focusedWidget);
+				}
+				m_eventQueue.push_back(std::move(textEvent));
 			}
 		}
 
-		if (ImGui::IsKeyPressed(ImGuiKey_Tab, false))
+		// 特殊按键处理 - Tab键导航
+		if (ImGui::IsKeyPressed(ImGuiKey_Tab, false) && !ImGui::GetIO().KeyCtrl && !ImGui::GetIO().KeyAlt)
 		{
 			bool reverse = io.KeyShift; // Shift+Tab反向导航
-			FocusNextWidget(reverse);
+			bool navigationHandled = FocusNextWidget(reverse);
+
+			// 即使进行了导航，也发送Tab键事件
+			auto tabEvent = std::make_unique<ImKeyDownEvent>(ImGuiKey_Tab);
+			tabEvent->SetModifiers(mods); // 正确设置修饰键
+			if (m_focusedWidget)
+			{
+				tabEvent->SetTarget(m_focusedWidget);
+			}
+			m_eventQueue.push_back(std::move(tabEvent));
+
+			// 如果导航成功，可以设置WantCaptureKeyboard来阻止ImGui的默认处理
+			if (navigationHandled)
+			{
+				io.WantCaptureKeyboard = true;
+			}
+		}
+
+		// Escape键清除焦点
+		if (ImGui::IsKeyPressed(ImGuiKey_Escape, false) && m_focusedWidget)
+		{
+			ClearFocus(ImFocusReason::User);
+
+			// 发送Escape键事件
+			auto escapeEvent = std::make_unique<ImKeyDownEvent>(ImGuiKey_Escape);
+			escapeEvent->SetModifiers(mods); // 正确设置修饰键
+			m_eventQueue.push_back(std::move(escapeEvent));
+		}
+
+		// 方向键导航增强
+		//if (m_focusedWidget)
+		//{
+		//	// 方向键事件处理
+		//	static const std::pair<ImGuiKey, ImGuiKey> arrowKeys[] = {
+		//		{ImGuiKey_LeftArrow, ImGuiKey_RightArrow},
+		//		{ImGuiKey_UpArrow, ImGuiKey_DownArrow}
+		//	};
+
+		//	for (const auto& arrowPair : arrowKeys)
+		//	{
+		//		if (ImGui::IsKeyPressed(arrowPair.first, false))
+		//		{
+		//			auto event = std::make_unique<ImKeyDownEvent>(arrowPair.first);
+		//			event->SetModifiers(mods); // 正确设置修饰键
+		//			event->SetTarget(m_focusedWidget);
+		//			m_eventQueue.push_back(std::move(event));
+		//		}
+
+		//		if (ImGui::IsKeyPressed(arrowPair.second, false))
+		//		{
+		//			auto event = std::make_unique<ImKeyDownEvent>(arrowPair.second);
+		//			event->SetModifiers(mods); // 正确设置修饰键
+		//			event->SetTarget(m_focusedWidget);
+		//			m_eventQueue.push_back(std::move(event));
+		//		}
+		//	}
+
+		//	// 功能键处理（Home, End, PageUp, PageDown等）
+		//	static const ImGuiKey functionKeys[] = {
+		//		ImGuiKey_Home, ImGuiKey_End,
+		//		ImGuiKey_PageUp, ImGuiKey_PageDown,
+		//		ImGuiKey_Insert, ImGuiKey_Delete
+		//	};
+
+		//	for (ImGuiKey funcKey : functionKeys)
+		//	{
+		//		if (ImGui::IsKeyPressed(funcKey, false))
+		//		{
+		//			auto event = std::make_unique<ImKeyDownEvent>(funcKey);
+		//			event->SetModifiers(mods); // 正确设置修饰键
+		//			event->SetTarget(m_focusedWidget);
+		//			m_eventQueue.push_back(std::move(event));
+		//		}
+		//	}
+		//}
+
+		// 修饰键单独事件处理（可选）
+		static bool prevModifiers[4] = { false, false, false, false };
+		bool currentModifiers[4] = { io.KeyCtrl, io.KeyShift, io.KeyAlt, io.KeySuper };
+		static const ImGuiKey modifierKeys[4] = {
+			ImGuiKey_LeftCtrl, ImGuiKey_LeftShift, ImGuiKey_LeftAlt, ImGuiKey_LeftSuper
+		};
+
+		for (int i = 0; i < 4; ++i)
+		{
+			if (currentModifiers[i] && !prevModifiers[i])
+			{
+				// 修饰键按下
+				auto event = std::make_unique<ImKeyDownEvent>(modifierKeys[i]);
+				event->SetModifiers(mods); // 正确设置修饰键
+				if (m_focusedWidget)
+				{
+					event->SetTarget(m_focusedWidget);
+				}
+				m_eventQueue.push_back(std::move(event));
+			}
+			else if (!currentModifiers[i] && prevModifiers[i])
+			{
+				// 修饰键释放
+				auto event = std::make_unique<ImKeyUpEvent>(modifierKeys[i]);
+				event->SetModifiers(mods); // 正确设置修饰键
+				if (m_focusedWidget)
+				{
+					event->SetTarget(m_focusedWidget);
+				}
+				m_eventQueue.push_back(std::move(event));
+			}
+			prevModifiers[i] = currentModifiers[i];
+		}
+
+		// 组合快捷键检测（示例：Ctrl+A, Ctrl+C, Ctrl+V等）
+		if (io.KeyCtrl && m_focusedWidget)
+		{
+			static const std::pair<ImGuiKey, const char*> shortcuts[] = {
+				{ImGuiKey_A, "SelectAll"},
+				{ImGuiKey_C, "Copy"},
+				{ImGuiKey_V, "Paste"},
+				{ImGuiKey_X, "Cut"},
+				{ImGuiKey_Z, "Undo"},
+				{ImGuiKey_Y, "Redo"},
+				{ImGuiKey_S, "Save"}
+			};
+
+			for (const auto& shortcut : shortcuts)
+			{
+				if (ImGui::IsKeyPressed(shortcut.first, false))
+				{
+					auto event = std::make_unique<ImKeyDownEvent>(shortcut.first);
+					event->SetModifiers(mods); // 正确设置修饰键
+					event->SetTarget(m_focusedWidget);
+					m_eventQueue.push_back(std::move(event));
+
+					// 可以在这里添加特殊处理逻辑
+					// 例如：io.WantCaptureKeyboard = true;
+					break;
+				}
+			}
 		}
 	}
 

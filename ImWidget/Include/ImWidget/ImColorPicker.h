@@ -1,6 +1,7 @@
 #pragma once
 #include "ImWidget.h"
 #include "ImInputText.h"    // 包含输入文本控件
+#include "ImFloatInput.h"
 #include "ImTextBlock.h"     // 包含文本块控件
 #include <vector>
 #include <functional>

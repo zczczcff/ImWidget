@@ -24,6 +24,9 @@ namespace ImGuiWidget
         const double DOUBLE_CLICK_TIME = 0.3;  // 300ms
         const float DOUBLE_CLICK_DISTANCE = 5.0f;  // 5ÏñËØ
 
+        bool keyStates[ImGuiKey_COUNT] = { false };
+        double keyPressTime[ImGuiKey_COUNT] = { 0.0 };
+        int keyRepeatCount[ImGuiKey_COUNT] = { 0 };
     public:
         ImEventSystem(ImWidget* root);
 

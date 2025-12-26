@@ -11,6 +11,8 @@
 #include "ImHorizontalSplitter.h"
 #include "ImImage.h"
 #include "ImInputText.h"
+#include "ImFloatInput.h"
+#include "ImIntInput.h"
 #include "ImMultiLineTextBlock.h"
 #include "ImResizableBox.h"
 #include "ImScrollBox.h"

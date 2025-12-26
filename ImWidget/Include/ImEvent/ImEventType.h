@@ -24,6 +24,9 @@ namespace ImGuiWidget
         KeyUp,
         KeyPress,
 
+        // 文本输入事件
+        TextInput,      // 文本输入
+
         // 焦点事件
         FocusIn,
         FocusOut,
