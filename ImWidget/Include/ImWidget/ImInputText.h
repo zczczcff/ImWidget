@@ -519,9 +519,11 @@ namespace ImGuiWidget
                     RequestFocus();
                     ProcessMouseClick(mousePos);
 
-                    // 开始选择
-                    m_SelectionAnchor = m_CursorPos;
-                    m_IsSelecting = true;
+                    // 鼠标点击时取消选中
+                    ClearSelection();
+                    m_SelectionAnchor = -1; // 重置选择锚点
+                    m_IsSelecting = false; // 不在鼠标点击时开始选择
+
                     return true;
                 }
                 break;
@@ -529,12 +531,14 @@ namespace ImGuiWidget
             case ImEventType::MouseUp:
                 if (event.GetButton() == ImMouseButton::Left)
                 {
+                    // 鼠标释放时结束选择
                     m_IsSelecting = false;
                     return true;
                 }
                 break;
 
             case ImEventType::MouseMove:
+                // 鼠标移动时，如果正在选择，则更新选择
                 if (m_IsSelecting)
                 {
                     ProcessMouseClick(mousePos);
@@ -557,23 +561,32 @@ namespace ImGuiWidget
             switch (event.GetType())
             {
             case ImEventType::MouseDragStart:
-                // 拖拽开始，确保有选择
-                if (!HasSelection())
+                // 拖拽开始时设置选择锚点并开始选择
+                if (m_SelectionAnchor == -1) // 确保只在拖拽开始时设置一次
                 {
                     m_SelectionAnchor = m_CursorPos;
+                    m_IsSelecting = true;
+
+                    // 初始化选择范围
                     m_SelectionStart = m_CursorPos;
                     m_SelectionEnd = m_CursorPos;
                 }
                 return true;
 
             case ImEventType::MouseDrag:
-                // 更新选择范围
-                ProcessMouseClick(event.GetPosition());
-                UpdateSelectionFromAnchor();
-                return true;
+                // 拖拽过程中更新选择
+                if (m_IsSelecting)
+                {
+                    ProcessMouseClick(event.GetPosition());
+                    UpdateSelectionFromAnchor();
+                    return true;
+                }
+                break;
 
             case ImEventType::MouseDragEnd:
-                // 拖拽结束
+                // 拖拽结束时结束选择
+                m_IsSelecting = false;
+                m_SelectionAnchor = -1; // 重置选择锚点
                 return true;
 
             default:

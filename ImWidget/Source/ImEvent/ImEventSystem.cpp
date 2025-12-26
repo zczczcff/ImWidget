@@ -409,67 +409,67 @@ namespace ImGuiWidget
 		//}
 
 		// 修饰键单独事件处理（可选）
-		static bool prevModifiers[4] = { false, false, false, false };
-		bool currentModifiers[4] = { io.KeyCtrl, io.KeyShift, io.KeyAlt, io.KeySuper };
-		static const ImGuiKey modifierKeys[4] = {
-			ImGuiKey_LeftCtrl, ImGuiKey_LeftShift, ImGuiKey_LeftAlt, ImGuiKey_LeftSuper
-		};
+		//static bool prevModifiers[4] = { false, false, false, false };
+		//bool currentModifiers[4] = { io.KeyCtrl, io.KeyShift, io.KeyAlt, io.KeySuper };
+		//static const ImGuiKey modifierKeys[4] = {
+		//	ImGuiKey_LeftCtrl, ImGuiKey_LeftShift, ImGuiKey_LeftAlt, ImGuiKey_LeftSuper
+		//};
 
-		for (int i = 0; i < 4; ++i)
-		{
-			if (currentModifiers[i] && !prevModifiers[i])
-			{
-				// 修饰键按下
-				auto event = std::make_unique<ImKeyDownEvent>(modifierKeys[i]);
-				event->SetModifiers(mods); // 正确设置修饰键
-				if (m_focusedWidget)
-				{
-					event->SetTarget(m_focusedWidget);
-				}
-				m_eventQueue.push_back(std::move(event));
-			}
-			else if (!currentModifiers[i] && prevModifiers[i])
-			{
-				// 修饰键释放
-				auto event = std::make_unique<ImKeyUpEvent>(modifierKeys[i]);
-				event->SetModifiers(mods); // 正确设置修饰键
-				if (m_focusedWidget)
-				{
-					event->SetTarget(m_focusedWidget);
-				}
-				m_eventQueue.push_back(std::move(event));
-			}
-			prevModifiers[i] = currentModifiers[i];
-		}
+		//for (int i = 0; i < 4; ++i)
+		//{
+		//	if (currentModifiers[i] && !prevModifiers[i])
+		//	{
+		//		// 修饰键按下
+		//		auto event = std::make_unique<ImKeyDownEvent>(modifierKeys[i]);
+		//		event->SetModifiers(mods); // 正确设置修饰键
+		//		if (m_focusedWidget)
+		//		{
+		//			event->SetTarget(m_focusedWidget);
+		//		}
+		//		m_eventQueue.push_back(std::move(event));
+		//	}
+		//	else if (!currentModifiers[i] && prevModifiers[i])
+		//	{
+		//		// 修饰键释放
+		//		auto event = std::make_unique<ImKeyUpEvent>(modifierKeys[i]);
+		//		event->SetModifiers(mods); // 正确设置修饰键
+		//		if (m_focusedWidget)
+		//		{
+		//			event->SetTarget(m_focusedWidget);
+		//		}
+		//		m_eventQueue.push_back(std::move(event));
+		//	}
+		//	prevModifiers[i] = currentModifiers[i];
+		//}
 
-		// 组合快捷键检测（示例：Ctrl+A, Ctrl+C, Ctrl+V等）
-		if (io.KeyCtrl && m_focusedWidget)
-		{
-			static const std::pair<ImGuiKey, const char*> shortcuts[] = {
-				{ImGuiKey_A, "SelectAll"},
-				{ImGuiKey_C, "Copy"},
-				{ImGuiKey_V, "Paste"},
-				{ImGuiKey_X, "Cut"},
-				{ImGuiKey_Z, "Undo"},
-				{ImGuiKey_Y, "Redo"},
-				{ImGuiKey_S, "Save"}
-			};
+		//// 组合快捷键检测（示例：Ctrl+A, Ctrl+C, Ctrl+V等）
+		//if (io.KeyCtrl && m_focusedWidget)
+		//{
+		//	static const std::pair<ImGuiKey, const char*> shortcuts[] = {
+		//		{ImGuiKey_A, "SelectAll"},
+		//		{ImGuiKey_C, "Copy"},
+		//		{ImGuiKey_V, "Paste"},
+		//		{ImGuiKey_X, "Cut"},
+		//		{ImGuiKey_Z, "Undo"},
+		//		{ImGuiKey_Y, "Redo"},
+		//		{ImGuiKey_S, "Save"}
+		//	};
 
-			for (const auto& shortcut : shortcuts)
-			{
-				if (ImGui::IsKeyPressed(shortcut.first, false))
-				{
-					auto event = std::make_unique<ImKeyDownEvent>(shortcut.first);
-					event->SetModifiers(mods); // 正确设置修饰键
-					event->SetTarget(m_focusedWidget);
-					m_eventQueue.push_back(std::move(event));
+		//	for (const auto& shortcut : shortcuts)
+		//	{
+		//		if (ImGui::IsKeyPressed(shortcut.first, false))
+		//		{
+		//			auto event = std::make_unique<ImKeyDownEvent>(shortcut.first);
+		//			event->SetModifiers(mods); // 正确设置修饰键
+		//			event->SetTarget(m_focusedWidget);
+		//			m_eventQueue.push_back(std::move(event));
 
-					// 可以在这里添加特殊处理逻辑
-					// 例如：io.WantCaptureKeyboard = true;
-					break;
-				}
-			}
-		}
+		//			// 可以在这里添加特殊处理逻辑
+		//			// 例如：io.WantCaptureKeyboard = true;
+		//			break;
+		//		}
+		//	}
+		//}
 	}
 
 	void ImGuiWidget::ImEventSystem::CollectDragEvents(ImGuiIO& io)
