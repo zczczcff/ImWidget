@@ -41,7 +41,7 @@ namespace ImGuiWidget
     class ImDragStartEvent : public ImDragEvent {
     public:
         ImDragStartEvent(void* resource = nullptr, const ImVec2& position = ImVec2(0, 0))
-            : ImDragEvent(ImEventType::MouseDragStart, resource, position) {}
+            : ImDragEvent(ImEventType::DragStart, resource, position) {}
 
         virtual ImDragStartEvent* Clone() const override {
             return new ImDragStartEvent(*this);
@@ -52,7 +52,7 @@ namespace ImGuiWidget
     class ImDragUpdateEvent : public ImDragEvent {
     public:
         ImDragUpdateEvent(void* resource = nullptr, const ImVec2& position = ImVec2(0, 0))
-            : ImDragEvent(ImEventType::MouseDrag, resource, position) {}
+            : ImDragEvent(ImEventType::DragUpdate, resource, position) {}
 
         virtual ImDragUpdateEvent* Clone() const override {
             return new ImDragUpdateEvent(*this);
@@ -63,7 +63,7 @@ namespace ImGuiWidget
     class ImDragEndEvent : public ImDragEvent {
     public:
         ImDragEndEvent(void* resource = nullptr, const ImVec2& position = ImVec2(0, 0))
-            : ImDragEvent(ImEventType::MouseDragEnd, resource, position) {}
+            : ImDragEvent(ImEventType::DragEnd, resource, position) {}
 
         virtual ImDragEndEvent* Clone() const override {
             return new ImDragEndEvent(*this);

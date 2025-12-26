@@ -242,13 +242,13 @@ namespace ImGuiWidget
             case ImEventType::Drop:
                 HandleDrop(mousePos, dragEvent);
                 break;
-            case ImEventType::MouseDragStart:
+            case ImEventType::DragStart:
                 HandleDragStart(mousePos, dragEvent);
                 break;
-            case ImEventType::MouseDrag:
+            case ImEventType::DragUpdate:
                 HandleDragUpdate(mousePos, dragEvent);
                 break;
-            case ImEventType::MouseDragEnd:
+            case ImEventType::DragEnd:
                 HandleDragEnd(mousePos, dragEvent);
                 break;
             default:

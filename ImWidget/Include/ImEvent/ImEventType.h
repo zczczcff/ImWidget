@@ -15,9 +15,7 @@ namespace ImGuiWidget
         MouseWheel,
         MouseClick,
         MouseDoubleClick,
-        MouseDragStart,
-        MouseDrag,
-        MouseDragEnd,
+
 
         // 键盘事件
         KeyDown,
@@ -33,10 +31,13 @@ namespace ImGuiWidget
         FocusRequest,
 
         // 拖拽事件
-        DragEnter,
-        DragOver,
-        DragLeave,
-        Drop,
+        DragStart,//针对拖拽源控件
+        DragUpdate,//针对拖拽源控件
+        DragEnd,//针对拖拽源控件
+        DragEnter,//针对拖入控件
+        DragOver,//针对拖入控件
+        DragLeave,//针对拖入控件
+        Drop,//针对拖入控件
 
         // 手势事件（预留）
         GestureStart,

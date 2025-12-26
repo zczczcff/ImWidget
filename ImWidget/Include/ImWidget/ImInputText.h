@@ -879,7 +879,7 @@ namespace ImGuiWidget
 
             switch (event.GetType())
             {
-            case ImEventType::MouseDragStart:
+            case ImEventType::DragStart:
                 // 拖拽开始时设置选择锚点并开始选择
                 if (m_SelectionAnchor == -1) // 确保只在拖拽开始时设置一次
                 {
@@ -892,7 +892,7 @@ namespace ImGuiWidget
                 }
                 return true;
 
-            case ImEventType::MouseDrag:
+            case ImEventType::DragUpdate:
                 // 拖拽过程中更新选择
                 if (m_IsSelecting)
                 {
@@ -902,7 +902,7 @@ namespace ImGuiWidget
                 }
                 break;
 
-            case ImEventType::MouseDragEnd:
+            case ImEventType::DragEnd:
                 // 拖拽结束时结束选择
                 m_IsSelecting = false;
                 m_SelectionAnchor = -1; // 重置选择锚点
