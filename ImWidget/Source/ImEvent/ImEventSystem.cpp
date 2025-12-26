@@ -6,6 +6,7 @@
 #include "ImEvent/ImFocusEvent.h"
 #include "ImEvent/ImDragEvent.h"
 #include "ImEvent/ImInputEvent.h"
+#include "ImWidget/ImUserWidget.h"
 namespace ImGuiWidget
 {
 	ImGuiWidget::ImEventSystem::ImEventSystem(ImWidget* root) : m_rootWidget(root) {}
@@ -611,8 +612,9 @@ namespace ImGuiWidget
 
 	ImWidget* ImGuiWidget::ImEventSystem::HitTest(ImWidget* widget, const ImVec2& point)
 	{
+	
 		if (!widget || !widget->IsVisible()) return nullptr;
-
+		//return widget->ChildHitTest(point);
 		if (auto panel = dynamic_cast<ImPanelWidget*>(widget))
 		{
 			for (int i = panel->GetSlotNum() - 1; i >= 0; --i)
@@ -624,6 +626,13 @@ namespace ImGuiWidget
 						return result;
 					}
 				}
+			}
+		}
+		else if (auto userwidget = dynamic_cast<ImUserWidget*>(widget))
+		{
+			if (auto result = HitTest(userwidget->GetRootWidget(), point))
+			{
+				return result;
 			}
 		}
 
@@ -752,11 +761,18 @@ namespace ImGuiWidget
 
 	bool ImEventSystem::SetFocus(ImWidget* widget, ImFocusReason reason)
 	{
-		if (widget && !widget->IsFocusable())
+		if (widget)
 		{
-			return false;
+			if (!widget->IsFocusable())
+			{
+				return false;
+			}
+			else
+			{
+				widget->GetFocus();
+			}
 		}
-
+		
 		// 如果焦点没有变化，直接返回
 		if (widget == m_focusedWidget)
 		{

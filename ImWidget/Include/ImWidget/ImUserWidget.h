@@ -116,7 +116,25 @@ namespace ImGuiWidget
 			bAllowDragOn = NewSetting;
 		}
 
-
+		virtual ImWidget* ChildHitTest(ImVec2 Pos) override
+		{
+			if (m_RootWidget)
+			{
+				return m_RootWidget->ChildHitTest(Pos);
+			}
+			else
+			{
+				ImRect HitRect(Position, Position + Size);
+				if (HitRect.Contains(Pos))
+				{
+					return this;
+				}
+				else
+				{
+					return nullptr;
+				}
+			}
+		}
 		// ================ 新增样式设置方法 ================ //
 		// 背景设置
 		void SetBackgroundEnabled(bool enable) { m_EnableBackground = enable; }
@@ -340,5 +358,7 @@ namespace ImGuiWidget
 		}
 
 		bool GetIsFocused() { return m_HadFocus; }
+
+		ImWidget* GetRootWidget() { return m_RootWidget; }
 	};
 }

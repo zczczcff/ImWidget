@@ -14,6 +14,15 @@
 
 namespace ImGuiWidget
 {
+
+	// 输入文本模式枚举
+	enum class ImInputTextMode
+	{
+		Text,       // 普通文本模式
+		Integer,    // 只能输入整数
+		Decimal     // 只能输入小数
+	};
+
     class ImInputText : public ImWidget
     {
     protected:
@@ -30,7 +39,6 @@ namespace ImGuiWidget
         float m_BorderThickness = 1.0f;
         float m_Rounding = 4.0f;
 
-        bool m_IsFocused = false;
         int m_CursorPos = 0;
         int m_SelectionStart = -1;
         int m_SelectionEnd = -1;
@@ -48,7 +56,251 @@ namespace ImGuiWidget
         int m_TotalChars = 0;
         float m_VisibleWidth = 0.0f;
 
+        // 输入过滤相关
+        ImInputTextMode m_InputMode = ImInputTextMode::Text;
+        bool m_AllowNegative = true;        // 是否允许负数
+        int m_MaxIntegerDigits = 10;        // 整数部分最大位数
+        int m_MaxDecimalDigits = 2;         // 小数部分最大位数（仅Decimal模式有效）
+
         std::function<void(const std::string&)> OnTextChanged;
+
+        // 验证相关
+        std::function<bool(const std::string&)> m_ValidationCallback;
+    public:
+        // 输入模式设置
+        void SetInputMode(ImInputTextMode mode)
+        {
+            m_InputMode = mode;
+            // 切换模式时验证当前文本
+            ValidateCurrentText();
+        }
+
+        ImInputTextMode GetInputMode() const { return m_InputMode; }
+
+        // 负数设置
+        void SetAllowNegative(bool allow)
+        {
+            m_AllowNegative = allow;
+            ValidateCurrentText();
+        }
+        bool GetAllowNegative() const { return m_AllowNegative; }
+
+        // 位数限制设置
+        void SetMaxIntegerDigits(int digits)
+        {
+            m_MaxIntegerDigits = std::max(1, digits);
+            ValidateCurrentText();
+        }
+        int GetMaxIntegerDigits() const { return m_MaxIntegerDigits; }
+
+        void SetMaxDecimalDigits(int digits)
+        {
+            m_MaxDecimalDigits = std::max(0, digits);
+            ValidateCurrentText();
+        }
+        int GetMaxDecimalDigits() const { return m_MaxDecimalDigits; }
+
+        // 设置自定义验证回调
+        void SetValidationCallback(std::function<bool(const std::string&)> callback)
+        {
+            m_ValidationCallback = callback;
+        }
+
+        // 文本验证方法
+        bool IsValidInput(const std::string& text) const
+        {
+            return ValidateText(text);
+        }
+
+        // 获取当前文本是否有效
+        bool IsCurrentTextValid() const
+        {
+            return ValidateText(m_Text);
+        }
+    protected:
+        // 文本验证核心逻辑
+        bool ValidateText(const std::string& text) const
+        {
+            if (text.empty()) return true; // 空文本总是有效的
+
+            // 首先检查自定义验证回调
+            if (m_ValidationCallback && !m_ValidationCallback(text))
+            {
+                return false;
+            }
+
+            // 根据输入模式进行验证
+            switch (m_InputMode)
+            {
+            case ImInputTextMode::Text:
+                return ValidateTextMode(text);
+            case ImInputTextMode::Integer:
+                return ValidateIntegerMode(text);
+            case ImInputTextMode::Decimal:
+                return ValidateDecimalMode(text);
+            default:
+                return true;
+            }
+        }
+
+        // 文本模式验证（基本无限制）
+        bool ValidateTextMode(const std::string& text) const
+        {
+            // 文本模式基本不限制，可以添加一些基本检查
+            return true;
+        }
+
+        // 整数模式验证
+        bool ValidateIntegerMode(const std::string& text) const
+        {
+            if (text.empty()) return true;
+
+            // 检查是否只包含数字和可能的负号
+            int startIndex = 0;
+            if (text[0] == '-')
+            {
+                if (!m_AllowNegative) return false;
+                startIndex = 1;
+                if (text.length() == 1) return false; // 只有负号无效
+            }
+
+            // 检查剩余字符是否都是数字
+            for (int i = startIndex; i < text.length(); ++i)
+            {
+                if (text[i] < '0' || text[i] > '9')
+                {
+                    return false;
+                }
+            }
+
+            // 检查整数位数限制
+            int digitCount = static_cast<int>(text.length()) - startIndex;
+            if (digitCount > m_MaxIntegerDigits)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        // 小数模式验证
+        bool ValidateDecimalMode(const std::string& text) const
+        {
+            if (text.empty()) return true;
+
+            int startIndex = 0;
+            if (text[0] == '-')
+            {
+                if (!m_AllowNegative) return false;
+                startIndex = 1;
+                if (text.length() == 1) return false; // 只有负号无效
+            }
+
+            // 查找小数点
+            int dotPosition = -1;
+            for (int i = startIndex; i < text.length(); ++i)
+            {
+                if (text[i] == '.')
+                {
+                    if (dotPosition != -1) return false; // 多个小数点
+                    dotPosition = i;
+                }
+            }
+
+            // 检查字符有效性
+            for (int i = startIndex; i < text.length(); ++i)
+            {
+                if (text[i] != '.' && (text[i] < '0' || text[i] > '9'))
+                {
+                    return false;
+                }
+            }
+
+            // 检查位数限制
+            if (dotPosition == -1)
+            {
+                // 没有小数点，按整数部分检查
+                int integerDigits = static_cast<int>(text.length()) - startIndex;
+                if (integerDigits > m_MaxIntegerDigits)
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                // 有小数点，分别检查整数部分和小数部分
+                int integerDigits = dotPosition - startIndex;
+                int decimalDigits = static_cast<int>(text.length()) - dotPosition - 1;
+
+                if (integerDigits > m_MaxIntegerDigits)
+                {
+                    return false;
+                }
+                if (decimalDigits > m_MaxDecimalDigits)
+                {
+                    return false;
+                }
+
+                // 小数点不能在开头或结尾（如果后面有数字限制）
+                if (integerDigits == 0 && decimalDigits == 0)
+                {
+                    return false; // 只有小数点无效
+                }
+            }
+
+            return true;
+        }
+
+        // 验证并修正当前文本
+        void ValidateCurrentText()
+        {
+            if (!ValidateText(m_Text))
+            {
+                // 如果当前文本无效，尝试修正或清空
+                std::string corrected = CorrectText(m_Text);
+                if (ValidateText(corrected))
+                {
+                    SetText(corrected);
+                }
+                else
+                {
+                    SetText(""); // 如果无法修正，清空文本
+                }
+            }
+        }
+
+        // 文本修正逻辑
+        std::string CorrectText(const std::string& text) const
+        {
+            if (text.empty()) return "";
+
+            std::string result;
+            bool hasDot = false;
+            bool hasNegative = false;
+
+            for (char c : text)
+            {
+                if (c >= '0' && c <= '9')
+                {
+                    result += c;
+                }
+                else if (c == '-' && !hasNegative && m_AllowNegative)
+                {
+                    if (result.empty())
+                    {
+                        result += c;
+                        hasNegative = true;
+                    }
+                }
+                else if (c == '.' && !hasDot && m_InputMode == ImInputTextMode::Decimal)
+                {
+                    result += c;
+                    hasDot = true;
+                }
+            }
+
+            return result;
+        }
 
     protected:
         // UTF-8工具函数
@@ -336,7 +588,7 @@ namespace ImGuiWidget
 
         void HandleEventInternal(ImEvent* event) override
         {
-            if (!m_IsFocused && !event->Is<ImFocusEvent>())
+            if (!m_hasFocus && !event->Is<ImFocusEvent>())
             {
                 return;
             }
@@ -389,7 +641,7 @@ namespace ImGuiWidget
 
         bool HandleKeyEvent(const ImKeyEvent& event)
         {
-            if (!m_IsFocused) return false;
+            if (!m_hasFocus) return false;
 
             switch (event.GetType())
             {
@@ -488,10 +740,35 @@ namespace ImGuiWidget
 
         bool HandleTextInputEvent(const ImTextInputEvent& event)
         {
-            if (!m_IsFocused) return false;
+            if (!m_hasFocus) return false;
 
             const std::string& inputText = event.GetText();
             if (inputText.empty()) return false;
+
+            // 应用输入过滤
+            std::string filteredText = FilterInputText(inputText);
+            if (filteredText.empty()) return false;
+
+            // 模拟插入后的文本进行验证
+            std::string newText = m_Text;
+            if (HasSelection())
+            {
+                int start = ImMin(m_SelectionStart, m_SelectionEnd);
+                int end = ImMax(m_SelectionStart, m_SelectionEnd);
+                newText.erase(start, end - start);
+                newText.insert(start, filteredText);
+            }
+            else
+            {
+                newText.insert(m_CursorPos, filteredText);
+            }
+
+            // 验证新文本
+            if (!ValidateText(newText))
+            {
+                // 输入无效，可以在这里添加提示音或视觉反馈
+                return false;
+            }
 
             m_NeedsTextUpdate = true;
             if (HasSelection())
@@ -500,11 +777,53 @@ namespace ImGuiWidget
             }
 
             m_PendingText = m_Text;
-            m_PendingText.insert(m_CursorPos, inputText);
-            m_CursorPos += static_cast<int>(inputText.length());
+            m_PendingText.insert(m_CursorPos, filteredText);
+            m_CursorPos += static_cast<int>(filteredText.length());
             ClearSelection();
 
             return true;
+        }
+
+        // 输入文本过滤
+        std::string FilterInputText(const std::string& inputText) const
+        {
+            std::string result;
+
+            for (char c : inputText)
+            {
+                if (IsAllowedCharacter(c))
+                {
+                    result += c;
+                }
+            }
+
+            return result;
+        }
+
+        // 检查字符是否允许输入
+        bool IsAllowedCharacter(char c) const
+        {
+            switch (m_InputMode)
+            {
+            case ImInputTextMode::Text:
+                return true; // 文本模式允许所有字符
+
+            case ImInputTextMode::Integer:
+                // 整数模式只允许数字和负号
+                if (c >= '0' && c <= '9') return true;
+                if (c == '-' && m_AllowNegative) return true;
+                return false;
+
+            case ImInputTextMode::Decimal:
+                // 小数模式允许数字、负号和小数点
+                if (c >= '0' && c <= '9') return true;
+                if (c == '-' && m_AllowNegative) return true;
+                if (c == '.') return true;
+                return false;
+
+            default:
+                return true;
+            }
         }
 
         bool HandleMouseEvent(const ImMouseEvent& event)
@@ -556,7 +875,7 @@ namespace ImGuiWidget
 
         bool HandleDragEvent(const ImDragEvent& event)
         {
-            if (!m_IsFocused) return false;
+            if (!m_hasFocus) return false;
 
             switch (event.GetType())
             {
@@ -664,12 +983,12 @@ namespace ImGuiWidget
             switch (event.GetType())
             {
             case ImEventType::FocusIn:
-                m_IsFocused = true;
+                //m_hasFocus = true;
                 m_CursorBlinkTimer = 0.0f;
                 return true;
 
             case ImEventType::FocusOut:
-                m_IsFocused = false;
+                //m_hasFocus = false;
                 CheckTextChanged();
                 ClearSelection();
                 return true;
@@ -810,14 +1129,40 @@ namespace ImGuiWidget
             const char* clipboard = ImGui::GetClipboardText();
             if (clipboard)
             {
+                std::string clipboardText(clipboard);
+
+                // 应用过滤
+                std::string filteredText = FilterInputText(clipboardText);
+                if (filteredText.empty()) return;
+
+                // 验证粘贴后的文本
+                std::string newText = m_Text;
+                if (HasSelection())
+                {
+                    int start = ImMin(m_SelectionStart, m_SelectionEnd);
+                    int end = ImMax(m_SelectionStart, m_SelectionEnd);
+                    newText.erase(start, end - start);
+                    newText.insert(start, filteredText);
+                }
+                else
+                {
+                    newText.insert(m_CursorPos, filteredText);
+                }
+
+                if (!ValidateText(newText))
+                {
+                    return; // 粘贴后文本无效，拒绝粘贴
+                }
+
                 if (HasSelection())
                 {
                     DeleteSelection();
                 }
+
                 m_PendingText = m_Text;
-                m_PendingText.insert(m_CursorPos, clipboard);
+                m_PendingText.insert(m_CursorPos, filteredText);
                 m_NeedsTextUpdate = true;
-                m_CursorPos += static_cast<int>(strlen(clipboard));
+                m_CursorPos += static_cast<int>(filteredText.length());
                 ClearSelection();
             }
         }
@@ -946,7 +1291,7 @@ namespace ImGuiWidget
             );
 
             // 更新光标闪烁
-            if (m_IsFocused)
+            if (m_hasFocus)
             {
                 UpdateCursorBlink();
             }
@@ -1020,7 +1365,7 @@ namespace ImGuiWidget
             }
 
             // 绘制光标
-            if (m_IsFocused && (static_cast<int>(m_CursorBlinkTimer / CURSOR_BLINK_RATE) % 2 == 0))
+            if (m_hasFocus && (static_cast<int>(m_CursorBlinkTimer / CURSOR_BLINK_RATE) % 2 == 0))
             {
                 int cursorCharIndex = ByteIndexToCharIndex(m_CursorPos);
 
@@ -1101,7 +1446,7 @@ namespace ImGuiWidget
             }
         }
 
-        void CheckTextChanged()
+        virtual void CheckTextChanged()
         {
             if (m_Text != m_PreviousText && OnTextChanged)
             {
@@ -1113,13 +1458,13 @@ namespace ImGuiWidget
         void CancelEditing()
         {
             m_Text = m_PreviousText;
-            m_IsFocused = false;
+            //m_hasFocus = false;
             ClearSelection();
         }
 
         void SubmitEditing()
         {
-            m_IsFocused = false;
+            //m_hasFocus = false;
             CheckTextChanged();
             ClearSelection();
         }
@@ -1131,11 +1476,11 @@ namespace ImGuiWidget
 
             baseProps.insert({ "Text", PropertyType::String, "Data",
                     [this](void* v)
- {
-std::string newText = *static_cast<std::string*>(v);
-SetText(newText);
-},
-[this]() -> void* { return &m_Text; } });
+                    {
+                    std::string newText = *static_cast<std::string*>(v);
+                    SetText(newText);
+                    },
+                    [this]() -> void* { return &m_Text; } });
             baseProps.insert({ "TextColor", PropertyType::Color, "Style",
                     [this](void* v) { m_TextColor = *static_cast<ImU32*>(v); },
                     [this]() -> void* { return &m_TextColor; } });
@@ -1157,7 +1502,43 @@ SetText(newText);
             baseProps.insert({ "Rounding", PropertyType::Float, "Style",
                     [this](void* v) { m_Rounding = *static_cast<float*>(v); },
                     [this]() -> void* { return &m_Rounding; } });
+            // 新增输入过滤属性
+            baseProps.insert
+            ({
+                "InputMode", 
+                PropertyType::Enum, 
+                "Validation",
+                [this](void* v)
+                {
+                    std::string str = *static_cast<std::string*>(v);
+                    if (str == "Text") SetInputMode(ImInputTextMode::Text);
+                    else if(str=="Integer")SetInputMode(ImInputTextMode::Integer);
+                    else if (str == "Decimal")SetInputMode(ImInputTextMode::Decimal);
+                },
+                [this]() -> void* 
+                {
+                    static std::vector<std::string> options;
+                    options = { "Text", "Integer", "Decimal" };
+                    switch (m_InputMode)
+                    {
+                    case ImInputTextMode::Text: options.push_back("Text"); break;
+                    case ImInputTextMode::Integer: options.push_back("Integer"); break;
+                    case ImInputTextMode::Decimal: options.push_back("Decimal"); break;
+                    }
+                    return static_cast<void*>(&options);
+                } });
 
+            baseProps.insert({ "AllowNegative", PropertyType::Bool, "Validation",
+                [this](void* v) { SetAllowNegative(*static_cast<bool*>(v)); },
+                [this]() -> void* { return &m_AllowNegative; } });
+
+            baseProps.insert({ "MaxIntegerDigits", PropertyType::Int, "Validation",
+                [this](void* v) { SetMaxIntegerDigits(*static_cast<int*>(v)); },
+                [this]() -> void* { return &m_MaxIntegerDigits; } });
+
+            baseProps.insert({ "MaxDecimalDigits", PropertyType::Int, "Validation",
+                [this](void* v) { SetMaxDecimalDigits(*static_cast<int*>(v)); },
+                [this]() -> void* { return &m_MaxDecimalDigits; } });
             return baseProps;
         }
 
