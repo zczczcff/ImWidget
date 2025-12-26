@@ -17,7 +17,7 @@ namespace ImGuiWidget
         bool bHaveHorizonScrollbar = false;
         bool bHaveVerticalScrollbar = false;
         float m_ScrollbarThickness = 16.0f;        // 滚动条厚度
-        ImU32 m_ScrollbarBgColor = IM_COL32(40, 40, 40, 255);   // 滚动条背景色
+        ImU32 m_ScrollbarBgColor = IM_COL32(225, 225, 225, 255);   // 滚动条背景色
         ImU32 m_ScrollbarGrabColor = IM_COL32(100, 100, 100, 255); // 滚动条抓取颜色
         ImU32 m_ScrollbarGrabHoveredColor = IM_COL32(120, 120, 120, 255); // 滚动条悬停颜色
         ImU32 m_ScrollbarGrabActiveColor = IM_COL32(150, 150, 150, 255); // 滚动条激活颜色

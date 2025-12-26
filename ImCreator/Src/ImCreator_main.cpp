@@ -166,7 +166,10 @@ public:
         PublishEvent("AddLog", "Log system init");
 
         m_BottomBox->AddChildToVerticalBox(m_LogList)->SetIfAutoSize(true);
-
+        for (int i = 0; i < 500; i++)
+        {
+           m_LogList->AddItem("log test test test test test teest test", IM_COL32(std::rand()%255, std::rand() % 255, std::rand() % 255,255));
+        }
         m_MenuList = new ImGuiWidget::ImHorizontalBox("m_MenuList");
         m_MenuList->SetBackGroundColor(IM_COL32(50, 50, 230, 255));
         //Button_Project = new ImGuiWidget::ImMenuButton("Button_Project");
