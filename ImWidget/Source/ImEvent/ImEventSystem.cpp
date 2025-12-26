@@ -615,6 +615,10 @@ namespace ImGuiWidget
 	
 		if (!widget || !widget->IsVisible()) return nullptr;
 		//return widget->ChildHitTest(point);
+		ImRect rect(widget->GetPosition(), widget->GetPosition() + widget->GetSize());
+
+		if (!rect.Contains(point)) return nullptr;
+
 		if (auto panel = dynamic_cast<ImPanelWidget*>(widget))
 		{
 			for (int i = panel->GetSlotNum() - 1; i >= 0; --i)
@@ -636,8 +640,8 @@ namespace ImGuiWidget
 			}
 		}
 
-		ImRect rect(widget->GetPosition(), widget->GetPosition() + widget->GetSize());
-		return rect.Contains(point) ? widget : nullptr;
+		
+		return widget;
 	}
 
 	// ¹¤¾ßº¯Êý

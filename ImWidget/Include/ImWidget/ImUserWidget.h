@@ -345,15 +345,23 @@ namespace ImGuiWidget
 
 		void SetRootWidget(ImWidget* RootWidget,bool DeleteOldRoot=true)
 		{
-			if (m_RootWidget && DeleteOldRoot)
+			if (m_RootWidget)
 			{
-				delete m_RootWidget;
+				if (DeleteOldRoot)
+				{
+					delete m_RootWidget;
+				}
+				else
+				{
+					m_RootWidget->SetParents(nullptr);
+				}
 			}
 			m_RootWidget = RootWidget;
 			if (m_RootWidget)
 			{
 				m_RootWidget->SetPosition(Position);
 				m_RootWidget->SetSize(Size);
+				m_RootWidget->SetParents(this);
 			}
 		}
 
