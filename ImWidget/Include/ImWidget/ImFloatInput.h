@@ -128,14 +128,14 @@ namespace ImGuiWidget
         {
             value = std::clamp(value, m_MinValue, m_MaxValue);
             FormatValue(value);
-            m_PreviousValue = value;
+            CheckValueChanged();
         }
 
         void SetText(const std::string& text) override
         {
             ImInputText::SetText(text);
             ValidateAndFormat();
-            m_PreviousValue = GetValue();
+            CheckValueChanged();
         }
 
         void CheckTextChanged() override

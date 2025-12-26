@@ -99,14 +99,14 @@ namespace ImGuiWidget
                 (value > m_MaxValue) ? m_MaxValue : value;
 
             SetText(std::to_string(value));
-            m_PreviousValue = value;
+            CheckValueChanged();
         }
 
         void SetText(const std::string& text) override
         {
             ImInputText::SetText(text);
             ValidateAndFormat();
-            m_PreviousValue = GetValue();
+            CheckValueChanged();
         }
 
         void CheckTextChanged() override
