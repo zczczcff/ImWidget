@@ -30,7 +30,7 @@ namespace ImGuiWidget
         std::string m_PreviousText;
         bool m_IsHandlingEvent = false;
         bool m_NeedsTextUpdate = false;
-        std::string m_PendingText;
+        //std::string m_Text;
         ImU32 m_TextColor = IM_COL32(0, 0, 0, 255);
         ImU32 m_BackgroundColor = IM_COL32(255, 255, 255, 255);
         ImU32 m_BorderColor = IM_COL32(100, 100, 100, 255);
@@ -633,7 +633,7 @@ namespace ImGuiWidget
 
             if (m_NeedsTextUpdate)
             {
-                m_Text = m_PendingText;
+                //m_Text = m_Text;
                 m_NeedsTextUpdate = false;
                 UpdateVisibleRange();
             }
@@ -776,8 +776,8 @@ namespace ImGuiWidget
                 DeleteSelection();
             }
 
-            m_PendingText = m_Text;
-            m_PendingText.insert(m_CursorPos, filteredText);
+            //m_Text = m_Text;
+            m_Text.insert(m_CursorPos, filteredText);
             m_CursorPos += static_cast<int>(filteredText.length());
             ClearSelection();
 
@@ -1093,8 +1093,8 @@ namespace ImGuiWidget
             else if (m_CursorPos > 0)
             {
                 int prevCharPos = Utf8PrevChar(m_CursorPos,m_Text);
-                m_PendingText = m_Text;
-                m_PendingText.erase(prevCharPos, m_CursorPos - prevCharPos);
+                //m_Text = m_Text;
+                m_Text.erase(prevCharPos, m_CursorPos - prevCharPos);
                 m_NeedsTextUpdate = true;
                 m_CursorPos = prevCharPos;
             }
@@ -1109,8 +1109,8 @@ namespace ImGuiWidget
             else if (m_CursorPos < static_cast<int>(m_Text.size()))
             {
                 int nextCharPos = Utf8NextChar(m_CursorPos,m_Text);
-                m_PendingText = m_Text;
-                m_PendingText.erase(m_CursorPos, nextCharPos - m_CursorPos);
+                //m_Text = m_Text;
+                m_Text.erase(m_CursorPos, nextCharPos - m_CursorPos);
                 m_NeedsTextUpdate = true;
             }
         }
@@ -1159,8 +1159,8 @@ namespace ImGuiWidget
                     DeleteSelection();
                 }
 
-                m_PendingText = m_Text;
-                m_PendingText.insert(m_CursorPos, filteredText);
+                //m_Text = m_Text;
+                m_Text.insert(m_CursorPos, filteredText);
                 m_NeedsTextUpdate = true;
                 m_CursorPos += static_cast<int>(filteredText.length());
                 ClearSelection();
@@ -1174,8 +1174,8 @@ namespace ImGuiWidget
             int start = ImMin(m_SelectionStart, m_SelectionEnd);
             int end = ImMax(m_SelectionStart, m_SelectionEnd);
 
-            m_PendingText = m_Text;
-            m_PendingText.erase(start, end - start);
+            //m_Text = m_Text;
+            m_Text.erase(start, end - start);
             m_NeedsTextUpdate = true;
             m_CursorPos = start;
             ClearSelection();
