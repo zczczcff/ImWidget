@@ -23,7 +23,7 @@ namespace ImGuiWidget
         , m_rootWidget(nullptr)
     {
         // 创建窗口专用的事件系统
-        m_eventSystem = std::make_unique<ImEventSystem>(nullptr);
+        //m_eventSystem = std::make_unique<ImEventSystem>(nullptr);
     }
 
     ImWindow::~ImWindow()
@@ -45,7 +45,7 @@ namespace ImGuiWidget
         if (m_rootWidget)
         {
             //m_rootWidget->SetParents(this);
-            m_eventSystem->SetRootWidget(m_rootWidget);
+            //m_eventSystem->SetRootWidget(m_rootWidget);
         }
     }
 
@@ -110,13 +110,13 @@ namespace ImGuiWidget
         ImGui::End();
     }
 
-    void ImWindow::ProcessEvents()
-    {
-        if (m_rootWidget && m_eventSystem)
-        {
-            m_eventSystem->ProcessEvents();
-        }
-    }
+    //void ImWindow::ProcessEvents()
+    //{
+    //    //if (m_rootWidget && m_eventSystem)
+    //    //{
+    //    //    m_eventSystem->ProcessEvents();
+    //    //}
+    //}
 
     bool ImWindow::ContainsPoint(const ImVec2& point) const
     {

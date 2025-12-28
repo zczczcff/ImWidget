@@ -15,7 +15,7 @@ namespace ImGuiWidget
         ImWindow* m_activeWindow = nullptr;
         ImWindow* m_mainWindow = nullptr;
         int m_nextWindowId = 1;
-
+        class ImEventSystem* m_EventSystem = nullptr;
     public:
         ImWindowManager();
         ~ImWindowManager();
@@ -58,5 +58,7 @@ namespace ImGuiWidget
 
         // 获取窗口数量
         int GetWindowCount() const { return static_cast<int>(m_windows.size()); }
+
+        ImWindow* WindowHitTest(const ImVec2& Pos);
     };
 }

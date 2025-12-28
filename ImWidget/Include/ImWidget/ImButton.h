@@ -145,10 +145,6 @@ namespace ImGuiWidget
         // 事件处理
         virtual void HandleEventInternal(ImEvent* event) override
         {
-            if (event->GetType() == ImEventType::MouseEnter)
-            {
-                printf("test");
-            }
             if (event->IsHandled()) return;
             if (event->GetPhase() == ImEventPhase::Capture)return;
             switch (event->GetType())

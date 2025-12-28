@@ -11,26 +11,40 @@ namespace ImGuiWidget
 {
 	ImGuiWidget::ImEventSystem::ImEventSystem(ImWidget* root) : m_rootWidget(root) {}
 
-	// 主处理入口
-
-	void ImGuiWidget::ImEventSystem::ProcessEvents()
-	{
-		CollectEventsFromImGui();
-		DispatchEvents();
-		FinishDispatchEvents();
-	}
-
-	// 从ImGui收集事件
-
-	void ImGuiWidget::ImEventSystem::CollectEventsFromImGui()
+	void ImEventSystem::CollectMouseEvent()
 	{
 		ImGuiIO& io = ImGui::GetIO();
-
 		CollectMouseEvents(io);
-		CollectKeyboardEvents(io);
 		CollectDragEvents(io);
 		CollectHoverEvents(io);
 	}
+
+	void ImEventSystem::CollectKeyEvent()
+	{
+		ImGuiIO& io = ImGui::GetIO();
+		CollectKeyboardEvents(io);
+	}
+
+	// 主处理入口
+
+	//void ImGuiWidget::ImEventSystem::ProcessEvents()
+	//{
+	//	CollectEventsFromImGui();
+	//	DispatchEvents();
+	//	FinishDispatchEvents();
+	//}
+
+	// 从ImGui收集事件
+
+	//void ImGuiWidget::ImEventSystem::CollectEventsFromImGui()
+	//{
+	//	ImGuiIO& io = ImGui::GetIO();
+
+	//	CollectMouseEvents(io);
+	//	CollectKeyboardEvents(io);
+	//	CollectDragEvents(io);
+	//	CollectHoverEvents(io);
+	//}
 
 	void ImEventSystem::CollectMouseEvents(ImGuiIO& io)
 	{
@@ -552,6 +566,7 @@ namespace ImGuiWidget
 		}
 
 		m_eventQueue.clear();
+		FinishDispatchEvents();
 	}
 
 	void ImEventSystem::FinishDispatchEvents()

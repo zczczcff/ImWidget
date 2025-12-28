@@ -11,7 +11,7 @@ namespace ImGuiWidget
         ImWidget* m_rootWidget = nullptr;
 
         // 每个窗口有自己的事件系统
-        std::unique_ptr<ImEventSystem> m_eventSystem;
+        //std::unique_ptr<ImEventSystem> m_eventSystem;
         std::string m_windowId;
         std::string m_title;
         ImVec2 m_size;
@@ -94,13 +94,13 @@ namespace ImGuiWidget
         void Render();
 
         // 处理事件
-        void ProcessEvents();
+        //void ProcessEvents();
 
         // 检查点是否在窗口内（用于点击测试）
         virtual bool ContainsPoint(const ImVec2& point) const;
 
         // 获取事件系统
-        ImEventSystem* GetEventSystem() const { return m_eventSystem.get(); }
+        //ImEventSystem* GetEventSystem() const { return m_eventSystem.get(); }
 
     };
 }

@@ -10,7 +10,8 @@ namespace ImGuiWidget
     ImWindowManager::ImWindowManager()
         : m_activeWindow(nullptr)
         , m_mainWindow(nullptr)
-        , m_nextWindowId(1)
+        , m_nextWindowId(1),
+        m_EventSystem(new ImEventSystem(nullptr))
     {
     }
 
@@ -206,25 +207,36 @@ namespace ImGuiWidget
     void ImWindowManager::ProcessEvents()
     {
         ImWindow* LastactiveWindow = m_activeWindow;//在事件处理中可能发生activeWindow的改变，必须先存一份副本
-        // 先处理活动窗口的事件（优先处理）
+        // 先处理活跃窗口的键盘事件
         if (LastactiveWindow && LastactiveWindow->IsOpen())
         {
-            LastactiveWindow->ProcessEvents();
+            m_EventSystem->SetRootWidget(LastactiveWindow->GetRootWidget());
+            m_EventSystem->CollectKeyEvent();
         }
 
         bool bHaveWindowJustOpen = false;
         // 处理其他窗口的事件
-        for (auto& window : m_windows)
+        //for (auto& window : m_windows)
+        //{
+        //    if (window->IsOpen() && window.get() != LastactiveWindow)
+        //    {
+        //        window->ProcessEvents();
+        //    }
+        //    if (window->m_JustOpened)
+        //    {
+        //        bHaveWindowJustOpen = true;
+        //    }
+        //}
+                // 获取ImGui IO状态
+        ImGuiIO& io = ImGui::GetIO();
+        ImVec2 mousePos = io.MousePos;
+        if (ImWindow* MouseHitWindow = WindowHitTest(mousePos))
         {
-            if (window->IsOpen() && window.get() != LastactiveWindow)
-            {
-                window->ProcessEvents();
-            }
-            if (window->m_JustOpened)
-            {
-                bHaveWindowJustOpen = true;
-            }
+            m_EventSystem->SetRootWidget(MouseHitWindow->GetRootWidget());
+            m_EventSystem->CollectMouseEvent();
         }
+
+        m_EventSystem->DispatchEvents();
 
         // 检查窗口点击，更新活动窗口
         if (!bHaveWindowJustOpen)
@@ -322,21 +334,40 @@ namespace ImGuiWidget
         {
             ImVec2 mousePos = io.MousePos;
 
-            // 从最前面的窗口开始检查（反向遍历）
-            for (auto it = m_windows.rbegin(); it != m_windows.rend(); ++it)
+            if (ImWindow* HitWindow = WindowHitTest(mousePos))
             {
-                auto& window = *it;
-                if (window->IsOpen() && window->ContainsPoint(mousePos))
-                {
-                    // 找到被点击的窗口，设置为活动窗口
-                    if (window.get() != m_activeWindow)
-                    {
-                        SetActiveWindow(window.get());
-                    }
-                    break; // 只激活最前面的窗口
-                }
+                SetActiveWindow(HitWindow);
+            }
+
+            // 从最前面的窗口开始检查（反向遍历）
+            //for (auto it = m_windows.rbegin(); it != m_windows.rend(); ++it)
+            //{
+            //    auto& window = *it;
+            //    if (window->IsOpen() && window->ContainsPoint(mousePos))
+            //    {
+            //        // 找到被点击的窗口，设置为活动窗口
+            //        if (window.get() != m_activeWindow)
+            //        {
+            //            SetActiveWindow(window.get());
+            //        }
+            //        break; // 只激活最前面的窗口
+            //    }
+            //}
+        }
+    }
+
+    ImWindow* ImWindowManager::WindowHitTest(const ImVec2& Pos)
+    {
+        // 从最前面的窗口开始检查（反向遍历）
+        for (auto it = m_windows.rbegin(); it != m_windows.rend(); ++it)
+        {
+            auto& window = *it;
+            if (window->IsOpen() && window->ContainsPoint(Pos))
+            {
+                return window.get();
             }
         }
+        return nullptr;
     }
 
 } // namespace ImGuiWidget
