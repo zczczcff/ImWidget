@@ -334,7 +334,7 @@ namespace ImGuiWidget
         virtual void HandleEventInternal(ImEvent* event) override
         {
             if (event->IsHandled()) return;
-
+            if (event->GetPhase() == ImEventPhase::Capture) return;
             switch (event->GetType())
             {
             case ImEventType::MouseEnter:

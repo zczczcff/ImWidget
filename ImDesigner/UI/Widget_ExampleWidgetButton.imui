@@ -1,0 +1,94 @@
+{
+    "Type": "ImButton",
+    "Name": "ImButton_ExampleButton",
+    "Properties": {
+        "PressedStyle": {
+            "BackgroundColor": [
+                136,
+                255,
+                206,
+                255
+            ],
+            "HasBorder": false,
+            "Rounding": 0.0,
+            "BorderThickness": 1.0,
+            "BorderColor": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        "BorderColor": [
+            0,
+            0,
+            0,
+            255
+        ],
+        "Name": "ImButton_ExampleButton",
+        "BackGroundColor": [
+            255,
+            255,
+            255,
+            255
+        ],
+        "HaveBorder": true,
+        "NormalStyle": {
+            "BackgroundColor": [
+                255,
+                255,
+                255,
+                255
+            ],
+            "HasBorder": false,
+            "Rounding": 0.0,
+            "BorderThickness": 1.0,
+            "BorderColor": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        "TooltipText": "",
+        "HoveredStyle": {
+            "BackgroundColor": [
+                224,
+                253,
+                221,
+                255
+            ],
+            "HasBorder": false,
+            "Rounding": 0.0,
+            "BorderThickness": 1.0,
+            "BorderColor": [
+                255,
+                255,
+                255,
+                255
+            ]
+        }
+    },
+    "Children": [
+        {
+            "Type": "ImTextBlock",
+            "Name": "ImTextBlock_WidgetTypeName",
+            "Properties": {
+                "TextFontSize": 14,
+                "Text": "控件",
+                "Name": "ImTextBlock_WidgetTypeName",
+                "TextColor": [
+                    0,
+                    0,
+                    0,
+                    255
+                ],
+                "HorizontalAlignment": "Center",
+                "VerticalAlignment": "Center"
+            },
+            "ParentSlot": {
+                "bAutoSize": true
+            }
+        }
+    ]
+}

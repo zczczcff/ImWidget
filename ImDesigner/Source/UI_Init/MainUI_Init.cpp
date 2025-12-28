@@ -18,7 +18,14 @@ void MainUI::Init()
     ImVerticalSplitter_6 = new ImGuiWidget::ImVerticalSplitter("ImVerticalSplitter_6");
     ImHorizontalSplitter_1 = new ImGuiWidget::ImHorizontalSplitter("ImHorizontalSplitter_1");
     ImBorder_Left = new ImGuiWidget::ImBorder("ImBorder_Left");
+    ImVerticalSplitter_0 = new ImGuiWidget::ImVerticalSplitter("ImVerticalSplitter_0");
+    ImScrollBox_WidgetList = new ImGuiWidget::ImScrollBox("ImScrollBox_WidgetList");
+    ImVerticalBox_WidgetList = new ImGuiWidget::ImVerticalBox("ImVerticalBox_WidgetList");
+    ImScrollBox_WidgetTreeView = new ImGuiWidget::ImScrollBox("ImScrollBox_WidgetTreeView");
     ImBorder_MainWorkSpace = new ImGuiWidget::ImBorder("ImBorder_MainWorkSpace");
+    ImVerticalBox_7 = new ImGuiWidget::ImVerticalBox("ImVerticalBox_7");
+    ImHorizontalBox_PageTag = new ImGuiWidget::ImHorizontalBox("ImHorizontalBox_PageTag");
+    ImBorder_CurrentPage = new ImGuiWidget::ImBorder("ImBorder_CurrentPage");
     ImBorder_Right = new ImGuiWidget::ImBorder("ImBorder_Right");
     ImScrollingTextList_LogList = new ImGuiWidget::ImScrollingTextList("ImScrollingTextList_LogList");
 
@@ -152,10 +159,69 @@ void MainUI::Init()
     ImBorder_Left->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
     ImBorder_Left->SetPropertyValue<bool>("HaveBorder", true);
 
+    ImVerticalSplitter_0->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
+    ImVerticalSplitter_0->SetPropertyValue<std::string>("Name", "ImVerticalSplitter_0");
+    ImVerticalSplitter_0->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
+    ImVerticalSplitter_0->SetPropertyValue<bool>("HaveBorder", true);
+    ImGuiWidget::PropertyStruct* ImVerticalSplitter_0_SplitterStyle = ImVerticalSplitter_0->GetPropertyPtr<ImGuiWidget::PropertyStruct>("SplitterStyle");
+    ImVerticalSplitter_0_SplitterStyle->SetPropertyValue<float>("BarHeight", 4.000000f);
+    ImVerticalSplitter_0_SplitterStyle->SetPropertyValue<ImU32>("Color", IM_COL32(100, 100, 100, 255));
+    ImVerticalSplitter_0_SplitterStyle->SetPropertyValue<ImU32>("HoveredColor", IM_COL32(120, 120, 120, 255));
+    ImVerticalSplitter_0_SplitterStyle->SetPropertyValue<ImU32>("ActiveColor", IM_COL32(150, 150, 150, 255));
+    ImVerticalSplitter_0_SplitterStyle->SetPropertyValue<float>("Rounding", 0.000000f);
+
+    ImScrollBox_WidgetList->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
+    ImScrollBox_WidgetList->SetPropertyValue<std::string>("Name", "ImScrollBox_WidgetList");
+    ImScrollBox_WidgetList->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
+    ImScrollBox_WidgetList->SetPropertyValue<ImU32>("ScrollbarGrabHoveredColor", IM_COL32(120, 120, 120, 255));
+    ImScrollBox_WidgetList->SetPropertyValue<ImU32>("ScrollbarBgColor", IM_COL32(40, 40, 40, 255));
+    ImScrollBox_WidgetList->SetPropertyValue<bool>("HaveBorder", true);
+    ImScrollBox_WidgetList->SetPropertyValue<float>("ScrollbarThickness", 10.000000f);
+    ImScrollBox_WidgetList->SetPropertyValue<ImU32>("ScrollbarGrabColor", IM_COL32(100, 100, 100, 255));
+    ImScrollBox_WidgetList->SetPropertyValue<ImU32>("ScrollbarGrabActiveColor", IM_COL32(150, 150, 150, 255));
+    ImScrollBox_WidgetList->SetPropertyValue<bool>("HorizontalScrollEnabled", true);
+    ImScrollBox_WidgetList->SetPropertyValue<bool>("VerticalScrollEnabled", true);
+    ImScrollBox_WidgetList->SetPropertyValue<bool>("ShowHorizontalScrollbar", true);
+    ImScrollBox_WidgetList->SetPropertyValue<bool>("ShowVerticalScrollbar", true);
+
+    ImVerticalBox_WidgetList->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
+    ImVerticalBox_WidgetList->SetPropertyValue<std::string>("Name", "ImVerticalBox_WidgetList");
+    ImVerticalBox_WidgetList->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
+    ImVerticalBox_WidgetList->SetPropertyValue<bool>("HaveBorder", true);
+
+    ImScrollBox_WidgetTreeView->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
+    ImScrollBox_WidgetTreeView->SetPropertyValue<std::string>("Name", "ImScrollBox_WidgetTreeView");
+    ImScrollBox_WidgetTreeView->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
+    ImScrollBox_WidgetTreeView->SetPropertyValue<ImU32>("ScrollbarGrabHoveredColor", IM_COL32(120, 120, 120, 255));
+    ImScrollBox_WidgetTreeView->SetPropertyValue<ImU32>("ScrollbarBgColor", IM_COL32(40, 40, 40, 255));
+    ImScrollBox_WidgetTreeView->SetPropertyValue<bool>("HaveBorder", true);
+    ImScrollBox_WidgetTreeView->SetPropertyValue<float>("ScrollbarThickness", 10.000000f);
+    ImScrollBox_WidgetTreeView->SetPropertyValue<ImU32>("ScrollbarGrabColor", IM_COL32(100, 100, 100, 255));
+    ImScrollBox_WidgetTreeView->SetPropertyValue<ImU32>("ScrollbarGrabActiveColor", IM_COL32(150, 150, 150, 255));
+    ImScrollBox_WidgetTreeView->SetPropertyValue<bool>("HorizontalScrollEnabled", true);
+    ImScrollBox_WidgetTreeView->SetPropertyValue<bool>("VerticalScrollEnabled", true);
+    ImScrollBox_WidgetTreeView->SetPropertyValue<bool>("ShowHorizontalScrollbar", true);
+    ImScrollBox_WidgetTreeView->SetPropertyValue<bool>("ShowVerticalScrollbar", true);
+
     ImBorder_MainWorkSpace->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
     ImBorder_MainWorkSpace->SetPropertyValue<std::string>("Name", "ImBorder_MainWorkSpace");
     ImBorder_MainWorkSpace->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
     ImBorder_MainWorkSpace->SetPropertyValue<bool>("HaveBorder", true);
+
+    ImVerticalBox_7->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
+    ImVerticalBox_7->SetPropertyValue<std::string>("Name", "ImVerticalBox_7");
+    ImVerticalBox_7->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
+    ImVerticalBox_7->SetPropertyValue<bool>("HaveBorder", true);
+
+    ImHorizontalBox_PageTag->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
+    ImHorizontalBox_PageTag->SetPropertyValue<std::string>("Name", "ImHorizontalBox_PageTag");
+    ImHorizontalBox_PageTag->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
+    ImHorizontalBox_PageTag->SetPropertyValue<bool>("HaveBorder", true);
+
+    ImBorder_CurrentPage->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
+    ImBorder_CurrentPage->SetPropertyValue<std::string>("Name", "ImBorder_CurrentPage");
+    ImBorder_CurrentPage->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
+    ImBorder_CurrentPage->SetPropertyValue<bool>("HaveBorder", true);
 
     ImBorder_Right->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
     ImBorder_Right->SetPropertyValue<std::string>("Name", "ImBorder_Right");
@@ -264,6 +330,57 @@ void MainUI::Init()
     ImHorizontalSplitter_1_slot2->SetPropertyValue<float>("Ratio", 0.300000f);
     ImHorizontalSplitter_1_slot2->SetPropertyValue<float>("PaddingRight", 0.000000f);
     ImHorizontalSplitter_1_slot2->SetPropertyValue<float>("MinSize", 30.000000f);
+
+    ImGuiWidget::ImSlot* ImBorder_Left_slot0 = ImBorder_Left->AddChild(ImVerticalSplitter_0);
+    ImBorder_Left_slot0->SetPropertyValue<bool>("bAutoSize", true);
+    ImBorder_Left_slot0->SetPropertyValue<float>("PaddingTop", 0.000000f);
+    ImBorder_Left_slot0->SetPropertyValue<float>("PaddingBottom", 0.000000f);
+    ImBorder_Left_slot0->SetPropertyValue<float>("PaddingLeft", 0.000000f);
+    ImBorder_Left_slot0->SetPropertyValue<float>("PaddingRight", 0.000000f);
+
+    ImGuiWidget::ImSlot* ImVerticalSplitter_0_slot0 = ImVerticalSplitter_0->AddChild(ImScrollBox_WidgetList);
+    ImVerticalSplitter_0_slot0->SetPropertyValue<bool>("bAutoSize", true);
+    ImVerticalSplitter_0_slot0->SetPropertyValue<float>("PaddingTop", 0.000000f);
+    ImVerticalSplitter_0_slot0->SetPropertyValue<float>("PaddingBottom", 0.000000f);
+    ImVerticalSplitter_0_slot0->SetPropertyValue<float>("PaddingLeft", 0.000000f);
+    ImVerticalSplitter_0_slot0->SetPropertyValue<float>("Ratio", 1.000000f);
+    ImVerticalSplitter_0_slot0->SetPropertyValue<float>("PaddingRight", 0.000000f);
+    ImVerticalSplitter_0_slot0->SetPropertyValue<float>("MinSize", 30.000000f);
+
+    ImGuiWidget::ImSlot* ImVerticalSplitter_0_slot1 = ImVerticalSplitter_0->AddChild(ImScrollBox_WidgetTreeView);
+    ImVerticalSplitter_0_slot1->SetPropertyValue<bool>("bAutoSize", true);
+    ImVerticalSplitter_0_slot1->SetPropertyValue<float>("PaddingTop", 0.000000f);
+    ImVerticalSplitter_0_slot1->SetPropertyValue<float>("PaddingBottom", 0.000000f);
+    ImVerticalSplitter_0_slot1->SetPropertyValue<float>("PaddingLeft", 0.000000f);
+    ImVerticalSplitter_0_slot1->SetPropertyValue<float>("Ratio", 1.000000f);
+    ImVerticalSplitter_0_slot1->SetPropertyValue<float>("PaddingRight", 0.000000f);
+    ImVerticalSplitter_0_slot1->SetPropertyValue<float>("MinSize", 30.000000f);
+
+    ImGuiWidget::ImSlot* ImScrollBox_WidgetList_slot0 = ImScrollBox_WidgetList->AddChild(ImVerticalBox_WidgetList);
+    ImScrollBox_WidgetList_slot0->SetPropertyValue<bool>("bAutoSize", true);
+
+    ImGuiWidget::ImSlot* ImBorder_MainWorkSpace_slot0 = ImBorder_MainWorkSpace->AddChild(ImVerticalBox_7);
+    ImBorder_MainWorkSpace_slot0->SetPropertyValue<bool>("bAutoSize", true);
+    ImBorder_MainWorkSpace_slot0->SetPropertyValue<float>("PaddingTop", 0.000000f);
+    ImBorder_MainWorkSpace_slot0->SetPropertyValue<float>("PaddingBottom", 0.000000f);
+    ImBorder_MainWorkSpace_slot0->SetPropertyValue<float>("PaddingLeft", 0.000000f);
+    ImBorder_MainWorkSpace_slot0->SetPropertyValue<float>("PaddingRight", 0.000000f);
+
+    ImGuiWidget::ImSlot* ImVerticalBox_7_slot0 = ImVerticalBox_7->AddChild(ImHorizontalBox_PageTag);
+    ImVerticalBox_7_slot0->SetPropertyValue<float>("SizeRatio", 0.100000f);
+    ImVerticalBox_7_slot0->SetPropertyValue<bool>("bAutoSize", false);
+    ImVerticalBox_7_slot0->SetPropertyValue<float>("PaddingTop", 0.000000f);
+    ImVerticalBox_7_slot0->SetPropertyValue<float>("PaddingBottom", 0.000000f);
+    ImVerticalBox_7_slot0->SetPropertyValue<float>("PaddingLeft", 0.000000f);
+    ImVerticalBox_7_slot0->SetPropertyValue<float>("PaddingRight", 0.000000f);
+
+    ImGuiWidget::ImSlot* ImVerticalBox_7_slot1 = ImVerticalBox_7->AddChild(ImBorder_CurrentPage);
+    ImVerticalBox_7_slot1->SetPropertyValue<float>("SizeRatio", 1.000000f);
+    ImVerticalBox_7_slot1->SetPropertyValue<bool>("bAutoSize", true);
+    ImVerticalBox_7_slot1->SetPropertyValue<float>("PaddingTop", 0.000000f);
+    ImVerticalBox_7_slot1->SetPropertyValue<float>("PaddingBottom", 0.000000f);
+    ImVerticalBox_7_slot1->SetPropertyValue<float>("PaddingLeft", 0.000000f);
+    ImVerticalBox_7_slot1->SetPropertyValue<float>("PaddingRight", 0.000000f);
 
 
     SetRootWidget(ImVerticalBox_3);

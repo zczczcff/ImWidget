@@ -1,372 +1,416 @@
 #pragma once
 #include "ImWidget.h"
 #include "imgui_internal.h"
+#include "ImEvent/ImMouseEvent.h"
+#include "ImEvent/ImDragEvent.h"
+#include "ImEvent/ImFocusEvent.h"
+#include "ImEvent/ImKeyEvent.h"
 
 namespace ImGuiWidget
 {
-	class ImDragHandle
-	{
-	public:
-		std::string HandleType;
-		ImVec2 FromPos;
-		ImWidget* Preview;
-		class ImUserWidget* FromWidget;
-		virtual ~ImDragHandle() {}
-	};
+    class ImDragHandle :public ImDragObject
+    {
+    public:
+        std::string HandleType;
+        ImVec2 FromPos;
+        
+        virtual ~ImDragHandle() {}
+    };
 
-	class ImUserWidget :public ImWidget
-	{
-	private:
-		ImWidget* m_RootWidget;
+    class ImUserWidget : public ImWidget
+    {
+    protected:
+        ImWidget* m_RootWidget;
 
-		ImGuiButtonFlags m_ButtonFlag = ImGuiButtonFlags_AllowOverlap;
-		// 拖拽状态变量
-		bool m_IsDragging = false;
-		bool m_IsDragSource = false;
-		bool m_IsDragTarget = false;
-		bool bDragFinishedLastTick = false;
-		//允许拖拽动作
-		bool bAllowDrag = false;//允许被拖拽
-		bool bAllowDragOn = false;//允许拖拽放置此处
-		ImDragHandle* m_CurrentDragHandle = nullptr;
+        // 拖拽状态变量
+        bool m_IsDragging = false;
+        bool bDragFinishedLastTick = false;
+        bool bAllowDrag = false;     // 允许被拖拽
+        bool bAllowDragOn = false;   // 允许拖拽放置此处
 
-		// ================ 新增状态变量 ================ //
-		bool m_WasHovered = false;     // 上一帧悬停状态
-		bool m_LastFrameHeld = false;   // 上一帧按下状态
-		bool m_HadFocus = false;        // 上一帧焦点状态
+        // ================ 事件系统状态变量 ================ //
+        //bool m_IsHovered = false;
+        //bool m_IsPressed = false;
 
-	protected:
-		//拖拽相关回调
-		virtual ImDragHandle* OnDragBegin() { return nullptr; }
-		virtual void OnDragOn(ImDragHandle* OriginalHandle) {}
-		virtual void OnDragComplete() {}
-		virtual void OnDragCancel() {}
-		virtual void Tick(){}
-		void HandleDragFinish()
-		{
-			delete m_CurrentDragHandle;
-			m_CurrentDragHandle = nullptr;
-		}
+        //// ================ 样式属性 ================ //
+        //bool m_EnableBackground = true;
+        //ImU32 m_BackgroundColor = IM_COL32(50, 50, 50, 255);
+        //bool m_EnableBorder = true;
+        //ImU32 m_BorderColor = IM_COL32(100, 100, 100, 255);
+        //float m_BorderThickness = 1.0f;
 
-		// ================ 新增事件回调 ================ //
-		// 鼠标悬停事件
-		std::function<void(void)> OnHovered;
-		std::function<void(void)> OnUnhovered;
+    protected:
+        // ================ 拖拽相关虚函数 ================ //
+        // ================ 新增事件处理虚函数（参考UE4） ================ //
+        virtual void OnMouseEnter(const ImMouseEnterEvent& e) {}
+        virtual void OnMouseLeave(const ImMouseLeaveEvent& e) {}
+        virtual void OnMouseMove(const ImMouseMoveEvent& e) {}
+        virtual void OnMouseDown(const ImMouseDownEvent& e) {}
+        virtual void OnMouseUp(const ImMouseUpEvent& e) {}
+        virtual void OnMouseClick(const ImMouseClickEvent& e) {}
+        virtual void OnMouseDoubleClick(const ImMouseDoubleClickEvent& e) {}
+        virtual void OnMouseWheel(const ImMouseWheelEvent& e) {}
 
-		// 鼠标点击事件
-		std::function<void(void)> OnPressed;
-		std::function<void(void)> OnReleased;
+        virtual void OnKeyDown(const ImKeyDownEvent& e) {}
+        virtual void OnKeyUp(const ImKeyUpEvent& e) {}
+        virtual void OnKeyPress(const ImKeyPressEvent& e) {}
 
-		// 焦点事件
-		std::function<void(void)> OnFocusReceived;
-		std::function<void(void)> OnFocusLost;
+        virtual void OnFocusReceived(const ImFocusInEvent& e) {}
+        virtual void OnFocusLost(const ImFocusOutEvent& e) {}
 
-		// ================ 新增样式属性 ================ //
-		bool m_EnableBackground = true;                  // 是否启用背景
-		ImU32 m_BackgroundColor = IM_COL32(50, 50, 50, 255); // 默认背景色
+        virtual void OnDragStart(ImDragStartEvent& e) {}
+        virtual void OnDragUpdate(ImDragUpdateEvent& e) {}
+        virtual void OnDragEnd(ImDragEndEvent& e) {}
+        virtual void OnDragEnter(ImDragEvent& e) {}
+        virtual void OnDragLeave(ImDragEvent& e) {}
+        virtual void OnDrop(ImDragEvent& e) {}
 
-		bool m_EnableBorder = true;                      // 是否启用边框
-		ImU32 m_BorderColor = IM_COL32(100, 100, 100, 255); // 默认边框色
-		float m_BorderThickness = 1.0f;                  // 边框厚度
+        // ================ 渲染相关虚函数 ================ //
+        virtual void PreRender() {}
+        virtual void PostRender() {}
 
-	public:
-		ImUserWidget(const std::string& WidgetName) :ImWidget(WidgetName), m_RootWidget(nullptr) {}
-		ImUserWidget(const std::string& WidgetName, ImWidget* RootWidget) :ImWidget(WidgetName)
-		{
-			SetRootWidget(RootWidget);
-		}
+        // ================ 事件处理内部实现 ================ //
+        virtual void HandleEventInternal(ImEvent* event) override
+        {
+            if (event->IsHandled()) return;
 
-		virtual void SetPosition(ImVec2 Pos)
-		{
-			Position = Pos;
-			if (m_RootWidget)
-			{
-				m_RootWidget->SetPosition(Pos);
-			}
-		}
+            switch (event->GetType())
+            {
+            case ImEventType::MouseEnter:
+                HandleMouseEnter(event->As<ImMouseEnterEvent>());
+                break;
 
-		virtual void SetSize(ImVec2 size)
-		{
-			Size = size;
-			if (m_RootWidget)
-			{
-				m_RootWidget->SetSize(size);
-			}
-		}
+            case ImEventType::MouseLeave:
+                HandleMouseLeave(event->As<ImMouseLeaveEvent>());
+                break;
 
-		virtual ImVec2 GetMinSize()
-		{
-			if (m_RootWidget)
-			{
-				return m_RootWidget->GetMinSize();
-			}
-			else
-			{
-				return ImVec2(0.f, 0.f);
-			}
-		}
+            case ImEventType::MouseMove:
+                HandleMouseMove(event->As<ImMouseMoveEvent>());
+                break;
 
-		void SetAllowDrag(bool NewSetting)
-		{
-			bAllowDrag = NewSetting;
-		}
+            case ImEventType::MouseDown:
+                HandleMouseDown(event->As<ImMouseDownEvent>());
+                break;
 
-		void SetAllowDragOn(bool NewSetting)
-		{
-			bAllowDragOn = NewSetting;
-		}
+            case ImEventType::MouseUp:
+                HandleMouseUp(event->As<ImMouseUpEvent>());
+                break;
 
-		virtual ImWidget* ChildHitTest(ImVec2 Pos) override
-		{
-			if (m_RootWidget)
-			{
-				return m_RootWidget->ChildHitTest(Pos);
-			}
-			else
-			{
-				ImRect HitRect(Position, Position + Size);
-				if (HitRect.Contains(Pos))
-				{
-					return this;
-				}
-				else
-				{
-					return nullptr;
-				}
-			}
-		}
-		// ================ 新增样式设置方法 ================ //
-		// 背景设置
-		void SetBackgroundEnabled(bool enable) { m_EnableBackground = enable; }
-		void SetBackgroundColor(ImU32 color) { m_BackgroundColor = color; }
+            case ImEventType::MouseClick:
+                HandleMouseClick(event->As<ImMouseClickEvent>());
+                break;
 
-		// 边框设置
-		void SetBorderEnabled(bool enable) { m_EnableBorder = enable; }
-		void SetBorderColor(ImU32 color) { m_BorderColor = color; }
-		void SetBorderThickness(float thickness) { m_BorderThickness = thickness; }
+            case ImEventType::MouseDoubleClick:
+                HandleMouseDoubleClick(event->As<ImMouseDoubleClickEvent>());
+                break;
 
-		// ================ 新增事件回调设置方法 ================ //
-		void SetOnHovered(std::function<void(void)> callback) { OnHovered = callback; }
-		void SetOnUnhovered(std::function<void(void)> callback) { OnUnhovered = callback; }
-		void SetOnPressed(std::function<void(void)> callback) { OnPressed = callback; }
-		void SetOnReleased(std::function<void(void)> callback) { OnReleased = callback; }
-		void SetOnFocusReceived(std::function<void(void)> callback) { OnFocusReceived = callback; }
-		void SetOnFocusLost(std::function<void(void)> callback) { OnFocusLost = callback; }
+            case ImEventType::MouseWheel:
+                HandleMouseWheel(event->As<ImMouseWheelEvent>());
+                break;
 
-		//处理交互
-		virtual void HandleInteraction()
-		{
+            case ImEventType::KeyDown:
+                HandleKeyDown(event->As<ImKeyDownEvent>());
+                break;
 
-			if (bAllowDrag || bAllowDragOn)
-			{
-				ImGuiWindow* window = ImGui::GetCurrentWindow();
-				const ImGuiID id = window->GetID(m_WidgetID.c_str());
-				const ImRect bb(Position, Position + Size);
+            case ImEventType::KeyUp:
+                HandleKeyUp(event->As<ImKeyUpEvent>());
+                break;
 
-				// 添加控件到交互系统
-				if (!ImGui::ItemAdd(bb, id,0, ImGuiItemFlags_AllowOverlap)) return;
+            case ImEventType::KeyPress:
+                HandleKeyPress(event->As<ImKeyPressEvent>());
+                break;
 
-				bool hovered = false, held = false;
-				bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held, m_ButtonFlag);
-				// ================ 新增事件检测 ================ //
-				// 悬停状态变化检测
-				if (hovered && !m_WasHovered) {
-					if (OnHovered) OnHovered();
-				}
-				if (!hovered && m_WasHovered) {
-					if (OnUnhovered) OnUnhovered();
-				}
-				m_WasHovered = hovered;
+            case ImEventType::FocusIn:
+                HandleFocusIn(event->As<ImFocusInEvent>());
+                break;
 
-				// 点击状态变化检测
-				if (held && !m_LastFrameHeld) {
-					if (OnPressed) OnPressed();
-				}
-				if (!held && m_LastFrameHeld) {
-					if (OnReleased) OnReleased();
-				}
-				m_LastFrameHeld = held;
+            case ImEventType::FocusOut:
+                HandleFocusOut(event->As<ImFocusOutEvent>());
+                break;
 
-				// 焦点状态变化检测
-				bool isFocused = ImGui::IsItemFocused();
-				if (isFocused && !m_HadFocus) {
-					if (OnFocusReceived) OnFocusReceived();
-				}
-				if (!isFocused && m_HadFocus) {
-					if (OnFocusLost) OnFocusLost();
-				}
-				m_HadFocus = isFocused;
-				if (bAllowDrag)
-				{
-					// ================= 拖拽源处理 ================= //
-					if (ImGui::BeginDragDropSource(ImGuiDragDropFlags_SourceNoPreviewTooltip))
-					{
-						if (!m_IsDragSource && !m_CurrentDragHandle)
-						{
-							// 拖拽开始，创建拖拽句柄
-							m_CurrentDragHandle = OnDragBegin();
-							m_CurrentDragHandle->FromPos = Position;
-							m_CurrentDragHandle->FromWidget = this;
-						}
-						m_IsDragSource = true;
+            case ImEventType::DragStart:
+                HandleDragStart(event->As<ImDragStartEvent>());
+                break;
 
-						// 设置拖拽payload
-						ImGui::SetDragDropPayload("ImUserWidget_DragDrop",
-							&m_CurrentDragHandle,
-							sizeof(ImDragHandle*));
+            case ImEventType::DragUpdate:
+                HandleDragUpdate(event->As<ImDragUpdateEvent>());
+                break;
 
-						ImGui::EndDragDropSource();
-					}
-					else
-					{
-						m_IsDragSource = false;
-					}
+            case ImEventType::DragEnd:
+                HandleDragEnd(event->As<ImDragEndEvent>());
+                break;
 
-					if (m_IsDragSource)
-					{
-						// 显示拖拽预览
-						if (m_CurrentDragHandle->Preview)
-						{
-							ImVec2 WindowPos = ImGui::GetMousePos();
-							ImVec2 PreviewWidgetSize = m_CurrentDragHandle->Preview->GetMinSize();
-							WindowPos.y -= PreviewWidgetSize.y;
-							// 设置子窗口位置和大小（单位：像素）
-							ImGui::SetNextWindowPos(WindowPos, 0);
-							ImGui::SetNextWindowSize(PreviewWidgetSize, ImGuiCond_FirstUseEver);
+            case ImEventType::DragEnter:
+                HandleDragEnter(event->As<ImDragEvent>());
+                break;
 
-							// 组合窗口标志
-							ImGuiWindowFlags flags =
-								ImGuiWindowFlags_NoTitleBar |
-								ImGuiWindowFlags_NoBackground |
-								ImGuiWindowFlags_NoInputs |
-								ImGuiWindowFlags_NoResize;   // 可选：固定大小
-							ImGuiWindowFlags_NoMove;      // 可选：固定位置
+            case ImEventType::DragLeave:
+                HandleDragLeave(event->As<ImDragEvent>());
+                break;
 
-														  // 开始创建窗口
-							if (ImGui::Begin("Invisible Window", nullptr, flags))
-							{
-								// 添加内容（无背景，确保内容可见）
-								m_CurrentDragHandle->Preview->SetPosition(WindowPos);
-								m_CurrentDragHandle->Preview->SetSize(PreviewWidgetSize);
-								m_CurrentDragHandle->Preview->Render();
-								ImGui::End();
-							}
+            case ImEventType::Drop:
+                HandleDrop(event->As<ImDragEvent>());
+                break;
+
+            default:
+                break;
+            }
+        }
+
+    private:
+        // ================ 具体事件处理方法 ================ //
+        void HandleMouseEnter(ImMouseEnterEvent* e)
+        {
+            OnMouseEnter(*e);
+        }
+
+        void HandleMouseLeave(ImMouseLeaveEvent* e)
+        {
+            OnMouseLeave(*e);
+        }
+
+        void HandleMouseMove(ImMouseMoveEvent* e)
+        {
+            OnMouseMove(*e);
+        }
+
+        void HandleMouseDown(ImMouseDownEvent* e)
+        {
+            OnMouseDown(*e);
+        }
+
+        void HandleMouseUp(ImMouseUpEvent* e)
+        {
+            OnMouseUp(*e);
+        }
+
+        void HandleMouseClick(ImMouseClickEvent* e)
+        {
+            OnMouseClick(*e);
+        }
+
+        void HandleMouseDoubleClick(ImMouseDoubleClickEvent* e)
+        {
+            OnMouseDoubleClick(*e);
+        }
+
+        void HandleMouseWheel(ImMouseWheelEvent* e)
+        {
+            OnMouseWheel(*e);
+        }
+
+        void HandleKeyDown(ImKeyDownEvent* e)
+        {
+            OnKeyDown(*e);
+        }
+
+        void HandleKeyUp(ImKeyUpEvent* e)
+        {
+            OnKeyUp(*e);
+        }
+
+        void HandleKeyPress(ImKeyPressEvent* e)
+        {
+            OnKeyPress(*e);
+        }
+
+        void HandleFocusIn(ImFocusInEvent* e)
+        {
+            OnFocusReceived(*e);
+        }
+
+        void HandleFocusOut(ImFocusOutEvent* e)
+        {
+            OnFocusLost(*e);
+        }
+
+        void HandleDragStart(ImDragStartEvent* e)
+        {
+            if (bAllowDrag)
+            {
+                OnDragStart(*e);
+            }
+        }
+
+        void HandleDragUpdate(ImDragUpdateEvent* e)
+        {
+            if (m_IsDragging)
+            {
+                OnDragUpdate(*e);
+                e->StopPropagation();
+            }
+        }
+
+        void HandleDragEnd(ImDragEndEvent* e)
+        {
+            if (m_IsDragging)
+            {
+                m_IsDragging = false;
+                OnDragEnd(*e);
+                e->StopPropagation();
+            }
+        }
+
+        void HandleDragEnter(ImDragEvent* e)
+        {
+            if (bAllowDragOn)
+            {
+                OnDragEnter(*e);
+            }
+        }
+
+        void HandleDragLeave(ImDragEvent* e)
+        {
+            if (bAllowDragOn)
+            {
+                OnDragLeave(*e);
+            }
+        }
+
+        void HandleDrop(ImDragEvent* e)
+        {
+            if (bAllowDragOn)
+            {
+                OnDrop(*e);
+            }
+        }
+
+    public:
+        ImUserWidget(const std::string& WidgetName) :
+            ImWidget(WidgetName),
+            m_RootWidget(nullptr)
+        {
+            //SetFocusable(true);
+        }
+
+        ImUserWidget(const std::string& WidgetName, ImWidget* RootWidget) :
+            ImWidget(WidgetName)
+        {
+            SetRootWidget(RootWidget);
+            //SetFocusable(true);
+        }
+
+        virtual ~ImUserWidget()
+        {
+        }
+
+        // ================ 基础方法重写 ================ //
+        virtual void SetPosition(ImVec2 Pos) override
+        {
+            Position = Pos;
+            if (m_RootWidget)
+            {
+                m_RootWidget->SetPosition(Pos);
+            }
+        }
+
+        virtual void SetSize(ImVec2 size) override
+        {
+            Size = size;
+            if (m_RootWidget)
+            {
+                m_RootWidget->SetSize(size);
+            }
+        }
+
+        virtual ImVec2 GetMinSize() override
+        {
+            if (m_RootWidget)
+            {
+                return m_RootWidget->GetMinSize();
+            }
+            else
+            {
+                return ImVec2(0.f, 0.f);
+            }
+        }
+
+        virtual ImWidget* ChildHitTest(ImVec2 Pos) override
+        {
+            if (m_RootWidget)
+            {
+                return m_RootWidget->ChildHitTest(Pos);
+            }
+            else
+            {
+                ImRect HitRect(Position, Position + Size);
+                return HitRect.Contains(Pos) ? this : nullptr;
+            }
+        }
+
+        // ================ 拖拽设置 ================ //
+        void SetAllowDrag(bool NewSetting) { bAllowDrag = NewSetting; }
+        void SetAllowDragOn(bool NewSetting) { bAllowDragOn = NewSetting; }
+
+        // ================ 状态查询方法 ================ //
+        bool IsDragging() const { return m_IsDragging; }
+
+        // ================ 渲染方法 ================ //
+        virtual void Render() override
+        {
+            PreRender();
 
 
-						}
-					}
+            // 渲染根控件
+            if (m_RootWidget)
+            {
+                m_RootWidget->Render();
+            }
 
-					// ================= 拖拽取消处理 ================= //
-					if (bDragFinishedLastTick)
-					{
-						if (m_CurrentDragHandle)
-						{
-							OnDragCancel();
-							HandleDragFinish();
-						}
-						bDragFinishedLastTick = false;
-					}
 
-					if (!m_IsDragSource && m_IsDragging)
-					{
-						bDragFinishedLastTick = true;
-					}
+            PostRender();
+        }
 
-					m_IsDragging = m_IsDragSource;
-				}
+        // ================ 根控件管理 ================ //
+        void SetRootWidget(ImWidget* RootWidget, bool DeleteOldRoot = true)
+        {
+            if (m_RootWidget && DeleteOldRoot)
+            {
+                delete m_RootWidget;
+            }
+            else if (m_RootWidget)
+            {
+                m_RootWidget->SetParents(nullptr);
+            }
 
-				if (bAllowDragOn)
-				{
-					// ================= 拖拽目标处理 ================= //
-					if (ImGui::BeginDragDropTarget())
-					{
-						m_IsDragTarget = true;
+            m_RootWidget = RootWidget;
+            if (m_RootWidget)
+            {
+                m_RootWidget->SetPosition(Position);
+                m_RootWidget->SetSize(Size);
+                m_RootWidget->SetParents(this);
+            }
+        }
 
-						// 接受拖拽payload
-						if (const ImGuiPayload* payload = ImGui::AcceptDragDropPayload("ImUserWidget_DragDrop"))
-						{
-							IM_ASSERT(payload->DataSize == sizeof(ImDragHandle*));
-							ImDragHandle* dragHandle = *(ImDragHandle**)payload->Data;
+        ImWidget* GetRootWidget() { return m_RootWidget; }
 
-							// 触发拖拽完成回调
-							OnDragOn(dragHandle);
+        // ================ 属性系统 ================ //
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
+        {
+            auto props = ImWidget::GetProperties();
 
-							//通知源控件
-							dragHandle->FromWidget->OnDragComplete();
-							dragHandle->FromWidget->HandleDragFinish();
-						}
+            // 拖拽行为属性
+            props.insert({
+                "AllowDrag", PropertyType::Bool, "DragDrop",
+                [this](void* v) { bAllowDrag = *static_cast<bool*>(v); },
+                [this]() -> void* { return &bAllowDrag; }
+                });
 
-						ImGui::EndDragDropTarget();
-					}
-					else
-					{
-						m_IsDragTarget = false;
-					}
-				}
-			}
-		}
+            props.insert({
+                "AllowDragOn", PropertyType::Bool, "DragDrop",
+                [this](void* v) { bAllowDragOn = *static_cast<bool*>(v); },
+                [this]() -> void* { return &bAllowDragOn; }
+                });
 
-		virtual void Render()
-		{
-			ImGuiWindow* window = ImGui::GetCurrentWindow();
 
-			// ================ 新增背景绘制 ================ //
-			if (m_EnableBackground)
-			{
-				window->DrawList->AddRectFilled(
-					Position,
-					Position + Size,
-					m_BackgroundColor
-				);
-			}
+            return props;
+        }
 
-			// 处理交互事件
-			HandleInteraction();
+        virtual std::string GetRegisterTypeName() override { return "ImUserWidget"; }
 
-			// 渲染根控件
-			if (m_RootWidget)
-			{
-				m_RootWidget->Render();
-			}
-			// ================ 新增边框绘制 ================ //
-			if (m_EnableBorder && m_BorderThickness > 0.0f)
-			{
-				window->DrawList->AddRect(
-					Position,
-					Position + Size,
-					m_BorderColor,
-					0.0f, // 圆角半径（可选，默认为0）
-					ImDrawFlags_None,
-					m_BorderThickness
-				);
-			}
-			Tick();
-		}
-
-		void SetRootWidget(ImWidget* RootWidget,bool DeleteOldRoot=true)
-		{
-			if (m_RootWidget)
-			{
-				if (DeleteOldRoot)
-				{
-					delete m_RootWidget;
-				}
-				else
-				{
-					m_RootWidget->SetParents(nullptr);
-				}
-			}
-			m_RootWidget = RootWidget;
-			if (m_RootWidget)
-			{
-				m_RootWidget->SetPosition(Position);
-				m_RootWidget->SetSize(Size);
-				m_RootWidget->SetParents(this);
-			}
-		}
-
-		bool GetIsFocused() { return m_HadFocus; }
-
-		ImWidget* GetRootWidget() { return m_RootWidget; }
-	};
+        virtual ImWidget* CopyWidget() override
+        {
+            return new ImUserWidget(*this);
+        }
+    };
 }

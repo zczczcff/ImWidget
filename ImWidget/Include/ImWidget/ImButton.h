@@ -60,7 +60,7 @@ namespace ImGuiWidget
         bool m_IsPressed = false;
 
         std::string m_TooltipText;
-
+        ImVec2 OriginalMinSize = ImVec2(10.f, 10.f);
         // 回调函数
         std::function<void(void)> OnPressed;
         std::function<void(void)> OnReleased;
@@ -145,6 +145,10 @@ namespace ImGuiWidget
         // 事件处理
         virtual void HandleEventInternal(ImEvent* event) override
         {
+            if (event->GetType() == ImEventType::MouseEnter)
+            {
+                printf("test");
+            }
             if (event->IsHandled()) return;
             if (event->GetPhase() == ImEventPhase::Capture)return;
             switch (event->GetType())
@@ -205,6 +209,7 @@ namespace ImGuiWidget
             if (m_IsHovered)
             {
                 m_IsHovered = false;
+                m_IsPressed = false;
                 if (OnHoverEnd)
                 {
                     OnHoverEnd();
@@ -354,12 +359,22 @@ namespace ImGuiWidget
             if (content)
             {
                 ImVec2 ContentMinSize = content->GetMinSize();
-                return ImVec2(ImMax(ContentMinSize.x, 30.f), ImMax(ContentMinSize.y, 10.f));
+                return ImVec2(ImMax(ContentMinSize.x, OriginalMinSize.x), ImMax(ContentMinSize.y, OriginalMinSize.y));
             }
             else
             {
-                return ImVec2(30, 10);
+                return OriginalMinSize;
             }
+        }
+
+        virtual ImVec2 GetOriginalMinSize()
+        {
+            return OriginalMinSize;
+        }
+
+        virtual void SetOriginalMinSize(const ImVec2& minsize)
+        {
+            OriginalMinSize = minsize;
         }
 
         virtual void Render()

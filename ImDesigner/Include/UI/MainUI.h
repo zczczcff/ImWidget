@@ -28,7 +28,14 @@ protected:
     ImGuiWidget::ImVerticalSplitter* ImVerticalSplitter_6;
     ImGuiWidget::ImHorizontalSplitter* ImHorizontalSplitter_1;
     ImGuiWidget::ImBorder* ImBorder_Left;
+    ImGuiWidget::ImVerticalSplitter* ImVerticalSplitter_0;
+    ImGuiWidget::ImScrollBox* ImScrollBox_WidgetList;
+    ImGuiWidget::ImVerticalBox* ImVerticalBox_WidgetList;
+    ImGuiWidget::ImScrollBox* ImScrollBox_WidgetTreeView;
     ImGuiWidget::ImBorder* ImBorder_MainWorkSpace;
+    ImGuiWidget::ImVerticalBox* ImVerticalBox_7;
+    ImGuiWidget::ImHorizontalBox* ImHorizontalBox_PageTag;
+    ImGuiWidget::ImBorder* ImBorder_CurrentPage;
     ImGuiWidget::ImBorder* ImBorder_Right;
     ImGuiWidget::ImScrollingTextList* ImScrollingTextList_LogList;
 //----Gen Members End----

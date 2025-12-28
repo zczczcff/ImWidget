@@ -17,6 +17,7 @@ namespace ImGuiWidget
 	{
 		CollectEventsFromImGui();
 		DispatchEvents();
+		FinishDispatchEvents();
 	}
 
 	// 从ImGui收集事件
@@ -553,6 +554,15 @@ namespace ImGuiWidget
 		m_eventQueue.clear();
 	}
 
+	void ImEventSystem::FinishDispatchEvents()
+	{
+		if (bDragEndThisTick)
+		{
+			ImDragEvent::ClearDragData();
+			bDragEndThisTick = false;
+		}
+	}
+
 	ImWidget* ImGuiWidget::ImEventSystem::FindEventTarget(ImEvent* event)
 	{
 		if (auto mouseEvent = event->As<ImMouseEvent>())
@@ -705,7 +715,7 @@ namespace ImGuiWidget
 		m_isDragging = false;
 		m_dragSourceWidget = nullptr;
 		m_lastDragPos = ImVec2(0, 0);
-		ImDragEvent::SetDragData(nullptr);
+		bDragEndThisTick = true;
 	}
 
 	void ImEventSystem::ProcessDropTargets(const ImVec2& pos, const ImModifierKeys& mods)

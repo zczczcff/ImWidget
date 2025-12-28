@@ -23,6 +23,8 @@ namespace ImGuiWidget
         // 双击检测参数
         const double DOUBLE_CLICK_TIME = 0.3;  // 300ms
         const float DOUBLE_CLICK_DISTANCE = 5.0f;  // 5像素
+        bool bDragEndThisTick = false;
+
 
         bool keyStates[ImGuiKey_COUNT] = { false };
         double keyPressTime[ImGuiKey_COUNT] = { 0.0 };
@@ -52,6 +54,8 @@ namespace ImGuiWidget
 
         // 事件分发
         void DispatchEvents();
+
+        void FinishDispatchEvents();
 
         ImWidget* FindEventTarget(ImEvent* event);
 

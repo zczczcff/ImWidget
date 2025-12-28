@@ -2,5 +2,5 @@
 
 namespace ImGuiWidget
 {
-	ImDragObject* ImDragEvent::GlobalDragObject = nullptr;
+	std::shared_ptr<ImDragObject> ImDragEvent::GlobalDragObject;
 }

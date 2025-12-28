@@ -2,7 +2,8 @@
 #include "ImWindow.h"
 #include "Application/ImApplication.h"
 #include <algorithm>
-
+#include "ImEvent/ImDragEvent.h"
+#include "ImWidget/ImWidget.h"
 namespace ImGuiWidget
 {
 
@@ -168,6 +169,34 @@ namespace ImGuiWidget
         if (m_activeWindow && m_activeWindow->IsOpen())
         {
             m_activeWindow->Render();
+        }
+
+        if (auto PreviewWidget = ImDragEvent::GetDragPreview())//渲染拖拽控件
+        {
+            ImGuiIO& io = ImGui::GetIO();
+            // 设置窗口标志
+            ImGuiWindowFlags flags = 0;
+            flags |= ImGuiWindowFlags_NoTitleBar;// 无标题栏
+            flags |= ImGuiWindowFlags_NoResize;// 不可调整大小
+            flags |= ImGuiWindowFlags_NoMove;// 不可移动
+            flags |= ImGuiWindowFlags_NoScrollbar;// 无滚动条
+            flags |= ImGuiWindowFlags_NoCollapse;//不可折叠
+            flags |= ImGuiWindowFlags_NoBackground;//无背景
+
+            // 开始窗口
+            ImVec2  m_position = ImVec2(0, 0);
+            ImVec2   m_size = io.DisplaySize;
+            ImGui::SetNextWindowPos(m_position);
+            ImGui::SetNextWindowSize(m_size);
+            ImGui::Begin("DragPreview", nullptr, flags);
+            ImVec2 mousePos = io.MousePos;
+
+            ImVec2 previewwidgetsize = PreviewWidget->GetSize();
+
+            PreviewWidget->SetPosition(mousePos - (previewwidgetsize / 2));
+            PreviewWidget->Render();
+
+            ImGui::End();
         }
 
         // 清理已关闭的窗口
