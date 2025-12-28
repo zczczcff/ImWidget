@@ -96,7 +96,7 @@ namespace ImGuiWidget
 
     class ImMouseEnterEvent : public ImMouseEvent {
     public:
-        ImMouseEnterEvent() : ImMouseEvent(ImEventType::MouseEnter, ImMouseButton::Left, 1, false) {}
+        ImMouseEnterEvent() : ImMouseEvent(ImEventType::MouseEnter, ImMouseButton::Left, 1) {}
 
         virtual ImMouseEnterEvent* Clone() const override {
             return new ImMouseEnterEvent(*this);
@@ -105,7 +105,7 @@ namespace ImGuiWidget
 
     class ImMouseLeaveEvent : public ImMouseEvent {
     public:
-        ImMouseLeaveEvent() : ImMouseEvent(ImEventType::MouseLeave, ImMouseButton::Left, 1, false) {}
+        ImMouseLeaveEvent() : ImMouseEvent(ImEventType::MouseLeave, ImMouseButton::Left, 1) {}
 
         virtual ImMouseLeaveEvent* Clone() const override {
             return new ImMouseLeaveEvent(*this);
