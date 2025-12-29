@@ -68,9 +68,18 @@ namespace ImGuiWidget
 					delete m_Slots[index]->GetContent();
 				}
 				delete m_Slots[index];
-				m_Slots[index] = CreateSlot(child);
+				if (!child)
+				{
+					auto it = m_Slots.begin();
+					it += index;
+					m_Slots.erase(it);
+				}
+				else
+				{
+					m_Slots[index] = CreateSlot(child);
+				}
 			}
-			else
+			else if(m_Slots.size() == index && child)
 			{
 				for (int i = m_Slots.size(); i < index; i++)
 				{
@@ -78,8 +87,15 @@ namespace ImGuiWidget
 				}
 				m_Slots.push_back(CreateSlot(child));
 			}
+			else
+			{
+				//非法操作
+			}
 			MarkLayoutDirty();
-			child->SetParents(this);
+			if (child)
+			{
+				child->SetParents(this);
+			}
 		}
 		// 插入子控件到指定位置
 		ImSlot* InsertChildAt(int index, ImWidget* child)

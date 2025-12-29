@@ -14,8 +14,17 @@ namespace ImGuiWidget
 			{
 				ImSlot* slot = GetSlotAt(0);
 				ImWidget* content = slot->GetContent();
-				slot->SetSlotPosition(Position);
-				slot->SetSlotSize(Size);
+				if (bHaveBorder)
+				{
+					slot->SetSlotPosition(Position + ImVec2(BorderThickness, BorderThickness));
+					slot->SetSlotSize(Size - ImVec2(BorderThickness, BorderThickness) * 2);
+				}
+				else
+				{
+					slot->SetSlotPosition(Position);
+					slot->SetSlotSize(Size);
+				}
+
 				slot->ApplyLayout();
 			}
 		}
@@ -40,7 +49,10 @@ namespace ImGuiWidget
 		{
 			SetChildAt(0, Content, DeleteOld);
 		}
-
+		ImWidget* GetContent()
+		{
+			return GetChildAt(0);
+		}
 		virtual void Render()override
 		{
 			HandleLayout();

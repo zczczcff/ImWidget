@@ -33,7 +33,7 @@ void MainUI::Init()
     ImVerticalBox_3->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
     ImVerticalBox_3->SetPropertyValue<std::string>("Name", "ImVerticalBox_3");
     ImVerticalBox_3->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
-    ImVerticalBox_3->SetPropertyValue<bool>("HaveBorder", true);
+    ImVerticalBox_3->SetPropertyValue<bool>("HaveBorder", false);
 
     ImHorizontalBox_4->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
     ImHorizontalBox_4->SetPropertyValue<std::string>("Name", "ImHorizontalBox_4");
@@ -136,7 +136,7 @@ void MainUI::Init()
     ImVerticalSplitter_6->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
     ImVerticalSplitter_6->SetPropertyValue<std::string>("Name", "ImVerticalSplitter_6");
     ImVerticalSplitter_6->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
-    ImVerticalSplitter_6->SetPropertyValue<bool>("HaveBorder", true);
+    ImVerticalSplitter_6->SetPropertyValue<bool>("HaveBorder", false);
     ImGuiWidget::PropertyStruct* ImVerticalSplitter_6_SplitterStyle = ImVerticalSplitter_6->GetPropertyPtr<ImGuiWidget::PropertyStruct>("SplitterStyle");
     ImVerticalSplitter_6_SplitterStyle->SetPropertyValue<float>("BarHeight", 4.000000f);
     ImVerticalSplitter_6_SplitterStyle->SetPropertyValue<ImU32>("Color", IM_COL32(100, 100, 100, 255));
@@ -188,7 +188,7 @@ void MainUI::Init()
     ImVerticalBox_WidgetList->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
     ImVerticalBox_WidgetList->SetPropertyValue<std::string>("Name", "ImVerticalBox_WidgetList");
     ImVerticalBox_WidgetList->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
-    ImVerticalBox_WidgetList->SetPropertyValue<bool>("HaveBorder", true);
+    ImVerticalBox_WidgetList->SetPropertyValue<bool>("HaveBorder", false);
 
     ImScrollBox_WidgetTreeView->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
     ImScrollBox_WidgetTreeView->SetPropertyValue<std::string>("Name", "ImScrollBox_WidgetTreeView");
@@ -207,7 +207,7 @@ void MainUI::Init()
     ImBorder_LeftTab->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
     ImBorder_LeftTab->SetPropertyValue<std::string>("Name", "ImBorder_LeftTab");
     ImBorder_LeftTab->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
-    ImBorder_LeftTab->SetPropertyValue<bool>("HaveBorder", true);
+    ImBorder_LeftTab->SetPropertyValue<bool>("HaveBorder", false);
 
     ImBorder_MainWorkSpace->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
     ImBorder_MainWorkSpace->SetPropertyValue<std::string>("Name", "ImBorder_MainWorkSpace");
@@ -217,7 +217,7 @@ void MainUI::Init()
     ImVerticalBox_7->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
     ImVerticalBox_7->SetPropertyValue<std::string>("Name", "ImVerticalBox_7");
     ImVerticalBox_7->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
-    ImVerticalBox_7->SetPropertyValue<bool>("HaveBorder", true);
+    ImVerticalBox_7->SetPropertyValue<bool>("HaveBorder", false);
 
     ImHorizontalBox_PageTag->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
     ImHorizontalBox_PageTag->SetPropertyValue<std::string>("Name", "ImHorizontalBox_PageTag");
@@ -232,7 +232,7 @@ void MainUI::Init()
     ImBorder_Right->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
     ImBorder_Right->SetPropertyValue<std::string>("Name", "ImBorder_Right");
     ImBorder_Right->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
-    ImBorder_Right->SetPropertyValue<bool>("HaveBorder", true);
+    ImBorder_Right->SetPropertyValue<bool>("HaveBorder", false);
 
     ImScrollingTextList_LogList->SetPropertyValue<std::string>("Name", "ImScrollingTextList_LogList");
     ImScrollingTextList_LogList->SetPropertyValue<float>("ScrollbarRounding", 0.000000f);

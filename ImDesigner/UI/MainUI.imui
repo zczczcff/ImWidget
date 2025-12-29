@@ -15,7 +15,7 @@
             255,
             255
         ],
-        "HaveBorder": true
+        "HaveBorder": false
     },
     "Children": [
         {
@@ -371,7 +371,7 @@
                     255,
                     255
                 ],
-                "HaveBorder": true,
+                "HaveBorder": false,
                 "SplitterStyle": {
                     "BarHeight": 4.0,
                     "Color": [
@@ -566,7 +566,7 @@
                                                             255,
                                                             255
                                                         ],
-                                                        "HaveBorder": true
+                                                        "HaveBorder": false
                                                     },
                                                     "ParentSlot": {
                                                         "bAutoSize": true
@@ -658,7 +658,7 @@
                                                     255,
                                                     255
                                                 ],
-                                                "HaveBorder": true
+                                                "HaveBorder": false
                                             },
                                             "ParentSlot": {
                                                 "bAutoSize": true,
@@ -727,7 +727,7 @@
                                             255,
                                             255
                                         ],
-                                        "HaveBorder": true
+                                        "HaveBorder": false
                                     },
                                     "Children": [
                                         {
@@ -823,7 +823,7 @@
                                     255,
                                     255
                                 ],
-                                "HaveBorder": true
+                                "HaveBorder": false
                             },
                             "ParentSlot": {
                                 "bAutoSize": true,
