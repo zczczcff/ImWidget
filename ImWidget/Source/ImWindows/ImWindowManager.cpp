@@ -117,13 +117,6 @@ namespace ImGuiWidget
         if (m_activeWindow)
         {
             m_activeWindow->SetIsActive(false);
-            if (m_activeWindow->bAutoCloseWhenLostFocus)
-            {
-                m_activeWindow->SetIsOpen(false);
-            }
-
-            // 发送失去焦点事件
-            // 这里可以添加焦点变化事件处理
         }
 
         m_activeWindow = window;
@@ -133,9 +126,6 @@ namespace ImGuiWidget
         {
             m_activeWindow->SetIsActive(true);
             BringWindowToFront(m_activeWindow);
-
-            // 发送获得焦点事件
-            // 这里可以添加焦点变化事件处理
         }
     }
 

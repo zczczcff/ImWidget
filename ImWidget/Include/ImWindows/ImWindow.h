@@ -2,6 +2,8 @@
 #pragma once
 #include "ImEvent/ImEventSystem.h"
 #include <string>
+#include "ImTools/ImDelegate.h"
+
 namespace ImGuiWidget
 {
     class ImWindow
@@ -33,6 +35,9 @@ namespace ImGuiWidget
         bool bAutoCloseWhenLostFocus = false;
 
         bool m_JustOpened = false;
+
+        ImMulticastDelegate<> OnGetFocus;
+        ImMulticastDelegate<> OnLoseFocus;
     public:
         ImWindow(const std::string& title, const ImVec2& size, const ImVec2& pos,const std::string& ID);
         virtual ~ImWindow();
@@ -63,7 +68,23 @@ namespace ImGuiWidget
         }
         bool IsOpen() const { return bIsOpen; }
 
-        void SetIsActive(bool active) { bIsActive = active; }
+        void SetIsActive(bool active) 
+        {
+            if (active == bIsActive) return;
+            if (active)
+            {
+                OnGetFocus.Broadcast();
+            }
+            else
+            {
+                OnLoseFocus.Broadcast();
+                if (bAutoCloseWhenLostFocus)
+                {
+                    SetIsOpen(false);
+                }
+            }
+            bIsActive = active; 
+        }
         bool IsActive() const { return bIsActive; }
 
         void SetIsMovable(bool movable) { bIsMovable = movable; }
