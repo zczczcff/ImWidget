@@ -59,8 +59,8 @@ namespace ImGuiWidget
                 }
             }
 
-            remainingWidth = Size.x - requiredWidth;
-            ImVec2 currentPos = Position;
+            remainingWidth = Size.x - requiredWidth - (bHaveBorder ? 2 * BorderThickness : 0);
+            ImVec2 currentPos = Position + (bHaveBorder ? ImVec2(BorderThickness, BorderThickness) : ImVec2(0.f, 0.f));
 
             if (remainingWidth > 0.f) // ÓÐ×ã¹»¿Õ¼ä
             {
@@ -75,13 +75,13 @@ namespace ImGuiWidget
                     {
                         ImVec2 minSize = HSlot->GetContent()->GetMinSize();
                         float slotWidth = minSize.x + HSlot->PaddingLeft + HSlot->PaddingRight;
-                        HSlot->SetSlotSize(ImVec2(slotWidth, Size.y));
+                        HSlot->SetSlotSize(ImVec2(slotWidth, Size.y - (bHaveBorder ? 2*BorderThickness : 0)));
                         currentPos.x += slotWidth;
                     }
                     else
                     {
                         float ratioWidth = (HSlot->SizeRatio / sumSizeRatio) * remainingWidth;
-                        HSlot->SetSlotSize(ImVec2(ratioWidth, Size.y));
+                        HSlot->SetSlotSize(ImVec2(ratioWidth, Size.y - (bHaveBorder ? 2 * BorderThickness : 0)));
                         currentPos.x += ratioWidth;
                     }
 
@@ -101,7 +101,7 @@ namespace ImGuiWidget
                     {
                         ImVec2 minSize = HSlot->GetContent()->GetMinSize();
                         float slotWidth = minSize.x + HSlot->PaddingLeft + HSlot->PaddingRight;
-                        HSlot->SetSlotSize(ImVec2(slotWidth, Size.y));
+                        HSlot->SetSlotSize(ImVec2(slotWidth, Size.y - (bHaveBorder ? 2 * BorderThickness : 0)));
                         currentPos.x += slotWidth;
                     }
                     else
@@ -180,7 +180,7 @@ namespace ImGuiWidget
                     minHeight = ImMax(minHeight, slotHeight);
                 }
             }
-            return ImVec2(ImMax(minWidth,10.f), ImMax(minHeight,10.f));
+            return ImVec2(ImMax(minWidth,10.f), ImMax(minHeight,10.f)) + (bHaveBorder ? ImVec2(2 * BorderThickness, 2 * BorderThickness) : ImVec2(0, 0));
         }
         virtual std::string GetRegisterTypeName()override { return "ImHorizontalBox"; }
 

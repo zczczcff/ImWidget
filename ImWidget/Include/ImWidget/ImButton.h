@@ -225,7 +225,7 @@ namespace ImGuiWidget
                 }
 
                 // 请求焦点
-                RequestFocus();
+                //RequestFocus();
                 event->StopPropagation();
             }
         }
@@ -308,7 +308,6 @@ namespace ImGuiWidget
             };
 
             bHaveBackGround = false;
-            SetFocusable(true);
         }
 
         // 设置内容
@@ -377,7 +376,7 @@ namespace ImGuiWidget
         {
             HandleLayout();
             RenderButton();        // 专注于渲染
-            RenderBackGround();
+            //RenderBackGround();
             RenderChild();
         }
 

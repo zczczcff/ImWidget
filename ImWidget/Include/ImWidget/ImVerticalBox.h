@@ -124,7 +124,7 @@ namespace ImGuiWidget
 			//	minheight += childminsize.y;
 			//}
 
-			return ImVec2(ImMax(minlength,30.f), ImMax(minheight,10.f));
+            return ImVec2(ImMax(minlength, 30.f), ImMax(minheight, 10.f)) + (bHaveBorder ? ImVec2(2 * BorderThickness, 2 * BorderThickness) : ImVec2(0, 0));
 		}
 
 		virtual void Relayout()override
@@ -149,9 +149,9 @@ namespace ImGuiWidget
                 }
             }
 
-            remainingHeight = Size.y - requiredHeight;
+            remainingHeight = Size.y - requiredHeight - (bHaveBorder? 2 * BorderThickness:0);
 
-            ImVec2 currentPos = Position; // 当前位置
+            ImVec2 currentPos = Position + (bHaveBorder ? ImVec2(BorderThickness, BorderThickness) : ImVec2(0.f, 0.f)); // 当前位置
 
             if (remainingHeight > 0.f) // 有足够空间
             {
@@ -170,7 +170,7 @@ namespace ImGuiWidget
                     {
                         // 非自动大小控件：使用最小高度，宽度填满
                         ImVec2 minSize = VSlot->GetContent()->GetMinSize();
-                        VSlot->SetSlotSize(ImVec2(Size.x,minSize.y + VSlot->PaddingTop + VSlot->PaddingBottom));
+                        VSlot->SetSlotSize(ImVec2(Size.x-(bHaveBorder? 2 * BorderThickness : 0),minSize.y + VSlot->PaddingTop + VSlot->PaddingBottom));
                         //VSlot->GetContent()->SetSize(ImVec2(
                         //    Size.x - VSlot->PaddingLeft - VSlot->PaddingRight,
                         //    minSize.y
@@ -182,7 +182,7 @@ namespace ImGuiWidget
                     {
                         // 比例分配控件：计算实际高度
                         float ratioHeight = (VSlot->SizeRatio / sumSizeRatio) * remainingHeight;
-                        VSlot->SetSlotSize(ImVec2(Size.x, ratioHeight));
+                        VSlot->SetSlotSize(ImVec2(Size.x - (bHaveBorder ? 2 * BorderThickness : 0), ratioHeight));
                         //VSlot->GetContent()->SetSize(ImVec2(
                         //    Size.x - VSlot->PaddingLeft - VSlot->PaddingRight,
                         //    ratioHeight - VSlot->PaddingTop - VSlot->PaddingBottom
@@ -210,7 +210,7 @@ namespace ImGuiWidget
                     {
                         // 非自动大小控件：使用最小高度
                         ImVec2 minSize = VSlot->GetContent()->GetMinSize();
-                        VSlot->SetSlotSize(ImVec2(Size.x, minSize.y + VSlot->PaddingTop + VSlot->PaddingBottom));
+                        VSlot->SetSlotSize(ImVec2(Size.x - (bHaveBorder ? 2 * BorderThickness : 0), minSize.y + VSlot->PaddingTop + VSlot->PaddingBottom));
                         //VSlot->GetContent()->SetSize(ImVec2(
                         //    Size.x - VSlot->PaddingLeft - VSlot->PaddingRight,
                         //    minSize.y

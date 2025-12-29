@@ -9,7 +9,7 @@
 
 namespace ImGuiWidget
 {
-    class ImTabContainer : public ImUserWidget
+    class ImPageManager : public ImUserWidget
     {
     public:
         // Tab位置枚举
@@ -41,6 +41,11 @@ namespace ImGuiWidget
         std::vector<PageData> m_pages;
         std::string m_currentPage;
 
+        // 新增：关闭按钮相关设置
+        bool m_showCloseButton = true;           // 是否显示关闭按钮
+        float m_closeButtonSize = 6.0f;        // 关闭按钮边长
+        float m_closeButtonPadding = 3.0f;      // 关闭按钮padding
+
         // 控件指针
         ImVerticalBox* m_rootVerticalBox;
         ImHorizontalBox* m_tabBar;
@@ -59,76 +64,110 @@ namespace ImGuiWidget
             // 创建文本块显示页面名称
             ImTextBlock* textBlock = new ImTextBlock("TabText_" + pageName);
             textBlock->SetText(pageName);
-            textBlock->SetHorizontalAlignment(ImTextBlock::TextAlignment_Horizontal::Left);
+            textBlock->SetHorizontalAlignment(ImTextBlock::TextAlignment_Horizontal::Center);
             textBlock->SetVerticalAlignment(ImTextBlock::TextAlignment_Vertical::Center);
 
-            // 创建关闭按钮
-            ImButton* closeButton = new ImButton("CloseButton_" + pageName);
-            closeButton->SetOriginalMinSize(ImVec2(20, 20));
+            // 创建关闭按钮（根据设置决定是否创建）
+            ImButton* closeButton = nullptr;
+            if (m_showCloseButton)
+            {
+                closeButton = new ImButton("CloseButton_" + pageName);
+                closeButton->SetOriginalMinSize(ImVec2(m_closeButtonSize, m_closeButtonSize));
 
-            ImTextBlock* closeText = new ImTextBlock("CloseText_" + pageName);
-            closeText->SetText("×");
-            closeText->SetTextColor(IM_COL32(255, 255, 255, 255));
-            closeButton->SetContent(closeText);
+                ImTextBlock* closeText = new ImTextBlock("CloseText_" + pageName);
+                closeText->SetText(u8"×");
+                closeText->SetTextColor(IM_COL32(100, 100, 100, 255)); // 浅灰色文字
+                closeButton->SetContent(closeText);
 
-            // 设置关闭按钮样式
-            ButtonStateStyle closeStyle;
-            closeStyle.BackgroundColor = IM_COL32(100, 100, 100, 255);
-            closeStyle.Rounding = 10.0f;
-            closeButton->SetNormalStyle(closeStyle);
+                // 设置关闭按钮样式 - 浅色灰色系
+                ButtonStateStyle closeStyle;
+                closeStyle.BackgroundColor = IM_COL32(220, 220, 220, 255); // 浅灰色背景
+                closeStyle.Rounding = 0.0f;
+                closeStyle.HasBorder = false;
+                closeStyle.BorderThickness = 0.f;
+                closeButton->SetNormalStyle(closeStyle);
 
-            ButtonStateStyle closeHoverStyle;
-            closeHoverStyle.BackgroundColor = IM_COL32(255, 100, 100, 255);
-            closeHoverStyle.Rounding = 10.0f;
-            closeButton->SetHoveredStyle(closeHoverStyle);
+                ButtonStateStyle closeHoverStyle;
+                closeHoverStyle.BackgroundColor = IM_COL32(255, 100, 100, 255); // 悬停时红色
+                closeHoverStyle.Rounding = 0.0f;
+                closeHoverStyle.HasBorder = false;
+                closeHoverStyle.BorderThickness = 0.f;
+                closeButton->SetHoveredStyle(closeHoverStyle);
+
+                ButtonStateStyle closePressedStyle;
+                closePressedStyle.BackgroundColor = IM_COL32(200, 80, 80, 255); // 按下时深红色
+                closePressedStyle.Rounding = 0.0f;
+                closeHoverStyle.HasBorder = false;
+                closeHoverStyle.BorderThickness = 0.f;
+                closeButton->SetPressedStyle(closePressedStyle);
+            }
 
             // 添加到水平框
-            tabHBox->AddChildToHorizontalBox(textBlock);
-            tabHBox->AddChildToHorizontalBox(closeButton);
+            auto textslot = tabHBox->AddChildToHorizontalBox(textBlock);
+            textslot->PaddingBottom = 2.f;
+            textslot->PaddingLeft = 2.f;
+            textslot->PaddingRight = 2.f;
+            textslot->PaddingTop = 2.f;
 
+            if (closeButton)
+            {
+                auto buttonslot = tabHBox->AddChildToHorizontalBox(closeButton);
+                buttonslot->SetIfAutoSize(false);
+                buttonslot->PaddingBottom = m_closeButtonPadding;
+                buttonslot->PaddingLeft = m_closeButtonPadding;
+                buttonslot->PaddingRight = m_closeButtonPadding;
+                buttonslot->PaddingTop = m_closeButtonPadding;
+            }
+
+            tabHBox->SetBackGroundColor(IM_COL32(0, 0, 0, 0));
+            tabHBox->bHaveBorder = false;
             // 创建Tab按钮
             ImButton* tabButton = new ImButton("TabButton_" + pageName);
             tabButton->SetContent(tabHBox);
 
-            // 设置Tab按钮默认样式
+            // 设置Tab按钮样式
             SetupTabButtonStyle(tabButton);
 
             return tabButton;
         }
 
-        // 设置Tab按钮样式
+        // 设置Tab按钮样式 - 浅色灰色系
         void SetupTabButtonStyle(ImButton* button)
         {
-            // 正常状态样式
+            // 正常状态样式 - 浅灰色
             ButtonStateStyle normalStyle;
-            normalStyle.BackgroundColor = IM_COL32(70, 70, 70, 255);
+            normalStyle.BackgroundColor = IM_COL32(240, 245, 255, 255);
             normalStyle.Rounding = 4.0f;
-            normalStyle.HasBorder = true;
-            normalStyle.BorderColor = IM_COL32(100, 100, 100, 255);
+            normalStyle.HasBorder = false;
+            normalStyle.BorderThickness = 1.0f;
+            normalStyle.BorderColor = IM_COL32(200, 200, 200, 255);
             button->SetNormalStyle(normalStyle);
 
-            // 悬停状态样式
+            // 悬停状态样式 - 稍深的灰色
             ButtonStateStyle hoverStyle;
-            hoverStyle.BackgroundColor = IM_COL32(90, 90, 90, 255);
+            hoverStyle.BackgroundColor = IM_COL32(225, 235, 255, 255);
             hoverStyle.Rounding = 4.0f;
-            hoverStyle.HasBorder = true;
-            hoverStyle.BorderColor = IM_COL32(120, 120, 120, 255);
+            hoverStyle.HasBorder = false;
+            hoverStyle.BorderThickness = 1.0f;
+            hoverStyle.BorderColor = IM_COL32(180, 180, 180, 255);
             button->SetHoveredStyle(hoverStyle);
 
-            // 按下状态样式
+            // 按下状态样式 - 更深的灰色
             ButtonStateStyle pressedStyle;
-            pressedStyle.BackgroundColor = IM_COL32(50, 50, 50, 255);
+            pressedStyle.BackgroundColor = IM_COL32(200, 220, 250, 255);
             pressedStyle.Rounding = 4.0f;
-            pressedStyle.HasBorder = true;
-            pressedStyle.BorderColor = IM_COL32(80, 80, 80, 255);
+            pressedStyle.HasBorder = false;
+            pressedStyle.BorderThickness = 1.0f;
+            pressedStyle.BorderColor = IM_COL32(160, 160, 160, 255);
             button->SetPressedStyle(pressedStyle);
 
-            // 选中状态样式（焦点状态）
+            // 选中状态样式（焦点状态）- 蓝色高亮
             ButtonStateStyle selectedStyle;
-            selectedStyle.BackgroundColor = IM_COL32(30, 144, 255, 255);
+            selectedStyle.BackgroundColor = IM_COL32(100, 149, 237, 255); // 矢车菊蓝
             selectedStyle.Rounding = 4.0f;
-            selectedStyle.HasBorder = true;
-            selectedStyle.BorderColor = IM_COL32(70, 130, 180, 255);
+            selectedStyle.HasBorder = false;
+            selectedStyle.BorderThickness = 1.0f;
+            selectedStyle.BorderColor = IM_COL32(70, 130, 180, 255); // 钢蓝色
             button->SetFocusedStyle(selectedStyle);
         }
 
@@ -222,7 +261,7 @@ namespace ImGuiWidget
         }
 
     public:
-        ImTabContainer(const std::string& widgetName)
+        ImPageManager(const std::string& widgetName)
             : ImUserWidget(widgetName),
             m_tabPosition(TabPosition::Top),
             m_rootVerticalBox(nullptr),
@@ -243,7 +282,7 @@ namespace ImGuiWidget
             UpdateLayout();
         }
 
-        virtual ~ImTabContainer()
+        virtual ~ImPageManager()
         {
             // 清理页面数据
             for (auto& page : m_pages)
@@ -270,10 +309,19 @@ namespace ImGuiWidget
 
             // 获取Tab内部的控件引用
             ImHorizontalBox* tabHBox = static_cast<ImHorizontalBox*>(tabButton->GetContentSlot()->GetContent());
-            if (tabHBox && tabHBox->GetSlotNum() >= 2)
+            if (tabHBox)
             {
-                newPage.tabText = static_cast<ImTextBlock*>(tabHBox->GetSlotAt(0)->GetContent());
-                newPage.closeButton = static_cast<ImButton*>(tabHBox->GetSlotAt(1)->GetContent());
+                // 获取文本控件
+                if (tabHBox->GetSlotNum() >= 1)
+                {
+                    newPage.tabText = static_cast<ImTextBlock*>(tabHBox->GetSlotAt(0)->GetContent());
+                }
+
+                // 获取关闭按钮（如果存在）
+                if (m_showCloseButton && tabHBox->GetSlotNum() >= 2)
+                {
+                    newPage.closeButton = static_cast<ImButton*>(tabHBox->GetSlotAt(1)->GetContent());
+                }
 
                 // 设置Tab按钮点击回调
                 tabButton->SetOnPressed([this, pageName]()
@@ -294,7 +342,7 @@ namespace ImGuiWidget
             m_pages.push_back(newPage);
 
             // 添加到Tab栏
-            m_tabBar->AddChildToHorizontalBox(tabButton);
+            m_tabBar->AddChildToHorizontalBox(tabButton)->SetIfAutoSize(false);
 
             // 如果是第一个页面，自动切换到该页面
             if (m_pages.size() == 1)
@@ -351,13 +399,13 @@ namespace ImGuiWidget
             // 根据Tab位置添加子项
             if (m_tabPosition == TabPosition::Top)
             {
-                m_rootVerticalBox->AddChildToVerticalBox(m_tabBar);
+                m_rootVerticalBox->AddChildToVerticalBox(m_tabBar)->SetIfAutoSize(false);
                 m_rootVerticalBox->AddChildToVerticalBox(m_contentBorder);
             }
             else
             {
                 m_rootVerticalBox->AddChildToVerticalBox(m_contentBorder);
-                m_rootVerticalBox->AddChildToVerticalBox(m_tabBar);
+                m_rootVerticalBox->AddChildToVerticalBox(m_tabBar)->SetIfAutoSize(false);
             }
         }
 
@@ -374,7 +422,7 @@ namespace ImGuiWidget
         size_t GetPageCount() const { return m_pages.size(); }
 
         // 检查页面是否存在
-        bool HasPage(const std::string& pageName) 
+        bool HasPage(const std::string& pageName)
         {
             return FindPageData(pageName) != nullptr;
         }
@@ -431,41 +479,175 @@ namespace ImGuiWidget
             }
         }
 
+        // 新增：设置是否显示关闭按钮
+        void SetShowCloseButton(bool show)
+        {
+            if (m_showCloseButton != show)
+            {
+                m_showCloseButton = show;
+                // 重新创建所有Tab按钮以应用更改
+                RecreateAllTabs();
+            }
+        }
+
+        bool GetShowCloseButton() const { return m_showCloseButton; }
+
+        // 新增：设置关闭按钮尺寸
+        void SetCloseButtonSize(float size)
+        {
+            if (m_closeButtonSize != size)
+            {
+                m_closeButtonSize = size;
+                // 重新创建所有Tab按钮以应用更改
+                RecreateAllTabs();
+            }
+        }
+
+        float GetCloseButtonSize() const { return m_closeButtonSize; }
+
+        // 新增：设置关闭按钮padding
+        void SetCloseButtonPadding(float padding)
+        {
+            if (m_closeButtonPadding != padding)
+            {
+                m_closeButtonPadding = padding;
+                // 重新创建所有Tab按钮以应用更改
+                RecreateAllTabs();
+            }
+        }
+
+        float GetCloseButtonPadding() const { return m_closeButtonPadding; }
+
+    private:
+        // 重新创建所有Tab按钮
+        void RecreateAllTabs()
+        {
+            if (!m_tabBar) return;
+
+            // 保存当前页面
+            std::string currentPage = m_currentPage;
+
+            // 移除所有Tab按钮但不删除页面内容
+            for (auto& page : m_pages)
+            {
+                if (page.tabButton)
+                {
+                    m_tabBar->RemoveChild(page.tabButton);
+                    delete page.tabButton;
+                    page.tabButton = nullptr;
+                    page.tabText = nullptr;
+                    page.closeButton = nullptr;
+                }
+            }
+
+            // 重新创建所有Tab按钮
+            for (auto& page : m_pages)
+            {
+                ImButton* tabButton = static_cast<ImButton*>(CreateTabWidget(page.name));
+                page.tabButton = tabButton;
+
+                // 设置回调
+                ImHorizontalBox* tabHBox = static_cast<ImHorizontalBox*>(tabButton->GetContentSlot()->GetContent());
+                if (tabHBox)
+                {
+                    // 获取文本控件
+                    if (tabHBox->GetSlotNum() >= 1)
+                    {
+                        page.tabText = static_cast<ImTextBlock*>(tabHBox->GetSlotAt(0)->GetContent());
+                    }
+
+                    // 获取关闭按钮（如果存在）
+                    if (m_showCloseButton && tabHBox->GetSlotNum() >= 2)
+                    {
+                        page.closeButton = static_cast<ImButton*>(tabHBox->GetSlotAt(1)->GetContent());
+                    }
+
+                    // 设置Tab按钮点击回调
+                    tabButton->SetOnPressed([this, name = page.name]()
+                    {
+                        SwitchToPage(name);
+                    });
+
+                    // 设置关闭按钮点击回调
+                    if (page.closeButton)
+                    {
+                        page.closeButton->SetOnPressed([this, name = page.name]()
+                        {
+                            RemovePage(name);
+                        });
+                    }
+                }
+
+                // 添加到Tab栏
+                m_tabBar->AddChildToHorizontalBox(tabButton)->SetIfAutoSize(false);
+            }
+
+            // 恢复当前页面
+            if (!currentPage.empty() && HasPage(currentPage))
+            {
+                SwitchToPage(currentPage);
+            }
+            else if (!m_pages.empty())
+            {
+                SwitchToPage(m_pages[0].name);
+            }
+        }
+
+    public:
         // 属性系统
         virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
         {
             auto props = ImUserWidget::GetProperties();
 
             // Tab位置属性
-			props.insert({
-				"TabPosition", PropertyType::Enum, "Layout",
-				[this](void* v)
-					 {
-					std::string str = *static_cast<std::string*>(v);
-					if (str == "Top") SetTabPosition(TabPosition::Top);
-					else if (str == "Bottom") SetTabPosition(TabPosition::Bottom);
-					},
-					[this]() -> void*
-					{
-					static std::vector<std::string> options;
-					options = {"Top", "Bottom"};
-					switch (m_tabPosition)
-					{
-					case TabPosition::Top: options.push_back("Top"); break;
-					case TabPosition::Bottom: options.push_back("Bottom"); break;
-					}
-					return static_cast<void*>(&options);
-					}
-				});
+            props.insert({
+                "TabPosition", PropertyType::Enum, "Layout",
+                [this](void* v)
+                     {
+                    std::string str = *static_cast<std::string*>(v);
+                    if (str == "Top") SetTabPosition(TabPosition::Top);
+                    else if (str == "Bottom") SetTabPosition(TabPosition::Bottom);
+                    },
+                    [this]() -> void*
+                    {
+                    static std::vector<std::string> options;
+                    options = {"Top", "Bottom"};
+                    switch (m_tabPosition)
+                    {
+                    case TabPosition::Top: options.push_back("Top"); break;
+                    case TabPosition::Bottom: options.push_back("Bottom"); break;
+                    }
+                    return static_cast<void*>(&options);
+                    }
+                });
 
-			return props;
-		}
+            // 新增：关闭按钮相关属性
+            props.insert({
+                "ShowCloseButton", PropertyType::Bool, "Close Button",
+                [this](void* v) { SetShowCloseButton(*static_cast<bool*>(v)); },
+                [this]() -> void* { return &m_showCloseButton; }
+                });
 
-        virtual std::string GetRegisterTypeName() override { return "ImTabContainer"; }
+            props.insert({
+                "CloseButtonSize", PropertyType::Float, "Close Button",
+                [this](void* v) { SetCloseButtonSize(*static_cast<float*>(v)); },
+                [this]() -> void* { return &m_closeButtonSize; }
+                });
+
+            props.insert({
+                "CloseButtonPadding", PropertyType::Float, "Close Button",
+                [this](void* v) { SetCloseButtonPadding(*static_cast<float*>(v)); },
+                [this]() -> void* { return &m_closeButtonPadding; }
+                });
+
+            return props;
+        }
+
+        virtual std::string GetRegisterTypeName() override { return "ImPageManager"; }
 
         //virtual ImWidget* CopyWidget() override
         //{
-        //    return new ImTabContainer(*this);
+        //    return new ImPageManager(*this);
         //}
     };
 }

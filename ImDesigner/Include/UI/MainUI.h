@@ -3,6 +3,12 @@
 
 #include "ImBasicWidgetDeclaration.h"
 
+namespace ImGuiWidget
+{
+    class ImPageManager;
+}
+
+
 class MainUI : public ImGuiWidget::ImUserWidget
 {
 public:
@@ -32,6 +38,7 @@ protected:
     ImGuiWidget::ImScrollBox* ImScrollBox_WidgetList;
     ImGuiWidget::ImVerticalBox* ImVerticalBox_WidgetList;
     ImGuiWidget::ImScrollBox* ImScrollBox_WidgetTreeView;
+    ImGuiWidget::ImBorder* ImBorder_LeftTab;
     ImGuiWidget::ImBorder* ImBorder_MainWorkSpace;
     ImGuiWidget::ImVerticalBox* ImVerticalBox_7;
     ImGuiWidget::ImHorizontalBox* ImHorizontalBox_PageTag;
@@ -39,4 +46,5 @@ protected:
     ImGuiWidget::ImBorder* ImBorder_Right;
     ImGuiWidget::ImScrollingTextList* ImScrollingTextList_LogList;
 //----Gen Members End----
+    ImGuiWidget::ImPageManager* ImPageManager_LeftPart;
 };

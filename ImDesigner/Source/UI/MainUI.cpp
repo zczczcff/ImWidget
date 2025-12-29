@@ -2,6 +2,7 @@
 #include "ImBasicWidgetList.h"
 #include "UI/Widget_ExampleWidgetButton.h"
 #include "UI/Widget_PageTag.h"
+#include "ImComboWidget/ImPageManager.h"
 
 void MainUI::Init2()
 {
@@ -14,4 +15,11 @@ void MainUI::Init2()
 
 	Widget_ExampleWidgetButton* Example_Button = new Widget_ExampleWidgetButton("Example_Button", u8"°´Å¥", "ImButton");
 	ImVerticalBox_WidgetList->AddChildToVerticalBox(Example_Button)->SetIfAutoSize(false);
+
+
+	ImPageManager_LeftPart = new ImGuiWidget::ImPageManager("ImPageManager_LeftPart");
+	ImBorder_LeftTab->SetContent(ImPageManager_LeftPart, false);
+
+	ImGuiWidget::ImButton* testbutton = new ImGuiWidget::ImButton("testbutton");
+	ImPageManager_LeftPart->AddPage("test", testbutton);
 }

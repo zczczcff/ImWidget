@@ -640,6 +640,35 @@
                                                 "PaddingRight": 0.0,
                                                 "MinSize": 30.0
                                             }
+                                        },
+                                        {
+                                            "Type": "ImBorder",
+                                            "Name": "ImBorder_LeftTab",
+                                            "Properties": {
+                                                "BorderColor": [
+                                                    0,
+                                                    0,
+                                                    0,
+                                                    255
+                                                ],
+                                                "Name": "ImBorder_LeftTab",
+                                                "BackGroundColor": [
+                                                    255,
+                                                    255,
+                                                    255,
+                                                    255
+                                                ],
+                                                "HaveBorder": true
+                                            },
+                                            "ParentSlot": {
+                                                "bAutoSize": true,
+                                                "PaddingTop": 0.0,
+                                                "PaddingBottom": 0.0,
+                                                "PaddingLeft": 0.0,
+                                                "Ratio": 1.0,
+                                                "PaddingRight": 0.0,
+                                                "MinSize": 30.0
+                                            }
                                         }
                                     ],
                                     "ParentSlot": {

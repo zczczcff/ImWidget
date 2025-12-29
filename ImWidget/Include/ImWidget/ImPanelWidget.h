@@ -9,14 +9,16 @@ namespace ImGuiWidget
 {
 	class ImPanelWidget :public ImWidget
 	{
+	public:
+		ImU32 BgColor;
+		ImU32 BorderColor;
+		bool bHaveBorder = true;
+		bool bHaveBackGround = true;
+		float BorderThickness = 1.f;
 	private:
 		std::vector<ImSlot*> m_Slots;
 	protected:
-		float  WidgetHitTestPadding = 5.f;
-		ImU32 BgColor;
-		ImU32 BorderColor;
-		bool bHaveBorder;
-		bool bHaveBackGround;
+		float WidgetHitTestPadding = 5.f;
 		bool bLayOutDirty = false;
 
 

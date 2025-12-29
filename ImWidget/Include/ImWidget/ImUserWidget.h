@@ -410,7 +410,7 @@ namespace ImGuiWidget
 
         virtual ImWidget* CopyWidget() override
         {
-            return new ImUserWidget(*this);
+            return new ImUserWidget(*this);//´íÎóµÄ
         }
     };
 }
