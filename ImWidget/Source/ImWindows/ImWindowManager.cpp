@@ -47,6 +47,19 @@ namespace ImGuiWidget
         return windowPtr;
     }
 
+    ImWindow* ImWindowManager::CreatePopupWindow(const ImVec2& size, const ImVec2& pos, ImWidget* RootWidget, bool ControlRootWidget)
+    {
+        ImWindow* window = CreateImWindow("Popup", size, pos);
+        window->bCollapsible = false;
+        window->bHasTitleBar = false;
+        window->bIsMovable = false;
+        window->bIsResizable = false;
+        window->bAllowBringToFrontOnFocus = true;
+        window->bAutoCloseWhenLostFocus = true;
+        window->SetRootWidget(RootWidget, ControlRootWidget);
+        return window;
+    }
+
     void ImWindowManager::CloseWindow(ImWindow* window)
     {
         if (!window) return;
@@ -205,19 +218,6 @@ namespace ImGuiWidget
         }
 
         bool bHaveWindowJustOpen = false;
-        // 处理其他窗口的事件
-        //for (auto& window : m_windows)
-        //{
-        //    if (window->IsOpen() && window.get() != LastactiveWindow)
-        //    {
-        //        window->ProcessEvents();
-        //    }
-        //    if (window->m_JustOpened)
-        //    {
-        //        bHaveWindowJustOpen = true;
-        //    }
-        //}
-                // 获取ImGui IO状态
         ImGuiIO& io = ImGui::GetIO();
         ImVec2 mousePos = io.MousePos;
         if (ImWindow* MouseHitWindow = WindowHitTest(mousePos))

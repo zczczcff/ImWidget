@@ -6,6 +6,7 @@
 namespace ImGuiWidget
 {
     class ImPageManager;
+    class ImWindow;
 }
 
 
@@ -45,6 +46,8 @@ protected:
     ImGuiWidget::ImBorder* ImBorder_Right;
     ImGuiWidget::ImScrollingTextList* ImScrollingTextList_LogList;
 //----Gen Members End----
+
+    //---------------------项目管理及控件树------------------
     ImGuiWidget::ImPageManager* ImPageManager_LeftPart;
 
     ImGuiWidget::ImScrollBox* ImScrollBox_Folder;
@@ -52,10 +55,16 @@ protected:
 
     ImGuiWidget::ImScrollBox* ImScrollBox_WidgetTree;
     ImGuiWidget::ImVerticalBox* ImVerticalBox_WidgetTree;
+    //---------------------弹出菜单------------------
+    ImGuiWidget::ImWindow* m_RightKeyFunMenuWindow;
+    ImGuiWidget::ImVerticalBox* ImVerticalBox_FolderOperatorMenu;
 
 private:
     void SetProjectViewVBoxContent(class ProjectFileManager* projectmananger, ImGuiWidget::ImVerticalBox* Vbox,const std::string& CurrentPath);
     void SetupFileButton(ImGuiWidget::ImButton* filebutton);
+    void InitDirButton(ImGuiWidget::ImButton* Dirbutton,const std::string& dir);
+    void PopupDirRightKeyWindow(const std::string& dir);
+    void PopupRightKeyWindow(ImWidget* rootwidget);
 public:
     void UpdateProjectView(class ProjectFileManager* projectmananger);
     void On_ProjectButtonClicked(const std::string& FileName, const std::string& FileFullPath);

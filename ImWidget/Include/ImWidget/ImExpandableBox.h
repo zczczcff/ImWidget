@@ -79,8 +79,8 @@ namespace ImGuiWidget
                 HandleMouseLeave(event->As<ImMouseLeaveEvent>());
                 break;
 
-            case ImEventType::MouseClick:
-                HandleMouseClick(event->As<ImMouseClickEvent>());
+            case ImEventType::MouseDown:
+                HandleMouseDown(event->As<ImMouseDownEvent>());
                 break;
 
             default:
@@ -113,7 +113,7 @@ namespace ImGuiWidget
             }
         }
 
-        void HandleMouseClick(ImMouseClickEvent* event)
+        void HandleMouseDown(ImMouseDownEvent* event)
         {
             if (event->GetButton() == ImMouseButton::Left)
             {

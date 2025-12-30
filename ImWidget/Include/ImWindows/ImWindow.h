@@ -33,9 +33,9 @@ namespace ImGuiWidget
         ImU32 m_borderColor = IM_COL32(0, 0, 0, 255);
         float m_borderThickness = 1.0f;
         bool bAutoCloseWhenLostFocus = false;
-
+        
         bool m_JustOpened = false;
-
+        bool ControlRootWidget = false;
         ImMulticastDelegate<> OnGetFocus;
         ImMulticastDelegate<> OnLoseFocus;
     public:
@@ -43,7 +43,7 @@ namespace ImGuiWidget
         virtual ~ImWindow();
 
         // 设置根控件
-        void SetRootWidget(ImWidget* rootWidget);
+        void SetRootWidget(ImWidget* rootWidget, bool ControlNewRootWidget = false);
 
         // 获取根控件
         ImWidget* GetRootWidget() const { return m_rootWidget; }
@@ -71,6 +71,7 @@ namespace ImGuiWidget
         void SetIsActive(bool active) 
         {
             if (active == bIsActive) return;
+            bIsActive = active;
             if (active)
             {
                 OnGetFocus.Broadcast();
@@ -83,7 +84,7 @@ namespace ImGuiWidget
                     SetIsOpen(false);
                 }
             }
-            bIsActive = active; 
+            
         }
         bool IsActive() const { return bIsActive; }
 

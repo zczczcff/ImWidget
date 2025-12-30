@@ -28,25 +28,20 @@ namespace ImGuiWidget
 
     ImWindow::~ImWindow()
     {
-        if (m_rootWidget)
+        if (m_rootWidget && ControlRootWidget)
         {
             delete m_rootWidget;
         }
     }
 
-    void ImWindow::SetRootWidget(ImWidget* rootWidget)
+    void ImWindow::SetRootWidget(ImWidget* rootWidget,bool ControlNewRootWidget)
     {
-        if (m_rootWidget)
+        if (m_rootWidget&& ControlRootWidget)
         {
-            //delete m_rootWidget;
+            delete m_rootWidget;
         }
-
         m_rootWidget = rootWidget;
-        if (m_rootWidget)
-        {
-            //m_rootWidget->SetParents(this);
-            //m_eventSystem->SetRootWidget(m_rootWidget);
-        }
+        ControlRootWidget = ControlNewRootWidget;
     }
 
     void ImWindow::Render()
@@ -103,6 +98,11 @@ namespace ImGuiWidget
             {
                 m_rootWidget->SetPosition(ImVec2(1, 1));
                 m_rootWidget->SetSize(ImGui::GetWindowSize() - ImVec2(2.f, 2.f));
+            }
+            else
+            {
+                m_rootWidget->SetPosition(m_position);
+                m_rootWidget->SetSize(m_size);
             }
             m_rootWidget->Render();
         }

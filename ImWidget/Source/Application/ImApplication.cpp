@@ -1,10 +1,12 @@
 #include "..\..\Include\Application\ImApplication.h"
+#include "..\..\Include\Application\ImApplication.h"
 #include "Application/ImApplication.h"
 
 extern void ImTick();
 
 ImApplication::ImApplication() :m_windowManager(new ImGuiWidget::ImWindowManager())
 {
+    
 }
 
 void ImApplication::RenderTick()
@@ -70,6 +72,16 @@ ImGuiWidget::ImWindow* ImApplication::CreateDefaultWindow(const std::string& tit
 
     // 创建默认大小的窗口
     return m_windowManager->CreateImWindow(title, ImVec2(800, 600), ImVec2(100, 100));
+}
+
+void ImApplication::IMGUIInit()
+{
+    ImGui::GetStyle().WindowMinSize = ImVec2(1, 1);
+}
+
+ImVec2 ImApplication::GetCurrentMousePos()
+{
+    return ImGui::GetIO().MousePos;
 }
 
 

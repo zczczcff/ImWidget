@@ -5,6 +5,8 @@
 #include <functional>
 #include "ImEvent/ImMouseEvent.h"
 #include "ImEvent/ImFocusEvent.h"
+#include "ImTools/ImDelegate.h"
+
 namespace ImGuiWidget
 {
     class ButtonStateStyle : public PropertyStruct 
@@ -69,12 +71,15 @@ namespace ImGuiWidget
         std::function<void(void)> OnFocusGained;
         std::function<void(void)> OnFocusLost;
 
+        
         // 分别存储三种状态的样式
         ButtonStateStyle m_NormalStyle;
         ButtonStateStyle m_HoveredStyle;
         ButtonStateStyle m_PressedStyle;
         ButtonStateStyle m_FocusedStyle;
-
+    public:
+        ImMulticastDelegate<> OnRightClicked;
+    protected:
         void RenderButton()
         {
             ImGuiWindow* window = ImGui::GetCurrentWindow();
@@ -228,6 +233,11 @@ namespace ImGuiWidget
                 //RequestFocus();
                 event->StopPropagation();
             }
+            else if (event->GetButton() == ImMouseButton::Right)
+            {
+                OnRightClicked.Broadcast();
+                event->StopPropagation();
+            }
         }
 
         void HandleMouseUp(ImMouseUpEvent* event)
@@ -309,7 +319,17 @@ namespace ImGuiWidget
 
             bHaveBackGround = false;
         }
+        ImButton(const ImButton& other)
+            :ImPanelWidget(other),
+            m_TooltipText(other.m_TooltipText),
+            OriginalMinSize(other.OriginalMinSize),
+            m_NormalStyle(other.m_NormalStyle),
+            m_HoveredStyle(other.m_HoveredStyle),
+            m_PressedStyle(other.m_PressedStyle),
+            m_FocusedStyle(other.m_FocusedStyle)
+        {
 
+        }
         // 设置内容
         void SetContent(ImWidget* child)
         {

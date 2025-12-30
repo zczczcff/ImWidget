@@ -54,5 +54,7 @@ public:
 	virtual ImTextureID LoadTextureFromMemory(const unsigned char* image_data, int data_size, int& width, int& height) = 0;
 	virtual void ReleaseTexture(ImTextureID TextureID) = 0;
 	virtual bool Initialize() { return false; };
+	void IMGUIInit();
 	virtual void Run() {};
+	ImVec2 GetCurrentMousePos();
 };

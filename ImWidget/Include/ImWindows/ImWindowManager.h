@@ -23,6 +23,7 @@ namespace ImGuiWidget
         // 创建新窗口
         ImWindow* CreateImWindow(const std::string& title, const ImVec2& size, const ImVec2& pos);
 
+        ImWindow* CreatePopupWindow(const ImVec2& size, const ImVec2& pos,ImWidget* RootWidget,bool ControlRootWidget);
         // 关闭窗口
         void CloseWindow(ImWindow* window);
 
