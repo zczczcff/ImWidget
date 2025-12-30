@@ -180,13 +180,13 @@ namespace ImGuiWidget
 			return AddChildInternal<ImSlot>(child);
 		}
 
-		void RemoveAllChild()
+		void RemoveAllChild(bool bDeleteContent = false)
 		{
 			for (auto& slot : m_Slots)
 			{
 				if (slot)
 				{
-					if (slot->GetContent())
+					if (slot->GetContent() && bDeleteContent)
 					{
 						delete slot->GetContent();
 					}

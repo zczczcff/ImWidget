@@ -21,7 +21,6 @@ void MainUI::Init()
     ImVerticalSplitter_0 = new ImGuiWidget::ImVerticalSplitter("ImVerticalSplitter_0");
     ImScrollBox_WidgetList = new ImGuiWidget::ImScrollBox("ImScrollBox_WidgetList");
     ImVerticalBox_WidgetList = new ImGuiWidget::ImVerticalBox("ImVerticalBox_WidgetList");
-    ImScrollBox_WidgetTreeView = new ImGuiWidget::ImScrollBox("ImScrollBox_WidgetTreeView");
     ImBorder_LeftTab = new ImGuiWidget::ImBorder("ImBorder_LeftTab");
     ImBorder_MainWorkSpace = new ImGuiWidget::ImBorder("ImBorder_MainWorkSpace");
     ImVerticalBox_7 = new ImGuiWidget::ImVerticalBox("ImVerticalBox_7");
@@ -190,20 +189,6 @@ void MainUI::Init()
     ImVerticalBox_WidgetList->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
     ImVerticalBox_WidgetList->SetPropertyValue<bool>("HaveBorder", false);
 
-    ImScrollBox_WidgetTreeView->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
-    ImScrollBox_WidgetTreeView->SetPropertyValue<std::string>("Name", "ImScrollBox_WidgetTreeView");
-    ImScrollBox_WidgetTreeView->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
-    ImScrollBox_WidgetTreeView->SetPropertyValue<ImU32>("ScrollbarGrabHoveredColor", IM_COL32(120, 120, 120, 255));
-    ImScrollBox_WidgetTreeView->SetPropertyValue<ImU32>("ScrollbarBgColor", IM_COL32(40, 40, 40, 255));
-    ImScrollBox_WidgetTreeView->SetPropertyValue<bool>("HaveBorder", true);
-    ImScrollBox_WidgetTreeView->SetPropertyValue<float>("ScrollbarThickness", 10.000000f);
-    ImScrollBox_WidgetTreeView->SetPropertyValue<ImU32>("ScrollbarGrabColor", IM_COL32(100, 100, 100, 255));
-    ImScrollBox_WidgetTreeView->SetPropertyValue<ImU32>("ScrollbarGrabActiveColor", IM_COL32(150, 150, 150, 255));
-    ImScrollBox_WidgetTreeView->SetPropertyValue<bool>("HorizontalScrollEnabled", true);
-    ImScrollBox_WidgetTreeView->SetPropertyValue<bool>("VerticalScrollEnabled", true);
-    ImScrollBox_WidgetTreeView->SetPropertyValue<bool>("ShowHorizontalScrollbar", true);
-    ImScrollBox_WidgetTreeView->SetPropertyValue<bool>("ShowVerticalScrollbar", true);
-
     ImBorder_LeftTab->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
     ImBorder_LeftTab->SetPropertyValue<std::string>("Name", "ImBorder_LeftTab");
     ImBorder_LeftTab->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
@@ -353,7 +338,7 @@ void MainUI::Init()
     ImVerticalSplitter_0_slot0->SetPropertyValue<float>("PaddingRight", 0.000000f);
     ImVerticalSplitter_0_slot0->SetPropertyValue<float>("MinSize", 30.000000f);
 
-    ImGuiWidget::ImSlot* ImVerticalSplitter_0_slot1 = ImVerticalSplitter_0->AddChild(ImScrollBox_WidgetTreeView);
+    ImGuiWidget::ImSlot* ImVerticalSplitter_0_slot1 = ImVerticalSplitter_0->AddChild(ImBorder_LeftTab);
     ImVerticalSplitter_0_slot1->SetPropertyValue<bool>("bAutoSize", true);
     ImVerticalSplitter_0_slot1->SetPropertyValue<float>("PaddingTop", 0.000000f);
     ImVerticalSplitter_0_slot1->SetPropertyValue<float>("PaddingBottom", 0.000000f);
@@ -361,15 +346,6 @@ void MainUI::Init()
     ImVerticalSplitter_0_slot1->SetPropertyValue<float>("Ratio", 1.000000f);
     ImVerticalSplitter_0_slot1->SetPropertyValue<float>("PaddingRight", 0.000000f);
     ImVerticalSplitter_0_slot1->SetPropertyValue<float>("MinSize", 30.000000f);
-
-    ImGuiWidget::ImSlot* ImVerticalSplitter_0_slot2 = ImVerticalSplitter_0->AddChild(ImBorder_LeftTab);
-    ImVerticalSplitter_0_slot2->SetPropertyValue<bool>("bAutoSize", true);
-    ImVerticalSplitter_0_slot2->SetPropertyValue<float>("PaddingTop", 0.000000f);
-    ImVerticalSplitter_0_slot2->SetPropertyValue<float>("PaddingBottom", 0.000000f);
-    ImVerticalSplitter_0_slot2->SetPropertyValue<float>("PaddingLeft", 0.000000f);
-    ImVerticalSplitter_0_slot2->SetPropertyValue<float>("Ratio", 1.000000f);
-    ImVerticalSplitter_0_slot2->SetPropertyValue<float>("PaddingRight", 0.000000f);
-    ImVerticalSplitter_0_slot2->SetPropertyValue<float>("MinSize", 30.000000f);
 
     ImGuiWidget::ImSlot* ImScrollBox_WidgetList_slot0 = ImScrollBox_WidgetList->AddChild(ImVerticalBox_WidgetList);
     ImScrollBox_WidgetList_slot0->SetPropertyValue<bool>("bAutoSize", true);

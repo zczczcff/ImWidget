@@ -584,64 +584,6 @@
                                             }
                                         },
                                         {
-                                            "Type": "ImScrollBox",
-                                            "Name": "ImScrollBox_WidgetTreeView",
-                                            "Properties": {
-                                                "BorderColor": [
-                                                    0,
-                                                    0,
-                                                    0,
-                                                    255
-                                                ],
-                                                "Name": "ImScrollBox_WidgetTreeView",
-                                                "BackGroundColor": [
-                                                    255,
-                                                    255,
-                                                    255,
-                                                    255
-                                                ],
-                                                "ScrollbarGrabHoveredColor": [
-                                                    120,
-                                                    120,
-                                                    120,
-                                                    255
-                                                ],
-                                                "ScrollbarBgColor": [
-                                                    40,
-                                                    40,
-                                                    40,
-                                                    255
-                                                ],
-                                                "HaveBorder": true,
-                                                "ScrollbarThickness": 10.0,
-                                                "ScrollbarGrabColor": [
-                                                    100,
-                                                    100,
-                                                    100,
-                                                    255
-                                                ],
-                                                "ScrollbarGrabActiveColor": [
-                                                    150,
-                                                    150,
-                                                    150,
-                                                    255
-                                                ],
-                                                "HorizontalScrollEnabled": true,
-                                                "VerticalScrollEnabled": true,
-                                                "ShowHorizontalScrollbar": true,
-                                                "ShowVerticalScrollbar": true
-                                            },
-                                            "ParentSlot": {
-                                                "bAutoSize": true,
-                                                "PaddingTop": 0.0,
-                                                "PaddingBottom": 0.0,
-                                                "PaddingLeft": 0.0,
-                                                "Ratio": 1.0,
-                                                "PaddingRight": 0.0,
-                                                "MinSize": 30.0
-                                            }
-                                        },
-                                        {
                                             "Type": "ImBorder",
                                             "Name": "ImBorder_LeftTab",
                                             "Properties": {

@@ -37,7 +37,6 @@ protected:
     ImGuiWidget::ImVerticalSplitter* ImVerticalSplitter_0;
     ImGuiWidget::ImScrollBox* ImScrollBox_WidgetList;
     ImGuiWidget::ImVerticalBox* ImVerticalBox_WidgetList;
-    ImGuiWidget::ImScrollBox* ImScrollBox_WidgetTreeView;
     ImGuiWidget::ImBorder* ImBorder_LeftTab;
     ImGuiWidget::ImBorder* ImBorder_MainWorkSpace;
     ImGuiWidget::ImVerticalBox* ImVerticalBox_7;
@@ -47,4 +46,15 @@ protected:
     ImGuiWidget::ImScrollingTextList* ImScrollingTextList_LogList;
 //----Gen Members End----
     ImGuiWidget::ImPageManager* ImPageManager_LeftPart;
+
+    ImGuiWidget::ImScrollBox* ImScrollBox_Folder;
+    ImGuiWidget::ImVerticalBox* ImVerticalBox_Folder;
+
+    ImGuiWidget::ImScrollBox* ImScrollBox_WidgetTree;
+    ImGuiWidget::ImVerticalBox* ImVerticalBox_WidgetTree;
+private:
+    void SetProjectViewVBoxContent(class ProjectFileManager* projectmananger, ImGuiWidget::ImVerticalBox* Vbox,const std::string& CurrentPath);
+public:
+    void UpdateProjectView(class ProjectFileManager* projectmananger);
+    void On_ProjectButtonClicked(const std::string& FileName, const std::string& FileFullPath);
 };
