@@ -35,26 +35,28 @@ namespace ImGuiWidget
 
             if (auto slot = GetSlotAt(0))
             {
-                slot->SetSlotPosition(Position + ImVec2(HeadPad, 0.f));
+                slot->SetSlotPosition(Position + ImVec2(HeadPad, 0.f) + (bHaveBorder ? ImVec2(BorderThickness, BorderThickness) : ImVec2(0.f, 0.f)));
                 ImVec2 minsize(0.f, 0.f);
                 if (auto widget = slot->GetContent())
                 {
                     minsize = widget->GetMinSize();
                 }
-                headhight = ImMax(headhight, minsize.y);
+                headhight = ImMax(headhight, minsize.y) + (bHaveBorder ? 2 * BorderThickness : 0);
+                //headhight = ImMax(headhight, minsize.y);
                 float headlength = ImMax(minsize.x, Size.x - HeadPad);
-                slot->SetSlotSize(ImVec2(minsize.x, headhight));
+                slot->SetSlotSize(ImVec2(headlength, headhight) - (bHaveBorder ? ImVec2(BorderThickness, BorderThickness) * 2 : ImVec2(0.f, 0.f)));
+                //slot->SetSlotSize(ImVec2(minsize.x, headhight));
                 slot->ApplyLayout();
             }
             if (bIsExpanded)
             {
                 if (auto slot = GetSlotAt(1))
                 {
-                    slot->SetSlotPosition(Position + ImVec2(BodyPad, headhight));
+                    slot->SetSlotPosition(Position + ImVec2(BodyPad, headhight- (bHaveBorder ? BorderThickness : 0)));
 
                     if (auto widget = slot->GetContent())
                     {
-                        float bodylength = ImMax(widget->GetMinSize().x, Size.x - BodyPad);
+                        float bodylength = ImMax(widget->GetMinSize().x, Size.x - BodyPad)- (bHaveBorder ? BorderThickness : 0);
                         slot->SetSlotSize(ImVec2(bodylength, widget->GetMinSize().y));
                     }
                     slot->ApplyLayout();
@@ -236,7 +238,7 @@ namespace ImGuiWidget
         virtual ImVec2 GetMinSize() override
         {
             ImVec2 minSize(HeadPad, HeadPad);
-
+            minSize += (bHaveBorder ? ImVec2(BorderThickness, BorderThickness) * 2 : ImVec2(0, 0));
             if (ImSlot* headSlot = GetSlot(0))
             {
                 if (ImWidget* content = headSlot->GetContent())

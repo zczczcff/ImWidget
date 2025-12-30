@@ -56,6 +56,7 @@ void MainUI::SetProjectViewVBoxContent(ProjectFileManager* projectmananger, ImGu
 		SubDirBox->SetBody(SubDirVBox);
 		Vbox->AddChildToVerticalBox(SubDirBox)->SetIfAutoSize(false);
 		SetProjectViewVBoxContent(projectmananger, SubDirVBox, dir.relativePath);
+		SubDirBox->bHaveBorder = false;
 	}
 
 	for (auto& file : projectmananger->getFilesInDirectory(CurrentPath))
@@ -66,10 +67,50 @@ void MainUI::SetProjectViewVBoxContent(ProjectFileManager* projectmananger, ImGu
 		FileName->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Left);
 		FileButton->SetContent(FileName);
 		FileButton->SetOnPressed([this,file]() { On_ProjectButtonClicked(file.filename,file.fullPath); });
+		SetupFileButton(FileButton);
 		Vbox->AddChildToVerticalBox(FileButton)->SetIfAutoSize(false);
 	}
 
 	Vbox->bHaveBorder = false;
+}
+
+void MainUI::SetupFileButton(ImGuiWidget::ImButton* filebutton)
+{
+	// 正常状态样式 - 稍深的灰色
+	ImGuiWidget::ButtonStateStyle normalStyle;
+	normalStyle.BackgroundColor = IM_COL32(220, 230, 245, 255);  // 从 (240,245,255) 加深
+	normalStyle.Rounding = 4.0f;
+	normalStyle.HasBorder = false;
+	normalStyle.BorderThickness = 1.0f;
+	normalStyle.BorderColor = IM_COL32(190, 190, 190, 255);  // 稍微加深边框颜色
+	filebutton->SetNormalStyle(normalStyle);
+
+	// 悬停状态样式 - 稍深的蓝色调灰色
+	ImGuiWidget::ButtonStateStyle hoverStyle;
+	hoverStyle.BackgroundColor = IM_COL32(205, 215, 235, 255);  // 从 (225,235,255) 加深
+	hoverStyle.Rounding = 4.0f;
+	hoverStyle.HasBorder = false;
+	hoverStyle.BorderThickness = 1.0f;
+	hoverStyle.BorderColor = IM_COL32(170, 170, 170, 255);
+	filebutton->SetHoveredStyle(hoverStyle);
+
+	// 按下状态样式 - 更深的蓝色调灰色
+	ImGuiWidget::ButtonStateStyle pressedStyle;
+	pressedStyle.BackgroundColor = IM_COL32(185, 200, 225, 255);  // 从 (200,220,250) 加深
+	pressedStyle.Rounding = 4.0f;
+	pressedStyle.HasBorder = false;
+	pressedStyle.BorderThickness = 1.0f;
+	pressedStyle.BorderColor = IM_COL32(150, 150, 150, 255);
+	filebutton->SetPressedStyle(pressedStyle);
+
+	// 选中状态样式（焦点状态）- 蓝色高亮
+	ImGuiWidget::ButtonStateStyle selectedStyle;
+	selectedStyle.BackgroundColor = IM_COL32(100, 149, 237, 255); // 矢车菊蓝
+	selectedStyle.Rounding = 4.0f;
+	selectedStyle.HasBorder = false;
+	selectedStyle.BorderThickness = 1.0f;
+	selectedStyle.BorderColor = IM_COL32(70, 130, 180, 255); // 钢蓝色
+	filebutton->SetFocusedStyle(selectedStyle);
 }
 
 void MainUI::UpdateProjectView(ProjectFileManager* projectmananger)

@@ -54,7 +54,9 @@ protected:
     ImGuiWidget::ImVerticalBox* ImVerticalBox_WidgetTree;
 private:
     void SetProjectViewVBoxContent(class ProjectFileManager* projectmananger, ImGuiWidget::ImVerticalBox* Vbox,const std::string& CurrentPath);
+    void SetupFileButton(ImGuiWidget::ImButton* filebutton);
 public:
     void UpdateProjectView(class ProjectFileManager* projectmananger);
     void On_ProjectButtonClicked(const std::string& FileName, const std::string& FileFullPath);
+    
 };
