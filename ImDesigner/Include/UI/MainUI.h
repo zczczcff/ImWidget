@@ -52,6 +52,7 @@ protected:
 
     ImGuiWidget::ImScrollBox* ImScrollBox_WidgetTree;
     ImGuiWidget::ImVerticalBox* ImVerticalBox_WidgetTree;
+
 private:
     void SetProjectViewVBoxContent(class ProjectFileManager* projectmananger, ImGuiWidget::ImVerticalBox* Vbox,const std::string& CurrentPath);
     void SetupFileButton(ImGuiWidget::ImButton* filebutton);

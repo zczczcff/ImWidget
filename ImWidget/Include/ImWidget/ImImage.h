@@ -20,7 +20,22 @@ namespace ImGuiWidget
 		{
 			LoadImageFromFile(FilePath);
 		}
-		void SetTextureID(ImTextureID TextureID) { m_TextureID = TextureID; }
+		ImImage(const std::string& WidgetName, ImTextureID TextureID, int Width, int Height):ImWidget(WidgetName)
+		{
+			SetTextureID(TextureID, Width, Height);
+		}
+		void SetTextureID(ImTextureID TextureID,int newOriginalWidth=-1,int newOriginalHeight=-1) 
+		{
+			m_TextureID = TextureID;
+			if (newOriginalWidth > 0)
+			{
+				OriginalWidth = newOriginalWidth;
+			}
+			if (newOriginalHeight > 0)
+			{
+				OriginalHeight = newOriginalHeight;
+			}
+		}
 		bool LoadImageFromFile(const std::string& FilePath)
 		{
 			if (m_TextureID != 0)
@@ -60,6 +75,11 @@ namespace ImGuiWidget
 		virtual ImWidget* CopyWidget()
 		{
 			return new ImImage(*this);
+		}
+		void SetOriginalSize(int Width, int Height)
+		{
+			OriginalWidth = Width;
+			OriginalHeight = Height;
 		}
 	};
 

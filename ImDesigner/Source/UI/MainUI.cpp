@@ -4,6 +4,8 @@
 #include "UI/Widget_PageTag.h"
 #include "ImComboWidget/ImPageManager.h"
 #include "Tools/ProjectFileManager.h"
+#include "ImWidget/ImImage.h"
+#include "UI/IconManager.h"
 
 void MainUI::Init2()
 {
@@ -40,7 +42,6 @@ void MainUI::Init2()
 
 	ImPageManager_LeftPart->AddPage(u8"项目目录", ImScrollBox_Folder);
 	ImPageManager_LeftPart->AddPage(u8"控件树", ImScrollBox_WidgetTree);
-
 }
 
 void MainUI::SetProjectViewVBoxContent(ProjectFileManager* projectmananger, ImGuiWidget::ImVerticalBox* Vbox, const std::string& CurrentPath)
@@ -48,27 +49,48 @@ void MainUI::SetProjectViewVBoxContent(ProjectFileManager* projectmananger, ImGu
 	for (auto& dir : projectmananger->getSubdirectories(CurrentPath))
 	{
 		ImGuiWidget::ImExpandableBox* SubDirBox = new ImGuiWidget::ImExpandableBox(dir.relativePath + "_EXBox");
+		ImGuiWidget::ImHorizontalBox* HeaderHBox = new ImGuiWidget::ImHorizontalBox(dir.relativePath + "_HBox");
 		ImGuiWidget::ImTextBlock* SubDirName = new ImGuiWidget::ImTextBlock(dir.relativePath + "_Text");
 		SubDirName->SetText(dir.filename);
 		SubDirName->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Left);
 		ImGuiWidget::ImVerticalBox* SubDirVBox = new ImGuiWidget::ImVerticalBox(dir.relativePath + "_VBox");
-		SubDirBox->SetHead(SubDirName);
+		ImGuiWidget::ImImage* Icon = IconManager::GetInstance()->CreateIconImage(ImDesignerIcon::ClosedFolder, 16, 16);
+		HeaderHBox->AddChildToHorizontalBox(Icon)->SetIfAutoSize(false);
+		HeaderHBox->AddChildToHorizontalBox(SubDirName)->SetIfAutoSize(false);
+		HeaderHBox->bHaveBorder = false;
+		SubDirBox->SetHead(HeaderHBox);
 		SubDirBox->SetBody(SubDirVBox);
 		Vbox->AddChildToVerticalBox(SubDirBox)->SetIfAutoSize(false);
 		SetProjectViewVBoxContent(projectmananger, SubDirVBox, dir.relativePath);
 		SubDirBox->bHaveBorder = false;
+		SubDirBox->SetOnExpandedStateChanged([Icon](bool NewState) 
+			{
+				if (NewState)
+				{
+					Icon->SetTextureID(IconManager::GetInstance()->GetIcon(ImDesignerIcon::OpenedFolder));
+				}
+				else
+				{
+					Icon->SetTextureID(IconManager::GetInstance()->GetIcon(ImDesignerIcon::ClosedFolder));
+				}
+			});
 	}
 
 	for (auto& file : projectmananger->getFilesInDirectory(CurrentPath))
 	{
 		ImGuiWidget::ImButton* FileButton = new ImGuiWidget::ImButton(file.relativePath + "_Button");
+		ImGuiWidget::ImHorizontalBox* BodyHBox = new ImGuiWidget::ImHorizontalBox(file.relativePath + "_HBox");
+		ImGuiWidget::ImImage* Icon = IconManager::GetInstance()->CreateIconImage(ImDesignerIcon::UIFile, 16, 16);
 		ImGuiWidget::ImTextBlock* FileName = new ImGuiWidget::ImTextBlock(file.relativePath + "_Text");
 		FileName->SetText(file.filename);
 		FileName->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Left);
 		FileButton->SetContent(FileName);
 		FileButton->SetOnPressed([this,file]() { On_ProjectButtonClicked(file.filename,file.fullPath); });
 		SetupFileButton(FileButton);
-		Vbox->AddChildToVerticalBox(FileButton)->SetIfAutoSize(false);
+		BodyHBox->AddChildToHorizontalBox(Icon)->SetIfAutoSize(false);
+		BodyHBox->AddChildToHorizontalBox(FileButton);
+		BodyHBox->bHaveBorder = false;
+		Vbox->AddChildToVerticalBox(BodyHBox)->SetIfAutoSize(false);
 	}
 
 	Vbox->bHaveBorder = false;
@@ -79,7 +101,7 @@ void MainUI::SetupFileButton(ImGuiWidget::ImButton* filebutton)
 	// 正常状态样式 - 稍深的灰色
 	ImGuiWidget::ButtonStateStyle normalStyle;
 	normalStyle.BackgroundColor = IM_COL32(220, 230, 245, 255);  // 从 (240,245,255) 加深
-	normalStyle.Rounding = 4.0f;
+	normalStyle.Rounding = 0.0f;
 	normalStyle.HasBorder = false;
 	normalStyle.BorderThickness = 1.0f;
 	normalStyle.BorderColor = IM_COL32(190, 190, 190, 255);  // 稍微加深边框颜色
@@ -88,7 +110,7 @@ void MainUI::SetupFileButton(ImGuiWidget::ImButton* filebutton)
 	// 悬停状态样式 - 稍深的蓝色调灰色
 	ImGuiWidget::ButtonStateStyle hoverStyle;
 	hoverStyle.BackgroundColor = IM_COL32(205, 215, 235, 255);  // 从 (225,235,255) 加深
-	hoverStyle.Rounding = 4.0f;
+	hoverStyle.Rounding = 0.0f;
 	hoverStyle.HasBorder = false;
 	hoverStyle.BorderThickness = 1.0f;
 	hoverStyle.BorderColor = IM_COL32(170, 170, 170, 255);
@@ -97,7 +119,7 @@ void MainUI::SetupFileButton(ImGuiWidget::ImButton* filebutton)
 	// 按下状态样式 - 更深的蓝色调灰色
 	ImGuiWidget::ButtonStateStyle pressedStyle;
 	pressedStyle.BackgroundColor = IM_COL32(185, 200, 225, 255);  // 从 (200,220,250) 加深
-	pressedStyle.Rounding = 4.0f;
+	pressedStyle.Rounding = 0.0f;
 	pressedStyle.HasBorder = false;
 	pressedStyle.BorderThickness = 1.0f;
 	pressedStyle.BorderColor = IM_COL32(150, 150, 150, 255);
@@ -106,7 +128,7 @@ void MainUI::SetupFileButton(ImGuiWidget::ImButton* filebutton)
 	// 选中状态样式（焦点状态）- 蓝色高亮
 	ImGuiWidget::ButtonStateStyle selectedStyle;
 	selectedStyle.BackgroundColor = IM_COL32(100, 149, 237, 255); // 矢车菊蓝
-	selectedStyle.Rounding = 4.0f;
+	selectedStyle.Rounding = 0.0f;
 	selectedStyle.HasBorder = false;
 	selectedStyle.BorderThickness = 1.0f;
 	selectedStyle.BorderColor = IM_COL32(70, 130, 180, 255); // 钢蓝色

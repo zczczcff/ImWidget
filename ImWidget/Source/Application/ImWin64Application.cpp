@@ -261,6 +261,62 @@ ImTextureID ImWin64Application::LoadTextureFromFile(const char* filename, int& w
     return (ImTextureID)textureView;
 }
 
+ImTextureID ImWin64Application::LoadTextureFromMemory(const unsigned char* image_data, int data_size, int& width, int& height)
+{
+    int channels;
+    unsigned char* decoded_data = stbi_load_from_memory(image_data, data_size, &width, &height, &channels, 4);
+    if (decoded_data == nullptr)
+    {
+        return (ImTextureID)nullptr;
+    }
+
+    // 创建DX11纹理
+    ID3D11Texture2D* texture = nullptr;
+    D3D11_TEXTURE2D_DESC desc;
+    ZeroMemory(&desc, sizeof(desc));
+    desc.Width = width;
+    desc.Height = height;
+    desc.MipLevels = 1;
+    desc.ArraySize = 1;
+    desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    desc.SampleDesc.Count = 1;
+    desc.Usage = D3D11_USAGE_DEFAULT;
+    desc.BindFlags = D3D11_BIND_SHADER_RESOURCE;
+    desc.CPUAccessFlags = 0;
+
+    D3D11_SUBRESOURCE_DATA subResource;
+    subResource.pSysMem = decoded_data;
+    subResource.SysMemPitch = desc.Width * 4;
+    subResource.SysMemSlicePitch = 0;
+
+    HRESULT hr = m_pd3dDevice->CreateTexture2D(&desc, &subResource, &texture);
+    stbi_image_free(decoded_data); // 释放解码后的图片内存
+
+    if (FAILED(hr))
+    {
+        return (ImTextureID)nullptr;
+    }
+
+    // 创建着色器资源视图
+    ID3D11ShaderResourceView* textureView = nullptr;
+    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    ZeroMemory(&srvDesc, sizeof(srvDesc));
+    srvDesc.Format = desc.Format;
+    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.Texture2D.MipLevels = desc.MipLevels;
+    srvDesc.Texture2D.MostDetailedMip = 0;
+
+    hr = m_pd3dDevice->CreateShaderResourceView(texture, &srvDesc, &textureView);
+    texture->Release(); // 释放临时纹理引用
+
+    if (FAILED(hr))
+    {
+        return (ImTextureID)nullptr;
+    }
+
+    return (ImTextureID)textureView;
+}
+
 void ImWin64Application::ReleaseTexture(ImTextureID TextureID)
 {
     if (TextureID != 0)
