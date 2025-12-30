@@ -5,11 +5,14 @@
 #include <vector>
 
 #include "ImWidgetProperty.h"
+#include "ImTools/ImWidgetRef.h"
 namespace ImGuiWidget
 {
 	class ImPanelWidget;
 	class ImWidget
 	{
+	private:
+		ImWidgetRef m_selfRef;
 	protected:
 		std::string m_WidgetID;
 		std::string m_WidgetName;
@@ -22,6 +25,7 @@ namespace ImGuiWidget
 		class ImWidget* m_Parents;
 		bool bSizeDirty;
 		bool bVisible = true;
+		
 		//处理子控件最小尺寸发生变化的情况
 		virtual void HandleChildSizeDirty(){}
 
@@ -35,7 +39,8 @@ namespace ImGuiWidget
 		}
 	public:
 		ImWidget(const std::string& WidgetName)
-			:m_WidgetID(GetRegisterTypeName()),
+			:m_selfRef(this),// 新对象创建新的自我引用
+			m_WidgetID(GetRegisterTypeName()),
 			m_WidgetName(WidgetName),
 			m_Slot(nullptr),
 			m_Parents(nullptr),
@@ -45,7 +50,8 @@ namespace ImGuiWidget
 		}
 		// 拷贝构造函数（深拷贝自身属性）
 		ImWidget(const ImWidget& other)
-			: m_WidgetID(GetRegisterTypeName()), // 生成新ID（唯一标识）
+			: m_selfRef(this),// 新对象创建新的自我引用
+			m_WidgetID(GetRegisterTypeName()), // 生成新ID（唯一标识）
 			m_WidgetName(other.m_WidgetName),
 			Position(other.Position),
 			Size(other.Size),
@@ -56,13 +62,17 @@ namespace ImGuiWidget
 		{
 			m_WidgetID += std::to_string(GetConstructCounter());
 		}
-
+		virtual ~ImWidget()
+		{
+			m_selfRef.Invalidate();
+		}
 		// 赋值运算符（深拷贝自身属性）
 		ImWidget& operator=(const ImWidget& other) 
 		{
 			if (this != &other) 
 			{
 				// 仅拷贝可复制属性
+				// 注意：不能赋值m_selfRef
 				m_WidgetName = other.m_WidgetName;
 				Position = other.Position;
 				Size = other.Size;
@@ -255,6 +265,11 @@ namespace ImGuiWidget
 			{
 				m_hasFocus = false;
 			}
+		}
+
+		ImWidgetRef GetWidgetRef() const
+		{
+			return m_selfRef;  // 返回拷贝，增加引用计数
 		}
 	};
 }

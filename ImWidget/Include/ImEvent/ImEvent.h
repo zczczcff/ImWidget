@@ -1,6 +1,6 @@
 #pragma once
 #include "ImEvent/ImEventType.h"
-
+#include "ImTools/ImWidgetRef.h"
 namespace ImGuiWidget
 {
     // 事件基类
@@ -9,8 +9,8 @@ namespace ImGuiWidget
     protected:
         ImEventType m_type;
         ImEventPhase m_phase;
-        class ImWidget* m_target;
-        class ImWidget* m_currentTarget;
+        ImWidgetRef m_target;
+        ImWidgetRef m_currentTarget;
         bool m_handled;
         bool m_bubbles;
         bool m_cancelable;
@@ -27,8 +27,9 @@ namespace ImGuiWidget
         // 基础属性访问
         ImEventType GetType() const { return m_type; }
         ImEventPhase GetPhase() const { return m_phase; }
-        ImWidget* GetTarget() const { return m_target; }
-        ImWidget* GetCurrentTarget() const { return m_currentTarget; }
+        ImWidget* GetTarget() const { return m_target.GetWidget(); }
+        ImWidgetRef GetTargetRef() { return m_target; }
+        ImWidget* GetCurrentTarget() const { return m_currentTarget.GetWidget(); }
         bool IsHandled() const { return m_handled; }
         bool Bubbles() const { return m_bubbles; }
         bool IsCancelable() const { return m_cancelable; }
@@ -36,8 +37,8 @@ namespace ImGuiWidget
 
         // 设置内部状态（事件系统使用）
         void SetPhase(ImEventPhase phase) { m_phase = phase; }
-        void SetTarget(ImWidget* target) { m_target = target; }
-        void SetCurrentTarget(ImWidget* target) { m_currentTarget = target; }
+        void SetTarget(ImWidgetRef target) { m_target = target; }
+        void SetCurrentTarget(ImWidgetRef target) { m_currentTarget = target; }
 
         // 事件控制
         void StopPropagation() { m_handled = true; }

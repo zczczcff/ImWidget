@@ -4,7 +4,7 @@
 #include <memory>
 #include "ImEvent/ImEventType.h"
 #include "ImEvent/ImEvent.h"
-
+#include "ImTools/ImWidgetRef.h"
 
 namespace ImGuiWidget
 {
@@ -13,9 +13,9 @@ namespace ImGuiWidget
         class ImWidget* m_rootWidget;
         std::vector<std::unique_ptr<ImEvent>> m_eventQueue;
         // 状态跟踪
-        ImWidget* m_hoveredWidget = nullptr;
-        ImWidget* m_focusedWidget = nullptr;
-        ImWidget* m_lastHoveredWidget = nullptr;
+        ImWidgetRef m_hoveredWidget;
+        ImWidgetRef m_focusedWidget;
+        ImWidgetRef m_lastHoveredWidget;
         ImVec2 m_lastMousePos;
         double m_lastClickTime[5] = { 0 };  // 每个按钮的上次点击时间
         ImVec2 m_lastClickPos[5];         // 每个按钮的上次点击位置
@@ -24,7 +24,7 @@ namespace ImGuiWidget
         const double DOUBLE_CLICK_TIME = 0.3;  // 300ms
         const float DOUBLE_CLICK_DISTANCE = 5.0f;  // 5像素
         bool bDragEndThisTick = false;
-
+        bool clickedone = false;
 
         bool keyStates[ImGuiKey_COUNT] = { false };
         double keyPressTime[ImGuiKey_COUNT] = { 0.0 };
@@ -67,7 +67,7 @@ namespace ImGuiWidget
 
         ImVec2 CalculateLocalPosition(const ImVec2& globalPos, ImWidget* widget);
 
-        void DispatchEventThroughHierarchy(ImEvent* event, ImWidget* target);
+        void DispatchEventThroughHierarchy(ImEvent* event, ImWidgetRef target);
 
         // HitTest实现（与之前相同）
         ImWidget* HitTest(ImWidget* widget, const ImVec2& point);
@@ -79,8 +79,8 @@ namespace ImGuiWidget
 
         // 拖拽状态跟踪
         bool m_isDragging = false;
-        ImWidget* m_dragSourceWidget = nullptr;
-        ImWidget* m_lastDragHoveredWidget = nullptr;
+        ImWidgetRef m_dragSourceWidget;
+        ImWidgetRef m_lastDragHoveredWidget;
         ImVec2 m_dragStartPos;
         ImVec2 m_lastDragPos;
 
@@ -89,12 +89,12 @@ namespace ImGuiWidget
         void UpdateDrag(const ImVec2& pos, const ImModifierKeys& mods);
         void EndDrag(const ImVec2& pos, const ImModifierKeys& mods);
         void ProcessDropTargets(const ImVec2& pos, const ImModifierKeys& mods);
-        void ProcessDrop(ImWidget* target, const ImVec2& pos, const ImModifierKeys& mods);
+        void ProcessDrop(ImWidgetRef target, const ImVec2& pos, const ImModifierKeys& mods);
 
         //焦点相关方法
 
         // 设置焦点到指定控件
-        bool SetFocus(ImWidget* widget, ImFocusReason reason = ImFocusReason::User);
+        bool SetFocus(ImWidgetRef widget, ImFocusReason reason = ImFocusReason::User);
 
         // 获取当前焦点控件
         ImWidget* GetFocusedWidget() const;
