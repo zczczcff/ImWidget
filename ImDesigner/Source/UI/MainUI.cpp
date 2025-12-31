@@ -7,6 +7,7 @@
 #include "ImWidget/ImImage.h"
 #include "UI/IconManager.h"
 #include "Application/ImApplication.h"
+#include "UI/Widget_UIEditor.h"
 
 void MainUI::Init2()
 {
@@ -14,8 +15,7 @@ void MainUI::Init2()
 	ImButton_Save->SetFocusable(false);
 	ImButton_Generate->SetFocusable(false);
 
-	Widget_PageTag* testtag = new Widget_PageTag("testpagetag");
-	ImHorizontalBox_PageTag->AddChildToHorizontalBox(testtag)->SetIfAutoSize(false);
+
 
 	Widget_ExampleWidgetButton* Example_Button = new Widget_ExampleWidgetButton("Example_Button", u8"按钮", "ImButton");
 	ImVerticalBox_WidgetList->AddChildToVerticalBox(Example_Button)->SetIfAutoSize(false);
@@ -46,6 +46,17 @@ void MainUI::Init2()
 
 	m_RightKeyFunMenuWindow = ImGuiWidget::GlobalApp->GetWindowManager()->CreatePopupWindow(ImVec2(0, 0), ImVec2(0, 0), nullptr, false);
 	m_RightKeyFunMenuWindow->Close();
+
+	//主工作界面
+	ImPageManager_Main = new ImGuiWidget::ImPageManager("ImPageManager_Main");
+	ImBorder_MainWorkSpace->SetContent(ImPageManager_Main);
+	ImGuiWidget::ImTextBlock* testtext = new ImGuiWidget::ImTextBlock("testblock");
+	testtext->SetText("test");
+	ImPageManager_Main->AddPage("test", testtext, IconManager::GetInstance()->GetIcon(ImDesignerIcon::SingleWidget));
+	ImPageManager_Main->OnPageClosed().Add([this](const std::string& FilePath) 
+		{
+			On_EditorPageClosed(FilePath);
+		});
 }
 
 void MainUI::SetProjectViewVBoxContent(ProjectFileManager* projectmananger, ImGuiWidget::ImVerticalBox* Vbox, const std::string& CurrentPath)
@@ -93,7 +104,7 @@ void MainUI::SetProjectViewVBoxContent(ProjectFileManager* projectmananger, ImGu
 		FileName->SetText(file.filename);
 		FileName->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Left);
 		FileButton->SetContent(FileName);
-		FileButton->SetOnPressed([this,file]() { On_ProjectButtonClicked(file.filename,file.fullPath); });
+		FileButton->OnLeftClicked.Add([this,file]() { On_UIFileButtonClicked(file.filename,file.fullPath); });
 		SetupFileButton(FileButton);
 		BodyHBox->AddChildToHorizontalBox(Icon)->SetIfAutoSize(false);
 		BodyHBox->AddChildToHorizontalBox(FileButton);
@@ -178,6 +189,24 @@ void MainUI::UpdateProjectView(ProjectFileManager* projectmananger)
 	SetProjectViewVBoxContent(projectmananger, ImVerticalBox_Folder, "");
 }
 
-void MainUI::On_ProjectButtonClicked(const std::string& FileName, const std::string& FileFullPath)
+void MainUI::On_UIFileButtonClicked(const std::string& FileName, const std::string& FileFullPath)
 {
+	OnUIFileSelected.Broadcast(FileName, FileFullPath);
+}
+
+void MainUI::CreateUIEditorPage(ImGuiWidget::ImWidget* FileRootWidget, const std::string& FileName, const std::string& FileFullPath)
+{
+	if (ImPageManager_Main->HasPage(FileFullPath))
+	{
+		ImPageManager_Main->SwitchToPage(FileFullPath);
+		return;
+	}
+	Widget_UIEditor* NewWidget_UIEditor = new Widget_UIEditor(FileName + "_Editor", FileRootWidget);
+	ImPageManager_Main->AddPage(FileFullPath, FileRootWidget, IconManager::GetInstance()->GetIcon(ImDesignerIcon::UIFile), FileName);
+	ImPageManager_Main->SwitchToPage(FileFullPath);
+}
+
+void MainUI::On_EditorPageClosed(const std::string& FilePath)
+{
+	OnEditorPageClosed.Broadcast(FilePath);
 }

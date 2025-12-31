@@ -23,9 +23,6 @@ void MainUI::Init()
     ImVerticalBox_WidgetList = new ImGuiWidget::ImVerticalBox("ImVerticalBox_WidgetList");
     ImBorder_LeftTab = new ImGuiWidget::ImBorder("ImBorder_LeftTab");
     ImBorder_MainWorkSpace = new ImGuiWidget::ImBorder("ImBorder_MainWorkSpace");
-    ImVerticalBox_7 = new ImGuiWidget::ImVerticalBox("ImVerticalBox_7");
-    ImHorizontalBox_PageTag = new ImGuiWidget::ImHorizontalBox("ImHorizontalBox_PageTag");
-    ImBorder_CurrentPage = new ImGuiWidget::ImBorder("ImBorder_CurrentPage");
     ImBorder_Right = new ImGuiWidget::ImBorder("ImBorder_Right");
     ImScrollingTextList_LogList = new ImGuiWidget::ImScrollingTextList("ImScrollingTextList_LogList");
 
@@ -199,21 +196,6 @@ void MainUI::Init()
     ImBorder_MainWorkSpace->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
     ImBorder_MainWorkSpace->SetPropertyValue<bool>("HaveBorder", true);
 
-    ImVerticalBox_7->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
-    ImVerticalBox_7->SetPropertyValue<std::string>("Name", "ImVerticalBox_7");
-    ImVerticalBox_7->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
-    ImVerticalBox_7->SetPropertyValue<bool>("HaveBorder", false);
-
-    ImHorizontalBox_PageTag->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
-    ImHorizontalBox_PageTag->SetPropertyValue<std::string>("Name", "ImHorizontalBox_PageTag");
-    ImHorizontalBox_PageTag->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
-    ImHorizontalBox_PageTag->SetPropertyValue<bool>("HaveBorder", true);
-
-    ImBorder_CurrentPage->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
-    ImBorder_CurrentPage->SetPropertyValue<std::string>("Name", "ImBorder_CurrentPage");
-    ImBorder_CurrentPage->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
-    ImBorder_CurrentPage->SetPropertyValue<bool>("HaveBorder", true);
-
     ImBorder_Right->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
     ImBorder_Right->SetPropertyValue<std::string>("Name", "ImBorder_Right");
     ImBorder_Right->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
@@ -349,29 +331,6 @@ void MainUI::Init()
 
     ImGuiWidget::ImSlot* ImScrollBox_WidgetList_slot0 = ImScrollBox_WidgetList->AddChild(ImVerticalBox_WidgetList);
     ImScrollBox_WidgetList_slot0->SetPropertyValue<bool>("bAutoSize", true);
-
-    ImGuiWidget::ImSlot* ImBorder_MainWorkSpace_slot0 = ImBorder_MainWorkSpace->AddChild(ImVerticalBox_7);
-    ImBorder_MainWorkSpace_slot0->SetPropertyValue<bool>("bAutoSize", true);
-    ImBorder_MainWorkSpace_slot0->SetPropertyValue<float>("PaddingTop", 0.000000f);
-    ImBorder_MainWorkSpace_slot0->SetPropertyValue<float>("PaddingBottom", 0.000000f);
-    ImBorder_MainWorkSpace_slot0->SetPropertyValue<float>("PaddingLeft", 0.000000f);
-    ImBorder_MainWorkSpace_slot0->SetPropertyValue<float>("PaddingRight", 0.000000f);
-
-    ImGuiWidget::ImSlot* ImVerticalBox_7_slot0 = ImVerticalBox_7->AddChild(ImHorizontalBox_PageTag);
-    ImVerticalBox_7_slot0->SetPropertyValue<float>("SizeRatio", 0.100000f);
-    ImVerticalBox_7_slot0->SetPropertyValue<bool>("bAutoSize", false);
-    ImVerticalBox_7_slot0->SetPropertyValue<float>("PaddingTop", 0.000000f);
-    ImVerticalBox_7_slot0->SetPropertyValue<float>("PaddingBottom", 0.000000f);
-    ImVerticalBox_7_slot0->SetPropertyValue<float>("PaddingLeft", 0.000000f);
-    ImVerticalBox_7_slot0->SetPropertyValue<float>("PaddingRight", 0.000000f);
-
-    ImGuiWidget::ImSlot* ImVerticalBox_7_slot1 = ImVerticalBox_7->AddChild(ImBorder_CurrentPage);
-    ImVerticalBox_7_slot1->SetPropertyValue<float>("SizeRatio", 1.000000f);
-    ImVerticalBox_7_slot1->SetPropertyValue<bool>("bAutoSize", true);
-    ImVerticalBox_7_slot1->SetPropertyValue<float>("PaddingTop", 0.000000f);
-    ImVerticalBox_7_slot1->SetPropertyValue<float>("PaddingBottom", 0.000000f);
-    ImVerticalBox_7_slot1->SetPropertyValue<float>("PaddingLeft", 0.000000f);
-    ImVerticalBox_7_slot1->SetPropertyValue<float>("PaddingRight", 0.000000f);
 
 
     SetRootWidget(ImVerticalBox_3);

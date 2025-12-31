@@ -2,6 +2,7 @@
 #include "ImUserWidget.h"
 
 #include "ImBasicWidgetDeclaration.h"
+#include "ImTools/ImDelegate.h"
 
 namespace ImGuiWidget
 {
@@ -40,12 +41,11 @@ protected:
     ImGuiWidget::ImVerticalBox* ImVerticalBox_WidgetList;
     ImGuiWidget::ImBorder* ImBorder_LeftTab;
     ImGuiWidget::ImBorder* ImBorder_MainWorkSpace;
-    ImGuiWidget::ImVerticalBox* ImVerticalBox_7;
-    ImGuiWidget::ImHorizontalBox* ImHorizontalBox_PageTag;
-    ImGuiWidget::ImBorder* ImBorder_CurrentPage;
     ImGuiWidget::ImBorder* ImBorder_Right;
     ImGuiWidget::ImScrollingTextList* ImScrollingTextList_LogList;
 //----Gen Members End----
+    //---------------------编辑器主工作区-------------------
+    ImGuiWidget::ImPageManager* ImPageManager_Main;
 
     //---------------------项目管理及控件树------------------
     ImGuiWidget::ImPageManager* ImPageManager_LeftPart;
@@ -59,6 +59,9 @@ protected:
     ImGuiWidget::ImWindow* m_RightKeyFunMenuWindow;
     ImGuiWidget::ImVerticalBox* ImVerticalBox_FolderOperatorMenu;
 
+public:
+    ImMulticastDelegate<const std::string&, const std::string&> OnUIFileSelected;
+    ImMulticastDelegate<const std::string&> OnEditorPageClosed;
 private:
     void SetProjectViewVBoxContent(class ProjectFileManager* projectmananger, ImGuiWidget::ImVerticalBox* Vbox,const std::string& CurrentPath);
     void SetupFileButton(ImGuiWidget::ImButton* filebutton);
@@ -67,6 +70,7 @@ private:
     void PopupRightKeyWindow(ImWidget* rootwidget);
 public:
     void UpdateProjectView(class ProjectFileManager* projectmananger);
-    void On_ProjectButtonClicked(const std::string& FileName, const std::string& FileFullPath);
-    
+    void On_UIFileButtonClicked(const std::string& FileName, const std::string& FileFullPath);
+    void CreateUIEditorPage(ImGuiWidget::ImWidget* FileRootWidget, const std::string& FileName, const std::string& FileFullPath);
+    void On_EditorPageClosed(const std::string& FilePath);
 };

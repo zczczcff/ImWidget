@@ -172,7 +172,7 @@ namespace ImGuiWidget
 
 		virtual ~ImPanelWidget() // 添加析构函数管理内存
 		{
-			RemoveAllChild();
+			RemoveAllChild(true);
 		}
 
 		virtual ImSlot* AddChild(ImWidget* child,ImVec2 RelativePosition=ImVec2(FLT_MIN,FLT_MIN))

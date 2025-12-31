@@ -79,6 +79,7 @@ namespace ImGuiWidget
         ButtonStateStyle m_FocusedStyle;
     public:
         ImMulticastDelegate<> OnRightClicked;
+        ImMulticastDelegate<> OnLeftClicked;
     protected:
         void RenderButton()
         {
@@ -231,6 +232,7 @@ namespace ImGuiWidget
 
                 // ÇëÇó½¹µã
                 //RequestFocus();
+                OnLeftClicked.Broadcast();
                 event->StopPropagation();
             }
             else if (event->GetButton() == ImMouseButton::Right)
@@ -277,8 +279,6 @@ namespace ImGuiWidget
                 }
             }
         }
-
-
 
     public:
         ImButton(const std::string& WidgetName) : 

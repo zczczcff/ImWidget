@@ -7,6 +7,7 @@
 #include "ImPanelWidget.h"
 #include <fstream>
 #include <regex>
+#include <set>
 
 namespace ImGuiWidget
 {
