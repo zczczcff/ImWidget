@@ -25,6 +25,48 @@ private:
 
     std::map<std::string, std::vector<FileSystemInfo>> fileSystemStructure;  // 完整的文件系统结构
 
+    // 将路径转换为统一使用"/"分隔符的字符串
+    std::string toUniformPath(const fs::path& path) const
+    {
+        std::string pathStr = path.generic_string();
+        // 确保路径格式统一
+        return pathStr;
+    }
+
+    // 获取基于操作系统根目录的完整路径
+    std::string getFullSystemPath(const fs::path& path) const
+    {
+        // 获取绝对路径并转换为统一格式
+        fs::path absolutePath = fs::absolute(path);
+        return toUniformPath(absolutePath);
+    }
+
+    // 获取基于项目根目录的相对路径
+    std::string getRelativeProjectPath(const fs::path& path, const std::string& baseDir = "") const
+    {
+        fs::path relativePath;
+
+        if (!baseDir.empty())
+        {
+            // 如果指定了基准目录，则相对于该目录
+            fs::path basePath(baseDir);
+            relativePath = fs::relative(path, basePath);
+        }
+        else
+        {
+            // 否则相对于项目根目录
+            relativePath = fs::relative(path, rootPath);
+        }
+
+        // 如果无法计算相对路径（不同驱动器等情况），返回绝对路径
+        if (relativePath.empty())
+        {
+            return toUniformPath(path);
+        }
+
+        return toUniformPath(relativePath);
+    }
+
     // 检查文件后缀是否符合过滤器
     bool matchesFilter(const fs::path& filePath)
     {
@@ -111,9 +153,9 @@ public:
     struct FileInfo
     {
         std::string filename;      // 文件名
-        std::string fullPath;      // 完整路径
-        bool isDirectory;          // 是否为文件夹
-        std::string relativePath;  // 相对于根目录的路径
+        std::string fullPath;     // 基于操作系统根目录的完整路径
+        bool isDirectory;         // 是否为文件夹
+        std::string relativePath; // 基于项目根目录的相对路径
 
         FileInfo(const std::string& name = "",
             const std::string& path = "",
@@ -128,15 +170,18 @@ public:
     ProjectFileManager(const std::string& root, const std::vector<std::string>& fileFilters = {})
         : rootPath(root), filters(fileFilters)
     {
+        // 确保根路径是绝对路径
+        rootPath = fs::absolute(rootPath);
+
         if (!fs::exists(rootPath) || !fs::is_directory(rootPath))
         {
             throw std::runtime_error("Invalid root directory: " + root);
         }
         scanDirectory(rootPath);
     }
+
     ProjectFileManager()
     {
-
     }
 
     // 查询指定相对目录下的内容，返回FileInfo向量
@@ -149,27 +194,22 @@ public:
             for (const auto& item : fileSystemStructure[relativePath])
             {
                 FileInfo info;
-                info.filename = item.path.string();
+                info.filename = toUniformPath(item.path);
                 info.isDirectory = item.isDirectory;
 
-                // 构建完整路径
+                // 构建完整路径（基于操作系统根目录）
                 fs::path fullPath = rootPath;
                 if (!relativePath.empty())
                 {
-                    fullPath /= relativePath;
+                    fullPath /= fs::path(relativePath);
                 }
                 fullPath /= item.path;
-                info.fullPath = fullPath.string();
+                info.fullPath = getFullSystemPath(fullPath);
 
-                // 构建相对路径
-                if (!relativePath.empty())
-                {
-                    info.relativePath = relativePath + "/" + info.filename;
-                }
-                else
-                {
-                    info.relativePath = info.filename;
-                }
+                // 构建相对路径（基于项目根目录）
+                fs::path relPath = relativePath.empty() ?
+                    item.path : fs::path(relativePath) / item.path;
+                info.relativePath = getRelativeProjectPath(relPath);
 
                 result.push_back(info);
             }
@@ -190,27 +230,22 @@ public:
             for (const auto& item : dirPair.second)
             {
                 FileInfo info;
-                info.filename = item.path.string();
+                info.filename = toUniformPath(item.path);
                 info.isDirectory = item.isDirectory;
 
-                // 构建完整路径
+                // 构建完整路径（基于操作系统根目录）
                 fs::path fullPath = rootPath;
                 if (!relativePath.empty())
                 {
-                    fullPath /= relativePath;
+                    fullPath /= fs::path(relativePath);
                 }
                 fullPath /= item.path;
-                info.fullPath = fullPath.string();
+                info.fullPath = getFullSystemPath(fullPath);
 
-                // 构建相对路径
-                if (!relativePath.empty())
-                {
-                    info.relativePath = relativePath + "/" + info.filename;
-                }
-                else
-                {
-                    info.relativePath = info.filename;
-                }
+                // 构建相对路径（基于项目根目录）
+                fs::path relPath = relativePath.empty() ?
+                    item.path : fs::path(relativePath) / item.path;
+                info.relativePath = getRelativeProjectPath(relPath);
 
                 allItems.push_back(info);
             }
@@ -232,13 +267,12 @@ public:
         for (const auto& filePath : allFiles)
         {
             FileInfo info;
-            info.filename = filePath.filename().string();
-            info.fullPath = filePath.string();
+            info.filename = toUniformPath(filePath.filename());
+            info.fullPath = getFullSystemPath(filePath);
             info.isDirectory = false;
 
-            // 计算相对于根目录的路径
-            fs::path relative = fs::relative(filePath, rootPath);
-            info.relativePath = relative.string();
+            // 计算相对于项目根目录的路径
+            info.relativePath = getRelativeProjectPath(filePath);
 
             result.push_back(info);
         }
@@ -313,7 +347,7 @@ public:
     // 获取根目录
     std::string getRootPath() const
     {
-        return rootPath.string();
+        return toUniformPath(rootPath);
     }
 
     // 获取过滤器
@@ -412,7 +446,7 @@ public:
         Statistics stats = getStatistics();
 
         std::cout << "=== Directory Statistics ===" << std::endl;
-        std::cout << "Root: " << rootPath.string() << std::endl;
+        std::cout << "Root: " << toUniformPath(rootPath) << std::endl;
         std::cout << "Total directories: " << stats.totalDirectories << std::endl;
         std::cout << "Total files: " << stats.totalFiles << std::endl;
         std::cout << "Filtered files: " << stats.filteredFiles << std::endl;
