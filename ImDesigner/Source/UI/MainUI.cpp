@@ -45,7 +45,7 @@ void MainUI::Init2()
 	ImPageManager_LeftPart->AddPage(u8"¿Ø¼þÊ÷", ImScrollBox_WidgetTree);
 
 	m_RightKeyFunMenuWindow = ImGuiWidget::GlobalApp->GetWindowManager()->CreatePopupWindow(ImVec2(0, 0), ImVec2(0, 0), nullptr, false);
-	m_RightKeyFunMenuWindow->SetIsOpen(false);
+	m_RightKeyFunMenuWindow->Close();
 }
 
 void MainUI::SetProjectViewVBoxContent(ProjectFileManager* projectmananger, ImGuiWidget::ImVerticalBox* Vbox, const std::string& CurrentPath)
@@ -168,7 +168,7 @@ void MainUI::PopupRightKeyWindow(ImWidget* rootwidget)
 	m_RightKeyFunMenuWindow->SetRootWidget(rootwidget, true);
 	m_RightKeyFunMenuWindow->SetSize(rootwidget->GetMinSize());
 	//m_RightKeyFunMenuWindow->SetSize(ImVec2(2,2));
-	m_RightKeyFunMenuWindow->SetIsOpen(true);
+	m_RightKeyFunMenuWindow->SetActive();
 	ImGuiWidget::GlobalApp->GetWindowManager()->SetActiveWindow(m_RightKeyFunMenuWindow);
 }
 

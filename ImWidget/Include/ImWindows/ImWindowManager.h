@@ -11,11 +11,14 @@ namespace ImGuiWidget
     class ImWindowManager
     {
     private:
-        std::vector<std::unique_ptr<ImWindow>> m_windows;
+        std::vector<ImWindow*> m_windows;
         ImWindow* m_activeWindow = nullptr;
         ImWindow* m_mainWindow = nullptr;
         int m_nextWindowId = 1;
         class ImEventSystem* m_EventSystem = nullptr;
+        // 模态窗口管理
+        std::vector<ImWindow*> m_modalStack; // 模态窗口栈
+        bool m_hasActiveModal = false;
     public:
         ImWindowManager();
         ~ImWindowManager();
@@ -24,6 +27,10 @@ namespace ImGuiWidget
         ImWindow* CreateImWindow(const std::string& title, const ImVec2& size, const ImVec2& pos);
 
         ImWindow* CreatePopupWindow(const ImVec2& size, const ImVec2& pos,ImWidget* RootWidget,bool ControlRootWidget);
+        
+        // 创建模态窗口
+        ImWindow* CreateModalWindow(const std::string& title, const ImVec2& size, const ImVec2& pos, ImWidget* rootWidget = nullptr, bool controlRootWidget = false);
+        
         // 关闭窗口
         void CloseWindow(ImWindow* window);
 
@@ -38,7 +45,7 @@ namespace ImGuiWidget
         void SetActiveWindow(ImWindow* window);
 
         // 获取所有窗口
-        const std::vector<std::unique_ptr<ImWindow>>& GetWindows() const { return m_windows; }
+        const std::vector<ImWindow*>& GetWindows() const { return m_windows; }
 
         // 根据ID查找窗口
         ImWindow* FindWindowById(const std::string& id);
@@ -61,5 +68,14 @@ namespace ImGuiWidget
         int GetWindowCount() const { return static_cast<int>(m_windows.size()); }
 
         ImWindow* WindowHitTest(const ImVec2& Pos);
+    private:
+        void PushModalWindow(ImWindow* window);
+        void PopModalWindow(ImWindow* window);
+        ImWindow* GetTopModalWindow() const;
+        bool HasActiveModal() const { return m_hasActiveModal; }
+
+
+
+        void UpdateModalState();
     };
 }

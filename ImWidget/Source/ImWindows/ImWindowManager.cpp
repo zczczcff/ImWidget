@@ -27,10 +27,8 @@ namespace ImGuiWidget
         std::string windowId = "Window_" + std::to_string(m_nextWindowId++);
 
         // 创建新窗口
-        auto newWindow = std::make_unique<ImWindow>(title, size, pos, windowId);
-
-        ImWindow* windowPtr = newWindow.get();
-        m_windows.push_back(std::move(newWindow));
+        ImWindow* windowPtr = new ImWindow(title, size, pos, windowId, this);
+        m_windows.push_back(windowPtr);
 
         // 如果没有活动窗口，设置新窗口为活动窗口
         if (!m_activeWindow)
@@ -60,9 +58,39 @@ namespace ImGuiWidget
         return window;
     }
 
+    // 创建模态窗口
+
+    ImWindow* ImWindowManager::CreateModalWindow(const std::string& title, const ImVec2& size, const ImVec2& pos, ImWidget* rootWidget, bool controlRootWidget)
+    {
+        ImWindow* window = CreateImWindow(title, size, pos);
+        window->bCollapsible = false;
+        window->bIsMovable = true;
+        window->bIsResizable = false;
+        window->bAllowBringToFrontOnFocus = false;
+        window->bAutoCloseWhenLostFocus = false;
+
+        if (rootWidget)
+        {
+            window->SetRootWidget(rootWidget, controlRootWidget);
+        }
+
+        PushModalWindow(window);
+        return window;
+    }
+
     void ImWindowManager::CloseWindow(ImWindow* window)
     {
         if (!window) return;
+        if (!window->IsOpen()) return;
+
+        window->Close();
+
+        // 如果是模态窗口，从模态栈中移除
+        if (window->IsModal())
+        {
+            PopModalWindow(window);
+            return; // PopModalWindow 会调用 CloseWindow，避免重复处理
+        }
 
         // 如果是活动窗口，需要重新设置活动窗口
         if (m_activeWindow == window)
@@ -71,9 +99,9 @@ namespace ImGuiWidget
             ImWindow* newActive = nullptr;
             for (auto& w : m_windows)
             {
-                if (w.get() != window && w->IsOpen())
+                if (w != window && w->IsOpen())
                 {
-                    newActive = w.get();
+                    newActive = w;
                     break;
                 }
             }
@@ -87,9 +115,9 @@ namespace ImGuiWidget
             ImWindow* newMain = nullptr;
             for (auto& w : m_windows)
             {
-                if (w.get() != window && w->IsOpen())
+                if (w != window && w->IsOpen())
                 {
-                    newMain = w.get();
+                    newMain = w;
                     break;
                 }
             }
@@ -98,9 +126,9 @@ namespace ImGuiWidget
 
         // 从列表中移除窗口
         auto it = std::find_if(m_windows.begin(), m_windows.end(),
-            [window](const std::unique_ptr<ImWindow>& w)
+            [window](ImWindow* w)
             {
-                return w.get() == window;
+                return w == window;
             });
 
         if (it != m_windows.end())
@@ -129,7 +157,7 @@ namespace ImGuiWidget
         // 旧窗口失去焦点
         if (m_activeWindow)
         {
-            m_activeWindow->SetIsActive(false);
+            m_activeWindow->SetInactive();
         }
 
         m_activeWindow = window;
@@ -137,7 +165,7 @@ namespace ImGuiWidget
         // 新窗口获得焦点
         if (m_activeWindow)
         {
-            m_activeWindow->SetIsActive(true);
+            m_activeWindow->SetActive();
             BringWindowToFront(m_activeWindow);
         }
     }
@@ -145,14 +173,14 @@ namespace ImGuiWidget
     ImWindow* ImWindowManager::FindWindowById(const std::string& id)
     {
         auto it = std::find_if(m_windows.begin(), m_windows.end(),
-            [&id](const std::unique_ptr<ImWindow>& w)
+            [&id](ImWindow* w)
             {
                 return w->GetWindowId() == id;
             });
 
         if (it != m_windows.end())
         {
-            return it->get();
+            return *it;
         }
         return nullptr;
     }
@@ -160,19 +188,39 @@ namespace ImGuiWidget
     void ImWindowManager::Render()
     {
 
-        // 先渲染非活动窗口（在背景）
+        // 渲染非模态窗口
         for (auto& window : m_windows)
         {
-            if (window->IsOpen() && window.get() != m_activeWindow)
+            if (window->IsOpen() && !window->IsModal() && window != m_activeWindow)
             {
                 window->Render();
             }
         }
 
-        // 最后渲染活动窗口（在前景）
-        if (m_activeWindow && m_activeWindow->IsOpen())
+        // 渲染活动非模态窗口
+        if (m_activeWindow && m_activeWindow->IsOpen() && !m_activeWindow->IsModal())
         {
             m_activeWindow->Render();
+        }
+
+        // 如果有模态窗口，渲染模态背景和模态窗口
+        if (m_hasActiveModal)
+        {
+            // 渲染模态背景
+            ImGui::GetForegroundDrawList()->AddRectFilled(
+                ImVec2(0, 0),
+                ImGui::GetIO().DisplaySize,
+                IM_COL32(0, 0, 0, (int)(255 * 0.5f)) // 50% 黑色背景
+            );
+
+            // 渲染所有模态窗口（按栈顺序）
+            for (auto modalWindow : m_modalStack)
+            {
+                if (modalWindow->IsOpen())
+                {
+                    modalWindow->Render();
+                }
+            }
         }
 
         if (auto PreviewWidget = ImDragEvent::GetDragPreview())//渲染拖拽控件
@@ -202,45 +250,65 @@ namespace ImGuiWidget
 
             ImGui::End();
         }
-
-        // 清理已关闭的窗口
-        //CleanupClosedWindows();
     }
 
     void ImWindowManager::ProcessEvents()
     {
-        ImWindow* LastactiveWindow = m_activeWindow;//在事件处理中可能发生activeWindow的改变，必须先存一份副本
-        // 先处理活跃窗口的键盘事件
-        if (LastactiveWindow && LastactiveWindow->IsOpen())
+        // 如果有活动模态窗口，只处理模态窗口的事件
+        if (m_hasActiveModal)
         {
-            m_EventSystem->SetRootWidget(LastactiveWindow->GetRootWidget());
-            m_EventSystem->CollectKeyEvent();
+            ImWindow* topModal = GetTopModalWindow();
+            if (topModal && topModal->IsOpen())
+            {
+                // 只处理顶层模态窗口的事件
+                m_EventSystem->SetRootWidget(topModal->GetRootWidget());
+
+                // 收集键盘事件（仅模态窗口）
+                m_EventSystem->CollectKeyEvent();
+
+                // 收集鼠标事件（仅当鼠标在模态窗口内）
+                ImGuiIO& io = ImGui::GetIO();
+                ImVec2 mousePos = io.MousePos;
+                if (topModal->ContainsPoint(mousePos))
+                {
+                    m_EventSystem->CollectMouseEvent();
+                }
+
+                m_EventSystem->DispatchEvents();
+            }
+        }
+        else
+        {
+            // 原有的非模态事件处理逻辑
+            ImWindow* LastactiveWindow = m_activeWindow;
+            if (LastactiveWindow && LastactiveWindow->IsOpen())
+            {
+                m_EventSystem->SetRootWidget(LastactiveWindow->GetRootWidget());
+                m_EventSystem->CollectKeyEvent();
+            }
+
+            bool bHaveWindowJustOpen = false;
+            ImGuiIO& io = ImGui::GetIO();
+            ImVec2 mousePos = io.MousePos;
+            if (ImWindow* MouseHitWindow = WindowHitTest(mousePos))
+            {
+                m_EventSystem->SetRootWidget(MouseHitWindow->GetRootWidget());
+                m_EventSystem->CollectMouseEvent();
+            }
+
+            m_EventSystem->DispatchEvents();
+
+            if (!bHaveWindowJustOpen)
+            {
+                UpdateActiveWindowFromInput();
+            }
         }
 
-        bool bHaveWindowJustOpen = false;
-        ImGuiIO& io = ImGui::GetIO();
-        ImVec2 mousePos = io.MousePos;
-        if (ImWindow* MouseHitWindow = WindowHitTest(mousePos))
-        {
-            m_EventSystem->SetRootWidget(MouseHitWindow->GetRootWidget());
-            m_EventSystem->CollectMouseEvent();
-        }
-
-        m_EventSystem->DispatchEvents();
-
-        // 检查窗口点击，更新活动窗口
-        if (!bHaveWindowJustOpen)
-        {
-            UpdateActiveWindowFromInput();
-        }
-        
-
-        for (auto& window : m_windows)//清除刚打开标志
+        // 清除刚打开标志
+        for (auto& window : m_windows)
         {
             window->m_JustOpened = false;
         }
-        // 清理已关闭的窗口
-        //CleanupClosedWindows();
     }
 
     void ImWindowManager::BringWindowToFront(ImWindow* window)
@@ -249,9 +317,9 @@ namespace ImGuiWidget
 
         // 查找窗口在列表中的位置
         auto it = std::find_if(m_windows.begin(), m_windows.end(),
-            [window](const std::unique_ptr<ImWindow>& w)
+            [window](ImWindow* w)
             {
-                return w.get() == window;
+                return w == window;
             });
 
         if (it != m_windows.end() && it != m_windows.end() - 1)
@@ -272,9 +340,9 @@ namespace ImGuiWidget
 
         // 查找窗口在列表中的位置
         auto it = std::find_if(m_windows.begin(), m_windows.end(),
-            [window](const std::unique_ptr<ImWindow>& w)
+            [window](ImWindow* w)
             {
-                return w.get() == window;
+                return w == window;
             });
 
         if (it != m_windows.end() && it != m_windows.begin())
@@ -291,9 +359,9 @@ namespace ImGuiWidget
                 ImWindow* newActive = nullptr;
                 for (auto& w : m_windows)
                 {
-                    if (w.get() != window && w->IsOpen())
+                    if (w != window && w->IsOpen())
                     {
-                        newActive = w.get();
+                        newActive = w;
                         break;
                     }
                 }
@@ -307,7 +375,7 @@ namespace ImGuiWidget
         // 移除所有已关闭的窗口
         m_windows.erase(
             std::remove_if(m_windows.begin(), m_windows.end(),
-                [](const std::unique_ptr<ImWindow>& w)
+                [](ImWindow* w)
                 {
                     return !w->IsOpen();
                 }),
@@ -348,16 +416,112 @@ namespace ImGuiWidget
 
     ImWindow* ImWindowManager::WindowHitTest(const ImVec2& Pos)
     {
-        // 从最前面的窗口开始检查（反向遍历）
+        // 如果有模态窗口，只检查模态窗口
+        if (m_hasActiveModal)
+        {
+            for (auto it = m_modalStack.rbegin(); it != m_modalStack.rend(); ++it)
+            {
+                auto window = *it;
+                if (window->IsOpen() && window->ContainsPoint(Pos))
+                {
+                    return window;
+                }
+            }
+            return nullptr; // 模态窗口外不命中任何窗口
+        }
+
+        // 原有的非模态窗口命中测试逻辑
         for (auto it = m_windows.rbegin(); it != m_windows.rend(); ++it)
         {
             auto& window = *it;
             if (window->IsOpen() && window->ContainsPoint(Pos))
             {
-                return window.get();
+                return window;
             }
         }
         return nullptr;
+    }
+
+    void ImWindowManager::PushModalWindow(ImWindow* window)
+    {
+        if (!window) return;
+
+        // 设置窗口为模态
+        window->SetModal(true);
+
+        // 如果已经有活动模态窗口，暂停它的事件
+        if (!m_modalStack.empty())
+        {
+            ImWindow* topModal = m_modalStack.back();
+            // 可以在这里保存前一个模态窗口的状态
+        }
+
+        // 将新窗口压入模态栈
+        m_modalStack.push_back(window);
+
+        // 设置新窗口为活动窗口
+        SetActiveWindow(window);
+        BringWindowToFront(window);
+
+        UpdateModalState();
+    }
+
+    void ImWindowManager::PopModalWindow(ImWindow* window)
+    {
+        if (m_modalStack.empty()) return;
+
+        // 确保弹出的是栈顶窗口
+        if (window != m_modalStack.back())
+        {
+            // 如果不是栈顶，需要从栈中移除指定的窗口
+            auto it = std::find(m_modalStack.begin(), m_modalStack.end(), window);
+            if (it != m_modalStack.end())
+            {
+                m_modalStack.erase(it);
+            }
+        }
+        else
+        {
+            // 弹出栈顶窗口
+            m_modalStack.pop_back();
+
+            // 恢复前一个模态窗口或设置新的活动窗口
+            if (!m_modalStack.empty())
+            {
+                ImWindow* prevModal = m_modalStack.back();
+                SetActiveWindow(prevModal);
+                BringWindowToFront(prevModal);
+            }
+            else
+            {
+                // 没有模态窗口了，设置合适的活动窗口
+                ImWindow* newActive = nullptr;
+                for (auto& w : m_windows)
+                {
+                    if (w->IsOpen() && w != window)
+                    {
+                        newActive = w;
+                        break;
+                    }
+                }
+                SetActiveWindow(newActive);
+            }
+        }
+
+        // 关闭窗口
+        CloseWindow(window);
+        UpdateModalState();
+    }
+
+    ImWindow* ImWindowManager::GetTopModalWindow() const
+    {
+        if (m_modalStack.empty()) return nullptr;
+        return m_modalStack.back();
+    }
+
+    void ImWindowManager::UpdateModalState()
+    {
+        m_hasActiveModal = !m_modalStack.empty();
     }
 
 } // namespace ImGuiWidget

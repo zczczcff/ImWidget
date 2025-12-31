@@ -2,10 +2,11 @@
 #include "ImEvent/ImEventSystem.h"
 #include "Application/ImApplication.h"
 #include "ImWidget/ImWidget.h"
+#include "ImWindows/ImWindowManager.h"
 namespace ImGuiWidget
 {
 
-    ImWindow::ImWindow(const std::string& title, const ImVec2& size, const ImVec2& pos, const std::string& ID)
+    ImWindow::ImWindow(const std::string& title, const ImVec2& size, const ImVec2& pos, const std::string& ID,ImWindowManager* m_manager)
         :
         m_windowId(ID)
         , m_title(title)
@@ -21,6 +22,7 @@ namespace ImGuiWidget
         , m_borderColor(IM_COL32(100, 100, 100, 255))
         , m_borderThickness(1.0f)
         , m_rootWidget(nullptr)
+        , m_manager(m_manager)
     {
         // 创建窗口专用的事件系统
         //m_eventSystem = std::make_unique<ImEventSystem>(nullptr);
@@ -42,6 +44,26 @@ namespace ImGuiWidget
         }
         m_rootWidget = rootWidget;
         ControlRootWidget = ControlNewRootWidget;
+    }
+
+    void ImWindow::SetIsActive(bool active)
+    {
+        if (active == bIsActive) return;
+        bIsActive = active;
+        if (active)
+        {
+            OnGetFocus.Broadcast();
+            Open();
+            m_manager->SetActiveWindow(this);
+        }
+        else
+        {
+            OnLoseFocus.Broadcast();
+            if (bAutoCloseWhenLostFocus)
+            {
+                Close();
+            }
+        }
     }
 
     void ImWindow::Render()

@@ -8,10 +8,11 @@ namespace ImGuiWidget
 {
     class ImWindow
     {
+        friend class ImWindowManager;
     private:
         // 窗口的根控件
         ImWidget* m_rootWidget = nullptr;
-
+        class ImWindowManager* m_manager;
         // 每个窗口有自己的事件系统
         //std::unique_ptr<ImEventSystem> m_eventSystem;
         std::string m_windowId;
@@ -33,14 +34,31 @@ namespace ImGuiWidget
         ImU32 m_borderColor = IM_COL32(0, 0, 0, 255);
         float m_borderThickness = 1.0f;
         bool bAutoCloseWhenLostFocus = false;
-        
+        bool bAutoDeleteWhenLostFocus = false;
+
         bool m_JustOpened = false;
         bool ControlRootWidget = false;
+
+        // 模态窗口相关属性
+        bool bIsModal = false;
+        bool bModalBlocking = true; // 是否阻塞其他窗口事件
+        float m_modalDimAmount = 0.5f; // 背景变暗程度
+
         ImMulticastDelegate<> OnGetFocus;
         ImMulticastDelegate<> OnLoseFocus;
-    public:
-        ImWindow(const std::string& title, const ImVec2& size, const ImVec2& pos,const std::string& ID);
+    private:
         virtual ~ImWindow();
+        void SetIsOpen(bool open)
+        {
+            bIsOpen = open;
+            if (open)
+            {
+                m_JustOpened = true;
+            }
+        }
+        void SetIsActive(bool active);
+    public:
+        ImWindow(const std::string& title, const ImVec2& size, const ImVec2& pos,const std::string& ID, ImWindowManager* m_manager);
 
         // 设置根控件
         void SetRootWidget(ImWidget* rootWidget, bool ControlNewRootWidget = false);
@@ -58,33 +76,24 @@ namespace ImGuiWidget
         void SetPosition(const ImVec2& pos) { m_position = pos; }
         const ImVec2& GetPosition() const { return m_position; }
 
-        void SetIsOpen(bool open) 
-        { 
-            bIsOpen = open; 
-            if (open)
-            {
-                m_JustOpened = true;
-            }
-        }
-        bool IsOpen() const { return bIsOpen; }
 
-        void SetIsActive(bool active) 
+        bool IsOpen() const { return bIsOpen; }
+        void Close()
         {
-            if (active == bIsActive) return;
-            bIsActive = active;
-            if (active)
-            {
-                OnGetFocus.Broadcast();
-            }
-            else
-            {
-                OnLoseFocus.Broadcast();
-                if (bAutoCloseWhenLostFocus)
-                {
-                    SetIsOpen(false);
-                }
-            }
-            
+            SetIsOpen(false);
+        }
+        void Open()
+        {
+            SetIsOpen(true);
+        }
+
+        void SetActive()
+        {
+            SetIsActive(true);
+        }
+        void SetInactive()
+        {
+            SetIsActive(false);
         }
         bool IsActive() const { return bIsActive; }
 
@@ -122,7 +131,17 @@ namespace ImGuiWidget
         virtual bool ContainsPoint(const ImVec2& point) const;
 
         // 获取事件系统
-        //ImEventSystem* GetEventSystem() const { return m_eventSystem.get(); }
+        // 新增模态窗口相关方法
+        void SetModal(bool modal, bool blocking = true)
+        {
+            bIsModal = modal;
+            bModalBlocking = blocking;
+        }
+        bool IsModal() const { return bIsModal; }
+        bool IsModalBlocking() const { return bIsModal && bModalBlocking; }
+
+        void SetModalDimAmount(float dimAmount) { m_modalDimAmount = dimAmount; }
+        float GetModalDimAmount() const { return m_modalDimAmount; }
 
     };
 }
