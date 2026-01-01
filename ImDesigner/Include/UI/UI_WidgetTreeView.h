@@ -25,10 +25,9 @@ private:
 	const ImU32 DEFAULT_COLOR = IM_COL32(0, 102, 204, 255);   // 默认颜色
 	std::map<std::string, FileStruct*> AllFileView;
 	std::string ActiveView;
-	std::function<void(ImWidget*)> OnSelectionChanged; // 选中回调
-	std::function<void(ImWidget*)> OnWidgetDeleted; //删除控件回调
 public:
-	ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetDeletedButtonClicked;
+	ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetDeleteButtonClicked;
+	ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetSelectedButtonClicked;
 private:
 	// 存储节点展开状态 (目标控件名 -> 是否展开)
 	// 递归构建树节点
@@ -36,6 +35,8 @@ private:
 
 	FileStruct* GetActiveFileStruct();
 
+	void On_WidgetDeleteButtonClicked(ImGuiWidget::ImWidget* widget);
+	void On_WidgetSelectedButtonClicked(ImGuiWidget::ImWidget* widget, FileStruct* TargetStruct, ImGuiWidget::ImButton* nodeButton);
 public:
 	UI_WidgetTreeView(const std::string& WidgetName)
 		: ImUserWidget(WidgetName)
