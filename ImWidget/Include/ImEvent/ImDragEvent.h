@@ -42,6 +42,7 @@ namespace ImGuiWidget
 			{
 				return GlobalDragObject->GetPreviewWidget();
 			}
+			return nullptr;
 		};
 		void SetPosition(const ImVec2& pos) { m_dragPosition = pos; }
 		void SetDelta(const ImVec2& delta) { m_dragDelta = delta; }
