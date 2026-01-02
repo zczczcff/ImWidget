@@ -7,7 +7,7 @@
 #include "ImWidget/ImImage.h"
 #include "UI/IconManager.h"
 #include "Application/ImApplication.h"
-#include "UI/Widget_UIEditor.h"
+#include "UI/UI_WidgetEditor.h"
 #include "UI/UI_WidgetTreeView.h"
 
 void MainUI::Init2()

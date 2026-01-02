@@ -15,9 +15,12 @@
 
 	 m_MainUI->OnUIFileSelected.Add([this](const std::string& FileName, const std::string& FileFullPath)
 		 {
-			 ImGuiWidget::ImWidget* widget = m_MainModel->BeginEditFile(FileFullPath);
-			 m_MainUI->CreateUIEditorPage(widget, FileName, FileFullPath);
-			 m_MainUI->GetWidgetTreeView()->CreateNewTreeView(FileFullPath, widget);
+			 auto EditedFile = m_MainModel->BeginEditFile(FileFullPath);
+			 if (EditedFile)
+			 {
+				 m_MainUI->CreateUIEditorPage(EditedFile->rootwidget, FileName, FileFullPath);
+				 m_MainUI->GetWidgetTreeView()->CreateNewTreeView(FileFullPath, EditedFile->rootwidget);
+			 }
 		 });
 
 	 m_MainUI->OnEditorPageClosed.Add([this](const std::string& FileFullPath)

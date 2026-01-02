@@ -1,7 +1,7 @@
 #include "Model/Model_MainModel.h"
 #include "ImWidget/ImWidgetCodeGenerator.h"
 #include "ImWidget/ImWidgetSerializer.h"
-
+#include "Model/Model_WidgetEditor.h"
 void Model_MainModel::Tick() 
 {
 
@@ -12,24 +12,26 @@ void Model_MainModel::Init()
 	LoadConfig("");
 }
 
-ImGuiWidget::ImWidget* Model_MainModel::BeginEditFile(const std::string& FileFullPath)
+Model_MainModel::EditedUIFile* Model_MainModel::BeginEditFile(const std::string& FileFullPath)
 {
-	if (EditedWidgets.find(FileFullPath) != EditedWidgets.end()) return nullptr;
+	if (EditedFiles.find(FileFullPath) != EditedFiles.end()) return nullptr;
 	ImGuiWidget::ImWidget* NewEditedWidget = ImGuiWidget::LoadWidgetTreeFromFile(FileFullPath);
 	if (NewEditedWidget)
 	{
-		EditedWidgets.insert(std::make_pair(FileFullPath, NewEditedWidget));
+		EditedUIFile* NewEditedFile = new EditedUIFile(FileFullPath, NewEditedWidget, new Model_WidgetEditor(NewEditedWidget));
+		EditedFiles.insert(std::make_pair(FileFullPath, NewEditedFile));
+		return NewEditedFile;
 	}
-	return NewEditedWidget;
+	return nullptr;
 }
 
 void Model_MainModel::FinishEditFile(const std::string& FileFullPath)
 {
-	auto it = EditedWidgets.find(FileFullPath);
-	if (it != EditedWidgets.end())
+	auto it = EditedFiles.find(FileFullPath);
+	if (it != EditedFiles.end())
 	{
 		delete it->second;
-		EditedWidgets.erase(it);
+		EditedFiles.erase(it);
 	}
 }
 
