@@ -318,24 +318,25 @@ namespace ImGuiWidget
 					ImWidget* ChildHitWidget = m_Slots[i - 1]->GetContent()->ChildHitTest(Pos);
 					if (ChildHitWidget)
 					{
-						ImVec2 Min = Position;
-						ImVec2 Max = Position + Size;
-						if (Size.x > WidgetHitTestPadding * 2 && Size.y > WidgetHitTestPadding * 2)
-						{
-							Min.x += WidgetHitTestPadding;
-							Min.y += WidgetHitTestPadding;
-							Max.x -= WidgetHitTestPadding;
-							Max.y -= WidgetHitTestPadding;
-						}
-						ImRect ChildHitRect(Min, Max);
-						if (ChildHitRect.Contains(Pos))
-						{
-							return ChildHitWidget;
-						}
-						else
-						{
-							return this;
-						}
+						return ChildHitWidget;
+						//ImVec2 Min = Position;
+						//ImVec2 Max = Position + Size;
+						//if (Size.x > WidgetHitTestPadding * 2 && Size.y > WidgetHitTestPadding * 2)
+						//{
+						//	Min.x += WidgetHitTestPadding;
+						//	Min.y += WidgetHitTestPadding;
+						//	Max.x -= WidgetHitTestPadding;
+						//	Max.y -= WidgetHitTestPadding;
+						//}
+						//ImRect ChildHitRect(Min, Max);
+						//if (ChildHitRect.Contains(Pos))
+						//{
+						//	return ChildHitWidget;
+						//}
+						//else
+						//{
+						//	return this;
+						//}
 					}
 				}
 				return this;

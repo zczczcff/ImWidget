@@ -660,36 +660,36 @@ namespace ImGuiWidget
 
 	ImWidget* ImGuiWidget::ImEventSystem::HitTest(ImWidget* widget, const ImVec2& point)
 	{
-	
-		if (!widget || !widget->IsVisible()) return nullptr;
-		//return widget->ChildHitTest(point);
-		ImRect rect(widget->GetPosition(), widget->GetPosition() + widget->GetSize());
+		return widget->ChildHitTest(point);
+		//if (!widget || !widget->IsVisible()) return nullptr;
+		////
+		//ImRect rect(widget->GetPosition(), widget->GetPosition() + widget->GetSize());
 
-		if (!rect.Contains(point)) return nullptr;
+		//if (!rect.Contains(point)) return nullptr;
 
-		if (auto panel = dynamic_cast<ImPanelWidget*>(widget))
-		{
-			for (int i = panel->GetSlotNum() - 1; i >= 0; --i)
-			{
-				if (auto child = panel->GetChildAt(i))
-				{
-					if (auto result = HitTest(child, point))
-					{
-						return result;
-					}
-				}
-			}
-		}
-		else if (auto userwidget = dynamic_cast<ImUserWidget*>(widget))
-		{
-			if (auto result = HitTest(userwidget->GetRootWidget(), point))
-			{
-				return result;
-			}
-		}
+		//if (auto panel = dynamic_cast<ImPanelWidget*>(widget))
+		//{
+		//	for (int i = panel->GetSlotNum() - 1; i >= 0; --i)
+		//	{
+		//		if (auto child = panel->GetChildAt(i))
+		//		{
+		//			if (auto result = HitTest(child, point))
+		//			{
+		//				return result;
+		//			}
+		//		}
+		//	}
+		//}
+		//else if (auto userwidget = dynamic_cast<ImUserWidget*>(widget))
+		//{
+		//	if (auto result = HitTest(userwidget->GetRootWidget(), point))
+		//	{
+		//		return result;
+		//	}
+		//}
 
-		
-		return widget;
+		//
+		//return widget;
 	}
 
 	// ¹¤¾ßº¯Êý
