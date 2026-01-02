@@ -256,7 +256,7 @@ namespace ImGuiWidget
                     {
                         const ImVec2 bodyMin = content->GetMinSize();
                         minSize.y += bodyMin.y;
-                        minSize.x = ImMax(minSize.x, bodyMin.x);
+                        minSize.x = ImMax(minSize.x, bodyMin.x + BodyPad);
                     }
                 }
             }

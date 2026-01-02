@@ -30,13 +30,7 @@ namespace ImGuiWidget
 		virtual void HandleChildSizeDirty(){}
 
 		//控件最小尺寸发生变化时调用
-		virtual void MarkSizeDirty()
-		{
-			if (m_Parents)
-			{
-				m_Parents->HandleChildSizeDirty();
-			}
-		}
+		virtual void MarkSizeDirty();
 	public:
 		ImWidget(const std::string& WidgetName)
 			:m_selfRef(this),// 新对象创建新的自我引用

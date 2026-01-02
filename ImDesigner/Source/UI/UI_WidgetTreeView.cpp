@@ -12,7 +12,7 @@ ImGuiWidget::ImWidget* UI_WidgetTreeView::BuildTreeNode(ImWidget* nodewidget, st
 	{
 		// 创建可展开盒子
 		ImGuiWidget::ImExpandableBox* expandableBox = new ImGuiWidget::ImExpandableBox(nodewidget->GetWidgetName() + "_TreeNode");
-
+		expandableBox->bHaveBorder = false;
 		// 创建头部按钮（可选中）
 		ImGuiWidget::ImButton* headerButton = new ImGuiWidget::ImButton(nodewidget->GetWidgetName() + "_HeaderBtn");
 		ImGuiWidget::ImButton* deletebutton = new ImGuiWidget::ImButton(nodewidget->GetWidgetName() + "_deleteBtn");
@@ -168,14 +168,22 @@ void UI_WidgetTreeView::SetSelectedWidget(ImWidget* widget)
 void UI_WidgetTreeView::CreateNewTreeView(const std::string& Name, ImGuiWidget::ImWidget* Target)
 {
 	if (!Target)return;
+	if (AllFileView.find(Name) != AllFileView.end()) return;
 	FileStruct* NewView = new FileStruct;
 	NewView->TreeViewRoot = BuildTreeNode(Target, NewView->m_ExpandedNode, NewView);
 	NewView->TargetWidget = Target;
 	AllFileView.emplace(std::make_pair(Name, NewView));
+	SetActiveTreeView(Name);
 }
 
 void UI_WidgetTreeView::SetActiveTreeView(const std::string& Name)
 {
+	if (Name.empty())
+	{
+		ActiveView = "";
+		SetRootWidget(nullptr, false);
+		return;
+	}
 	auto it = AllFileView.find(Name);
 	if (it != AllFileView.end())
 	{
@@ -188,6 +196,27 @@ void UI_WidgetTreeView::SetActiveTreeView(const std::string& Name)
 
 
 // 获取当前选中的控件
+
+bool UI_WidgetTreeView::RemoveTreeView(const std::string& Name)
+{
+	auto it = AllFileView.find(Name);
+	if (it != AllFileView.end())
+	{
+		AllFileView.erase(it);
+		if (ActiveView == Name)
+		{
+			if (AllFileView.size() > 0)
+			{
+				SetActiveTreeView(AllFileView.begin()->first);
+			}
+			else
+			{
+				SetActiveTreeView("");
+			}
+		}
+	}
+	return false;
+}
 
 ImGuiWidget::ImWidget* UI_WidgetTreeView::GetSelectedWidget()
 {

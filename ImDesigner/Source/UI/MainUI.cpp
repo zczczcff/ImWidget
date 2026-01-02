@@ -8,6 +8,7 @@
 #include "UI/IconManager.h"
 #include "Application/ImApplication.h"
 #include "UI/Widget_UIEditor.h"
+#include "UI/UI_WidgetTreeView.h"
 
 void MainUI::Init2()
 {
@@ -26,23 +27,20 @@ void MainUI::Init2()
 	ImScrollBox_Folder = new ImGuiWidget::ImScrollBox("ImScrollBox_Folder");
 	ImVerticalBox_Folder = new ImGuiWidget::ImVerticalBox("ImVerticalBox_Folder");
 
-	ImScrollBox_WidgetTree = new ImGuiWidget::ImScrollBox("ImScrollBox_WidgetTree");
-	ImVerticalBox_WidgetTree = new ImGuiWidget::ImVerticalBox("ImVerticalBox_WidgetTree");
+	
 
 	ImScrollBox_Folder->bHaveBorder = false;
 	ImVerticalBox_Folder->bHaveBorder = false;
-	ImScrollBox_WidgetTree->bHaveBorder = false;
-	ImVerticalBox_WidgetTree->bHaveBorder = false;
+	
 
 	ImBorder_LeftTab->SetContent(ImPageManager_LeftPart, false);
 	ImPageManager_LeftPart->SetTabPosition(ImGuiWidget::ImPageManager::TabPosition::Bottom);
 	ImPageManager_LeftPart->SetShowCloseButton(false);
 
 	ImScrollBox_Folder->SetContent(ImVerticalBox_Folder);
-	ImScrollBox_WidgetTree->SetContent(ImVerticalBox_WidgetTree);
 
 	ImPageManager_LeftPart->AddPage(u8"项目目录", ImScrollBox_Folder);
-	ImPageManager_LeftPart->AddPage(u8"控件树", ImScrollBox_WidgetTree);
+	
 
 	m_RightKeyFunMenuWindow = ImGuiWidget::GlobalApp->GetWindowManager()->CreatePopupWindow(ImVec2(0, 0), ImVec2(0, 0), nullptr, false);
 	m_RightKeyFunMenuWindow->Close();
@@ -57,6 +55,13 @@ void MainUI::Init2()
 		{
 			On_EditorPageClosed(FilePath);
 		});
+
+	//控件树视图
+	m_UI_WidgetTreeView = new UI_WidgetTreeView("UI_WidgetTreeView");
+	ImScrollBox_WidgetTree = new ImGuiWidget::ImScrollBox("ImScrollBox_WidgetTree");
+	ImScrollBox_WidgetTree->bHaveBorder = false;
+	ImPageManager_LeftPart->AddPage(u8"控件树", ImScrollBox_WidgetTree);
+	ImScrollBox_WidgetTree->SetContent(m_UI_WidgetTreeView);
 }
 
 void MainUI::SetProjectViewVBoxContent(ProjectFileManager* projectmananger, ImGuiWidget::ImVerticalBox* Vbox, const std::string& CurrentPath)

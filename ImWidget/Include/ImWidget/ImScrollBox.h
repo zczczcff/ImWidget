@@ -285,42 +285,56 @@ namespace ImGuiWidget
                 ImSlot* slot = GetSlotAt(0);
                 ImWidget* content = slot->GetContent();
 
-                // 先计算是否需要显示滚动条
-                bool shouldShowHorizontal = m_HorizontalScrollEnabled && m_ShowHorizontalScrollbar;
-                bool shouldShowVertical = m_VerticalScrollEnabled && m_ShowVerticalScrollbar;
+                // 初始假设：根据用户设置判断是否可能需要滚动条
+                bool canShowHorizontal = m_HorizontalScrollEnabled && m_ShowHorizontalScrollbar;
+                bool canShowVertical = m_VerticalScrollEnabled && m_ShowVerticalScrollbar;
 
-                // 临时计算内容区域可用空间（排除可能显示的滚动条）
-                ImVec2 tempContentAvail = Size;
-                if (shouldShowVertical)
-                    tempContentAvail.x -= m_ScrollbarThickness;
-                if (shouldShowHorizontal)
-                    tempContentAvail.y -= m_ScrollbarThickness;
-
-                // 计算内容尺寸
+                // 获取内容最小尺寸
                 ImVec2 minSize = content->GetMinSize();
-                m_ContentSize = ImVec2(
-                    m_HorizontalScrollEnabled ? minSize.x : ImMin(minSize.x, tempContentAvail.x),
-                    m_VerticalScrollEnabled ? minSize.y : ImMin(minSize.y, tempContentAvail.y)
-                );
 
-                // 重新计算实际需要显示的滚动条
-                bool actuallyShowHorizontal = shouldShowHorizontal && m_ContentSize.x > Size.x - (shouldShowVertical ? m_ScrollbarThickness : 0);
-                bool actuallyShowVertical = shouldShowVertical && m_ContentSize.y > Size.y - (shouldShowHorizontal ? m_ScrollbarThickness : 0);
+                // 迭代计算滚动条显示状态（处理相互依赖）
+                bool showHorizontal = false;
+                bool showVertical = false;
 
-                // 最终的内容区域可用空间
+                for (int i = 0; i < 2; i++)  // 最多迭代2次即可收敛
+                {
+                    ImVec2 availableSpace = Size;
+                    if (showVertical)
+                        availableSpace.x -= m_ScrollbarThickness;
+                    if (showHorizontal)
+                        availableSpace.y -= m_ScrollbarThickness;
+
+                    bool needHorizontal = canShowHorizontal && (minSize.x > availableSpace.x);
+                    bool needVertical = canShowVertical && (minSize.y > availableSpace.y);
+
+                    // 如果状态不再变化，提前退出
+                    if (needHorizontal == showHorizontal && needVertical == showVertical)
+                        break;
+
+                    showHorizontal = needHorizontal;
+                    showVertical = needVertical;
+                }
+
+                // 计算最终的可用空间
                 ImVec2 finalContentAvail = Size;
-                if (actuallyShowVertical)
+                if (showVertical)
                     finalContentAvail.x -= m_ScrollbarThickness;
-                if (actuallyShowHorizontal)
+                if (showHorizontal)
                     finalContentAvail.y -= m_ScrollbarThickness;
 
+                // 计算内容尺寸
+                m_ContentSize = ImVec2(
+                    m_HorizontalScrollEnabled ? minSize.x : ImMin(minSize.x, finalContentAvail.x),
+                    m_VerticalScrollEnabled ? minSize.y : ImMin(minSize.y, finalContentAvail.y)
+                );
+
                 // 更新滚动条状态
-                bHaveHorizonScrollbar = actuallyShowHorizontal;
-                bHaveVerticalScrollbar = actuallyShowVertical;
+                bHaveHorizonScrollbar = showHorizontal;
+                bHaveVerticalScrollbar = showVertical;
 
                 // 设置Slot属性
                 slot->SetSlotPosition(Position - m_ScrollPosition);
-                slot->SetSlotSize(finalContentAvail);
+                slot->SetSlotSize(ImVec2(ImMax(finalContentAvail.x, minSize.x), ImMax(finalContentAvail.y, minSize.y)));
                 slot->ApplyLayout();
             }
         }
@@ -460,6 +474,7 @@ namespace ImGuiWidget
                     ClampScrollPosition();
                     event->StopPropagation();
                 }
+                MarkLayoutDirty();
             }
         }
 
@@ -510,6 +525,7 @@ namespace ImGuiWidget
 
                 ClampScrollPosition();
                 event->StopPropagation();
+                MarkLayoutDirty();
             }
         }
 

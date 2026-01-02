@@ -51,6 +51,10 @@ public:
 
 	void SetActiveTreeView(const std::string& Name);
 
+	std::string GetActiveTreeViewName() { return ActiveView; }
+
+	bool RemoveTreeView(const std::string& Name);
+
 	// 获取当前选中的控件
 	ImGuiWidget::ImWidget* GetSelectedWidget();
 	// 刷新树视图

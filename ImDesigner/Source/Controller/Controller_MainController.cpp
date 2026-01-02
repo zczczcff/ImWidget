@@ -1,7 +1,7 @@
 #include "Controller/Controller_MainController.h"
 #include "Model/Model_MainModel.h"
 #include "UI/MainUI.h"
-
+#include "UI/UI_WidgetTreeView.h"
  Controller_MainController::Controller_MainController(MainUI* MainUI, Model_MainModel* MainModel)
 	:
 	m_MainUI(MainUI),
@@ -17,6 +17,7 @@
 		 {
 			 ImGuiWidget::ImWidget* widget = m_MainModel->BeginEditFile(FileFullPath);
 			 m_MainUI->CreateUIEditorPage(widget, FileName, FileFullPath);
+			 m_MainUI->GetWidgetTreeView()->CreateNewTreeView(FileFullPath, widget);
 		 });
 
 	 m_MainUI->OnEditorPageClosed.Add([this](const std::string& FileFullPath)

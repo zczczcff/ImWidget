@@ -54,7 +54,7 @@ protected:
     ImGuiWidget::ImVerticalBox* ImVerticalBox_Folder;
 
     ImGuiWidget::ImScrollBox* ImScrollBox_WidgetTree;
-    ImGuiWidget::ImVerticalBox* ImVerticalBox_WidgetTree;
+    class UI_WidgetTreeView* m_UI_WidgetTreeView;
     //---------------------弹出菜单------------------
     ImGuiWidget::ImWindow* m_RightKeyFunMenuWindow;
     ImGuiWidget::ImVerticalBox* ImVerticalBox_FolderOperatorMenu;
@@ -73,4 +73,6 @@ public:
     void On_UIFileButtonClicked(const std::string& FileName, const std::string& FileFullPath);
     void CreateUIEditorPage(ImGuiWidget::ImWidget* FileRootWidget, const std::string& FileName, const std::string& FileFullPath);
     void On_EditorPageClosed(const std::string& FilePath);
+public:
+    UI_WidgetTreeView* GetWidgetTreeView() { return m_UI_WidgetTreeView; }
 };

@@ -365,12 +365,14 @@ namespace ImGuiWidget
 
 		virtual void SetPosition(ImVec2 Pos)override
 		{
+			if (Pos == Position) return;
 			Position = Pos;
 			MarkLayoutDirty();
 		}
 
 		virtual void SetSize(ImVec2 size)override
 		{
+			if (size == Size) return;
 			Size = size;
 			MarkLayoutDirty();
 		}
