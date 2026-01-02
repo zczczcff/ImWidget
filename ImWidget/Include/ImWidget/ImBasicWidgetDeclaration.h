@@ -2,6 +2,14 @@
 
 namespace ImGuiWidget
 {
+	class ImWidget;
+	class ImPanelWidget;
+	class ImUserWidget;
+}
+
+
+namespace ImGuiWidget
+{
 	class ImButton;
 	class ImCanvasPanel;
 	class ImCheckBox;

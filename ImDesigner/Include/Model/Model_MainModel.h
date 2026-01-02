@@ -8,9 +8,21 @@ namespace ImGuiWidget
 {
 	class ImWidget;
 }
-
+class Model_Editor;
 class Model_MainModel
 {
+public:
+	struct EditedUIFile
+	{
+		std::string FileFullPath;
+		ImGuiWidget::ImWidget* rootwidget;
+		Model_Editor* model_editor;
+		EditedUIFile(std::string FileFullPath,ImGuiWidget::ImWidget* rootwidget,Model_Editor* model_editor)
+			:FileFullPath(FileFullPath),
+			rootwidget(rootwidget),
+			model_editor(model_editor)
+		{ }
+	};
 private:
 	ProjectConfig m_ProjectConfig;
 	ProjectFileManager m_ProjectFileManager;

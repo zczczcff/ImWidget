@@ -206,7 +206,7 @@ void MainUI::CreateUIEditorPage(ImGuiWidget::ImWidget* FileRootWidget, const std
 		ImPageManager_Main->SwitchToPage(FileFullPath);
 		return;
 	}
-	Widget_UIEditor* NewWidget_UIEditor = new Widget_UIEditor(FileName + "_Editor", FileRootWidget);
+	UI_WidgetEditor* NewWidget_UIEditor = new UI_WidgetEditor(FileName + "_Editor", FileRootWidget);
 	ImPageManager_Main->AddPage(FileFullPath, FileRootWidget, IconManager::GetInstance()->GetIcon(ImDesignerIcon::UIFile), FileName);
 	ImPageManager_Main->SwitchToPage(FileFullPath);
 }
