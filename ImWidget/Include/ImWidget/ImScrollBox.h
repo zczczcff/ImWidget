@@ -160,6 +160,32 @@ namespace ImGuiWidget
             }
         }
 
+        virtual ImWidget* ChildHitTest(ImVec2 Pos)
+        {
+            ImVec2 ContentSize = Size;
+            if (bHaveVerticalScrollbar)
+            {
+                ContentSize.y -= m_ScrollbarThickness;
+            }
+            if (bHaveHorizonScrollbar)
+            {
+                ContentSize.x -= m_ScrollbarThickness;
+			}
+			ImRect mRect(Position, Position + Size);
+			ImRect ContentRect(Position, Position + ContentSize);
+            if (mRect.Contains(Pos))
+            {
+                if (ContentRect.Contains(Pos))
+                {
+                    return ImPanelWidget::ChildHitTest(Pos);
+                }
+                return this;
+            }
+            else
+            {
+                return nullptr;
+            }
+        }
     protected:
         // 确保滚动位置在有效范围内
         void ClampScrollPosition()
