@@ -151,7 +151,7 @@ void UI_WidgetTreeView::SetSelectedWidget(ImWidget* widget)
 
         ImGuiWidget::ImButton* HeaderButton = it->second;
         ImWidget* CurrentNode = HeaderButton;
-        while (CurrentNode != m_TreeView.TreeViewRoot && CurrentNode != nullptr)
+        while (CurrentNode != this && CurrentNode != nullptr)
         {
             if (ImGuiWidget::ImButton* NextHeadButton = dynamic_cast<ImGuiWidget::ImButton*>(CurrentNode))
             {
