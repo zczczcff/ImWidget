@@ -10,54 +10,56 @@
 class UI_WidgetTreeView :public ImGuiWidget::ImUserWidget
 {
 private:
-	struct FileStruct
-	{
-		ImGuiWidget::ImWidget* TreeViewRoot = nullptr;//视图根控件
-		ImGuiWidget::ImWidget* TargetWidget = nullptr;      // 目标控件
-		ImGuiWidget::ImWidget* SelectedWidget = nullptr;       // 当前选中的控件
-		std::unordered_set<ImGuiWidget::ImWidget*> m_ExpandedNode;
-		std::unordered_map<ImGuiWidget::ImWidget*, ImGuiWidget::ImButton*> WidgetToHeaderButton;
-		std::unordered_map<ImGuiWidget::ImButton*, ImGuiWidget::ImWidget*> HeaderButtonToWidget;
-		ImGuiWidget::ImButton* SelectedHeaderButton = nullptr;
-	};
+    struct TreeViewStruct
+    {
+        ImGuiWidget::ImWidget* TreeViewRoot = nullptr;//视图根控件
+        ImGuiWidget::ImWidget* TargetWidget = nullptr;      // 目标控件
+        ImGuiWidget::ImWidget* SelectedWidget = nullptr;       // 当前选中的控件
+        std::unordered_set<ImGuiWidget::ImWidget*> m_ExpandedNode;
+        std::unordered_map<ImGuiWidget::ImWidget*, ImGuiWidget::ImButton*> WidgetToHeaderButton;
+        std::unordered_map<ImGuiWidget::ImButton*, ImGuiWidget::ImWidget*> HeaderButtonToWidget;
+        ImGuiWidget::ImButton* SelectedHeaderButton = nullptr;
+    };
+
 private:
-	const ImU32 HIGHLIGHT_COLOR = IM_COL32(20, 200, 20, 255); // 高亮颜色
-	const ImU32 DEFAULT_COLOR = IM_COL32(0, 102, 204, 255);   // 默认颜色
-	std::map<std::string, FileStruct*> AllFileView;
-	std::string ActiveView;
+    const ImU32 HIGHLIGHT_COLOR = IM_COL32(20, 200, 20, 255); // 高亮颜色
+    const ImU32 DEFAULT_COLOR = IM_COL32(0, 102, 204, 255);   // 默认颜色
+
+    TreeViewStruct m_TreeView;  // 单个树视图结构
+
 public:
-	ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetDeleteButtonClicked;
-	ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetSelectedButtonClicked;
+    ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetDeleteButtonClicked;
+    ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetSelectedButtonClicked;
+
 private:
-	// 存储节点展开状态 (目标控件名 -> 是否展开)
-	// 递归构建树节点
-	ImGuiWidget::ImWidget* BuildTreeNode(ImGuiWidget::ImWidget* widget, std::unordered_set<ImGuiWidget::ImWidget*>& m_ExpandedNode, FileStruct* TargetStruct, int depth = 0);
+    // 递归构建树节点
+    ImGuiWidget::ImWidget* BuildTreeNode(ImGuiWidget::ImWidget* widget, std::unordered_set<ImGuiWidget::ImWidget*>& m_ExpandedNode, int depth = 0);
 
-	FileStruct* GetActiveFileStruct();
+    void On_WidgetDeleteButtonClicked(ImGuiWidget::ImWidget* widget);
+    void On_WidgetSelectedButtonClicked(ImGuiWidget::ImWidget* widget, ImGuiWidget::ImButton* nodeButton);
 
-	void On_WidgetDeleteButtonClicked(ImGuiWidget::ImWidget* widget);
-	void On_WidgetSelectedButtonClicked(ImGuiWidget::ImWidget* widget, FileStruct* TargetStruct, ImGuiWidget::ImButton* nodeButton);
 public:
-	UI_WidgetTreeView(const std::string& WidgetName)
-		: ImUserWidget(WidgetName)
-		//m_SelectedWidget(nullptr)
-	{
-		SetAllowDragOn(true);
-	}
-		//外部设置选中控件
-	void SetSelectedWidget(ImGuiWidget::ImWidget* widget);
+    UI_WidgetTreeView(const std::string& WidgetName)
+        : ImUserWidget(WidgetName)
+    {
+        SetAllowDragOn(true);
+    }
 
-	void CreateNewTreeView(const std::string& Name, ImGuiWidget::ImWidget* Target);
+    // 设置目标控件树
+    void SetTargetWidget(ImGuiWidget::ImWidget* Target);
 
-	void SetActiveTreeView(const std::string& Name);
+    //外部设置选中控件
+    void SetSelectedWidget(ImGuiWidget::ImWidget* widget);
 
-	std::string GetActiveTreeViewName() { return ActiveView; }
+    // 获取当前选中的控件
+    ImGuiWidget::ImWidget* GetSelectedWidget();
 
-	bool RemoveTreeView(const std::string& Name);
+    // 获取目标控件
+    ImGuiWidget::ImWidget* GetTargetWidget() { return m_TreeView.TargetWidget; }
 
-	// 获取当前选中的控件
-	ImGuiWidget::ImWidget* GetSelectedWidget();
-	// 刷新树视图
-	void Refresh();
+    // 刷新树视图
+    void Refresh();
 
+    // 清空树视图
+    void Clear();
 };

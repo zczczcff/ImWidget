@@ -9,6 +9,7 @@
 #include "Application/ImApplication.h"
 #include "UI/UI_WidgetEditor.h"
 #include "UI/UI_WidgetTreeView.h"
+#include "UI/UI_DetailView.h"
 
 void MainUI::Init2()
 {
@@ -55,13 +56,17 @@ void MainUI::Init2()
 		{
 			On_EditorPageClosed(FilePath);
 		});
+	ImPageManager_Main->OnPageSelected().Add([this](const std::string& PageID) { On_EditorPageSelected(PageID); });
 
 	//¿Ø¼þÊ÷ÊÓÍ¼
-	m_UI_WidgetTreeView = new UI_WidgetTreeView("UI_WidgetTreeView");
 	ImScrollBox_WidgetTree = new ImGuiWidget::ImScrollBox("ImScrollBox_WidgetTree");
 	ImScrollBox_WidgetTree->bHaveBorder = false;
 	ImPageManager_LeftPart->AddPage(u8"¿Ø¼þÊ÷", ImScrollBox_WidgetTree);
-	ImScrollBox_WidgetTree->SetContent(m_UI_WidgetTreeView);
+
+	//Ï¸½Ú¿ò
+	ImScrollBox_FileDetail = new ImGuiWidget::ImScrollBox("ImScrollBox_FileDetail");
+	ImScrollBox_FileDetail->bHaveBorder = false;
+	ImBorder_Right->SetContent(ImScrollBox_FileDetail);
 }
 
 void MainUI::SetProjectViewVBoxContent(ProjectFileManager* projectmananger, ImGuiWidget::ImVerticalBox* Vbox, const std::string& CurrentPath)
@@ -199,7 +204,7 @@ void MainUI::On_UIFileButtonClicked(const std::string& FileName, const std::stri
 	OnUIFileSelected.Broadcast(FileName, FileFullPath);
 }
 
-void MainUI::CreateUIEditorPage(ImGuiWidget::ImWidget* FileRootWidget, const std::string& FileName, const std::string& FileFullPath)
+void MainUI::CreateNewWidgetEditorPage(ImGuiWidget::ImWidget* FileRootWidget, const std::string& FileName, const std::string& FileFullPath)
 {
 	if (ImPageManager_Main->HasPage(FileFullPath))
 	{
@@ -207,11 +212,134 @@ void MainUI::CreateUIEditorPage(ImGuiWidget::ImWidget* FileRootWidget, const std
 		return;
 	}
 	UI_WidgetEditor* NewWidget_UIEditor = new UI_WidgetEditor(FileName + "_Editor", FileRootWidget);
-	ImPageManager_Main->AddPage(FileFullPath, FileRootWidget, IconManager::GetInstance()->GetIcon(ImDesignerIcon::UIFile), FileName);
+	ImPageManager_Main->AddPage(FileFullPath, NewWidget_UIEditor, IconManager::GetInstance()->GetIcon(ImDesignerIcon::UIFile), FileName);
 	ImPageManager_Main->SwitchToPage(FileFullPath);
+}
+
+UI_WidgetEditor* MainUI::GetWidgetEditorByName(const std::string& Name)
+{
+	if (UI_WidgetEditor* finded = dynamic_cast<UI_WidgetEditor*>(ImPageManager_Main->GetPageContentByID(Name)))
+	{
+		return finded;
+	}
+	else
+	{
+		return nullptr;
+	}
 }
 
 void MainUI::On_EditorPageClosed(const std::string& FilePath)
 {
 	OnEditorPageClosed.Broadcast(FilePath);
+}
+
+void MainUI::On_EditorPageSelected(const std::string& PageID)
+{
+	OnEditorPageSelected.Broadcast(PageID);
+}
+
+bool MainUI::CreateNewWidgetTreeView(const std::string& Name, ImGuiWidget::ImWidget* TargetWidget)
+{
+	if (AllTreeViews.find(Name) != AllTreeViews.end()) return false;
+	UI_WidgetTreeView* New_UI_WidgetTreeView = new UI_WidgetTreeView("UI_WidgetTreeView");
+	New_UI_WidgetTreeView->SetTargetWidget(TargetWidget);
+	AllTreeViews.insert(std::make_pair(Name, New_UI_WidgetTreeView));
+	return true;
+}
+
+UI_WidgetTreeView* MainUI::GetWidgetTreeViewByName(const std::string& Name)
+{
+	auto it = AllTreeViews.find(Name);
+	if (it != AllTreeViews.end())
+	{
+		return it->second;
+	}
+	return nullptr;
+}
+
+bool MainUI::ShowWidgetTreeViewByName(const std::string& Name)
+{
+	if (CurrentTreeView == Name) return true;
+	if (Name == "")
+	{
+		ImScrollBox_WidgetTree->SetContent(nullptr, false);
+		return true;
+	}
+	auto it = AllTreeViews.find(Name);
+	if (it != AllTreeViews.end())
+	{
+		ImScrollBox_WidgetTree->SetContent(it->second, false);
+		CurrentTreeView = Name;
+		return true;
+	}
+	return false;
+}
+
+bool MainUI::RemoveWidgetTreeViewByName(const std::string& Name)
+{
+	auto it = AllTreeViews.find(Name);
+	if (it != AllTreeViews.end())
+	{
+		if (CurrentTreeView == Name)
+		{
+			ShowWidgetTreeViewByName("");
+		}
+		delete it->second;
+		AllTreeViews.erase(it);
+		return true;
+	}
+	return false;
+}
+
+bool MainUI::CreateNewDetailView(const std::string& Name)
+{
+	if (AllFileDetails.find(Name) != AllFileDetails.end()) return false;
+	UI_DetailView* New_UI_DetailView = new UI_DetailView("UI_DetailView");
+	AllFileDetails.insert(std::make_pair(Name, New_UI_DetailView));
+	return true;
+}
+
+UI_DetailView* MainUI::GetDetailViewByName(const std::string& Name)
+{
+	auto it = AllFileDetails.find(Name);
+	if (it != AllFileDetails.end())
+	{
+		return it->second;
+	}
+	return nullptr;
+}
+
+bool MainUI::ShowDetailViewByName(const std::string& Name)
+{
+	if (CurrentFileDetail == Name) return true;
+	if (Name == "")
+	{
+		ImScrollBox_FileDetail->SetContent(nullptr, false);
+		CurrentFileDetail = Name;
+		return true;
+	}
+	auto it = AllFileDetails.find(Name);
+	if (it != AllFileDetails.end())
+	{
+		ImScrollBox_FileDetail->SetContent(it->second, false);
+		CurrentFileDetail = Name;
+		return true;
+	}
+	return false;
+}
+
+bool MainUI::RemoveDetailViewByName(const std::string& Name)
+{
+	auto it = AllFileDetails.find(Name);
+	if (it != AllFileDetails.end())
+	{
+		if (CurrentFileDetail == Name)
+		{
+			ShowDetailViewByName("");
+		}
+		delete it->second;
+		AllFileDetails.erase(it);
+		return true;
+	}
+	return false;
 }

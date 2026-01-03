@@ -42,21 +42,21 @@ namespace ImGuiWidget
     protected:
         // ================ 拖拽相关虚函数 ================ //
         // ================ 新增事件处理虚函数（参考UE4） ================ //
-        virtual void OnMouseEnter(const ImMouseEnterEvent& e) {}
-        virtual void OnMouseLeave(const ImMouseLeaveEvent& e) {}
-        virtual void OnMouseMove(const ImMouseMoveEvent& e) {}
-        virtual void OnMouseDown(const ImMouseDownEvent& e) {}
-        virtual void OnMouseUp(const ImMouseUpEvent& e) {}
-        virtual void OnMouseClick(const ImMouseClickEvent& e) {}
-        virtual void OnMouseDoubleClick(const ImMouseDoubleClickEvent& e) {}
-        virtual void OnMouseWheel(const ImMouseWheelEvent& e) {}
+        virtual void OnMouseEnter(ImMouseEnterEvent& e) {}
+        virtual void OnMouseLeave(ImMouseLeaveEvent& e) {}
+        virtual void OnMouseMove(ImMouseMoveEvent& e) {}
+        virtual void OnMouseDown(ImMouseDownEvent& e) {}
+        virtual void OnMouseUp(ImMouseUpEvent& e) {}
+        virtual void OnMouseClick(ImMouseClickEvent& e) {}
+        virtual void OnMouseDoubleClick(ImMouseDoubleClickEvent& e) {}
+        virtual void OnMouseWheel(ImMouseWheelEvent& e) {}
 
-        virtual void OnKeyDown(const ImKeyDownEvent& e) {}
-        virtual void OnKeyUp(const ImKeyUpEvent& e) {}
-        virtual void OnKeyPress(const ImKeyPressEvent& e) {}
+        virtual void OnKeyDown(ImKeyDownEvent& e) {}
+        virtual void OnKeyUp(ImKeyUpEvent& e) {}
+        virtual void OnKeyPress(ImKeyPressEvent& e) {}
 
-        virtual void OnFocusReceived(const ImFocusInEvent& e) {}
-        virtual void OnFocusLost(const ImFocusOutEvent& e) {}
+        virtual void OnFocusReceived(ImFocusInEvent& e) {}
+        virtual void OnFocusLost(ImFocusOutEvent& e) {}
 
         virtual void OnDragStart(ImDragStartEvent& e) {}
         virtual void OnDragUpdate(ImDragUpdateEvent& e) {}

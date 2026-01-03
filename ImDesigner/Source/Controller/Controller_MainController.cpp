@@ -2,6 +2,7 @@
 #include "Model/Model_MainModel.h"
 #include "UI/MainUI.h"
 #include "UI/UI_WidgetTreeView.h"
+#include "Controller/Controller_WidgetEditor.h"
  Controller_MainController::Controller_MainController(MainUI* MainUI, Model_MainModel* MainModel)
 	:
 	m_MainUI(MainUI),
@@ -18,8 +19,16 @@
 			 auto EditedFile = m_MainModel->BeginEditFile(FileFullPath);
 			 if (EditedFile)
 			 {
-				 m_MainUI->CreateUIEditorPage(EditedFile->rootwidget, FileName, FileFullPath);
-				 m_MainUI->GetWidgetTreeView()->CreateNewTreeView(FileFullPath, EditedFile->rootwidget);
+				 m_MainUI->CreateNewWidgetEditorPage(EditedFile->rootwidget, FileName, FileFullPath);
+				 m_MainUI->CreateNewWidgetTreeView(FileFullPath, EditedFile->rootwidget);
+				 m_MainUI->CreateNewDetailView(FileFullPath);
+				 m_MainUI->ShowWidgetTreeViewByName(FileFullPath);
+				 m_MainUI->ShowDetailViewByName(FileFullPath);
+				 UI_WidgetTreeView* WidgetTreeView = m_MainUI->GetWidgetTreeViewByName(FileFullPath);
+				 UI_DetailView* DetailView = m_MainUI->GetDetailViewByName(FileFullPath);
+				 UI_WidgetEditor* WidgetEditor = m_MainUI->GetWidgetEditorByName(FileFullPath);
+				 Controller_WidgetEditor* NewController_WidgetEditor = new Controller_WidgetEditor(WidgetTreeView, WidgetEditor, DetailView, EditedFile->model_editor);
+				 WidgetEidtorControllers.insert(std::make_pair(FileFullPath, NewController_WidgetEditor));
 			 }
 		 });
 

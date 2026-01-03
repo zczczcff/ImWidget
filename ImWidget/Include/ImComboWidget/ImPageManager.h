@@ -433,6 +433,11 @@ namespace ImGuiWidget
             m_onPageSelected.Broadcast(pageID);
         }
 
+        ImWidget* GetPageContentByID(const std::string& pageID)
+        {
+            return FindPageContent(pageID);
+        }
+
         // 2. 新增：设置页面显示名称
         void SetPageDisplayName(const std::string& pageID, const std::string& newDisplayName)
         {

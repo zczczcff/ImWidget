@@ -1,247 +1,208 @@
 #include "UI/UI_WidgetTreeView.h"
 #include "ImWidget/ImBasicWidgetList.h"
-// 存储节点展开状态 (目标控件名 -> 是否展开)
-// 递归构建树节点
 
-ImGuiWidget::ImWidget* UI_WidgetTreeView::BuildTreeNode(ImWidget* nodewidget, std::unordered_set<ImWidget*>& m_ExpandedNode, FileStruct* TargetStruct, int depth)
+ImGuiWidget::ImWidget* UI_WidgetTreeView::BuildTreeNode(ImWidget* nodewidget, std::unordered_set<ImWidget*>& m_ExpandedNode, int depth)
 {
-	// 检查是否为PanelWidget
-	ImGuiWidget::ImPanelWidget* panelWidget = dynamic_cast<ImGuiWidget::ImPanelWidget*>(nodewidget);
+    // 检查是否为PanelWidget
+    ImGuiWidget::ImPanelWidget* panelWidget = dynamic_cast<ImGuiWidget::ImPanelWidget*>(nodewidget);
 
-	if (panelWidget)
-	{
-		// 创建可展开盒子
-		ImGuiWidget::ImExpandableBox* expandableBox = new ImGuiWidget::ImExpandableBox(nodewidget->GetWidgetName() + "_TreeNode");
-		expandableBox->bHaveBorder = false;
-		// 创建头部按钮（可选中）
-		ImGuiWidget::ImButton* headerButton = new ImGuiWidget::ImButton(nodewidget->GetWidgetName() + "_HeaderBtn");
-		ImGuiWidget::ImButton* deletebutton = new ImGuiWidget::ImButton(nodewidget->GetWidgetName() + "_deleteBtn");
+    if (panelWidget)
+    {
+        // 创建可展开盒子
+        ImGuiWidget::ImExpandableBox* expandableBox = new ImGuiWidget::ImExpandableBox(nodewidget->GetWidgetName() + "_TreeNode");
+        expandableBox->bHaveBorder = false;
+        // 创建头部按钮（可选中）
+        ImGuiWidget::ImButton* headerButton = new ImGuiWidget::ImButton(nodewidget->GetWidgetName() + "_HeaderBtn");
+        ImGuiWidget::ImButton* deletebutton = new ImGuiWidget::ImButton(nodewidget->GetWidgetName() + "_deleteBtn");
 
-		// 设置按钮文本和样式
-		ImGuiWidget::ImTextBlock* buttonText = new ImGuiWidget::ImTextBlock(nodewidget->GetWidgetName() + "_HeaderTxt");
-		ImGuiWidget::ImTextBlock* deletebuttonText = new ImGuiWidget::ImTextBlock(nodewidget->GetWidgetName() + "_deleteTxt");
-		buttonText->SetText(nodewidget->GetWidgetName());
-		deletebuttonText->SetText("X");
-		headerButton->SetContent(buttonText);
-		deletebutton->SetContent(deletebuttonText);
-		headerButton->GetNormalStyle().BackgroundColor = DEFAULT_COLOR;
-		// 点击头部按钮选中控件
-		headerButton->SetOnPressed([this, nodewidget, headerButton, TargetStruct]() { On_WidgetSelectedButtonClicked(nodewidget, TargetStruct, headerButton); });
+        // 设置按钮文本和样式
+        ImGuiWidget::ImTextBlock* buttonText = new ImGuiWidget::ImTextBlock(nodewidget->GetWidgetName() + "_HeaderTxt");
+        ImGuiWidget::ImTextBlock* deletebuttonText = new ImGuiWidget::ImTextBlock(nodewidget->GetWidgetName() + "_deleteTxt");
+        buttonText->SetText(nodewidget->GetWidgetName());
+        deletebuttonText->SetText("X");
+        headerButton->SetContent(buttonText);
+        deletebutton->SetContent(deletebuttonText);
+        headerButton->GetNormalStyle().BackgroundColor = DEFAULT_COLOR;
+        // 点击头部按钮选中控件
+        headerButton->SetOnPressed([this, nodewidget, headerButton]() { On_WidgetSelectedButtonClicked(nodewidget, headerButton); });
 
-		deletebutton->SetOnPressed([this, nodewidget]() { On_WidgetDeleteButtonClicked(nodewidget); });
-		TargetStruct->WidgetToHeaderButton[nodewidget] = headerButton;
-		TargetStruct->HeaderButtonToWidget[headerButton] = nodewidget;
-		ImGuiWidget::ImHorizontalBox* headerbox = new ImGuiWidget::ImHorizontalBox(nodewidget->GetWidgetName() + "_HeaderBox");
-		headerbox->AddChildToHorizontalBox(headerButton)->SetIfAutoSize(true);
-		headerbox->AddChildToHorizontalBox(deletebutton)->SetIfAutoSize(false);
-		expandableBox->SetHead(headerbox);
+        deletebutton->SetOnPressed([this, nodewidget]() { On_WidgetDeleteButtonClicked(nodewidget); });
+        m_TreeView.WidgetToHeaderButton[nodewidget] = headerButton;
+        m_TreeView.HeaderButtonToWidget[headerButton] = nodewidget;
+        ImGuiWidget::ImHorizontalBox* headerbox = new ImGuiWidget::ImHorizontalBox(nodewidget->GetWidgetName() + "_HeaderBox");
+        headerbox->AddChildToHorizontalBox(headerButton)->SetIfAutoSize(true);
+        headerbox->AddChildToHorizontalBox(deletebutton)->SetIfAutoSize(false);
+        expandableBox->SetHead(headerbox);
 
-		// 创建垂直容器存放子节点
-		ImGuiWidget::ImVerticalBox* childContainer = new ImGuiWidget::ImVerticalBox(nodewidget->GetWidgetName() + "_ChildContainer");
-		expandableBox->SetBody(childContainer);
+        // 创建垂直容器存放子节点
+        ImGuiWidget::ImVerticalBox* childContainer = new ImGuiWidget::ImVerticalBox(nodewidget->GetWidgetName() + "_ChildContainer");
+        expandableBox->SetBody(childContainer);
 
-		// 递归添加子节点
-		int slotCount = panelWidget->GetSlotNum();
-		for (int i = 0; i < slotCount; ++i)
-		{
-			ImGuiWidget::ImSlot* slot = panelWidget->GetSlotAt(i);
-			if (slot && slot->GetContent())
-			{
-				ImWidget* childNode = BuildTreeNode(slot->GetContent(), m_ExpandedNode, TargetStruct, depth + 1);
-				if (childNode)
-				{
-					childContainer->AddChildToVerticalBox(childNode)->SetIfAutoSize(false);
-				}
-			}
-		}
+        // 递归添加子节点
+        int slotCount = panelWidget->GetSlotNum();
+        for (int i = 0; i < slotCount; ++i)
+        {
+            ImGuiWidget::ImSlot* slot = panelWidget->GetSlotAt(i);
+            if (slot && slot->GetContent())
+            {
+                ImWidget* childNode = BuildTreeNode(slot->GetContent(), m_ExpandedNode, depth + 1);
+                if (childNode)
+                {
+                    childContainer->AddChildToVerticalBox(childNode)->SetIfAutoSize(false);
+                }
+            }
+        }
 
-		if (m_ExpandedNode.find(panelWidget) != m_ExpandedNode.end())
-		{
-			expandableBox->SetExpandedState(true);
-		}
+        if (m_ExpandedNode.find(panelWidget) != m_ExpandedNode.end())
+        {
+            expandableBox->SetExpandedState(true);
+        }
 
-		expandableBox->SetOnExpandedStateChanged([this, panelWidget, &m_ExpandedNode](bool newstate) mutable
-			{
-				if (newstate)
-				{
-					m_ExpandedNode.insert(panelWidget);
-				}
-				else
-				{
-					m_ExpandedNode.erase(panelWidget);
-				}
-			});
-		return expandableBox;
-	}
-	else
-	{
-		// 普通控件 - 创建选择按钮
-		ImGuiWidget::ImButton* nodeButton = new ImGuiWidget::ImButton(nodewidget->GetWidgetName() + "_NodeBtn");
-		ImGuiWidget::ImButton* deletebutton = new ImGuiWidget::ImButton(nodewidget->GetWidgetName() + "_deleteBtn");
-		ImGuiWidget::ImTextBlock* deletebuttonText = new ImGuiWidget::ImTextBlock(nodewidget->GetWidgetName() + "_deleteTxt");
-		deletebuttonText->SetText("X");
-		deletebutton->SetContent(deletebuttonText);
+        expandableBox->SetOnExpandedStateChanged([this, panelWidget, &m_ExpandedNode](bool newstate) mutable
+            {
+                if (newstate)
+                {
+                    m_ExpandedNode.insert(panelWidget);
+                }
+                else
+                {
+                    m_ExpandedNode.erase(panelWidget);
+                }
+            });
+        return expandableBox;
+    }
+    else
+    {
+        // 普通控件 - 创建选择按钮
+        ImGuiWidget::ImButton* nodeButton = new ImGuiWidget::ImButton(nodewidget->GetWidgetName() + "_NodeBtn");
+        ImGuiWidget::ImButton* deletebutton = new ImGuiWidget::ImButton(nodewidget->GetWidgetName() + "_deleteBtn");
+        ImGuiWidget::ImTextBlock* deletebuttonText = new ImGuiWidget::ImTextBlock(nodewidget->GetWidgetName() + "_deleteTxt");
+        deletebuttonText->SetText("X");
+        deletebutton->SetContent(deletebuttonText);
 
-		ImGuiWidget::ImTextBlock* buttonText = new ImGuiWidget::ImTextBlock(nodewidget->GetWidgetName() + "_NodeTxt");
-		buttonText->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Left);
-		buttonText->SetText(nodewidget->GetWidgetName());
-		nodeButton->SetContent(buttonText);
-		nodeButton->GetNormalStyle().BackgroundColor = DEFAULT_COLOR;
-		// 点击按钮选中控件
-		nodeButton->SetOnPressed([this, nodewidget, TargetStruct, nodeButton]() { On_WidgetSelectedButtonClicked(nodewidget, TargetStruct, nodeButton); });
-		deletebutton->OnLeftClicked.Add([this, nodewidget]() { On_WidgetDeleteButtonClicked(nodewidget); });
-		TargetStruct->WidgetToHeaderButton[nodewidget] = nodeButton;
-		TargetStruct->HeaderButtonToWidget[nodeButton] = nodewidget;
+        ImGuiWidget::ImTextBlock* buttonText = new ImGuiWidget::ImTextBlock(nodewidget->GetWidgetName() + "_NodeTxt");
+        buttonText->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Left);
+        buttonText->SetText(nodewidget->GetWidgetName());
+        nodeButton->SetContent(buttonText);
+        nodeButton->GetNormalStyle().BackgroundColor = DEFAULT_COLOR;
+        // 点击按钮选中控件
+        nodeButton->SetOnPressed([this, nodewidget, nodeButton]() { On_WidgetSelectedButtonClicked(nodewidget, nodeButton); });
+        deletebutton->OnLeftClicked.Add([this, nodewidget]() { On_WidgetDeleteButtonClicked(nodewidget); });
+        m_TreeView.WidgetToHeaderButton[nodewidget] = nodeButton;
+        m_TreeView.HeaderButtonToWidget[nodeButton] = nodewidget;
 
-		ImGuiWidget::ImHorizontalBox* NodeBox = new ImGuiWidget::ImHorizontalBox(nodewidget->GetWidgetName() + "_NodeBox");
-		NodeBox->AddChildToHorizontalBox(nodeButton)->SetIfAutoSize(true);
-		NodeBox->AddChildToHorizontalBox(deletebutton)->SetIfAutoSize(false);
-		return NodeBox;
-	}
-}
-
-UI_WidgetTreeView::FileStruct* UI_WidgetTreeView::GetActiveFileStruct()
-{
-	auto it = AllFileView.find(ActiveView);
-	if (it != AllFileView.end())
-	{
-		return it->second;
-	}
-	else
-	{
-		return nullptr;
-	}
+        ImGuiWidget::ImHorizontalBox* NodeBox = new ImGuiWidget::ImHorizontalBox(nodewidget->GetWidgetName() + "_NodeBox");
+        NodeBox->AddChildToHorizontalBox(nodeButton)->SetIfAutoSize(true);
+        NodeBox->AddChildToHorizontalBox(deletebutton)->SetIfAutoSize(false);
+        return NodeBox;
+    }
 }
 
 void UI_WidgetTreeView::On_WidgetDeleteButtonClicked(ImGuiWidget::ImWidget* widget)
 {
-	OnWidgetDeleteButtonClicked.Broadcast(widget);
+    OnWidgetDeleteButtonClicked.Broadcast(widget);
 }
 
-void UI_WidgetTreeView::On_WidgetSelectedButtonClicked(ImGuiWidget::ImWidget* widget, FileStruct* TargetStruct, ImGuiWidget::ImButton* nodeButton)
+void UI_WidgetTreeView::On_WidgetSelectedButtonClicked(ImGuiWidget::ImWidget* widget, ImGuiWidget::ImButton* nodeButton)
 {
-	if (TargetStruct->SelectedHeaderButton)
-	{
-		TargetStruct->SelectedHeaderButton->GetNormalStyle().BackgroundColor = DEFAULT_COLOR;
-	}
-	TargetStruct->SelectedHeaderButton = nodeButton;
-	TargetStruct->SelectedWidget = widget;
-	nodeButton->GetNormalStyle().BackgroundColor = HIGHLIGHT_COLOR;
-	OnWidgetSelectedButtonClicked.Broadcast(widget);
+    if (m_TreeView.SelectedHeaderButton)
+    {
+        m_TreeView.SelectedHeaderButton->GetNormalStyle().BackgroundColor = DEFAULT_COLOR;
+    }
+    m_TreeView.SelectedHeaderButton = nodeButton;
+    m_TreeView.SelectedWidget = widget;
+    nodeButton->GetNormalStyle().BackgroundColor = HIGHLIGHT_COLOR;
+    OnWidgetSelectedButtonClicked.Broadcast(widget);
 }
 
+// 设置目标控件树
+void UI_WidgetTreeView::SetTargetWidget(ImWidget* Target)
+{
+    if (!Target) return;
+
+    // 清空现有树视图
+    Clear();
+
+    m_TreeView.TargetWidget = Target;
+    m_TreeView.TreeViewRoot = BuildTreeNode(Target, m_TreeView.m_ExpandedNode);
+    SetRootWidget(m_TreeView.TreeViewRoot, false);
+}
 
 //外部设置选中控件
 void UI_WidgetTreeView::SetSelectedWidget(ImWidget* widget)
 {
-	if (!widget) return;
-	if (auto view = GetActiveFileStruct())
-	{
-		if (!widget->IsInTree(view->TargetWidget))return;//目标不在当前活跃的树中
-		view->SelectedWidget = widget;
-		if (view->SelectedHeaderButton)
-		{
-			view->SelectedHeaderButton->GetNormalStyle().BackgroundColor = DEFAULT_COLOR;
-		}
-		auto it = view->WidgetToHeaderButton.find(widget);
-		it->second->GetNormalStyle().BackgroundColor = HIGHLIGHT_COLOR;
-		view->SelectedHeaderButton = it->second;
+    if (!widget) return;
+    if (widget == m_TreeView.SelectedWidget) return;
+    if (!m_TreeView.TargetWidget) return;
 
-		ImGuiWidget::ImButton* HeaderButton = view->WidgetToHeaderButton.find(widget)->second;
-		ImWidget* CurrentNode = HeaderButton;
-		while (CurrentNode != view->TreeViewRoot)
-		{
-			if (ImGuiWidget::ImButton* NextHeadButton = dynamic_cast<ImGuiWidget::ImButton*>(CurrentNode))
-			{
-				HeaderButton = NextHeadButton;
-			}
-			if (ImGuiWidget::ImExpandableBox* expandablebox = dynamic_cast<ImGuiWidget::ImExpandableBox*>(CurrentNode))
-			{
-				expandablebox->SetExpandedState(true);
-				view->m_ExpandedNode.insert(view->HeaderButtonToWidget.find(HeaderButton)->second);
-			}
-			CurrentNode = CurrentNode->GetParents();
-		}
-	}
+    if (!widget->IsInTree(m_TreeView.TargetWidget)) return; //目标不在当前树中
+
+    m_TreeView.SelectedWidget = widget;
+    if (m_TreeView.SelectedHeaderButton)
+    {
+        m_TreeView.SelectedHeaderButton->GetNormalStyle().BackgroundColor = DEFAULT_COLOR;
+    }
+
+    auto it = m_TreeView.WidgetToHeaderButton.find(widget);
+    if (it != m_TreeView.WidgetToHeaderButton.end())
+    {
+        it->second->GetNormalStyle().BackgroundColor = HIGHLIGHT_COLOR;
+        m_TreeView.SelectedHeaderButton = it->second;
+
+        ImGuiWidget::ImButton* HeaderButton = it->second;
+        ImWidget* CurrentNode = HeaderButton;
+        while (CurrentNode != m_TreeView.TreeViewRoot && CurrentNode != nullptr)
+        {
+            if (ImGuiWidget::ImButton* NextHeadButton = dynamic_cast<ImGuiWidget::ImButton*>(CurrentNode))
+            {
+                HeaderButton = NextHeadButton;
+            }
+            if (ImGuiWidget::ImExpandableBox* expandablebox = dynamic_cast<ImGuiWidget::ImExpandableBox*>(CurrentNode))
+            {
+                expandablebox->SetExpandedState(true);
+                auto widgetIt = m_TreeView.HeaderButtonToWidget.find(HeaderButton);
+                if (widgetIt != m_TreeView.HeaderButtonToWidget.end())
+                {
+                    m_TreeView.m_ExpandedNode.insert(widgetIt->second);
+                }
+            }
+            CurrentNode = CurrentNode->GetParents();
+        }
+    }
 }
 
-void UI_WidgetTreeView::CreateNewTreeView(const std::string& Name, ImGuiWidget::ImWidget* Target)
+// 获取当前选中的控件
+ImGuiWidget::ImWidget* UI_WidgetTreeView::GetSelectedWidget()
 {
-	if (!Target)return;
-	if (AllFileView.find(Name) != AllFileView.end()) return;
-	FileStruct* NewView = new FileStruct;
-	NewView->TreeViewRoot = BuildTreeNode(Target, NewView->m_ExpandedNode, NewView);
-	NewView->TargetWidget = Target;
-	AllFileView.emplace(std::make_pair(Name, NewView));
-	SetActiveTreeView(Name);
-}
-
-void UI_WidgetTreeView::SetActiveTreeView(const std::string& Name)
-{
-	if (Name.empty())
-	{
-		ActiveView = "";
-		SetRootWidget(nullptr, false);
-		return;
-	}
-	auto it = AllFileView.find(Name);
-	if (it != AllFileView.end())
-	{
-		ActiveView = Name;
-		SetRootWidget(it->second->TreeViewRoot, false);
-	}
+    return m_TreeView.SelectedWidget;
 }
 
 // 刷新树视图
-
-
-// 获取当前选中的控件
-
-bool UI_WidgetTreeView::RemoveTreeView(const std::string& Name)
-{
-	auto it = AllFileView.find(Name);
-	if (it != AllFileView.end())
-	{
-		AllFileView.erase(it);
-		if (ActiveView == Name)
-		{
-			if (AllFileView.size() > 0)
-			{
-				SetActiveTreeView(AllFileView.begin()->first);
-			}
-			else
-			{
-				SetActiveTreeView("");
-			}
-		}
-	}
-	return false;
-}
-
-ImGuiWidget::ImWidget* UI_WidgetTreeView::GetSelectedWidget()
-{
-	if (auto viewstruct = GetActiveFileStruct())
-	{
-		return viewstruct->SelectedWidget;
-	}
-	else
-	{
-		return nullptr;
-	}
-}
-
 void UI_WidgetTreeView::Refresh()
 {
-	if (auto viewstruct = GetActiveFileStruct())
-	{
-		viewstruct->HeaderButtonToWidget.clear();
-		viewstruct->WidgetToHeaderButton.clear();
-		viewstruct->TreeViewRoot = BuildTreeNode(viewstruct->TargetWidget, viewstruct->m_ExpandedNode, viewstruct);
-		SetRootWidget(viewstruct->TreeViewRoot, true);//重建了根，要删除旧的
-		SetSelectedWidget(viewstruct->SelectedWidget);
-	}
-
+    if (m_TreeView.TargetWidget)
+    {
+        m_TreeView.HeaderButtonToWidget.clear();
+        m_TreeView.WidgetToHeaderButton.clear();
+        m_TreeView.TreeViewRoot = BuildTreeNode(m_TreeView.TargetWidget, m_TreeView.m_ExpandedNode);
+        SetRootWidget(m_TreeView.TreeViewRoot, true); //重建了根，要删除旧的
+        SetSelectedWidget(m_TreeView.SelectedWidget);
+    }
 }
 
-// 设置选中回调
+// 清空树视图
+void UI_WidgetTreeView::Clear()
+{
+    // 清空映射关系
+    m_TreeView.HeaderButtonToWidget.clear();
+    m_TreeView.WidgetToHeaderButton.clear();
+    m_TreeView.m_ExpandedNode.clear();
 
+    // 重置状态
+    m_TreeView.SelectedWidget = nullptr;
+    m_TreeView.SelectedHeaderButton = nullptr;
+    m_TreeView.TargetWidget = nullptr;
+
+    // 设置根控件为空
+    SetRootWidget(nullptr, false);
+}
