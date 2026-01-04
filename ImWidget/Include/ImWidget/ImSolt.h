@@ -11,8 +11,8 @@ namespace ImGuiWidget
 		ImWidget* Content;
 		bool bAutoSize = true;
 		//用于缓存布局信息
-		ImVec2 SlotPosition;
-		ImVec2 SlotSize;
+		ImVec2 SlotPosition = ImVec2(0.f, 0.f);
+		ImVec2 SlotSize = ImVec2(0.f, 0.f);
 	public:
 		ImSlot():Content(nullptr) {}
 		ImSlot(ImWidget* Content):Content(Content)

@@ -177,7 +177,11 @@ namespace ImGuiWidget
 
 		virtual ImSlot* AddChild(ImWidget* child,ImVec2 RelativePosition=ImVec2(FLT_MIN,FLT_MIN))
 		{
-			return AddChildInternal<ImSlot>(child);
+			ImSlot* newslot = CreateSlot(child);
+			m_Slots.push_back(newslot);
+			MarkLayoutDirty();
+			child->SetParents(this);
+			return newslot;
 		}
 
 		void RemoveAllChild(bool bDeleteContent = false)
