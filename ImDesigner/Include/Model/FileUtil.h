@@ -1,6 +1,7 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <fstream>
 
 #if ((__cplusplus >= 201703L)||(_MSVC_LANG>=201703L)) && __has_include(<filesystem>)
     #include <filesystem>
@@ -138,6 +139,76 @@ public:
     static std::string getPureFileName(const std::string& file_path) 
     {
         return fs::path(file_path).stem().string();
+    }
+
+    static std::string createUniqueFile(const std::string& directoryPath,
+        const std::string& filePrefix = "NEWFile",
+        const std::string& fileSuffix = ".txt",
+        int MaxCount=10000)
+    {
+        // 如果目录不存在，尝试创建
+        if (!fs::exists(directoryPath))
+        {
+            try
+            {
+                fs::create_directories(directoryPath);
+            }
+            catch (const std::exception& e)
+            {
+                throw std::runtime_error("无法创建目录 '" + directoryPath + "': " + e.what());
+            }
+        }
+
+        // 验证目录路径是否有效
+        if (!fs::is_directory(directoryPath))
+        {
+            throw std::runtime_error("路径 '" + directoryPath + "' 不是一个有效目录");
+        }
+
+        fs::path fullPath;
+        int counter = 0;
+        bool fileCreated = false;
+        std::string createdFileName;
+
+        // 尝试创建文件
+        while (counter < MaxCount)
+        {  // 安全限制，防止无限循环
+            std::string fileName = filePrefix;
+            if (counter > 0)
+            {
+                fileName += std::to_string(counter);
+            }
+            fileName += fileSuffix;
+
+            fullPath = fs::path(directoryPath) / fileName;
+
+            // 检查文件是否已存在
+            if (!fs::exists(fullPath))
+            {
+                // 创建文件
+                std::ofstream file(fullPath);
+                if (file.is_open())
+                {
+                    file.close();
+                    createdFileName = fileName;
+                    fileCreated = true;
+                    break;
+                }
+                else
+                {
+                    // 文件存在但无法写入
+                    throw std::runtime_error("无法写入文件: " + fullPath.string());
+                }
+            }
+            counter++;
+        }
+
+        if (!fileCreated)
+        {
+            throw std::runtime_error("尝试创建文件失败，可能已达到最大尝试次数");
+        }
+
+        return createdFileName;
     }
 private:
     // 统一后缀名格式（确保以 '.' 开头）

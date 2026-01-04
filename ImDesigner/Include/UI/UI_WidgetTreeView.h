@@ -6,6 +6,10 @@
 #include <string>
 #include <map>
 
+namespace ImGuiWidget
+{
+    class ImWindow;
+}
 
 class UI_WidgetTreeView :public ImGuiWidget::ImUserWidget
 {
@@ -26,23 +30,28 @@ private:
     const ImU32 DEFAULT_COLOR = IM_COL32(0, 102, 204, 255);   // 默认颜色
 
     TreeViewStruct m_TreeView;  // 单个树视图结构
-
+    ImGuiWidget::ImWindow* WidgetMenu = nullptr;//右键菜单弹出窗口
+    ImGuiWidget::ImWidget* PopupMenuTargetWidget = nullptr;//右键弹出菜单目标控件
+    ImGuiWidget::ImVerticalBox* ImVerticalBox_WidgetMenu = nullptr;//右键菜单
 public:
-    ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetDeleteButtonClicked;
+    ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetDeleted;
     ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetSelectedButtonClicked;
 
 private:
+    void InitPopUpMenu();
+    ImGuiWidget::ImButton* CreateWidgetMenuButton(const std::string& Text);
     // 递归构建树节点
     ImGuiWidget::ImWidget* BuildTreeNode(ImGuiWidget::ImWidget* widget, std::unordered_set<ImGuiWidget::ImWidget*>& m_ExpandedNode, int depth = 0);
 
     void On_WidgetDeleteButtonClicked(ImGuiWidget::ImWidget* widget);
     void On_WidgetSelectedButtonClicked(ImGuiWidget::ImWidget* widget, ImGuiWidget::ImButton* nodeButton);
-
+    void On_WidgetSelectedButtonRightClicked(ImGuiWidget::ImWidget* widget);
 public:
     UI_WidgetTreeView(const std::string& WidgetName)
         : ImUserWidget(WidgetName)
     {
         SetAllowDragOn(true);
+        InitPopUpMenu();
     }
 
     // 设置目标控件树

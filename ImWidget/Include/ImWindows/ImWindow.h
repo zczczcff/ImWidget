@@ -19,6 +19,14 @@ namespace ImGuiWidget
         std::string m_title;
         ImVec2 m_size;
         ImVec2 m_position;
+
+        // 父子窗口关系
+        ImWindow* m_parentWindow = nullptr;
+        std::vector<ImWindow*> m_childWindows;
+        // 弹出窗口特定属性
+        bool bIsPopup = false;
+        bool bIsSubMenu = false; // 是否为子菜单
+        //ImVec2 m_popupPosition; // 弹出位置
     public:
         bool bIsOpen = true;
         bool bIsActive = false;
@@ -143,5 +151,32 @@ namespace ImGuiWidget
         void SetModalDimAmount(float dimAmount) { m_modalDimAmount = dimAmount; }
         float GetModalDimAmount() const { return m_modalDimAmount; }
 
+
+        // 弹出窗口相关方法
+        void SetPopup(bool popup) { bIsPopup = popup; }
+        bool IsPopup() const { return bIsPopup; }
+
+        void SetSubMenu(bool subMenu) { bIsSubMenu = subMenu; }
+        bool IsSubMenu() const { return bIsSubMenu; }
+
+        //void SetPopupPosition(const ImVec2& pos) { m_popupPosition = pos; }
+        //const ImVec2& GetPopupPosition() const { return m_popupPosition; }
+
+        // 父子窗口管理
+        void SetParentWindow(ImWindow* parent) { m_parentWindow = parent; }
+        ImWindow* GetParentWindow() const { return m_parentWindow; }
+
+        void AddChildWindow(ImWindow* child);
+        void RemoveChildWindow(ImWindow* child);
+        const std::vector<ImWindow*>& GetChildWindows() const { return m_childWindows; }
+
+        bool HasChildWindows() const { return !m_childWindows.empty(); }
+        void CloseAllChildren(); // 递归关闭所有子窗口
+
+        // 检查是否为某个窗口的祖先
+        bool IsAncestorOf(const ImWindow* window) const;
+
+        // 获取窗口层级深度
+        int GetHierarchyDepth() const;
     };
 }

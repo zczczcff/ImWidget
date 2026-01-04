@@ -49,19 +49,51 @@ namespace ImGuiWidget
     void ImWindow::SetIsActive(bool active)
     {
         if (active == bIsActive) return;
+
         bIsActive = active;
+
         if (active)
         {
             OnGetFocus.Broadcast();
             Open();
             m_manager->SetActiveWindow(this);
+
+            // 如果是弹出窗口且没有父窗口，将其推入弹出栈
+            if (bIsPopup && !m_parentWindow)
+            {
+                m_manager->PushPopupWindow(this);
+            }
         }
         else
         {
             OnLoseFocus.Broadcast();
-            if (bAutoCloseWhenLostFocus)
+
+            // 只有没有子窗口或者所有子窗口都关闭时才自动关闭
+            bool shouldAutoClose = bAutoCloseWhenLostFocus;
+            if (shouldAutoClose && HasChildWindows())
+            {
+                // 检查是否还有打开的子窗口
+                bool hasOpenChildren = false;
+                for (auto child : m_childWindows)
+                {
+                    if (child->IsOpen())
+                    {
+                        hasOpenChildren = true;
+                        break;
+                    }
+                }
+                shouldAutoClose = !hasOpenChildren;
+            }
+
+            if (shouldAutoClose)
             {
                 Close();
+            }
+
+            // 如果是弹出窗口且是栈顶，将其弹出
+            if (bIsPopup && m_manager->GetTopPopupWindow() == this)
+            {
+                m_manager->PopPopupWindow(this);
             }
         }
     }
@@ -144,5 +176,80 @@ namespace ImGuiWidget
     {
         ImRect windowRect(m_position, m_position + m_size);
         return windowRect.Contains(point);
+    }
+
+    void ImWindow::AddChildWindow(ImWindow* child)
+    {
+        if (child && child != this)
+        {
+            // 检查是否已经是子窗口
+            auto it = std::find(m_childWindows.begin(), m_childWindows.end(), child);
+            if (it == m_childWindows.end())
+            {
+                m_childWindows.push_back(child);
+                child->SetParentWindow(this);
+
+                // 设置子窗口为弹出窗口
+                child->SetPopup(true);
+                if (bIsPopup)
+                {
+                    child->SetSubMenu(true);
+                }
+            }
+        }
+    }
+
+    void ImWindow::RemoveChildWindow(ImWindow* child)
+    {
+        auto it = std::find(m_childWindows.begin(), m_childWindows.end(), child);
+        if (it != m_childWindows.end())
+        {
+            m_childWindows.erase(it);
+            if (child->GetParentWindow() == this)
+            {
+                child->SetParentWindow(nullptr);
+            }
+        }
+    }
+
+    void ImWindow::CloseAllChildren()
+    {
+        // 先关闭所有子窗口的子窗口（深度优先）
+        for (auto child : m_childWindows)
+        {
+            child->CloseAllChildren();
+        }
+
+        // 然后关闭直接子窗口
+        for (auto child : m_childWindows)
+        {
+            child->Close();
+        }
+        m_childWindows.clear();
+    }
+
+    bool ImWindow::IsAncestorOf(const ImWindow* window) const
+    {
+        if (!window) return false;
+
+        const ImWindow* current = window->GetParentWindow();
+        while (current)
+        {
+            if (current == this) return true;
+            current = current->GetParentWindow();
+        }
+        return false;
+    }
+
+    int ImWindow::GetHierarchyDepth() const
+    {
+        int depth = 0;
+        const ImWindow* current = m_parentWindow;
+        while (current)
+        {
+            depth++;
+            current = current->GetParentWindow();
+        }
+        return depth;
     }
 } // namespace ImGuiWidget

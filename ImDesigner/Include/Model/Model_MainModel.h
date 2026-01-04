@@ -34,6 +34,7 @@ public:
 	void Init();
 	EditedUIFile* BeginEditFile(const std::string& FileFullPath);
 	void FinishEditFile(const std::string& FileFullPath);
+	std::string CteateNewUIFileInDir(const std::string& Dir);
 private:
 	void LoadConfig(const std::string& ConfigPath);
 };

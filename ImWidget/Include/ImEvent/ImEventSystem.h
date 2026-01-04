@@ -43,6 +43,8 @@ namespace ImGuiWidget
         //void ProcessEvents();
 
         void SetRootWidget(ImWidget* root) { m_rootWidget = root; }
+
+        void SetFocus(ImWidget* widget);
     private:
         // 从ImGui收集事件
         //void CollectEventsFromImGui();

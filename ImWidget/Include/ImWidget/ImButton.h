@@ -80,6 +80,7 @@ namespace ImGuiWidget
     public:
         ImMulticastDelegate<> OnRightClicked;
         ImMulticastDelegate<> OnLeftClicked;
+        ImMulticastDelegate<> OnDoubleClicked;
     protected:
         void RenderButton()
         {
@@ -134,7 +135,7 @@ namespace ImGuiWidget
 
         virtual void Relayout() override
         {
-            auto slot = GetSlotAt(0);
+            auto slot = GetContentSlot();
             if (slot)
             {
                 slot->SetSlotPosition(Position);
@@ -184,7 +185,8 @@ namespace ImGuiWidget
                 break;
 
             case ImEventType::MouseDoubleClick:
-                // 处理双击事件
+                OnDoubleClicked.Broadcast();
+                event->StopPropagation();
                 break;
 
             default:
@@ -330,12 +332,22 @@ namespace ImGuiWidget
         {
 
         }
-        // 设置内容
-        void SetContent(ImWidget* child)
+		// 设置内容
+		void SetContent(ImWidget* child, bool bDeleteOld = true)
         {
-            SetChildAt(0, child);
+            SetChildAt(0, child, bDeleteOld);
         }
-
+        ImWidget* GetContent()
+        {
+            if (ImPaddingSlot* slot = GetContentSlot())
+            {
+                return slot->GetContent();
+            }
+            else
+            {
+                return nullptr;
+            }
+        }
         ImPaddingSlot* GetContentSlot()
         {
             return (ImPaddingSlot*)GetSlotAt(0);
@@ -371,9 +383,14 @@ namespace ImGuiWidget
         virtual ImVec2 GetMinSize()
         {
             auto content = GetChildAt(0);
+            auto slot = GetContentSlot();
             if (content)
             {
                 ImVec2 ContentMinSize = content->GetMinSize();
+                ContentMinSize.x += slot->PaddingLeft;
+                ContentMinSize.x += slot->PaddingRight;
+                ContentMinSize.y += slot->PaddingBottom;
+                ContentMinSize.y += slot->PaddingTop;
                 return ImVec2(ImMax(ContentMinSize.x, OriginalMinSize.x), ImMax(ContentMinSize.y, OriginalMinSize.y));
             }
             else

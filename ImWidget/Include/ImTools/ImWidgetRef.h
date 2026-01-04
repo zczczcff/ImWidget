@@ -16,10 +16,6 @@ namespace ImGuiWidget
                 m_controlBlock->Invalidate();
             }
         }
-    public:
-        // 默认构造函数（空引用）
-        ImWidgetRef() : m_controlBlock(nullptr) {}
-
         // 从控件指针创建（仅由控件构造函数调用）
         explicit ImWidgetRef(ImWidget* widget)
         {
@@ -32,6 +28,9 @@ namespace ImGuiWidget
                 m_controlBlock = nullptr;
             }
         }
+    public:
+        // 默认构造函数（空引用）
+        ImWidgetRef() : m_controlBlock(nullptr) {}
 
         // 拷贝构造函数
         ImWidgetRef(const ImWidgetRef& other)

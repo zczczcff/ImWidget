@@ -149,7 +149,13 @@ namespace ImGuiWidget
 			Content->SetPosition(Rect_Min);
 			Content->SetSize(WidgetSize);
 		}
-
+		void SetPadding(float SetPaddingTop, float SetPaddingBottom, float SetPaddingLeft, float SetPaddingRight)
+		{
+			PaddingTop = SetPaddingTop;
+			PaddingBottom = SetPaddingBottom;
+			PaddingLeft = SetPaddingLeft;
+			PaddingRight = SetPaddingRight;
+		}
 		virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override 
 		{
 			auto props = ImSlot::GetProperties();

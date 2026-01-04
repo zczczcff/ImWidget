@@ -1,5 +1,34 @@
 #include "UI/UI_WidgetTreeView.h"
 #include "ImWidget/ImBasicWidgetList.h"
+#include "ImGlobal.h"
+
+void UI_WidgetTreeView::InitPopUpMenu()
+{
+    auto windowmanager = ImGuiWidget::GetGlobalApp()->GetWindowManager();
+    ImVerticalBox_WidgetMenu = new ImGuiWidget::ImVerticalBox("ImVerticalBox_WidgetMenu");
+    ImGuiWidget::ImButton* CopyButton = CreateWidgetMenuButton(u8"复制");
+    ImGuiWidget::ImButton* DeleteButton = CreateWidgetMenuButton(u8"删除");
+    DeleteButton->OnLeftClicked.Add([this]() { On_WidgetDeleteButtonClicked(PopupMenuTargetWidget); });
+    ImVerticalBox_WidgetMenu->AddChildToVerticalBox(CopyButton)->SetIfAutoSize(false);
+    ImVerticalBox_WidgetMenu->AddChildToVerticalBox(DeleteButton)->SetIfAutoSize(false);
+
+    WidgetMenu = windowmanager->CreatePopupWindow(ImVerticalBox_WidgetMenu->GetMinSize(), ImVec2(0, 0), ImVerticalBox_WidgetMenu, false);
+    WidgetMenu->Close();
+}
+
+ImGuiWidget::ImButton* UI_WidgetTreeView::CreateWidgetMenuButton(const std::string& Text)
+{
+    ImGuiWidget::ImButton* button = new ImGuiWidget::ImButton("UI_WidgetTreeView_WidgetMenuButton");
+    ImGuiWidget::ImTextBlock* text = new ImGuiWidget::ImTextBlock("UI_WidgetTreeView_WidgetMenuButton_Text");
+    text->SetText(Text);
+    text->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Left);
+    button->SetContent(text);
+    button->GetContentSlot()->SetPadding(2, 2, 10, 10);
+
+    button->bHaveBorder = false;
+    button->OnLeftClicked.Add([this]() { WidgetMenu->Close(); });
+    return button;
+}
 
 ImGuiWidget::ImWidget* UI_WidgetTreeView::BuildTreeNode(ImWidget* nodewidget, std::unordered_set<ImWidget*>& m_ExpandedNode, int depth)
 {
@@ -25,7 +54,7 @@ ImGuiWidget::ImWidget* UI_WidgetTreeView::BuildTreeNode(ImWidget* nodewidget, st
         headerButton->GetNormalStyle().BackgroundColor = DEFAULT_COLOR;
         // 点击头部按钮选中控件
         headerButton->SetOnPressed([this, nodewidget, headerButton]() { On_WidgetSelectedButtonClicked(nodewidget, headerButton); });
-
+        headerButton->OnRightClicked.Add([this, nodewidget]() { On_WidgetSelectedButtonRightClicked(nodewidget); });
         deletebutton->SetOnPressed([this, nodewidget]() { On_WidgetDeleteButtonClicked(nodewidget); });
         m_TreeView.WidgetToHeaderButton[nodewidget] = headerButton;
         m_TreeView.HeaderButtonToWidget[headerButton] = nodewidget;
@@ -87,6 +116,7 @@ ImGuiWidget::ImWidget* UI_WidgetTreeView::BuildTreeNode(ImWidget* nodewidget, st
         nodeButton->GetNormalStyle().BackgroundColor = DEFAULT_COLOR;
         // 点击按钮选中控件
         nodeButton->SetOnPressed([this, nodewidget, nodeButton]() { On_WidgetSelectedButtonClicked(nodewidget, nodeButton); });
+        nodeButton->OnRightClicked.Add([this, nodewidget]() { On_WidgetSelectedButtonRightClicked(nodewidget); });
         deletebutton->OnLeftClicked.Add([this, nodewidget]() { On_WidgetDeleteButtonClicked(nodewidget); });
         m_TreeView.WidgetToHeaderButton[nodewidget] = nodeButton;
         m_TreeView.HeaderButtonToWidget[nodeButton] = nodewidget;
@@ -100,7 +130,7 @@ ImGuiWidget::ImWidget* UI_WidgetTreeView::BuildTreeNode(ImWidget* nodewidget, st
 
 void UI_WidgetTreeView::On_WidgetDeleteButtonClicked(ImGuiWidget::ImWidget* widget)
 {
-    OnWidgetDeleteButtonClicked.Broadcast(widget);
+    OnWidgetDeleted.Broadcast(widget);
 }
 
 void UI_WidgetTreeView::On_WidgetSelectedButtonClicked(ImGuiWidget::ImWidget* widget, ImGuiWidget::ImButton* nodeButton)
@@ -113,6 +143,13 @@ void UI_WidgetTreeView::On_WidgetSelectedButtonClicked(ImGuiWidget::ImWidget* wi
     m_TreeView.SelectedWidget = widget;
     nodeButton->GetNormalStyle().BackgroundColor = HIGHLIGHT_COLOR;
     OnWidgetSelectedButtonClicked.Broadcast(widget);
+}
+
+void UI_WidgetTreeView::On_WidgetSelectedButtonRightClicked(ImGuiWidget::ImWidget* widget)
+{
+    PopupMenuTargetWidget = widget;
+    WidgetMenu->SetPosition(ImGuiWidget::GetMousePos());
+    WidgetMenu->SetActive();
 }
 
 // 设置目标控件树

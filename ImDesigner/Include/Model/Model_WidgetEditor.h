@@ -2,11 +2,14 @@
 #include <map>
 #include <string>
 #include "ImWidget/ImBasicWidgetDeclaration.h"
+#include "ImTools/ImDelegate.h"
 
 class Model_WidgetEditor
 {
 private:
 	ImGuiWidget::ImWidget* RootWidget;
+public:
+	ImMultiDelegate<> OnWidgetTreeChanged;
 public:
 	Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget);
 	bool RemoveChildWidget(ImGuiWidget::ImWidget* WidgetToRemove);

@@ -197,13 +197,16 @@ namespace ImGuiWidget
 		}
 
 		// 按索引移除子控件
-		void RemoveChildAt(int index)
+		void RemoveChildAt(int index,bool bDeleteOld=true)
 		{
 			if (index >= 0 && index < static_cast<int>(m_Slots.size()))
 			{
 				if (m_Slots[index])
 				{
-					delete m_Slots[index]->GetContent();
+					if (bDeleteOld)
+					{
+						delete m_Slots[index]->GetContent();
+					}	
 				}
 				delete m_Slots[index]; // 删除slot对象
 				m_Slots.erase(m_Slots.begin() + index);
@@ -212,7 +215,7 @@ namespace ImGuiWidget
 		}
 
 		// 按指针移除子控件
-		bool RemoveChild(ImWidget* child)
+		bool RemoveChild(ImWidget* child, bool bDeleteOld = false)
 		{
 			auto it = std::find_if(m_Slots.begin(), m_Slots.end(),
 				[child](ImSlot* slot) {
@@ -224,7 +227,10 @@ namespace ImGuiWidget
 				delete* it; // 删除slot对象
 				m_Slots.erase(it);
 				MarkLayoutDirty();
-				delete child;
+				if (bDeleteOld)
+				{
+					delete child;
+				}
 				return true;
 			}
 			return false;

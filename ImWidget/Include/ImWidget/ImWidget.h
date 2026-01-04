@@ -237,20 +237,7 @@ namespace ImGuiWidget
 		}
 
 		// 请求焦点
-		virtual bool RequestFocus()
-		{
-			if (!IsFocusable()) return false;
-
-			// 通知事件系统焦点变化
-			if (m_Parents)
-			{
-				// 这里需要事件系统来处理实际的焦点切换
-				// 暂时先直接设置
-				m_hasFocus = true;
-				return true;
-			}
-			return false;
-		}
+		bool RequestFocus();
 
 		// 失去焦点
 		virtual void LoseFocus()

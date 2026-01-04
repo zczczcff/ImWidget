@@ -11,6 +11,7 @@
 #include "ImEvent/ImKeyEvent.h"
 #include "ImEvent/ImInputEvent.h"
 #include "ImEvent/ImDragEvent.h" // 添加拖拽事件支持
+#include "ImTools/ImDelegate.h"
 
 namespace ImGuiWidget
 {
@@ -63,9 +64,11 @@ namespace ImGuiWidget
         int m_MaxDecimalDigits = 2;         // 小数部分最大位数（仅Decimal模式有效）
 
         std::function<void(const std::string&)> OnTextChanged;
-
+        
         // 验证相关
         std::function<bool(const std::string&)> m_ValidationCallback;
+    public:
+        ImMulticastDelegate<const std::string&> OnTextCommit;
     public:
         // 输入模式设置
         void SetInputMode(ImInputTextMode mode)
@@ -585,6 +588,34 @@ namespace ImGuiWidget
         {
             SetFocusable(true);
         }
+        ImInputText(const ImInputText& other)
+            : ImWidget(other)  // 调用基类的拷贝构造函数
+            , m_Text(other.m_Text)
+            , m_PreviousText("")
+            , m_IsHandlingEvent(false)  // 新对象不应该处于事件处理状态
+            , m_NeedsTextUpdate(other.m_NeedsTextUpdate)
+            , m_TextColor(other.m_TextColor)
+            , m_BackgroundColor(other.m_BackgroundColor)
+            , m_BorderColor(other.m_BorderColor)
+            , m_SelectionColor(other.m_SelectionColor)
+            , m_SelectionTextColor(other.m_SelectionTextColor)
+            , m_BorderThickness(other.m_BorderThickness)
+            , m_Rounding(other.m_Rounding)
+            , m_CursorPos(other.m_CursorPos)
+            , m_SelectionStart(other.m_SelectionStart)
+            , m_SelectionEnd(other.m_SelectionEnd)
+            , m_IsSelecting(false)  // 新对象不应该处于选择状态
+            , m_SelectionAnchor(other.m_SelectionAnchor)
+            , m_CursorBlinkTimer(0.0f)  // 重置光标闪烁计时器
+            , m_VisibleStart(other.m_VisibleStart)
+            , m_VisibleEnd(other.m_VisibleEnd)
+            , m_TotalChars(other.m_TotalChars)
+            , m_VisibleWidth(other.m_VisibleWidth)
+            , m_InputMode(other.m_InputMode)
+            , m_AllowNegative(other.m_AllowNegative)
+            , m_MaxIntegerDigits(other.m_MaxIntegerDigits)
+            , m_MaxDecimalDigits(other.m_MaxDecimalDigits)
+        { }
 
         void HandleEventInternal(ImEvent* event) override
         {
@@ -1448,9 +1479,13 @@ namespace ImGuiWidget
 
         virtual void CheckTextChanged()
         {
-            if (m_Text != m_PreviousText && OnTextChanged)
+            if (m_Text != m_PreviousText)
             {
-                OnTextChanged(m_Text);
+                if (OnTextChanged)
+                {
+                    OnTextChanged(m_Text);
+                }
+                OnTextCommit.Broadcast(m_Text);
             }
             m_PreviousText = m_Text;
         }

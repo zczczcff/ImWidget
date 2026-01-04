@@ -13,6 +13,7 @@ namespace ImGuiWidget
 class UI_WidgetTreeView;
 class UI_WidgetEditor;
 class UI_DetailView;
+class UI_ProjectView;
 
 class MainUI : public ImGuiWidget::ImUserWidget
 {
@@ -53,9 +54,9 @@ protected:
     //---------------------项目管理及控件树------------------
     ImGuiWidget::ImPageManager* ImPageManager_LeftPart;
 
-    ImGuiWidget::ImScrollBox* ImScrollBox_Folder;
-    ImGuiWidget::ImVerticalBox* ImVerticalBox_Folder;
+    UI_ProjectView* ProjectView;
 
+    //---------------------控件树视图-----------------------
     ImGuiWidget::ImScrollBox* ImScrollBox_WidgetTree;
     std::map<std::string, UI_WidgetTreeView*> AllTreeViews;
     std::string CurrentTreeView;
@@ -64,23 +65,17 @@ protected:
     std::map<std::string, UI_DetailView*> AllFileDetails;
     std::string CurrentFileDetail;
     //---------------------弹出菜单------------------
-    ImGuiWidget::ImWindow* m_RightKeyFunMenuWindow;
+    ImGuiWidget::ImWindow* m_FolderOperatorMenuWindow;
     ImGuiWidget::ImVerticalBox* ImVerticalBox_FolderOperatorMenu;
-
+    ImGuiWidget::ImWindow* m_FileOperatorMenuWindow;
+    ImGuiWidget::ImVerticalBox* ImVerticalBox_FileOperatorMenu;
 public:
     ImMulticastDelegate<const std::string&, const std::string&> OnUIFileSelected;
     ImMulticastDelegate<const std::string&> OnEditorPageClosed;
     ImMulticastDelegate<const std::string&> OnEditorPageSelected;
-private:
-    void SetProjectViewVBoxContent(class ProjectFileManager* projectmananger, ImGuiWidget::ImVerticalBox* Vbox,const std::string& CurrentPath);
-    void SetupFileButton(ImGuiWidget::ImButton* filebutton);
-    void InitDirButton(ImGuiWidget::ImButton* Dirbutton,const std::string& dir);
-    void PopupDirRightKeyWindow(const std::string& dir);
-    void PopupRightKeyWindow(ImWidget* rootwidget);
 public:
     void UpdateProjectView(class ProjectFileManager* projectmananger);
 private:
-    void On_UIFileButtonClicked(const std::string& FileName, const std::string& FileFullPath);
     void On_EditorPageClosed(const std::string& FilePath);
     void On_EditorPageSelected(const std::string& PageID);
     //WidgetEditor相关操作

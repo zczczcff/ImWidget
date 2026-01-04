@@ -2,6 +2,7 @@
 #include "ImWidget/ImWidgetCodeGenerator.h"
 #include "ImWidget/ImWidgetSerializer.h"
 #include "Model/Model_WidgetEditor.h"
+#include "Model/FileUtil.h"
 void Model_MainModel::Tick() 
 {
 
@@ -33,6 +34,15 @@ void Model_MainModel::FinishEditFile(const std::string& FileFullPath)
 		delete it->second;
 		EditedFiles.erase(it);
 	}
+}
+
+std::string Model_MainModel::CteateNewUIFileInDir(const std::string& Dir)
+{
+	std::string NewFile = FileUtil::createUniqueFile(Dir, "NewUI", ".imui");
+	if (NewFile.empty()) return "";
+	m_ProjectFileManager.rescan();
+	OnProjectConfigChanged.Broadcast(&m_ProjectFileManager);
+	return NewFile;
 }
 
 void Model_MainModel::LoadConfig(const std::string& ConfigPath)

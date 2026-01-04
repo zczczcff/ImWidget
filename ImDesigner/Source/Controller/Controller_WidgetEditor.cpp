@@ -20,6 +20,16 @@ Controller_WidgetEditor::Controller_WidgetEditor(UI_WidgetTreeView* In_UI_Widget
 		{
 			SetSelectedWidget(SelectedWidget);
 		});
+
+	m_UI_WidgetTreeView->OnWidgetDeleted.Add([this](ImGuiWidget::ImWidget* deletedwidget)
+		{
+			m_Model_WidgetEditor->RemoveChildWidget(deletedwidget);
+		});
+
+	m_Model_WidgetEditor->OnWidgetTreeChanged.Add([this]() 
+		{
+			m_UI_WidgetTreeView->Refresh();
+		});
 }
 
 void Controller_WidgetEditor::SetSelectedWidget(ImGuiWidget::ImWidget* SelectedWidget)

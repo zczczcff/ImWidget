@@ -19,6 +19,9 @@ namespace ImGuiWidget
         // 模态窗口管理
         std::vector<ImWindow*> m_modalStack; // 模态窗口栈
         bool m_hasActiveModal = false;
+
+        // 弹出窗口管理
+        std::vector<ImWindow*> m_popupStack; // 弹出窗口栈，用于管理多级菜单
     public:
         ImWindowManager();
         ~ImWindowManager();
@@ -26,13 +29,21 @@ namespace ImGuiWidget
         // 创建新窗口
         ImWindow* CreateImWindow(const std::string& title, const ImVec2& size, const ImVec2& pos);
 
-        ImWindow* CreatePopupWindow(const ImVec2& size, const ImVec2& pos,ImWidget* RootWidget,bool ControlRootWidget);
+        // 创建弹出窗口（支持父子关系）
+        ImWindow* CreatePopupWindow(const ImVec2& size, const ImVec2& pos, ImWidget* RootWidget,
+            bool ControlRootWidget, ImWindow* parentPopup = nullptr);
+
+        // 创建子菜单弹出窗口
+        ImWindow* CreateSubMenuPopup(const ImVec2& size, const ImVec2& pos, ImWidget* RootWidget,
+            bool ControlRootWidget, ImWindow* parentPopup);
         
         // 创建模态窗口
         ImWindow* CreateModalWindow(const std::string& title, const ImVec2& size, const ImVec2& pos, ImWidget* rootWidget = nullptr, bool controlRootWidget = false);
         
         // 关闭窗口
         void CloseWindow(ImWindow* window);
+
+        void CloseAllPopups();
 
         // 设置主窗口（特殊的全屏窗口）
         void SetMainWindow(ImWindow* window);
@@ -68,6 +79,9 @@ namespace ImGuiWidget
         int GetWindowCount() const { return static_cast<int>(m_windows.size()); }
 
         ImWindow* WindowHitTest(const ImVec2& Pos);
+        void PushPopupWindow(ImWindow* popup);
+        void PopPopupWindow(ImWindow* popup);
+        ImWindow* GetTopPopupWindow() const;
     private:
         void PushModalWindow(ImWindow* window);
         void PopModalWindow(ImWindow* window);
@@ -77,5 +91,21 @@ namespace ImGuiWidget
 
 
         void UpdateModalState();
+
+        // 弹出窗口管理
+        bool HasOpenPopups() const { return !m_popupStack.empty(); }
+
+
+
+        // 检查点是否在任何弹出窗口内
+        bool IsPointInAnyPopup(const ImVec2& point) const;
+
+        // 更新弹出窗口状态
+        void UpdatePopupState();
+
+        // 递归查找窗口
+        ImWindow* FindWindowRecursive(ImWindow* start, const std::string& id) const;
+    public:
+        ImEventSystem* GetEventSystem() { return m_EventSystem; }
     };
 }

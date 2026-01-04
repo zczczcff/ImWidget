@@ -18,8 +18,8 @@ namespace ImGuiWidget
 
     public:
         ImEvent(ImEventType type, bool bubbles = true, bool cancelable = true)
-            : m_type(type), m_phase(ImEventPhase::Target), m_target(nullptr),
-            m_currentTarget(nullptr), m_handled(false), m_bubbles(bubbles),
+            : m_type(type), m_phase(ImEventPhase::Target), m_target(),
+            m_currentTarget(), m_handled(false), m_bubbles(bubbles),
             m_cancelable(cancelable), m_timestamp(ImGui::GetTime()) {}
 
         virtual ~ImEvent() = default;

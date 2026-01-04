@@ -1,6 +1,7 @@
 #include "ImWidget/ImWidget.h"
 #include "ImWidget/ImPanelWidget.h"
 #include "ImEvent/ImEvent.h"
+#include "ImGlobal.h"
 // 事件系统新增：事件处理入口
 
 
@@ -23,4 +24,13 @@ void ImGuiWidget::ImWidget::HandleEvent(ImEvent* event)
 	{
 		HandleEventInternal(event);
 	}
+}
+
+// 请求焦点
+
+bool ImGuiWidget::ImWidget::RequestFocus()
+{
+	if (!IsFocusable()) return false;
+
+	ImGuiWidget::RequestFocus(this);
 }

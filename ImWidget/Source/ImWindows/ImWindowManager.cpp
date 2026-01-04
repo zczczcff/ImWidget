@@ -45,7 +45,8 @@ namespace ImGuiWidget
         return windowPtr;
     }
 
-    ImWindow* ImWindowManager::CreatePopupWindow(const ImVec2& size, const ImVec2& pos, ImWidget* RootWidget, bool ControlRootWidget)
+    ImWindow* ImWindowManager::CreatePopupWindow(const ImVec2& size, const ImVec2& pos, ImWidget* RootWidget,
+        bool ControlRootWidget, ImWindow* parentPopup)
     {
         ImWindow* window = CreateImWindow("Popup", size, pos);
         window->bCollapsible = false;
@@ -54,7 +55,28 @@ namespace ImGuiWidget
         window->bIsResizable = false;
         window->bAllowBringToFrontOnFocus = true;
         window->bAutoCloseWhenLostFocus = true;
-        window->SetRootWidget(RootWidget, ControlRootWidget);
+        window->SetPopup(true);
+        window->SetPosition(pos);
+
+        if (RootWidget)
+        {
+            window->SetRootWidget(RootWidget, ControlRootWidget);
+        }
+
+        // 设置父子关系
+        if (parentPopup)
+        {
+            parentPopup->AddChildWindow(window);
+        }
+
+        return window;
+    }
+
+    ImWindow* ImWindowManager::CreateSubMenuPopup(const ImVec2& size, const ImVec2& pos, ImWidget* RootWidget,
+        bool ControlRootWidget, ImWindow* parentPopup)
+    {
+        ImWindow* window = CreatePopupWindow(size, pos, RootWidget, ControlRootWidget, parentPopup);
+        window->SetSubMenu(true);
         return window;
     }
 
@@ -83,19 +105,26 @@ namespace ImGuiWidget
         if (!window) return;
         if (!window->IsOpen()) return;
 
+        // 递归关闭所有子窗口
+        window->CloseAllChildren();
         window->Close();
 
-        // 如果是模态窗口，从模态栈中移除
+        // 模态窗口处理（保持不变）
         if (window->IsModal())
         {
             PopModalWindow(window);
-            return; // PopModalWindow 会调用 CloseWindow，避免重复处理
+            return;
         }
 
-        // 如果是活动窗口，需要重新设置活动窗口
+        // 弹出窗口处理
+        if (window->IsPopup())
+        {
+            PopPopupWindow(window);
+        }
+
+        // 活动窗口和主窗口处理（保持不变）
         if (m_activeWindow == window)
         {
-            // 查找下一个可用的窗口作为活动窗口
             ImWindow* newActive = nullptr;
             for (auto& w : m_windows)
             {
@@ -108,10 +137,8 @@ namespace ImGuiWidget
             SetActiveWindow(newActive);
         }
 
-        // 如果是主窗口，需要重新设置主窗口
         if (m_mainWindow == window)
         {
-            // 查找下一个可用的窗口作为主窗口
             ImWindow* newMain = nullptr;
             for (auto& w : m_windows)
             {
@@ -125,15 +152,20 @@ namespace ImGuiWidget
         }
 
         // 从列表中移除窗口
-        auto it = std::find_if(m_windows.begin(), m_windows.end(),
-            [window](ImWindow* w)
-            {
-                return w == window;
-            });
-
+        auto it = std::find(m_windows.begin(), m_windows.end(), window);
         if (it != m_windows.end())
         {
             m_windows.erase(it);
+        }
+    }
+
+    void ImWindowManager::CloseAllPopups()
+    {
+        // 关闭所有弹出窗口（从栈顶开始）
+        while (!m_popupStack.empty())
+        {
+            ImWindow* popup = m_popupStack.back();
+            CloseWindow(popup);
         }
     }
 
@@ -153,6 +185,21 @@ namespace ImGuiWidget
     void ImWindowManager::SetActiveWindow(ImWindow* window)
     {
         if (m_activeWindow == window) return;
+
+        // 如果新窗口是某个弹出窗口的子窗口，确保父窗口保持打开状态
+        if (window && window->IsPopup() && window->GetParentWindow())
+        {
+            // 确保所有祖先窗口都保持打开状态
+            ImWindow* parent = window->GetParentWindow();
+            while (parent)
+            {
+                if (!parent->IsOpen())
+                {
+                    parent->Open();
+                }
+                parent = parent->GetParentWindow();
+            }
+        }
 
         // 旧窗口失去焦点
         if (m_activeWindow)
@@ -279,7 +326,7 @@ namespace ImGuiWidget
         }
         else
         {
-            // 原有的非模态事件处理逻辑
+            // 非模态事件处理
             ImWindow* LastactiveWindow = m_activeWindow;
             if (LastactiveWindow && LastactiveWindow->IsOpen())
             {
@@ -290,10 +337,22 @@ namespace ImGuiWidget
             bool bHaveWindowJustOpen = false;
             ImGuiIO& io = ImGui::GetIO();
             ImVec2 mousePos = io.MousePos;
+
+            // 检查点击是否在弹出窗口内
             if (ImWindow* MouseHitWindow = WindowHitTest(mousePos))
             {
                 m_EventSystem->SetRootWidget(MouseHitWindow->GetRootWidget());
                 m_EventSystem->CollectMouseEvent();
+
+                // 如果点击了非活动窗口，且不是当前活动窗口的子窗口，则关闭所有不相关的弹出窗口
+                if (io.MouseClicked[0] && MouseHitWindow != m_activeWindow)
+                {
+                    if (!m_activeWindow || !m_activeWindow->IsAncestorOf(MouseHitWindow))
+                    {
+                        // 关闭所有弹出窗口
+                        CloseAllPopups();
+                    }
+                }
             }
 
             m_EventSystem->DispatchEvents();
@@ -430,15 +489,26 @@ namespace ImGuiWidget
             return nullptr; // 模态窗口外不命中任何窗口
         }
 
-        // 原有的非模态窗口命中测试逻辑
-        for (auto it = m_windows.rbegin(); it != m_windows.rend(); ++it)
+        // 先检查弹出窗口（从栈顶开始）
+        for (auto it = m_popupStack.rbegin(); it != m_popupStack.rend(); ++it)
         {
-            auto& window = *it;
+            auto window = *it;
             if (window->IsOpen() && window->ContainsPoint(Pos))
             {
                 return window;
             }
         }
+
+        // 然后检查普通窗口
+        for (auto it = m_windows.rbegin(); it != m_windows.rend(); ++it)
+        {
+            auto& window = *it;
+            if (window->IsOpen() && !window->IsPopup() && window->ContainsPoint(Pos))
+            {
+                return window;
+            }
+        }
+
         return nullptr;
     }
 
@@ -522,6 +592,55 @@ namespace ImGuiWidget
     void ImWindowManager::UpdateModalState()
     {
         m_hasActiveModal = !m_modalStack.empty();
+    }
+
+    void ImWindowManager::PushPopupWindow(ImWindow* popup)
+    {
+        if (!popup || !popup->IsPopup()) return;
+
+        // 移除已存在的相同弹出窗口（避免重复）
+        auto it = std::find(m_popupStack.begin(), m_popupStack.end(), popup);
+        if (it != m_popupStack.end())
+        {
+            m_popupStack.erase(it);
+        }
+
+        m_popupStack.push_back(popup);
+        UpdatePopupState();
+    }
+
+    void ImWindowManager::PopPopupWindow(ImWindow* popup)
+    {
+        if (m_popupStack.empty()) return;
+
+        auto it = std::find(m_popupStack.begin(), m_popupStack.end(), popup);
+        if (it != m_popupStack.end())
+        {
+            m_popupStack.erase(it);
+        }
+        UpdatePopupState();
+    }
+
+    ImWindow* ImWindowManager::GetTopPopupWindow() const
+    {
+        if (m_popupStack.empty()) return nullptr;
+        return m_popupStack.back();
+    }
+
+    bool ImWindowManager::IsPointInAnyPopup(const ImVec2& point) const
+    {
+        for (auto popup : m_popupStack)
+        {
+            if (popup->IsOpen() && popup->ContainsPoint(point))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void ImWindowManager::UpdatePopupState()
+    {
     }
 
 } // namespace ImGuiWidget

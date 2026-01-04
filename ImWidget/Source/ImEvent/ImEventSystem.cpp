@@ -46,6 +46,12 @@ namespace ImGuiWidget
 	//	CollectHoverEvents(io);
 	//}
 
+	void ImEventSystem::SetFocus(ImWidget* widget)
+	{
+		if (!widget) return;
+		SetFocus(widget->GetWidgetRef());
+	}
+
 	void ImEventSystem::CollectMouseEvents(ImGuiIO& io)
 	{
 		// 获取当前修饰键状态
@@ -116,7 +122,15 @@ namespace ImGuiWidget
 		if (type == ImEventType::MouseDown)
 		{
 			clickCount = CalculateClickCount(button, pos);
-			event = std::make_unique<ImMouseDownEvent>(mouseButton, clickCount);
+			if (clickCount >= 2)
+			{
+				event = std::make_unique<ImMouseDoubleClickEvent>(mouseButton);
+			}
+			else
+			{
+				event = std::make_unique<ImMouseDownEvent>(mouseButton, clickCount);
+			}
+			
 			
 			// 改进的焦点处理逻辑
 			ImWidget* hitTarget = HitTest(m_rootWidget, pos);
@@ -610,6 +624,7 @@ namespace ImGuiWidget
 		return ImVec2(globalPos.x - widget->GetPosition().x,
 			globalPos.y - widget->GetPosition().y);
 	}
+
 
 	void ImGuiWidget::ImEventSystem::DispatchEventThroughHierarchy(ImEvent* event, ImWidgetRef target)
 	{
