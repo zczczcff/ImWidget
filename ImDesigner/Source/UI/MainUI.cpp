@@ -28,7 +28,7 @@ void MainUI::Init2()
 	
 	// 创建项目视图实例
 	ProjectView = new UI_ProjectView("ProjectView");
-
+	ProjectView->OnUIFileSelected.Add([this](const std::string& FileName, const std::string& FileFullPath) { OnUIFileSelected.Broadcast(FileName, FileFullPath); });
 	ImBorder_LeftTab->SetContent(ImPageManager_LeftPart, false);
 	ImPageManager_LeftPart->SetTabPosition(ImGuiWidget::ImPageManager::TabPosition::Bottom);
 	ImPageManager_LeftPart->SetShowCloseButton(false);
