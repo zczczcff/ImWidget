@@ -458,6 +458,7 @@ namespace ImGuiWidget
             PageData* data = FindPageData(OldPageID);
             if (!data) return false;
             data->pageID = NewPageID;
+            RecreateTabForPage(NewPageID);
             return true;
         }
 
