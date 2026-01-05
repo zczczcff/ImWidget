@@ -39,6 +39,7 @@ namespace ImGuiWidget
 		void SetText(const std::string& Text)
 		{
 			m_Text = Text;
+			MarkSizeDirty();
 		}
         void SetTextColor(ImU32 Color)
         {

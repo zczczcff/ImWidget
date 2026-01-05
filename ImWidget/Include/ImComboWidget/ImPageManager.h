@@ -453,6 +453,14 @@ namespace ImGuiWidget
             }
         }
 
+        bool ResetPageID(const std::string& OldPageID, const std::string& NewPageID)
+        {
+            PageData* data = FindPageData(OldPageID);
+            if (!data) return false;
+            data->pageID = NewPageID;
+            return true;
+        }
+
         // 3. 获取页面显示名称
         std::string GetPageDisplayName(const std::string& pageID) const
         {

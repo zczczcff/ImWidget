@@ -52,6 +52,7 @@
 			 {
 				 m_MainUI->GetProjectView()->ExpandToFile(NewFullPath);
 				 m_MainUI->GetProjectView()->ScrollToFileWithDelay(NewFullPath);
+				 m_MainUI->HandleRenameFile(OldFullPath, NewFullPath);
 			 }
 		 });
 }

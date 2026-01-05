@@ -11,6 +11,8 @@
 #include "UI/UI_WidgetTreeView.h"
 #include "UI/UI_DetailView.h"
 #include "UI/UI_ProjectView.h"
+#include "Model/FileUtil.h"
+#include "Public/WidgetInfor.h"
 
 void MainUI::Init2()
 {
@@ -18,10 +20,13 @@ void MainUI::Init2()
 	ImButton_Save->SetFocusable(false);
 	ImButton_Generate->SetFocusable(false);
 
+	for (auto& SingleWidgetInfor : BasicWidgetList::GetBasicWidgetList())
+	{
+		Widget_ExampleWidgetButton* Example_Button = new Widget_ExampleWidgetButton(SingleWidgetInfor.EN_DisplayName, SingleWidgetInfor.CN_DisplayName, SingleWidgetInfor.RegisterName);
+		ImVerticalBox_WidgetList->AddChildToVerticalBox(Example_Button)->SetIfAutoSize(false);
+	}
 
 
-	Widget_ExampleWidgetButton* Example_Button = new Widget_ExampleWidgetButton("Example_Button", u8"°´Å¥", "ImButton");
-	ImVerticalBox_WidgetList->AddChildToVerticalBox(Example_Button)->SetIfAutoSize(false);
 
 
 	ImPageManager_LeftPart = new ImGuiWidget::ImPageManager("ImPageManager_LeftPart");
@@ -91,6 +96,14 @@ UI_WidgetEditor* MainUI::GetWidgetEditorByName(const std::string& Name)
 	}
 }
 
+bool MainUI::RenameWidgetEditorPage(const std::string& OldFullPath, const std::string& NewFullPath)
+{
+	if (!ImPageManager_Main->ResetPageID(OldFullPath, NewFullPath))return false;
+	std::string NewFileName = FileUtil::getFileNameWithExtension(NewFullPath);
+	ImPageManager_Main->SetPageDisplayName(NewFullPath, NewFileName);
+	return true;
+}
+
 void MainUI::On_EditorPageClosed(const std::string& FilePath)
 {
 	OnEditorPageClosed.Broadcast(FilePath);
@@ -154,6 +167,22 @@ bool MainUI::RemoveWidgetTreeViewByName(const std::string& Name)
 	return false;
 }
 
+bool MainUI::RenameWidgetTreeView(const std::string& OldName, const std::string& NewName)
+{
+	auto it = AllTreeViews.find(OldName);
+	if (it != AllTreeViews.end())
+	{
+		UI_WidgetTreeView* v = it->second;
+		AllTreeViews.erase(it);
+		AllTreeViews.insert(std::make_pair(NewName, v));
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
 bool MainUI::CreateNewDetailView(const std::string& Name)
 {
 	if (AllFileDetails.find(Name) != AllFileDetails.end()) return false;
@@ -205,4 +234,34 @@ bool MainUI::RemoveDetailViewByName(const std::string& Name)
 		return true;
 	}
 	return false;
+}
+
+bool MainUI::RenameDetailView(const std::string& OldName, const std::string& NewName)
+{
+	auto it = AllFileDetails.find(OldName);
+	if (it != AllFileDetails.end())
+	{
+		UI_DetailView* v = it->second;
+		AllFileDetails.erase(it);
+		AllFileDetails.insert(std::make_pair(NewName, v));
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+
+bool MainUI::HandleRenameFile(const std::string& OldFullPath, const std::string& NewFullPath)
+{
+	bool success = true;
+	success &= RenameWidgetEditorPage(OldFullPath, NewFullPath);
+	success &= RenameWidgetTreeView(OldFullPath, NewFullPath);
+	success &= RenameDetailView(OldFullPath, NewFullPath);
+
+	if (!success)
+	{
+		//±¨´í
+	}
+	return success;
 }

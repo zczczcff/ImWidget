@@ -84,18 +84,26 @@ private:
 public:
     void CreateNewWidgetEditorPage(ImGuiWidget::ImWidget* FileRootWidget, const std::string& FileName, const std::string& FileFullPath);
     UI_WidgetEditor* GetWidgetEditorByName(const std::string& Name);
-
+private:
+    bool RenameWidgetEditorPage(const std::string& OldFullPath, const std::string& NewFullPath);
     //WidgetTreeView相关操作
 public:
     bool CreateNewWidgetTreeView(const std::string& Name, ImGuiWidget::ImWidget* TargetWidget);
     UI_WidgetTreeView* GetWidgetTreeViewByName(const std::string& Name);
     bool ShowWidgetTreeViewByName(const std::string& Name);
     bool RemoveWidgetTreeViewByName(const std::string& Name);
-
+private:
+    bool RenameWidgetTreeView(const std::string& OldName, const std::string& NewName);
     //DetailView相关操作
 public:
     bool CreateNewDetailView(const std::string& Name);
     UI_DetailView* GetDetailViewByName(const std::string& Name);
     bool ShowDetailViewByName(const std::string& Name);
     bool RemoveDetailViewByName(const std::string& Name);
+private:
+    bool RenameDetailView(const std::string& OldName, const std::string& NewName);
+
+
+public:
+    bool HandleRenameFile(const std::string& OldFullPath, const std::string& NewFullPath);
 };
