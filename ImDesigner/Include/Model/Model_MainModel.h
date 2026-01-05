@@ -35,6 +35,7 @@ public:
 	EditedUIFile* BeginEditFile(const std::string& FileFullPath);
 	void FinishEditFile(const std::string& FileFullPath);
 	std::string CteateNewUIFileInDir(const std::string& Dir);
+	bool RenameFile(const std::string& OldFullPath, const std::string& NewFullPath);
 private:
 	void LoadConfig(const std::string& ConfigPath);
 };

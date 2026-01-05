@@ -29,7 +29,6 @@ namespace ImGuiWidget
     protected:
         std::string m_Text;
         std::string m_PreviousText;
-        bool m_IsHandlingEvent = false;
         bool m_NeedsTextUpdate = false;
         //std::string m_Text;
         ImU32 m_TextColor = IM_COL32(0, 0, 0, 255);
@@ -592,7 +591,6 @@ namespace ImGuiWidget
             : ImWidget(other)  // 调用基类的拷贝构造函数
             , m_Text(other.m_Text)
             , m_PreviousText("")
-            , m_IsHandlingEvent(false)  // 新对象不应该处于事件处理状态
             , m_NeedsTextUpdate(other.m_NeedsTextUpdate)
             , m_TextColor(other.m_TextColor)
             , m_BackgroundColor(other.m_BackgroundColor)
@@ -623,8 +621,6 @@ namespace ImGuiWidget
             {
                 return;
             }
-
-            m_IsHandlingEvent = true;
 
             // 根据事件类型分发处理
             if (auto keyEvent = event->As<ImKeyEvent>())
@@ -658,15 +654,6 @@ namespace ImGuiWidget
             else if (auto focusEvent = event->As<ImFocusEvent>())
             {
                 HandleFocusEvent(*focusEvent);
-            }
-
-            m_IsHandlingEvent = false;
-
-            if (m_NeedsTextUpdate)
-            {
-                //m_Text = m_Text;
-                m_NeedsTextUpdate = false;
-                UpdateVisibleRange();
             }
         }
 
@@ -1479,15 +1466,22 @@ namespace ImGuiWidget
 
         virtual void CheckTextChanged()
         {
+            bool TextChanged = false;
             if (m_Text != m_PreviousText)
             {
                 if (OnTextChanged)
                 {
                     OnTextChanged(m_Text);
                 }
-                OnTextCommit.Broadcast(m_Text);
+                TextChanged = true;
+                
             }
             m_PreviousText = m_Text;
+
+            if (TextChanged)
+            {
+                OnTextCommit.Broadcast(m_Text);//委托最后触发，因为委托中可能会销毁控件本身
+            }
         }
 
         void CancelEditing()
@@ -1499,9 +1493,8 @@ namespace ImGuiWidget
 
         void SubmitEditing()
         {
-            //m_hasFocus = false;
-            CheckTextChanged();
             ClearSelection();
+            CheckTextChanged();
         }
 
     public:

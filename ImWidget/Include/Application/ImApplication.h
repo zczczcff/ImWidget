@@ -9,7 +9,7 @@ namespace ImGuiWidget
 {
 	class ImWidget;
 }
-
+class DelayedEventQueue;
 class ImApplication
 {
 protected:
@@ -18,13 +18,14 @@ protected:
 	static std::map<int, ImFont*> DefalutFonts;
 	//ImGuiWidget::ImEventSystem* m_EventSys;
 	ImGuiWidget::ImWindowManager* m_windowManager = nullptr; // 新增窗口管理器
+	DelayedEventQueue* m_DelayedEventQueue;
 protected:
 	static ImFont* LoadDefaultFontInternal(int Size);
 public:
 	ImApplication();
 	void RenderTick();
 	void SetRootWidget(ImGuiWidget::ImWidget* RootWidget);
-
+	DelayedEventQueue* GetEventQueue() { return m_DelayedEventQueue; }
 	//void AddWindow(ImGuiWidget::ImWindow* window); // 新增：添加窗口
 
 	// 获取窗口管理器

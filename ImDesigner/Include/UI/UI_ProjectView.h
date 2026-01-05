@@ -25,7 +25,7 @@ private:
 public:
     ImMulticastDelegate<const std::string&, const std::string&> OnUIFileSelected;
     ImMulticastDelegate <const std::string&> OnRequestCreateFileInDir;
-    std::function<bool(const std::string&, const std::string&)> OnFileRenamed;
+    ImMulticastDelegate<const std::string&, const std::string&> OnFileRenamed;
 public:
     UI_ProjectView(const std::string& name);
     
@@ -38,12 +38,13 @@ private:
     void SetupButtonStyle(ImGuiWidget::ImButton* filebutton);
     void InitDirButton(ImGuiWidget::ImButton* Dirbutton, const std::string& dir);
     void PopupDirRightKeyWindow();
-    void PopupRightKeyWindow(ImGuiWidget::ImWidget* rootwidget);
+    //void PopupRightKeyWindow(ImGuiWidget::ImWidget* rootwidget);
 
     // 事件处理函数
     void On_UIFileButtonClicked(const std::string& FileName, const std::string& FileFullPath);
     void On_CommitFileRename(const std::string& OldFullPath, const std::string& NewFullPath);
-    void ActivateFileRename(const std::string& FileFullPath);
 public:
+    void ExpandToFile(const std::string& FileFullPath);
     void UpdateProjectView(class ProjectFileManager* projectmananger);
+	void ActivateFileRename(const std::string& FileFullPath, bool ScrollToTarget = false);
 };

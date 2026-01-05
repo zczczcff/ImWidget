@@ -662,5 +662,75 @@ namespace ImGuiWidget
         {
             return new ImScrollBox(*this);
         }
+
+        // 调整滚动位置以使目标控件可见
+        // target: 目标控件
+        // Offset: 目标控件左上角相对于滚动框左上角的偏移量，默认为(0,0)
+        void ScrollToWidget(ImWidget* target, const ImVec2& Offset = ImVec2(0, 0))
+        {
+            if (!target) return;
+
+            // 检查目标控件是否在当前滚动框的内容区域内
+            if (GetSlotNum() == 0 || !GetChildAt(0)) return;
+
+            // 使用IsInTree方法检查目标控件是否在内容控件的子树中
+            if (!target->IsInTree(this)) return;
+
+            Relayout();//立即Relayout
+
+            // 计算目标控件相对于滚动框的位置
+            ImVec2 targetPos = target->GetPosition();
+            ImVec2 scrollBoxPos = this->GetPosition();
+
+            // 计算目标控件左上角相对于滚动框左上角的位置
+            ImVec2 relativePos = targetPos - scrollBoxPos;
+
+            // 计算需要的新滚动位置
+            ImVec2 newScrollPosition = m_ScrollPosition;
+
+            // 水平方向调整
+            if (m_HorizontalScrollEnabled)
+            {
+                // 计算水平方向的可视区域宽度（考虑垂直滚动条）
+                float visibleWidth = Size.x - (bHaveVerticalScrollbar ? m_ScrollbarThickness : 0);
+
+                // 如果目标控件在可视区域左侧之外
+                if (relativePos.x - m_ScrollPosition.x < Offset.x)
+                {
+                    newScrollPosition.x = relativePos.x - Offset.x;
+                }
+                // 如果目标控件在可视区域右侧之外（考虑控件宽度）
+                else if (relativePos.x + target->GetSize().x - m_ScrollPosition.x > visibleWidth - Offset.x)
+                {
+                    newScrollPosition.x = relativePos.x + target->GetSize().x - (visibleWidth - Offset.x);
+                }
+            }
+
+            // 垂直方向调整
+            if (m_VerticalScrollEnabled)
+            {
+                // 计算垂直方向的可视区域高度（考虑水平滚动条）
+                float visibleHeight = Size.y - (bHaveHorizonScrollbar ? m_ScrollbarThickness : 0);
+
+                // 如果目标控件在可视区域上方之外
+                if (relativePos.y - m_ScrollPosition.y < Offset.y)
+                {
+                    newScrollPosition.y = relativePos.y - Offset.y;
+                }
+                // 如果目标控件在可视区域下方之外（考虑控件高度）
+                else if (relativePos.y + target->GetSize().y - m_ScrollPosition.y > visibleHeight - Offset.y)
+                {
+                    newScrollPosition.y = relativePos.y + target->GetSize().y - (visibleHeight - Offset.y);
+                }
+            }
+
+            // 如果滚动位置有变化，则更新
+            if (newScrollPosition != m_ScrollPosition)
+            {
+                m_ScrollPosition = newScrollPosition;
+                ClampScrollPosition();
+                MarkLayoutDirty();
+            }
+        }
     };
 }

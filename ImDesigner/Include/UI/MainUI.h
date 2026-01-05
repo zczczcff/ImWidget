@@ -73,7 +73,9 @@ public:
     ImMulticastDelegate<const std::string&, const std::string&> OnUIFileSelected;
     ImMulticastDelegate<const std::string&> OnEditorPageClosed;
     ImMulticastDelegate<const std::string&> OnEditorPageSelected;
+    //ProjectView相关操作
 public:
+    UI_ProjectView* GetProjectView() { return ProjectView; }
     void UpdateProjectView(class ProjectFileManager* projectmananger);
 private:
     void On_EditorPageClosed(const std::string& FilePath);

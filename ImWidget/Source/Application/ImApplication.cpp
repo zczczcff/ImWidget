@@ -1,10 +1,12 @@
 #include "..\..\Include\Application\ImApplication.h"
 #include "..\..\Include\Application\ImApplication.h"
 #include "Application/ImApplication.h"
-
+#include "ImTools/DelayEventQueue.h"
 extern void ImTick();
 
-ImApplication::ImApplication() :m_windowManager(new ImGuiWidget::ImWindowManager())
+ImApplication::ImApplication() 
+    :m_windowManager(new ImGuiWidget::ImWindowManager()),
+    m_DelayedEventQueue(new DelayedEventQueue)
 {
     
 }
@@ -14,6 +16,7 @@ void ImApplication::RenderTick()
     ImGui::PushFont(GetFont(DefalutFontSize, DefaultFont));
     // 处理窗口事件
     m_windowManager->ProcessEvents();
+    m_DelayedEventQueue->Tick();
     // 渲染所有窗口
     m_windowManager->Render();
     ImTick();

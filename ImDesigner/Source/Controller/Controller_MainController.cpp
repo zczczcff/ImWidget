@@ -2,6 +2,7 @@
 #include "Model/Model_MainModel.h"
 #include "UI/MainUI.h"
 #include "UI/UI_WidgetTreeView.h"
+#include "UI/UI_ProjectView.h"
 #include "Controller/Controller_WidgetEditor.h"
  Controller_MainController::Controller_MainController(MainUI* MainUI, Model_MainModel* MainModel)
 	:
@@ -35,5 +36,21 @@
 	 m_MainUI->OnEditorPageClosed.Add([this](const std::string& FileFullPath)
 		 {
 			 m_MainModel->FinishEditFile(FileFullPath);
+		 });
+
+	 m_MainUI->GetProjectView()->OnRequestCreateFileInDir.Add([this](const std::string& Dir) 
+		 {
+			 std::string NewFilePath= m_MainModel->CteateNewUIFileInDir(Dir);
+			 if (!NewFilePath.empty())
+			 {
+				 m_MainUI->GetProjectView()->ActivateFileRename(NewFilePath, true);
+			 }
+		 });
+	 m_MainUI->GetProjectView()->OnFileRenamed.Add([this](const std::string& OldFullPath, const std::string& NewFullPath) 
+		 {
+			 if (m_MainModel->RenameFile(OldFullPath, NewFullPath))
+			 {
+				 m_MainUI->GetProjectView()->ExpandToFile(NewFullPath);
+			 }
 		 });
 }

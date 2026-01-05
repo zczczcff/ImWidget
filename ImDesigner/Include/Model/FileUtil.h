@@ -210,6 +210,67 @@ public:
 
         return createdFileName;
     }
+
+    static bool renameFile(const std::string& old_path, const std::string& new_path)
+    {
+        try
+        {
+            // 检查旧文件是否存在
+            if (!fs::exists(old_path))
+            {
+                return false;
+            }
+
+            // 检查旧文件是否是常规文件（不是目录）
+            if (!fs::is_regular_file(old_path))
+            {
+                return false;
+            }
+
+            // 获取新文件所在的目录
+            fs::path new_dir = fs::path(new_path).parent_path();
+
+            // 如果新目录不存在，尝试创建
+            if (!new_dir.empty() && !fs::exists(new_dir))
+            {
+                std::error_code ec;
+                if (!fs::create_directories(new_dir, ec))
+                {
+                    return false; // 目录创建失败
+                }
+            }
+
+            // 检查新文件是否已存在
+            if (fs::exists(new_path))
+            {
+                // 如果新路径已存在且是文件，可以覆盖
+                if (fs::is_regular_file(new_path))
+                {
+                    // 可以选择删除已存在的文件，或者直接重命名会失败
+                    // 这里选择直接重命名（filesystem::rename 在大多数系统上会覆盖）
+                    std::error_code ec;
+                    fs::rename(old_path, new_path, ec);
+                    return !ec;
+                }
+                else
+                {
+                    return false; // 新路径存在但不是文件
+                }
+            }
+
+            // 执行重命名操作
+            std::error_code ec;
+            fs::rename(old_path, new_path, ec);
+
+            return !ec;
+
+        }
+        catch (const std::exception& e)
+        {
+            // 捕获可能的异常
+            return false;
+        }
+    }
 private:
     // 统一后缀名格式（确保以 '.' 开头）
     static std::string normalizeExtension(std::string ext) 

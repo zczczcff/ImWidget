@@ -42,7 +42,18 @@ std::string Model_MainModel::CteateNewUIFileInDir(const std::string& Dir)
 	if (NewFile.empty()) return "";
 	m_ProjectFileManager.rescan();
 	OnProjectConfigChanged.Broadcast(&m_ProjectFileManager);
-	return NewFile;
+	return Dir + "/" + NewFile;
+}
+
+bool Model_MainModel::RenameFile(const std::string& OldFullPath, const std::string& NewFullPath)
+{
+	if (FileUtil::renameFile(OldFullPath, NewFullPath))
+	{
+		m_ProjectFileManager.rescan();
+		OnProjectConfigChanged.Broadcast(&m_ProjectFileManager);
+		return true;
+	}
+	return false;
 }
 
 void Model_MainModel::LoadConfig(const std::string& ConfigPath)

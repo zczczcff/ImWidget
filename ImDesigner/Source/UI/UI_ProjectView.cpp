@@ -5,10 +5,14 @@
 #include "Application/ImApplication.h"
 #include "ImWidget/ImImage.h"
 #include "Model/FileUtil.h"
+#include "ImGlobal.h"
+#include "ImTools/DelayEventQueue.h"
+
 UI_ProjectView::UI_ProjectView(const std::string& name)
     : ImGuiWidget::ImUserWidget(name)
 {
     Init();
+    InitPopUpMenu();
 }
 
 void UI_ProjectView::Init()
@@ -29,13 +33,15 @@ void UI_ProjectView::InitPopUpMenu()
 {
     //创建弹出菜单
     ImVerticalBox_FolderOperatorMenu = new ImGuiWidget::ImVerticalBox("ImVerticalBox_FolderOperatorMenu");
+    // 创建弹出菜单窗口
+    m_FolderOperatorMenuWindow = ImGuiWidget::GlobalApp->GetWindowManager()->CreatePopupWindow(ImVec2(0, 0), ImVec2(0, 0), ImVerticalBox_FolderOperatorMenu, false);
+    m_FolderOperatorMenuWindow->Close();
+
     ImGuiWidget::ImButton* ImButton_CreateNewFile = CreateWidgetMenuButton(u8"新建", m_FolderOperatorMenuWindow);
     
     ImVerticalBox_FolderOperatorMenu->AddChildToVerticalBox(ImButton_CreateNewFile)->SetIfAutoSize(false);
     ImButton_CreateNewFile->OnLeftClicked.Add([this]() { OnRequestCreateFileInDir.Broadcast(CurrentOperatedDirPath); });
-    // 创建弹出菜单窗口
-    m_FolderOperatorMenuWindow = ImGuiWidget::GlobalApp->GetWindowManager()->CreatePopupWindow(ImVec2(0, 0), ImVec2(0, 0), ImVerticalBox_FolderOperatorMenu, false);
-    m_FolderOperatorMenuWindow->Close();
+
 }
 
 ImGuiWidget::ImButton* UI_ProjectView::CreateWidgetMenuButton(const std::string& Text, ImGuiWidget::ImWindow* BindPopupWindow)
@@ -160,6 +166,8 @@ void UI_ProjectView::InitDirButton(ImGuiWidget::ImButton* Dirbutton, const std::
 
 void UI_ProjectView::PopupDirRightKeyWindow()
 {
+    m_FolderOperatorMenuWindow->SetPosition(ImGuiWidget::GetMousePos());
+    m_FolderOperatorMenuWindow->SetSize(ImVerticalBox_FolderOperatorMenu->GetMinSize());
     m_FolderOperatorMenuWindow->SetActive();
     //ImGuiWidget::ImVerticalBox* ImVerticalBox_DirRightKeyMenu = new ImGuiWidget::ImVerticalBox("ImVerticalBox_DirRightKeyMenu");
     //ImGuiWidget::ImButton* OptionButton = new ImGuiWidget::ImButton(dir + "_OptionButton");
@@ -170,18 +178,35 @@ void UI_ProjectView::PopupDirRightKeyWindow()
     //PopupRightKeyWindow(ImVerticalBox_DirRightKeyMenu);
 }
 
-void UI_ProjectView::PopupRightKeyWindow(ImGuiWidget::ImWidget* rootwidget)
-{
-    m_FolderOperatorMenuWindow->SetPosition(ImGuiWidget::GlobalApp->GetCurrentMousePos());
-    m_FolderOperatorMenuWindow->SetRootWidget(rootwidget, true);
-    m_FolderOperatorMenuWindow->SetSize(rootwidget->GetMinSize());
-    m_FolderOperatorMenuWindow->SetActive();
-    ImGuiWidget::GlobalApp->GetWindowManager()->SetActiveWindow(m_FolderOperatorMenuWindow);
-}
+//void UI_ProjectView::PopupRightKeyWindow(ImGuiWidget::ImWidget* rootwidget)
+//{
+//    m_FolderOperatorMenuWindow->SetPosition(ImGuiWidget::GlobalApp->GetCurrentMousePos());
+//    m_FolderOperatorMenuWindow->SetRootWidget(rootwidget, true);
+//    m_FolderOperatorMenuWindow->SetSize(rootwidget->GetMinSize());
+//    m_FolderOperatorMenuWindow->SetActive();
+//    ImGuiWidget::GlobalApp->GetWindowManager()->SetActiveWindow(m_FolderOperatorMenuWindow);
+//}
 
 void UI_ProjectView::On_UIFileButtonClicked(const std::string& FileName, const std::string& FileFullPath)
 {
     OnUIFileSelected.Broadcast(FileName, FileFullPath);
+}
+
+void UI_ProjectView::ExpandToFile(const std::string& FileFullPath)
+{
+    auto it = FileFullPathToFileBodyHBox.find(FileFullPath);
+    if (it != FileFullPathToFileBodyHBox.end())
+    {
+        ImGuiWidget::ImWidget* currentwidget = it->second;
+        while (currentwidget != ImVerticalBox_Folder && currentwidget)//递归展开路径上的所有展开框
+        {
+            if (ImGuiWidget::ImExpandableBox* exbox = dynamic_cast<ImGuiWidget::ImExpandableBox*>(currentwidget))
+            {
+                exbox->SetExpandedState(true);
+            }
+            currentwidget = currentwidget->GetParents();
+        }
+    }
 }
 
 //void UI_ProjectView::On_CommitFileRename(const std::string& OldFullPath, const std::string& NewFullPath)
@@ -189,32 +214,44 @@ void UI_ProjectView::On_UIFileButtonClicked(const std::string& FileName, const s
 //    OnFileRenamed.Broadcast(OldFullPath, NewFullPath);
 //}
 
-void UI_ProjectView::ActivateFileRename(const std::string& FileFullPath)
+void UI_ProjectView::ActivateFileRename(const std::string& FileFullPath, bool ScrollToTarget)
 {
+    
     auto it = FileFullPathToFileBodyHBox.find(FileFullPath);
     if (it != FileFullPathToFileBodyHBox.end())
     {
+        ExpandToFile(FileFullPath);
         ImGuiWidget::ImButton* OldButton = (ImGuiWidget::ImButton*)it->second->ExtractChildAt(1);
         ImGuiWidget::ImTextBlock* OldText = (ImGuiWidget::ImTextBlock*)OldButton->GetContent();
         it->second->RemoveChildAt(1, false);
         
         it->second->AddChildToHorizontalBox(ImInputText_Rename);
+        if (ScrollToTarget)
+        {
+            ImGuiWidget::GetGlobalApp()->GetEventQueue()->AddDelayedFrameEvent([this]()
+                {
+                    ImScrollBox_Folder->ScrollToWidget(ImInputText_Rename);
+                },1);
+            ImScrollBox_Folder->ScrollToWidget(it->second);
+        }
+        
         std::string FileName = FileUtil::getFileNameWithExtension(FileFullPath);
         std::string Dir = FileUtil::getParentDirectory(FileFullPath);
         ImInputText_Rename->SetText(FileName);
         ImInputText_Rename->RequestFocus();
         ImInputText_Rename->OnTextCommit.Add([this,Dir,FileFullPath,it, OldButton, OldText](const std::string& NewFileName)
             {
-                if (OnFileRenamed && OnFileRenamed(FileFullPath, Dir + "/" + NewFileName))//重命名成功
-                {
-                    OldText->SetText(NewFileName);
-                }
-                else//重命名失败
-                {
+                OnFileRenamed.Broadcast(FileFullPath, Dir + "/" + NewFileName);
+                //if (OnFileRenamed && OnFileRenamed(FileFullPath, Dir + "/" + NewFileName))//重命名成功
+                //{
+                //    OldText->SetText(NewFileName);
+                //}
+                //else//重命名失败
+                //{
 
-                }
-                it->second->RemoveChild(ImInputText_Rename);
-                it->second->AddChildToHorizontalBox(OldButton);
+                //}
+                //it->second->RemoveChild(ImInputText_Rename);
+                //it->second->AddChildToHorizontalBox(OldButton);
             });
     }
 }
