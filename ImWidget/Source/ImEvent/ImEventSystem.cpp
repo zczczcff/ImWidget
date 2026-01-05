@@ -860,8 +860,8 @@ namespace ImGuiWidget
 		{
 			auto focusOutEvent = std::make_unique<ImFocusOutEvent>(widget.GetWidget(), reason);
 			focusOutEvent->SetTarget(oldFocus);
-			DispatchEventImmediately(focusOutEvent.get());
 			oldFocus->LoseFocus();
+			DispatchEventImmediately(focusOutEvent.get());
 		}
 
 		// …Ë÷√–¬Ωπµ„

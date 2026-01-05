@@ -165,11 +165,11 @@ namespace ImGuiWidget
             ImVec2 ContentSize = Size;
             if (bHaveVerticalScrollbar)
             {
-                ContentSize.y -= m_ScrollbarThickness;
+                ContentSize.x -= m_ScrollbarThickness;
             }
             if (bHaveHorizonScrollbar)
             {
-                ContentSize.x -= m_ScrollbarThickness;
+                ContentSize.y -= m_ScrollbarThickness;
 			}
 			ImRect mRect(Position, Position + Size);
 			ImRect ContentRect(Position, Position + ContentSize);

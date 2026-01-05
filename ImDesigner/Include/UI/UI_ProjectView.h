@@ -15,7 +15,7 @@ private:
     ImGuiWidget::ImVerticalBox* ImVerticalBox_Folder;
 
     std::unordered_map<std::string, ImGuiWidget::ImHorizontalBox*> FileFullPathToFileBodyHBox;
-    ImGuiWidget::ImInputText* ImInputText_Rename;
+    //ImGuiWidget::ImInputText* ImInputText_Rename;
     // µ¯³ö²Ëµ¥
     ImGuiWidget::ImWindow* m_FolderOperatorMenuWindow;
     ImGuiWidget::ImVerticalBox* ImVerticalBox_FolderOperatorMenu;
@@ -47,4 +47,5 @@ public:
     void ExpandToFile(const std::string& FileFullPath);
     void UpdateProjectView(class ProjectFileManager* projectmananger);
 	void ActivateFileRename(const std::string& FileFullPath, bool ScrollToTarget = false);
+    void ScrollToFileWithDelay(const std::string& FileFullPath);
 };

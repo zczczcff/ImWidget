@@ -19,7 +19,6 @@ void UI_ProjectView::Init()
 {
     ImScrollBox_Folder = new ImGuiWidget::ImScrollBox("ImScrollBox_Folder");
     ImVerticalBox_Folder = new ImGuiWidget::ImVerticalBox("ImVerticalBox_Folder");
-    ImInputText_Rename = new ImGuiWidget::ImInputText("ImInputText_Rename");
 
     ImScrollBox_Folder->bHaveBorder = false;
     ImVerticalBox_Folder->bHaveBorder = false;
@@ -224,36 +223,47 @@ void UI_ProjectView::ActivateFileRename(const std::string& FileFullPath, bool Sc
         ImGuiWidget::ImButton* OldButton = (ImGuiWidget::ImButton*)it->second->ExtractChildAt(1);
         ImGuiWidget::ImTextBlock* OldText = (ImGuiWidget::ImTextBlock*)OldButton->GetContent();
         it->second->RemoveChildAt(1, false);
-        
+        ImGuiWidget::ImInputText* ImInputText_Rename = new ImGuiWidget::ImInputText("UI_ProjectView_RenameInput");
         it->second->AddChildToHorizontalBox(ImInputText_Rename);
         if (ScrollToTarget)
         {
-            ImGuiWidget::GetGlobalApp()->GetEventQueue()->AddDelayedFrameEvent([this]()
+            ImGuiWidget::GetGlobalApp()->GetEventQueue()->AddDelayedFrameEvent([this, ImInputText_Rename]()
                 {
                     ImScrollBox_Folder->ScrollToWidget(ImInputText_Rename);
                 },1);
-            ImScrollBox_Folder->ScrollToWidget(it->second);
         }
         
         std::string FileName = FileUtil::getFileNameWithExtension(FileFullPath);
         std::string Dir = FileUtil::getParentDirectory(FileFullPath);
         ImInputText_Rename->SetText(FileName);
         ImInputText_Rename->RequestFocus();
-        ImInputText_Rename->OnTextCommit.Add([this,Dir,FileFullPath,it, OldButton, OldText](const std::string& NewFileName)
+        ImInputText_Rename->OnTextCommit.Add([this,Dir,FileFullPath,it, OldButton, OldText, ImInputText_Rename](const std::string& NewFileName)
             {
-                OnFileRenamed.Broadcast(FileFullPath, Dir + "/" + NewFileName);
-                //if (OnFileRenamed && OnFileRenamed(FileFullPath, Dir + "/" + NewFileName))//重命名成功
-                //{
-                //    OldText->SetText(NewFileName);
-                //}
-                //else//重命名失败
-                //{
-
-                //}
-                //it->second->RemoveChild(ImInputText_Rename);
-                //it->second->AddChildToHorizontalBox(OldButton);
+                if (NewFileName != FileUtil::getFileNameWithExtension(FileFullPath))
+                {
+                    OnFileRenamed.Broadcast(FileFullPath, Dir + "/" + NewFileName);
+                    delete OldButton;
+                }
+                else
+                {
+                    it->second->RemoveChildAt(1, false);
+                    it->second->AddChildToHorizontalBox(OldButton);
+                    delete ImInputText_Rename;
+                }
             });
     }
+}
+
+void UI_ProjectView::ScrollToFileWithDelay(const std::string& FileFullPath)
+{
+    ImGuiWidget::GetGlobalApp()->GetEventQueue()->AddDelayedFrameEvent([this, FileFullPath]()
+        {
+            auto it = FileFullPathToFileBodyHBox.find(FileFullPath);
+            if (it != FileFullPathToFileBodyHBox.end())
+            {
+                ImScrollBox_Folder->ScrollToWidget(it->second);
+            }
+        }, 1);
 }
 
 void UI_ProjectView::UpdateProjectView(ProjectFileManager* projectmananger)

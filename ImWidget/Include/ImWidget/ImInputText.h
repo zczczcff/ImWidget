@@ -1466,22 +1466,17 @@ namespace ImGuiWidget
 
         virtual void CheckTextChanged()
         {
-            bool TextChanged = false;
             if (m_Text != m_PreviousText)
             {
                 if (OnTextChanged)
                 {
                     OnTextChanged(m_Text);
                 }
-                TextChanged = true;
-                
             }
             m_PreviousText = m_Text;
 
-            if (TextChanged)
-            {
-                OnTextCommit.Broadcast(m_Text);//委托最后触发，因为委托中可能会销毁控件本身
-            }
+            OnTextCommit.Broadcast(m_Text);//委托最后触发，因为委托中可能会销毁控件本身
+
         }
 
         void CancelEditing()

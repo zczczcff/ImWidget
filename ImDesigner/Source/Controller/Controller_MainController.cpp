@@ -51,6 +51,7 @@
 			 if (m_MainModel->RenameFile(OldFullPath, NewFullPath))
 			 {
 				 m_MainUI->GetProjectView()->ExpandToFile(NewFullPath);
+				 m_MainUI->GetProjectView()->ScrollToFileWithDelay(NewFullPath);
 			 }
 		 });
 }
