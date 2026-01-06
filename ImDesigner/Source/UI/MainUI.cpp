@@ -13,6 +13,7 @@
 #include "UI/UI_ProjectView.h"
 #include "Model/FileUtil.h"
 #include "Public/WidgetInfor.h"
+#include "UI/IconManager.h"
 
 void MainUI::Init2()
 {
@@ -22,7 +23,13 @@ void MainUI::Init2()
 
 	for (auto& SingleWidgetInfor : BasicWidgetList::GetBasicWidgetList())
 	{
-		Widget_ExampleWidgetButton* Example_Button = new Widget_ExampleWidgetButton(SingleWidgetInfor.EN_DisplayName, SingleWidgetInfor.CN_DisplayName, SingleWidgetInfor.RegisterName);
+		Widget_ExampleWidgetButton* Example_Button = new Widget_ExampleWidgetButton
+		(
+			SingleWidgetInfor.EN_DisplayName,
+			SingleWidgetInfor.CN_DisplayName,
+			SingleWidgetInfor.RegisterName,
+			IconManager::GetInstance()->GetIcon(SingleWidgetInfor.IconID)
+		);
 		ImVerticalBox_WidgetList->AddChildToVerticalBox(Example_Button)->SetIfAutoSize(false);
 	}
 

@@ -71,21 +71,66 @@
     },
     "Children": [
         {
-            "Type": "ImTextBlock",
-            "Name": "ImTextBlock_WidgetTypeName",
+            "Type": "ImHorizontalBox",
+            "Name": "ImHorizontalBox_0",
             "Properties": {
-                "TextFontSize": 14,
-                "Text": "控件",
-                "Name": "ImTextBlock_WidgetTypeName",
-                "TextColor": [
+                "BorderColor": [
                     0,
                     0,
                     0,
                     255
                 ],
-                "HorizontalAlignment": "Center",
-                "VerticalAlignment": "Center"
+                "Name": "ImHorizontalBox_0",
+                "BackGroundColor": [
+                    255,
+                    255,
+                    255,
+                    0
+                ],
+                "HaveBorder": false
             },
+            "Children": [
+                {
+                    "Type": "ImImage",
+                    "Name": "ImImage_Icon",
+                    "Properties": {
+                        "Name": "ImImage_Icon"
+                    },
+                    "ParentSlot": {
+                        "SizeRatio": 1.0,
+                        "bAutoSize": false,
+                        "PaddingTop": 0.0,
+                        "PaddingBottom": 0.0,
+                        "PaddingLeft": 4.0,
+                        "PaddingRight": 8.0
+                    }
+                },
+                {
+                    "Type": "ImTextBlock",
+                    "Name": "ImTextBlock_WidgetTypeName",
+                    "Properties": {
+                        "TextFontSize": 14,
+                        "Text": "",
+                        "Name": "ImTextBlock_WidgetTypeName",
+                        "TextColor": [
+                            0,
+                            0,
+                            0,
+                            255
+                        ],
+                        "HorizontalAlignment": "Left",
+                        "VerticalAlignment": "Center"
+                    },
+                    "ParentSlot": {
+                        "SizeRatio": 1.0,
+                        "bAutoSize": true,
+                        "PaddingTop": 0.0,
+                        "PaddingBottom": 0.0,
+                        "PaddingLeft": 0.0,
+                        "PaddingRight": 0.0
+                    }
+                }
+            ],
             "ParentSlot": {
                 "bAutoSize": true
             }

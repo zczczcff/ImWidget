@@ -484,8 +484,8 @@ namespace ImGuiWidget
         // 鼠标滚轮事件处理
         void HandleMouseWheel(ImMouseWheelEvent* event)
         {
-            if (m_IsMouseOver)
-            {
+            //if (m_IsMouseOver)
+            //{
                 ImVec2 wheelDelta = event->GetWheelDelta();
 
                 if (m_VerticalScrollEnabled && wheelDelta.y != 0.0f)
@@ -501,7 +501,7 @@ namespace ImGuiWidget
                     event->StopPropagation();
                 }
                 MarkLayoutDirty();
-            }
+            //}
         }
 
         // 拖拽开始事件处理
