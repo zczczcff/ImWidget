@@ -1,6 +1,7 @@
 #include "ImWidget/ImWidget.h"
 #include "ImWidget/ImPanelWidget.h"
 #include "ImEvent/ImEvent.h"
+#include "ImEvent/ImHoverEvent.h"
 #include "ImGlobal.h"
 // 事件系统新增：事件处理入口
 
@@ -22,6 +23,16 @@ void ImGuiWidget::ImWidget::HandleEvent(ImEvent* event)
 	// 调用虚函数处理（子类可以重写）
 	if (!event->IsHandled())
 	{
+		if (event->GetType() == ImEventType::HoverIn&&bHoverable)
+		{
+			bHovered = true;
+			OnHoverStart();
+		}
+		else if (event->GetType() == ImEventType::HoverOut && bHoverable)
+		{
+			bHovered = false;
+			OnHoverEnd();
+		}
 		HandleEventInternal(event);
 	}
 }

@@ -18,13 +18,15 @@ namespace ImGuiWidget
 		std::string m_WidgetName;
 		ImVec2 Position = { 0, 0 };  // 相对位置
 		ImVec2 Size = { 0, 0 };      // 控件尺寸
-		bool Visibility = true;     // 可见性
-		bool m_focusable = false;
-		bool m_hasFocus = false;
 		class ImSlot* m_Slot;
 		class ImWidget* m_Parents;
-		bool bSizeDirty;
-		bool bVisible = true;
+
+		bool bVisible = true;     // 可见性
+		bool bFocusable = false;
+		bool bHasFocus = false;
+		bool bHoverable = false;
+		bool bHovered = false;
+		bool bSizeDirty = false;
 		
 		//处理子控件最小尺寸发生变化的情况
 		virtual void HandleChildSizeDirty(){}
@@ -49,7 +51,7 @@ namespace ImGuiWidget
 			m_WidgetName(other.m_WidgetName),
 			Position(other.Position),
 			Size(other.Size),
-			Visibility(other.Visibility),
+			bVisible(other.bVisible),
 			m_Slot(nullptr),        // 不拷贝slot指针
 			m_Parents(nullptr),     // 不拷贝父项指针
 			bSizeDirty(other.bSizeDirty)
@@ -70,7 +72,7 @@ namespace ImGuiWidget
 				m_WidgetName = other.m_WidgetName;
 				Position = other.Position;
 				Size = other.Size;
-				Visibility = other.Visibility;
+				bVisible = other.bVisible;
 				bSizeDirty = other.bSizeDirty;
 				m_WidgetID = GetRegisterTypeName();
 				m_WidgetID+= std::to_string(GetConstructCounter());
@@ -207,33 +209,35 @@ namespace ImGuiWidget
 		virtual void HandleEventInternal(class ImEvent* event)
 		{}
 
+		virtual void OnHoverStart() {};
+		virtual void OnHoverEnd() {};
 	public:
 		// 设置控件是否可获取焦点
 		virtual void SetFocusable(bool focusable)
 		{
-			m_focusable = focusable;
+			bFocusable = focusable;
 		}
 
 		// 检查控件是否可获取焦点
 		virtual bool IsFocusable() const
 		{
-			return m_focusable && IsVisible();
+			return bFocusable && IsVisible();
 		}
 
 		// 检查控件当前是否有焦点
 		virtual bool HasFocus() const
 		{
-			return m_hasFocus;
+			return bHasFocus;
 		}
 
 		void SetFocused(bool focused)
 		{
-			m_hasFocus = focused;
+			bHasFocus = focused;
 		}
 
 		void GetFocus()
 		{
-			m_hasFocus = true;
+			bHasFocus = true;
 		}
 
 		// 请求焦点
@@ -242,9 +246,9 @@ namespace ImGuiWidget
 		// 失去焦点
 		virtual void LoseFocus()
 		{
-			if (m_hasFocus)
+			if (bHasFocus)
 			{
-				m_hasFocus = false;
+				bHasFocus = false;
 			}
 		}
 
@@ -252,5 +256,7 @@ namespace ImGuiWidget
 		{
 			return m_selfRef;  // 返回拷贝，增加引用计数
 		}
+
+		bool IsHoverable() { return bHoverable && IsVisible(); }
 	};
 }

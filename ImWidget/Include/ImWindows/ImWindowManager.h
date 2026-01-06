@@ -16,9 +16,6 @@ namespace ImGuiWidget
         ImWindow* m_mainWindow = nullptr;
         int m_nextWindowId = 1;
         class ImEventSystem* m_EventSystem = nullptr;
-        // 模态窗口管理
-        std::vector<ImWindow*> m_modalStack; // 模态窗口栈
-        bool m_hasActiveModal = false;
 
         // 弹出窗口管理
         std::vector<ImWindow*> m_popupStack; // 弹出窗口栈，用于管理多级菜单
@@ -37,11 +34,10 @@ namespace ImGuiWidget
         ImWindow* CreateSubMenuPopup(const ImVec2& size, const ImVec2& pos, ImWidget* RootWidget,
             bool ControlRootWidget, ImWindow* parentPopup);
         
-        // 创建模态窗口
-        ImWindow* CreateModalWindow(const std::string& title, const ImVec2& size, const ImVec2& pos, ImWidget* rootWidget = nullptr, bool controlRootWidget = false);
-        
         // 关闭窗口
         void CloseWindow(ImWindow* window);
+
+        void OpenWindow(ImWindow* window);
 
         void CloseAllPopups();
 
@@ -54,6 +50,8 @@ namespace ImGuiWidget
 
         // 设置活动窗口
         void SetActiveWindow(ImWindow* window);
+
+        void SetWindowInactive(ImWindow* window);
 
         // 获取所有窗口
         const std::vector<ImWindow*>& GetWindows() const { return m_windows; }
@@ -83,19 +81,9 @@ namespace ImGuiWidget
         void PopPopupWindow(ImWindow* popup);
         ImWindow* GetTopPopupWindow() const;
     private:
-        void PushModalWindow(ImWindow* window);
-        void PopModalWindow(ImWindow* window);
-        ImWindow* GetTopModalWindow() const;
-        bool HasActiveModal() const { return m_hasActiveModal; }
-
-
-
-        void UpdateModalState();
 
         // 弹出窗口管理
         bool HasOpenPopups() const { return !m_popupStack.empty(); }
-
-
 
         // 检查点是否在任何弹出窗口内
         bool IsPointInAnyPopup(const ImVec2& point) const;

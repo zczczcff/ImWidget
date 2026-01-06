@@ -47,24 +47,12 @@ namespace ImGuiWidget
         bool m_JustOpened = false;
         bool ControlRootWidget = false;
 
-        // 模态窗口相关属性
-        bool bIsModal = false;
-        bool bModalBlocking = true; // 是否阻塞其他窗口事件
-        float m_modalDimAmount = 0.5f; // 背景变暗程度
-
         ImMulticastDelegate<> OnGetFocus;
         ImMulticastDelegate<> OnLoseFocus;
     private:
         virtual ~ImWindow();
-        void SetIsOpen(bool open)
-        {
-            bIsOpen = open;
-            if (open)
-            {
-                m_JustOpened = true;
-            }
-        }
-        void SetIsActive(bool active);
+        //void SetIsOpen(bool open);
+        //void SetIsActive(bool active);
     public:
         ImWindow(const std::string& title, const ImVec2& size, const ImVec2& pos,const std::string& ID, ImWindowManager* m_manager);
 
@@ -86,23 +74,11 @@ namespace ImGuiWidget
 
 
         bool IsOpen() const { return bIsOpen; }
-        void Close()
-        {
-            SetIsOpen(false);
-        }
-        void Open()
-        {
-            SetIsOpen(true);
-        }
+        void Close();
+        void Open();
 
-        void SetActive()
-        {
-            SetIsActive(true);
-        }
-        void SetInactive()
-        {
-            SetIsActive(false);
-        }
+        void SetActive();
+        void SetInactive();
         bool IsActive() const { return bIsActive; }
 
         void SetIsMovable(bool movable) { bIsMovable = movable; }
@@ -139,18 +115,6 @@ namespace ImGuiWidget
         virtual bool ContainsPoint(const ImVec2& point) const;
 
         // 获取事件系统
-        // 新增模态窗口相关方法
-        void SetModal(bool modal, bool blocking = true)
-        {
-            bIsModal = modal;
-            bModalBlocking = blocking;
-        }
-        bool IsModal() const { return bIsModal; }
-        bool IsModalBlocking() const { return bIsModal && bModalBlocking; }
-
-        void SetModalDimAmount(float dimAmount) { m_modalDimAmount = dimAmount; }
-        float GetModalDimAmount() const { return m_modalDimAmount; }
-
 
         // 弹出窗口相关方法
         void SetPopup(bool popup) { bIsPopup = popup; }

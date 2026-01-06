@@ -617,7 +617,7 @@ namespace ImGuiWidget
 
         void HandleEventInternal(ImEvent* event) override
         {
-            if (!m_hasFocus && !event->Is<ImFocusEvent>())
+            if (!bHasFocus && !event->Is<ImFocusEvent>())
             {
                 return;
             }
@@ -659,7 +659,7 @@ namespace ImGuiWidget
 
         bool HandleKeyEvent(const ImKeyEvent& event)
         {
-            if (!m_hasFocus) return false;
+            if (!bHasFocus) return false;
 
             switch (event.GetType())
             {
@@ -758,7 +758,7 @@ namespace ImGuiWidget
 
         bool HandleTextInputEvent(const ImTextInputEvent& event)
         {
-            if (!m_hasFocus) return false;
+            if (!bHasFocus) return false;
 
             const std::string& inputText = event.GetText();
             if (inputText.empty()) return false;
@@ -893,7 +893,7 @@ namespace ImGuiWidget
 
         bool HandleDragEvent(const ImDragEvent& event)
         {
-            if (!m_hasFocus) return false;
+            if (!bHasFocus) return false;
 
             switch (event.GetType())
             {
@@ -1001,12 +1001,12 @@ namespace ImGuiWidget
             switch (event.GetType())
             {
             case ImEventType::FocusIn:
-                //m_hasFocus = true;
+                //bHasFocus = true;
                 m_CursorBlinkTimer = 0.0f;
                 return true;
 
             case ImEventType::FocusOut:
-                //m_hasFocus = false;
+                //bHasFocus = false;
                 CheckTextChanged();
                 ClearSelection();
                 return true;
@@ -1309,7 +1309,7 @@ namespace ImGuiWidget
             );
 
             // 更新光标闪烁
-            if (m_hasFocus)
+            if (bHasFocus)
             {
                 UpdateCursorBlink();
             }
@@ -1383,7 +1383,7 @@ namespace ImGuiWidget
             }
 
             // 绘制光标
-            if (m_hasFocus && (static_cast<int>(m_CursorBlinkTimer / CURSOR_BLINK_RATE) % 2 == 0))
+            if (bHasFocus && (static_cast<int>(m_CursorBlinkTimer / CURSOR_BLINK_RATE) % 2 == 0))
             {
                 int cursorCharIndex = ByteIndexToCharIndex(m_CursorPos);
 
@@ -1482,7 +1482,7 @@ namespace ImGuiWidget
         void CancelEditing()
         {
             m_Text = m_PreviousText;
-            //m_hasFocus = false;
+            //bHasFocus = false;
             ClearSelection();
         }
 

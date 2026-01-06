@@ -169,7 +169,7 @@ namespace ImGuiWidget
 
         virtual void Render() override
         {
-            if (!Visibility) return;
+            if (!bVisible) return;
 
             ImGuiWindow* window = ImGui::GetCurrentWindow();
             if (window->SkipItems) return;

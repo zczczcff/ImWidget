@@ -15,7 +15,7 @@ namespace ImGuiWidget
         // 状态跟踪
         ImWidgetRef m_hoveredWidget;
         ImWidgetRef m_focusedWidget;
-        ImWidgetRef m_lastHoveredWidget;
+        ImWidgetRef m_lastHitWidget;
         ImVec2 m_lastMousePos;
         double m_lastClickTime[5] = { 0 };  // 每个按钮的上次点击时间
         ImVec2 m_lastClickPos[5];         // 每个按钮的上次点击位置
@@ -60,8 +60,6 @@ namespace ImGuiWidget
         void CollectKeyboardEvents(ImGuiIO& io);
 
         void CollectDragEvents(ImGuiIO& io);
-
-
 
         void FinishDispatchEvents();
 
@@ -115,6 +113,8 @@ namespace ImGuiWidget
 
         // 沿着控件树向上查找第一个可聚焦的控件
         ImWidget* FindFocusableAncestor(ImWidget* widget);
+
+        ImWidget* FindHoverableAncestor(ImWidget* widget);
     };
 
 }

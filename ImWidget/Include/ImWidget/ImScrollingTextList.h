@@ -589,7 +589,7 @@ namespace ImGuiWidget
 
         bool HandleKeyEvent(const ImKeyEvent& event)
         {
-            if (!m_hasFocus) return false;
+            if (!bHasFocus) return false;
 
             if (event.GetType() == ImEventType::KeyDown)
             {

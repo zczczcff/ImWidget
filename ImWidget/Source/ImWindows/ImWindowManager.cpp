@@ -82,39 +82,13 @@ namespace ImGuiWidget
 
     // 创建模态窗口
 
-    ImWindow* ImWindowManager::CreateModalWindow(const std::string& title, const ImVec2& size, const ImVec2& pos, ImWidget* rootWidget, bool controlRootWidget)
-    {
-        ImWindow* window = CreateImWindow(title, size, pos);
-        window->bCollapsible = false;
-        window->bIsMovable = true;
-        window->bIsResizable = false;
-        window->bAllowBringToFrontOnFocus = false;
-        window->bAutoCloseWhenLostFocus = false;
-
-        if (rootWidget)
-        {
-            window->SetRootWidget(rootWidget, controlRootWidget);
-        }
-
-        PushModalWindow(window);
-        return window;
-    }
-
     void ImWindowManager::CloseWindow(ImWindow* window)
     {
         if (!window) return;
         if (!window->IsOpen()) return;
-
+        window->bIsOpen = false;
         // 递归关闭所有子窗口
         window->CloseAllChildren();
-        window->Close();
-
-        // 模态窗口处理（保持不变）
-        if (window->IsModal())
-        {
-            PopModalWindow(window);
-            return;
-        }
 
         // 弹出窗口处理
         if (window->IsPopup())
@@ -152,10 +126,19 @@ namespace ImGuiWidget
         }
 
         // 从列表中移除窗口
-        auto it = std::find(m_windows.begin(), m_windows.end(), window);
-        if (it != m_windows.end())
+        //auto it = std::find(m_windows.begin(), m_windows.end(), window);
+        //if (it != m_windows.end())
+        //{
+        //    m_windows.erase(it);
+        //}
+    }
+
+    void ImWindowManager::OpenWindow(ImWindow* window)
+    {
+        if (!window->bIsOpen)
         {
-            m_windows.erase(it);
+            window->bIsOpen = true;
+            m_popupStack.push_back(window);
         }
     }
 
@@ -185,20 +168,33 @@ namespace ImGuiWidget
     void ImWindowManager::SetActiveWindow(ImWindow* window)
     {
         if (m_activeWindow == window) return;
-
+        
         // 如果新窗口是某个弹出窗口的子窗口，确保父窗口保持打开状态
-        if (window && window->IsPopup() && window->GetParentWindow())
+        if (window)
         {
-            // 确保所有祖先窗口都保持打开状态
-            ImWindow* parent = window->GetParentWindow();
-            while (parent)
+            if (window->IsPopup())
             {
-                if (!parent->IsOpen())
+                if (ImWindow* parent = window->GetParentWindow())// 确保所有祖先窗口都保持打开状态
                 {
-                    parent->Open();
+                    std::vector<ImWindow*> Parents;
+                    while (parent)
+                    {
+                        Parents.push_back(parent);
+                        //if (!parent->IsOpen())
+                        //{
+                        //    parent->Open();
+                        //}
+                        parent = parent->GetParentWindow();
+                    }
+                    for (int i = Parents.size() - 1; i >= 0; i--)//按父->子顺序打开
+                    {
+                        Parents[i]->Open();
+                    }
                 }
-                parent = parent->GetParentWindow();
+                //m_popupStack.push_back(window);
             }
+            window->Open();
+            BringWindowToFront(window);
         }
 
         // 旧窗口失去焦点
@@ -208,13 +204,10 @@ namespace ImGuiWidget
         }
 
         m_activeWindow = window;
+    }
 
-        // 新窗口获得焦点
-        if (m_activeWindow)
-        {
-            m_activeWindow->SetActive();
-            BringWindowToFront(m_activeWindow);
-        }
+    void ImWindowManager::SetWindowInactive(ImWindow* window)
+    {
     }
 
     ImWindow* ImWindowManager::FindWindowById(const std::string& id)
@@ -235,40 +228,21 @@ namespace ImGuiWidget
     void ImWindowManager::Render()
     {
 
-        // 渲染非模态窗口
+        // 渲染窗口
         for (auto& window : m_windows)
         {
-            if (window->IsOpen() && !window->IsModal() && window != m_activeWindow)
+            if (window->IsOpen() && window != m_activeWindow)
             {
                 window->Render();
             }
         }
 
-        // 渲染活动非模态窗口
-        if (m_activeWindow && m_activeWindow->IsOpen() && !m_activeWindow->IsModal())
+        // 渲染活动窗口
+        if (m_activeWindow && m_activeWindow->IsOpen())
         {
             m_activeWindow->Render();
         }
 
-        // 如果有模态窗口，渲染模态背景和模态窗口
-        if (m_hasActiveModal)
-        {
-            // 渲染模态背景
-            ImGui::GetForegroundDrawList()->AddRectFilled(
-                ImVec2(0, 0),
-                ImGui::GetIO().DisplaySize,
-                IM_COL32(0, 0, 0, (int)(255 * 0.5f)) // 50% 黑色背景
-            );
-
-            // 渲染所有模态窗口（按栈顺序）
-            for (auto modalWindow : m_modalStack)
-            {
-                if (modalWindow->IsOpen())
-                {
-                    modalWindow->Render();
-                }
-            }
-        }
 
         if (auto PreviewWidget = ImDragEvent::GetDragPreview())//渲染拖拽控件
         {
@@ -301,31 +275,7 @@ namespace ImGuiWidget
 
     void ImWindowManager::ProcessEvents()
     {
-        // 如果有活动模态窗口，只处理模态窗口的事件
-        if (m_hasActiveModal)
-        {
-            ImWindow* topModal = GetTopModalWindow();
-            if (topModal && topModal->IsOpen())
-            {
-                // 只处理顶层模态窗口的事件
-                m_EventSystem->SetRootWidget(topModal->GetRootWidget());
 
-                // 收集键盘事件（仅模态窗口）
-                m_EventSystem->CollectKeyEvent();
-
-                // 收集鼠标事件（仅当鼠标在模态窗口内）
-                ImGuiIO& io = ImGui::GetIO();
-                ImVec2 mousePos = io.MousePos;
-                if (topModal->ContainsPoint(mousePos))
-                {
-                    m_EventSystem->CollectMouseEvent();
-                }
-
-                m_EventSystem->DispatchEvents();
-            }
-        }
-        else
-        {
             // 非模态事件处理
             ImWindow* LastactiveWindow = m_activeWindow;
             if (LastactiveWindow && LastactiveWindow->IsOpen())
@@ -361,13 +311,12 @@ namespace ImGuiWidget
             {
                 UpdateActiveWindowFromInput();
             }
-        }
 
         // 清除刚打开标志
-        for (auto& window : m_windows)
-        {
-            window->m_JustOpened = false;
-        }
+        //for (auto& window : m_windows)
+        //{
+        //    window->m_JustOpened = false;
+        //}
     }
 
     void ImWindowManager::BringWindowToFront(ImWindow* window)
@@ -389,7 +338,7 @@ namespace ImGuiWidget
             m_windows.push_back(std::move(windowPtr));
 
             // 设置为活动窗口
-            SetActiveWindow(window);
+            //SetActiveWindow(window);
         }
     }
 
@@ -475,20 +424,6 @@ namespace ImGuiWidget
 
     ImWindow* ImWindowManager::WindowHitTest(const ImVec2& Pos)
     {
-        // 如果有模态窗口，只检查模态窗口
-        if (m_hasActiveModal)
-        {
-            for (auto it = m_modalStack.rbegin(); it != m_modalStack.rend(); ++it)
-            {
-                auto window = *it;
-                if (window->IsOpen() && window->ContainsPoint(Pos))
-                {
-                    return window;
-                }
-            }
-            return nullptr; // 模态窗口外不命中任何窗口
-        }
-
         // 先检查弹出窗口（从栈顶开始）
         for (auto it = m_popupStack.rbegin(); it != m_popupStack.rend(); ++it)
         {
@@ -510,88 +445,6 @@ namespace ImGuiWidget
         }
 
         return nullptr;
-    }
-
-    void ImWindowManager::PushModalWindow(ImWindow* window)
-    {
-        if (!window) return;
-
-        // 设置窗口为模态
-        window->SetModal(true);
-
-        // 如果已经有活动模态窗口，暂停它的事件
-        if (!m_modalStack.empty())
-        {
-            ImWindow* topModal = m_modalStack.back();
-            // 可以在这里保存前一个模态窗口的状态
-        }
-
-        // 将新窗口压入模态栈
-        m_modalStack.push_back(window);
-
-        // 设置新窗口为活动窗口
-        SetActiveWindow(window);
-        BringWindowToFront(window);
-
-        UpdateModalState();
-    }
-
-    void ImWindowManager::PopModalWindow(ImWindow* window)
-    {
-        if (m_modalStack.empty()) return;
-
-        // 确保弹出的是栈顶窗口
-        if (window != m_modalStack.back())
-        {
-            // 如果不是栈顶，需要从栈中移除指定的窗口
-            auto it = std::find(m_modalStack.begin(), m_modalStack.end(), window);
-            if (it != m_modalStack.end())
-            {
-                m_modalStack.erase(it);
-            }
-        }
-        else
-        {
-            // 弹出栈顶窗口
-            m_modalStack.pop_back();
-
-            // 恢复前一个模态窗口或设置新的活动窗口
-            if (!m_modalStack.empty())
-            {
-                ImWindow* prevModal = m_modalStack.back();
-                SetActiveWindow(prevModal);
-                BringWindowToFront(prevModal);
-            }
-            else
-            {
-                // 没有模态窗口了，设置合适的活动窗口
-                ImWindow* newActive = nullptr;
-                for (auto& w : m_windows)
-                {
-                    if (w->IsOpen() && w != window)
-                    {
-                        newActive = w;
-                        break;
-                    }
-                }
-                SetActiveWindow(newActive);
-            }
-        }
-
-        // 关闭窗口
-        CloseWindow(window);
-        UpdateModalState();
-    }
-
-    ImWindow* ImWindowManager::GetTopModalWindow() const
-    {
-        if (m_modalStack.empty()) return nullptr;
-        return m_modalStack.back();
-    }
-
-    void ImWindowManager::UpdateModalState()
-    {
-        m_hasActiveModal = !m_modalStack.empty();
     }
 
     void ImWindowManager::PushPopupWindow(ImWindow* popup)

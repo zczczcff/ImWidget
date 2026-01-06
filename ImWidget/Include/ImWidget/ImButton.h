@@ -67,7 +67,7 @@ namespace ImGuiWidget
         std::function<void(void)> OnPressed;
         std::function<void(void)> OnReleased;
         std::function<void(void)> OnHoverBegin;
-        std::function<void(void)> OnHoverEnd;
+        //std::function<void(void)> OnHoverEnd;
         std::function<void(void)> OnFocusGained;
         std::function<void(void)> OnFocusLost;
 
@@ -81,6 +81,8 @@ namespace ImGuiWidget
         ImMulticastDelegate<> OnRightClicked;
         ImMulticastDelegate<> OnLeftClicked;
         ImMulticastDelegate<> OnDoubleClicked;
+        ImMulticastDelegate<> OnMouseIn;
+        ImMulticastDelegate<> OnMouseOut;
     protected:
         void RenderButton()
         {
@@ -93,11 +95,11 @@ namespace ImGuiWidget
             {
                 currentStyle = &m_PressedStyle;
             }
-            else if (m_IsHovered)
+            else if (bHovered)
             {
                 currentStyle = &m_HoveredStyle;
             }
-            else if (m_hasFocus)
+            else if (bHasFocus)
             {
                 currentStyle = &m_FocusedStyle;
             }
@@ -197,29 +199,31 @@ namespace ImGuiWidget
 
         void HandleMouseEnter(ImMouseEnterEvent* event)
         {
-            if (!m_IsHovered)
-            {
-                m_IsHovered = true;
-                if (OnHoverBegin)
-                {
-                    OnHoverBegin();
-                }
-            }
-            event->StopPropagation(); // 阻止事件继续冒泡
+            //if (!m_IsHovered)
+            //{
+            //    m_IsHovered = true;
+            //    if (OnHoverBegin)
+            //    {
+            //        OnHoverBegin();
+            //    }
+            //    OnMouseIn.Broadcast();
+            //}
+            //event->StopPropagation(); // 阻止事件继续冒泡
         }
 
         void HandleMouseLeave(ImMouseLeaveEvent* event)
         {
-            if (m_IsHovered)
-            {
-                m_IsHovered = false;
-                m_IsPressed = false;
-                if (OnHoverEnd)
-                {
-                    OnHoverEnd();
-                }
-            }
-            event->StopPropagation();
+            //if (m_IsHovered)
+            //{
+            //    m_IsHovered = false;
+            //    m_IsPressed = false;
+            //    if (OnHoverEnd)
+            //    {
+            //        OnHoverEnd();
+            //    }
+            //    OnMouseOut.Broadcast();
+            //}
+            //event->StopPropagation();
         }
 
         void HandleMouseDown(ImMouseDownEvent* event)
@@ -259,9 +263,9 @@ namespace ImGuiWidget
 
         void HandleFocusIn(ImFocusInEvent* event)
         {
-            if (!m_hasFocus)
+            if (!bHasFocus)
             {
-                m_hasFocus = true;
+                bHasFocus = true;
                 if (OnFocusGained)
                 {
                     OnFocusGained();
@@ -271,15 +275,24 @@ namespace ImGuiWidget
 
         void HandleFocusOut(ImFocusOutEvent* event)
         {
-            if (m_hasFocus)
+            if (bHasFocus)
             {
-                m_hasFocus = false;
+                bHasFocus = false;
                 m_IsPressed = false; // 失去焦点时释放按下状态
                 if (OnFocusLost)
                 {
                     OnFocusLost();
                 }
             }
+        }
+
+        virtual void OnHoverStart() override
+        {
+            OnMouseIn.Broadcast();
+        }
+        virtual void OnHoverEnd() override
+        {
+            OnMouseOut.Broadcast();
         }
 
     public:
@@ -320,6 +333,7 @@ namespace ImGuiWidget
             };
 
             bHaveBackGround = false;
+            bHoverable = true;
         }
         ImButton(const ImButton& other)
             :ImPanelWidget(other),
@@ -360,7 +374,7 @@ namespace ImGuiWidget
         void SetOnPressed(std::function<void(void)> callback) { OnPressed = callback; }
         void SetOnReleased(std::function<void(void)> callback) { OnReleased = callback; }
         void SetOnHoverBegin(std::function<void(void)> callback) { OnHoverBegin = callback; }
-        void SetOnHoverEnd(std::function<void(void)> callback) { OnHoverEnd = callback; }
+        //void SetOnHoverEnd(std::function<void(void)> callback) { OnHoverEnd = callback; }
         void SetOnFocusGained(std::function<void(void)> callback) { OnFocusGained = callback; }
         void SetOnFocusLost(std::function<void(void)> callback) { OnFocusLost = callback; }
 

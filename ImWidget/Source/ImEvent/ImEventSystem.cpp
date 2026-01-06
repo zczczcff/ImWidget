@@ -6,6 +6,7 @@
 #include "ImEvent/ImFocusEvent.h"
 #include "ImEvent/ImDragEvent.h"
 #include "ImEvent/ImInputEvent.h"
+#include "ImEvent/ImHoverEvent.h"
 #include "ImWidget/ImUserWidget.h"
 namespace ImGuiWidget
 {
@@ -190,53 +191,87 @@ namespace ImGuiWidget
 	void ImEventSystem::CollectHoverEvents(ImGuiIO& io)
 	{
 		// 检测当前鼠标下的控件
-		ImWidget* currentHovered = HitTest(m_rootWidget, io.MousePos);
+		ImWidget* currentHitWidget = HitTest(m_rootWidget, io.MousePos);
 
 		// 处理鼠标进入/离开事件
-		if (currentHovered != m_lastHoveredWidget.GetWidget())
+		if (currentHitWidget != m_lastHitWidget.GetWidget())
 		{
 			// 发送离开事件给之前悬停的控件
-			if (m_lastHoveredWidget)
+			if (m_lastHitWidget)
 			{
 				auto leaveEvent = std::make_unique<ImMouseLeaveEvent>();
 				leaveEvent->SetPosition(io.MousePos);
-				leaveEvent->SetTarget(m_lastHoveredWidget);
+				leaveEvent->SetTarget(m_lastHitWidget);
 				m_eventQueue.push_back(std::move(leaveEvent));
 			}
 
 			// 发送进入事件给新悬停的控件
-			if (currentHovered != nullptr)
+			if (currentHitWidget != nullptr)
 			{
 				auto enterEvent = std::make_unique<ImMouseEnterEvent>();
 				enterEvent->SetPosition(io.MousePos);
-				enterEvent->SetTarget(currentHovered->GetWidgetRef());
+				enterEvent->SetTarget(currentHitWidget->GetWidgetRef());
 				m_eventQueue.push_back(std::move(enterEvent));
-
+				m_lastHitWidget = currentHitWidget->GetWidgetRef();
 				// 开始悬停计时
-				m_hoverStartTime = ImGui::GetTime();
-				m_hoveredWidget = currentHovered->GetWidgetRef();
+				
 			}
 			else
 			{
 				m_hoverStartTime = 0.0;
-				m_hoveredWidget.Reset();
+				//m_hoveredWidget.Reset();
+				m_lastHitWidget.Reset();
 			}
-			if (currentHovered)
+
+			if (ImWidget* CurrentHoveredWidget = FindHoverableAncestor(currentHitWidget))
 			{
-				m_lastHoveredWidget = currentHovered->GetWidgetRef();
+				if (CurrentHoveredWidget != m_hoveredWidget.GetWidget())
+				{
+					m_hoverStartTime = ImGui::GetTime();
+
+					if (m_hoveredWidget)
+					{
+						auto HoverOutEvent = std::make_unique<ImHoverOutEvent>();
+						HoverOutEvent->SetTarget(m_hoveredWidget);
+						DispatchEventImmediately(HoverOutEvent.get());
+					}
+					auto CurrentHoveredWidgetRef = CurrentHoveredWidget->GetWidgetRef();
+					auto HoverInEvent = std::make_unique<ImHoverInEvent>();
+					HoverInEvent->SetTarget(CurrentHoveredWidget->GetWidgetRef());
+					DispatchEventImmediately(HoverInEvent.get());
+					if (CurrentHoveredWidgetRef)
+					{
+						m_hoveredWidget = CurrentHoveredWidgetRef;
+					}
+					else
+					{
+						m_hoveredWidget.Reset();
+					}
+				}
+				else
+				{
+					//计时触发回调
+				}
 			}
 			else
 			{
-				m_lastHoveredWidget.Reset();
+				if (m_hoveredWidget)
+				{
+					auto HoverOutEvent = std::make_unique<ImHoverOutEvent>();
+					HoverOutEvent->SetTarget(m_hoveredWidget);
+					DispatchEventImmediately(HoverOutEvent.get());
+				}
+				m_hoverStartTime = 0.0;
+				m_hoveredWidget.Reset();
 			}
 			
 		}
 
 		// 更新当前悬停控件
-		if (currentHovered)
-		{
-			m_hoveredWidget = currentHovered->GetWidgetRef();
-		}
+		//if (currentHitWidget)
+		//{
+		//	m_hoveredWidget = currentHitWidget->GetWidgetRef();
+		//}
 		
 	}
 
@@ -725,7 +760,7 @@ namespace ImGuiWidget
 	{
 		m_isDragging = true;
 		m_dragStartPos = pos;
-		m_dragSourceWidget = m_lastHoveredWidget;
+		m_dragSourceWidget = m_lastHitWidget;
 
 		// 创建拖拽开始事件
 		auto event = std::make_unique<ImDragStartEvent>();
@@ -994,6 +1029,19 @@ namespace ImGuiWidget
 		while (current)
 		{
 			if (current->IsFocusable())
+			{
+				return current;
+			}
+			current = current->GetParents();
+		}
+		return nullptr;
+	}
+	ImWidget* ImEventSystem::FindHoverableAncestor(ImWidget* widget)
+	{
+		ImWidget* current = widget;
+		while (current)
+		{
+			if (current->IsHoverable())
 			{
 				return current;
 			}

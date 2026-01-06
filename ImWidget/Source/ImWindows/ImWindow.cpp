@@ -45,58 +45,87 @@ namespace ImGuiWidget
         m_rootWidget = rootWidget;
         ControlRootWidget = ControlNewRootWidget;
     }
-
-    void ImWindow::SetIsActive(bool active)
+    //void ImWindow::SetIsOpen(bool open)
+    //{
+    //    if (open == bIsOpen) return;
+    //    bIsOpen = open;
+    //    if (open)
+    //    {
+    //        m_JustOpened = true;
+    //    }
+    //    else
+    //    {
+    //        m_manager->CloseWindow(this);
+    //    }
+    //    
+    //}
+    void ImWindow::Close()
     {
-        if (active == bIsActive) return;
-
-        bIsActive = active;
-
-        if (active)
-        {
-            OnGetFocus.Broadcast();
-            Open();
-            m_manager->SetActiveWindow(this);
-
-            // 如果是弹出窗口且没有父窗口，将其推入弹出栈
-            if (bIsPopup && !m_parentWindow)
-            {
-                m_manager->PushPopupWindow(this);
-            }
-        }
-        else
-        {
-            OnLoseFocus.Broadcast();
-
-            // 只有没有子窗口或者所有子窗口都关闭时才自动关闭
-            bool shouldAutoClose = bAutoCloseWhenLostFocus;
-            if (shouldAutoClose && HasChildWindows())
-            {
-                // 检查是否还有打开的子窗口
-                bool hasOpenChildren = false;
-                for (auto child : m_childWindows)
-                {
-                    if (child->IsOpen())
-                    {
-                        hasOpenChildren = true;
-                        break;
-                    }
-                }
-                shouldAutoClose = !hasOpenChildren;
-            }
-
-            if (shouldAutoClose)
-            {
-                Close();
-            }
-
-            // 如果是弹出窗口且是栈顶，将其弹出
-            if (bIsPopup && m_manager->GetTopPopupWindow() == this)
-            {
-                m_manager->PopPopupWindow(this);
-            }
-        }
+        m_manager->CloseWindow(this);
     }
+    void ImWindow::Open()
+    {
+        m_manager->OpenWindow(this);
+    }
+    void ImWindow::SetActive()
+    {
+        m_manager->SetActiveWindow(this);
+    }
+    void ImWindow::SetInactive()
+    {
+        m_manager->SetWindowInactive(this);
+    }
+    //void ImWindow::SetIsActive(bool active)
+    //{
+    //    if (active == bIsActive) return;
+
+    //    bIsActive = active;
+
+    //    if (active)
+    //    {
+    //        OnGetFocus.Broadcast();
+    //        Open();
+    //        m_manager->SetActiveWindow(this);
+
+    //        // 如果是弹出窗口且没有父窗口，将其推入弹出栈
+    //        if (bIsPopup && !m_parentWindow)
+    //        {
+    //            m_manager->PushPopupWindow(this);
+    //        }
+    //    }
+    //    else
+    //    {
+    //        OnLoseFocus.Broadcast();
+
+    //        // 只有没有子窗口或者所有子窗口都关闭时才自动关闭
+    //        bool shouldAutoClose = bAutoCloseWhenLostFocus;
+    //        if (shouldAutoClose && HasChildWindows())
+    //        {
+    //            // 检查是否还有打开的子窗口
+    //            bool hasOpenChildren = false;
+    //            for (auto child : m_childWindows)
+    //            {
+    //                if (child->IsOpen())
+    //                {
+    //                    hasOpenChildren = true;
+    //                    break;
+    //                }
+    //            }
+    //            shouldAutoClose = !hasOpenChildren;
+    //        }
+
+    //        if (shouldAutoClose)
+    //        {
+    //            Close();
+    //        }
+
+    //        // 如果是弹出窗口且是栈顶，将其弹出
+    //        if (bIsPopup && m_manager->GetTopPopupWindow() == this)
+    //        {
+    //            m_manager->PopPopupWindow(this);
+    //        }
+    //    }
+    //}
 
     void ImWindow::Render()
     {
@@ -214,18 +243,11 @@ namespace ImGuiWidget
 
     void ImWindow::CloseAllChildren()
     {
-        // 先关闭所有子窗口的子窗口（深度优先）
-        for (auto child : m_childWindows)
-        {
-            child->CloseAllChildren();
-        }
-
         // 然后关闭直接子窗口
         for (auto child : m_childWindows)
         {
             child->Close();
         }
-        m_childWindows.clear();
     }
 
     bool ImWindow::IsAncestorOf(const ImWindow* window) const

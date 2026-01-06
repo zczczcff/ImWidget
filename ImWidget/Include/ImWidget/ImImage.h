@@ -24,7 +24,7 @@ namespace ImGuiWidget
 			LoadImageFromFile(FilePath);
 		}
 
-		ImImage(const std::string& WidgetName, ImTextureID TextureID, int Width, int Height) :ImWidget(WidgetName), m_MaintainAspectRatio(true)
+		ImImage(const std::string& WidgetName, ImTextureID TextureID, int Width, int Height) :ImWidget(WidgetName), m_MaintainAspectRatio(true), TintColor(IM_COL32(255, 255, 255, 255))
 		{
 			SetTextureID(TextureID, Width, Height);
 		}

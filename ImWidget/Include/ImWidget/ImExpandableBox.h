@@ -17,7 +17,7 @@ namespace ImGuiWidget
         ImVec2 p0, p1, p2, p3, p4, p5; // TrianglePoints
         ImRect buttonrect_NotExpanded, buttonrect_Expanded;
         ImU32 TriangleColor;
-        ImU32 HoveredTriangleColor = IM_COL32(100, 100, 100, 255);
+        ImU32 HoveredTriangleColor = IM_COL32(150, 150, 150, 255);
 
         std::function<void(bool)> OnExpandedStateChanged;
         std::function<void(void)> OnHoverBegin;

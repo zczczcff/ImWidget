@@ -1,6 +1,7 @@
 #include "UI/UI_WidgetTreeView.h"
 #include "ImWidget/ImBasicWidgetList.h"
 #include "ImGlobal.h"
+#include "Public/WidgetInfor.h"
 
 void UI_WidgetTreeView::InitPopUpMenu()
 {
@@ -8,25 +9,122 @@ void UI_WidgetTreeView::InitPopUpMenu()
     ImVerticalBox_WidgetMenu = new ImGuiWidget::ImVerticalBox("ImVerticalBox_WidgetMenu");
     ImGuiWidget::ImButton* CopyButton = CreateWidgetMenuButton(u8"复制");
     ImGuiWidget::ImButton* DeleteButton = CreateWidgetMenuButton(u8"删除");
+    ImGuiWidget::ImButton* InsertBeforeButton = CreateWidgetMenuButton(u8"在前一个位置插入", true);
+    ImGuiWidget::ImButton* InsertToButton = CreateWidgetMenuButton(u8"插入控件", true);
+    ImGuiWidget::ImButton* InsertAfterButton = CreateWidgetMenuButton(u8"在后一个位置插入", true);
     DeleteButton->OnLeftClicked.Add([this]() { On_WidgetDeleteButtonClicked(PopupMenuTargetWidget); });
     ImVerticalBox_WidgetMenu->AddChildToVerticalBox(CopyButton)->SetIfAutoSize(false);
     ImVerticalBox_WidgetMenu->AddChildToVerticalBox(DeleteButton)->SetIfAutoSize(false);
+    ImVerticalBox_WidgetMenu->AddChildToVerticalBox(InsertBeforeButton)->SetIfAutoSize(false);
+    ImVerticalBox_WidgetMenu->AddChildToVerticalBox(InsertToButton)->SetIfAutoSize(false);
+    ImVerticalBox_WidgetMenu->AddChildToVerticalBox(InsertAfterButton)->SetIfAutoSize(false);
 
     WidgetMenu = windowmanager->CreatePopupWindow(ImVerticalBox_WidgetMenu->GetMinSize(), ImVec2(0, 0), ImVerticalBox_WidgetMenu, false);
     WidgetMenu->Close();
+
+    ImVerticalBox_WidgetMenu_InsertNew=new ImGuiWidget::ImVerticalBox("ImVerticalBox_WidgetMenu_InsertNew");
+    for (auto& SingleWidgetInfor : BasicWidgetList::GetBasicWidgetList())
+    {
+        ImGuiWidget::ImButton* Example_Button = CreateWidgetInsertButton
+        (
+            SingleWidgetInfor.CN_DisplayName,
+            SingleWidgetInfor.RegisterName,
+            IconManager::GetInstance()->GetIcon(SingleWidgetInfor.IconID)
+        );
+        ImVerticalBox_WidgetMenu_InsertNew->AddChildToVerticalBox(Example_Button)->SetIfAutoSize(false);
+    }
+    WidgetMenu_InsertNew = windowmanager->CreatePopupWindow(ImVerticalBox_WidgetMenu_InsertNew->GetMinSize(), ImVec2(0, 0), ImVerticalBox_WidgetMenu_InsertNew, false, WidgetMenu);
+    WidgetMenu_InsertNew->Close();
+
+    InsertBeforeButton->OnMouseIn.Add([this, InsertBeforeButton]()
+        {
+            ImVec2 PopupPos = InsertBeforeButton->GetPosition() + ImVec2(InsertBeforeButton->GetSize().x, 0);
+            WidgetMenu_InsertNew->SetPosition(PopupPos);
+            WidgetMenu_InsertNew->SetActive();
+        });
+    InsertBeforeButton->OnMouseOut.Add([this]() 
+        {
+            //WidgetMenu_InsertNew->Close(); 
+        });
+
+    InsertToButton->OnMouseIn.Add([this, InsertToButton]()
+        {
+            ImVec2 PopupPos = InsertToButton->GetPosition() + ImVec2(InsertToButton->GetSize().x, 0);
+            WidgetMenu_InsertNew->SetPosition(PopupPos);
+            WidgetMenu_InsertNew->SetActive();
+        });
+    InsertToButton->OnMouseOut.Add([this]() 
+        {
+            //WidgetMenu_InsertNew->Close(); 
+        });
+
+    InsertAfterButton->OnMouseIn.Add([this, InsertAfterButton]()
+        {
+            ImVec2 PopupPos = InsertAfterButton->GetPosition() + ImVec2(InsertAfterButton->GetSize().x, 0);
+            WidgetMenu_InsertNew->SetPosition(PopupPos);
+            WidgetMenu_InsertNew->SetActive();
+        });
+    InsertAfterButton->OnMouseOut.Add([this]() 
+        {
+            //WidgetMenu_InsertNew->Close(); 
+        });
 }
 
-ImGuiWidget::ImButton* UI_WidgetTreeView::CreateWidgetMenuButton(const std::string& Text)
+ImGuiWidget::ImButton* UI_WidgetTreeView::CreateWidgetMenuButton(const std::string& Text, bool bHaveSubMenu)
 {
     ImGuiWidget::ImButton* button = new ImGuiWidget::ImButton("UI_WidgetTreeView_WidgetMenuButton");
+    button->bHaveBorder = false;
     ImGuiWidget::ImTextBlock* text = new ImGuiWidget::ImTextBlock("UI_WidgetTreeView_WidgetMenuButton_Text");
     text->SetText(Text);
     text->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Left);
-    button->SetContent(text);
-    button->GetContentSlot()->SetPadding(2, 2, 10, 10);
+
+
+    ImGuiWidget::ImHorizontalBox* HBox = new ImGuiWidget::ImHorizontalBox("UI_WidgetTreeView_HBox");
+    auto hboxslot = HBox->AddChildToHorizontalBox(text);
+    hboxslot->PaddingLeft = 10;
+    hboxslot->PaddingRight = 16;
+    hboxslot->PaddingBottom = 2;
+    hboxslot->PaddingTop = 2;
+
+    if (bHaveSubMenu)
+    {
+        ImGuiWidget::ImTextBlock* text_arrow = new ImGuiWidget::ImTextBlock("UI_WidgetTreeView_WidgetMenuButton_Text");
+        text_arrow->SetText(u8">");
+        hboxslot = HBox->AddChildToHorizontalBox(text_arrow);
+        hboxslot->SetIfAutoSize(false);
+        hboxslot->PaddingRight = 2;
+    }
+
+    HBox->bHaveBackGround = false;
+    HBox->bHaveBorder = false;
+    button->SetContent(HBox);
+    //button->GetContentSlot()->SetPadding(2, 2, 10, 10);
 
     button->bHaveBorder = false;
     button->OnLeftClicked.Add([this]() { WidgetMenu->Close(); });
+    return button;
+}
+
+ImGuiWidget::ImButton* UI_WidgetTreeView::CreateWidgetInsertButton(const std::string& CN_Name, const std::string& RegisterName, ImTextureID icon)
+{
+    ImGuiWidget::ImButton* button = new ImGuiWidget::ImButton("UI_WidgetTreeView_WidgetMenuButton");
+    button->bHaveBorder = false;
+    ImGuiWidget::ImTextBlock* text = new ImGuiWidget::ImTextBlock("UI_WidgetTreeView_WidgetMenuButton_Text");
+    text->SetText(CN_Name);
+    text->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Left);
+    ImGuiWidget::ImHorizontalBox* HBox = new ImGuiWidget::ImHorizontalBox("UI_WidgetTreeView_WidgetInsertHBox");
+    ImGuiWidget::ImImage* Icon = new ImGuiWidget::ImImage("UI_WidgetTreeView_WidgetInsert_Icon", icon, 24, 24);
+    HBox->AddChildToHorizontalBox(Icon)->SetIfAutoSize(false);
+    HBox->AddChildToHorizontalBox(text);
+    HBox->bHaveBackGround = false;
+    //HBox->SetBackGroundColor(IM_COL32(255, 255, 255, 255));
+    button->SetContent(HBox);
+    button->OnLeftClicked.Add([this, RegisterName]() 
+        {
+            WidgetMenu_InsertNew->Close();
+            WidgetMenu->Close();
+            On_InsertWidgetButtonClicked(RegisterName); 
+        });
     return button;
 }
 
@@ -150,6 +248,14 @@ void UI_WidgetTreeView::On_WidgetSelectedButtonRightClicked(ImGuiWidget::ImWidge
     PopupMenuTargetWidget = widget;
     WidgetMenu->SetPosition(ImGuiWidget::GetMousePos());
     WidgetMenu->SetActive();
+}
+
+void UI_WidgetTreeView::PopUp_WidgetMenu_InsertNew()
+{
+}
+
+void UI_WidgetTreeView::On_InsertWidgetButtonClicked(const std::string& InsertWidgetRegisterName)
+{
 }
 
 // 设置目标控件树
