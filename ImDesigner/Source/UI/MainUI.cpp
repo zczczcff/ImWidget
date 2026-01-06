@@ -146,6 +146,7 @@ bool MainUI::ShowWidgetTreeViewByName(const std::string& Name)
 	if (Name == "")
 	{
 		ImScrollBox_WidgetTree->SetContent(nullptr, false);
+		CurrentTreeView = Name;
 		return true;
 	}
 	auto it = AllTreeViews.find(Name);
@@ -182,6 +183,7 @@ bool MainUI::RenameWidgetTreeView(const std::string& OldName, const std::string&
 		UI_WidgetTreeView* v = it->second;
 		AllTreeViews.erase(it);
 		AllTreeViews.insert(std::make_pair(NewName, v));
+		ShowWidgetTreeViewByName(NewName);
 		return true;
 	}
 	else
@@ -251,6 +253,7 @@ bool MainUI::RenameDetailView(const std::string& OldName, const std::string& New
 		UI_DetailView* v = it->second;
 		AllFileDetails.erase(it);
 		AllFileDetails.insert(std::make_pair(NewName, v));
+		ShowDetailViewByName(NewName);
 		return true;
 	}
 	else
@@ -258,6 +261,8 @@ bool MainUI::RenameDetailView(const std::string& OldName, const std::string& New
 		return false;
 	}
 }
+
+
 
 bool MainUI::HandleRenameFile(const std::string& OldFullPath, const std::string& NewFullPath)
 {
@@ -269,6 +274,20 @@ bool MainUI::HandleRenameFile(const std::string& OldFullPath, const std::string&
 	if (!success)
 	{
 		//±¨´í
+	}
+	return success;
+}
+
+bool MainUI::HandleCloseFile(const std::string& FileFullPath)
+{
+	bool success = true;
+
+	success &= RemoveWidgetTreeViewByName(FileFullPath);
+	success &= RemoveDetailViewByName(FileFullPath);
+
+	if (!success)
+	{
+
 	}
 	return success;
 }

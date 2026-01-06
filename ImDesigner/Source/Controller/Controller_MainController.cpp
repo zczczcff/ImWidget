@@ -36,6 +36,17 @@
 	 m_MainUI->OnEditorPageClosed.Add([this](const std::string& FileFullPath)
 		 {
 			 m_MainModel->FinishEditFile(FileFullPath);
+			 auto it = WidgetEidtorControllers.find(FileFullPath);
+			 if (it == WidgetEidtorControllers.end())
+			 {
+				 //±¨´í
+			 }
+			 else
+			 {
+				 delete it->second;
+				 WidgetEidtorControllers.erase(it);
+				 m_MainUI->HandleCloseFile(FileFullPath);
+			 }
 		 });
 
 	 m_MainUI->GetProjectView()->OnRequestCreateFileInDir.Add([this](const std::string& Dir) 
@@ -50,9 +61,20 @@
 		 {
 			 if (m_MainModel->RenameFile(OldFullPath, NewFullPath))
 			 {
-				 m_MainUI->GetProjectView()->ExpandToFile(NewFullPath);
-				 m_MainUI->GetProjectView()->ScrollToFileWithDelay(NewFullPath);
-				 m_MainUI->HandleRenameFile(OldFullPath, NewFullPath);
+				 auto it = WidgetEidtorControllers.find(OldFullPath);
+				 if (it == WidgetEidtorControllers.end())
+				 {
+					 //±¨´í
+				 }
+				 else
+				 {
+					 Controller_WidgetEditor* v = it->second;
+					 WidgetEidtorControllers.erase(it);
+					 WidgetEidtorControllers.insert(std::make_pair(NewFullPath, v));
+					 m_MainUI->GetProjectView()->ExpandToFile(NewFullPath);
+					 m_MainUI->GetProjectView()->ScrollToFileWithDelay(NewFullPath);
+					 m_MainUI->HandleRenameFile(OldFullPath, NewFullPath);
+				 }
 			 }
 		 });
 }
