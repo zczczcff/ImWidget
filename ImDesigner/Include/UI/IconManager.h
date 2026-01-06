@@ -9,6 +9,28 @@ enum class ImDesignerIcon
 	SingleWidget,
 	ComboWidget,
 
+	Button,
+	CheckBox,
+	ComboBox,
+	Image,
+	InputText,
+	IntInput,
+	FloatInput,
+	MultiLineTextBlock,
+	ScrollTextList,
+	Slider,
+	TextBlock,
+	SimpleFigure,
+
+	Border,
+	CanvasPanel,
+	HorizontalBox,
+	HorizontalSplitter,
+	VerticalBox,
+	VerticalSplitter,
+	ExpandableBox,
+	ScrollBox,
+
 	IconNum
 };
 
