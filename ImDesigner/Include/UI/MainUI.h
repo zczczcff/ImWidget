@@ -108,4 +108,8 @@ private:
 public:
     bool HandleRenameFile(const std::string& OldFullPath, const std::string& NewFullPath);
     bool HandleCloseFile(const std::string& FileFullPath);
+
+    //log更新
+public:
+    void UpdateLog(std::vector<std::string>&& Logs);
 };

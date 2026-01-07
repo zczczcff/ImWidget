@@ -291,3 +291,11 @@ bool MainUI::HandleCloseFile(const std::string& FileFullPath)
 	}
 	return success;
 }
+
+void MainUI::UpdateLog(std::vector<std::string>&& Logs)
+{
+	for(auto& singlelog:Logs)
+	{
+		ImScrollingTextList_LogList->AddItem(singlelog);
+	}
+}

@@ -77,4 +77,6 @@
 				 }
 			 }
 		 });
+
+	 m_MainModel->OnLogUpdate = [this](std::vector<std::string>&& Logs) { m_MainUI->UpdateLog(std::move(Logs)); };
 }

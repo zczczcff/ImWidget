@@ -3,14 +3,23 @@
 #include "ImWidget/ImWidgetSerializer.h"
 #include "Model/Model_WidgetEditor.h"
 #include "Model/FileUtil.h"
+#include "Tools/JAsyncLog.h"
+#include "Tools/JLog.h"
 void Model_MainModel::Tick() 
 {
-
+	std::vector<std::string> RecentLogs = m_Log->GetRecentLogs();
+	if (RecentLogs.size() > 0&&OnLogUpdate)
+	{
+		OnLogUpdate(std::move(RecentLogs));
+	}
 }
 
 void Model_MainModel::Init()
 {
 	LoadConfig("");
+	m_Log = new JAsyncLog("./ImDesignerLog.txt");
+	m_Log->SetFlushInterval(std::chrono::milliseconds(200));
+	SetLogFun([log = this->m_Log](const std::string& msg){log->Log(msg); });
 }
 
 Model_MainModel::EditedUIFile* Model_MainModel::BeginEditFile(const std::string& FileFullPath)
@@ -54,6 +63,11 @@ bool Model_MainModel::RenameFile(const std::string& OldFullPath, const std::stri
 		return true;
 	}
 	return false;
+}
+
+Model_MainModel::~Model_MainModel()
+{
+	delete m_Log;
 }
 
 void Model_MainModel::LoadConfig(const std::string& ConfigPath)

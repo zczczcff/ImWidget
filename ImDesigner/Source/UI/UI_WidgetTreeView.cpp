@@ -2,6 +2,7 @@
 #include "ImWidget/ImBasicWidgetList.h"
 #include "ImGlobal.h"
 #include "Public/WidgetInfor.h"
+#include "Tools/JLog.h"
 
 void UI_WidgetTreeView::InitPopUpMenu()
 {

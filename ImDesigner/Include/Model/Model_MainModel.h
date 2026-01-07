@@ -9,6 +9,7 @@ namespace ImGuiWidget
 	class ImWidget;
 }
 class Model_WidgetEditor;
+class JAsyncLog;
 class Model_MainModel
 {
 public:
@@ -27,8 +28,10 @@ private:
 	ProjectConfig m_ProjectConfig;
 	ProjectFileManager m_ProjectFileManager;
 	std::map<std::string, EditedUIFile*> EditedFiles;
+	JAsyncLog* m_Log;
 public:
 	ImMulticastDelegate<ProjectFileManager*> OnProjectConfigChanged;
+	std::function<void(std::vector<std::string>&&)> OnLogUpdate;
 public:
 	void Tick();
 	void Init();
@@ -36,6 +39,7 @@ public:
 	void FinishEditFile(const std::string& FileFullPath);
 	std::string CteateNewUIFileInDir(const std::string& Dir);
 	bool RenameFile(const std::string& OldFullPath, const std::string& NewFullPath);
+	~Model_MainModel();
 private:
 	void LoadConfig(const std::string& ConfigPath);
 };
