@@ -3,7 +3,7 @@
 #include <functional>
 #include <memory>
 #include <unordered_set> 
-
+#include <imgui.h>
 namespace ImGuiWidget 
 {
     // 自定义颜色分量提取宏（替代缺失的IM_COL32_R等）
@@ -25,7 +25,7 @@ namespace ImGuiWidget
         StringArray,     //新增：数组
         Enum
     };
-
+    class PropertyStruct;
     // 属性信息结构
     struct PropertyInfo 
     {
@@ -44,6 +44,133 @@ namespace ImGuiWidget
                 return std::hash<std::string>()(pi.name);
             }
         };
+
+        bool SetColorValue(ImU32 value)
+        {
+            if (type != PropertyType::Color) return false;
+            setter(&value);
+            return true;
+        }
+
+        ImU32 GetColorValue()
+        {
+            if (type != PropertyType::Color) return INT32_MAX;
+            return *static_cast<ImU32*>(getter());
+        }
+
+        bool SetFloatValue(float value)
+        {
+            if (type != PropertyType::Float) return false;
+            setter(&value);
+            return true;
+        }
+
+        float GetFloatValue()
+        {
+            if (type != PropertyType::Float) return 0.0f;
+            return *static_cast<float*>(getter());
+        }
+
+        bool SetBoolValue(bool value)
+        {
+            if (type != PropertyType::Bool) return false;
+            setter(&value);
+            return true;
+        }
+
+        bool GetBoolValue()
+        {
+            if (type != PropertyType::Bool) return false;
+            return *static_cast<bool*>(getter());
+        }
+
+        bool SetIntValue(int value)
+        {
+            if (type != PropertyType::Int) return false;
+            setter(&value);
+            return true;
+        }
+
+        int GetIntValue()
+        {
+            if (type != PropertyType::Int) return 0;
+            return *static_cast<int*>(getter());
+        }
+
+        bool SetStringValue(const std::string& value)
+        {
+            if (type != PropertyType::String) return false;
+            setter(const_cast<void*>(static_cast<const void*>(&value)));
+            return true;
+        }
+
+        std::string GetStringValue()
+        {
+            if (type != PropertyType::String) return "";
+            return *static_cast<std::string*>(getter());
+        }
+
+        bool SetVec2Value(const ImVec2& value)
+        {
+            if (type != PropertyType::Vec2) return false;
+            setter(const_cast<void*>(static_cast<const void*>(&value)));
+            return true;
+        }
+
+        ImVec2 GetVec2Value()
+        {
+            if (type != PropertyType::Vec2) return ImVec2(0, 0);
+            return *static_cast<ImVec2*>(getter());
+        }
+
+        bool SetStructValue(PropertyStruct* value)
+        {
+            if (type != PropertyType::Struct) return false;
+            setter(static_cast<void*>(value));
+            return true;
+        }
+
+        PropertyStruct* GetStructValue()
+        {
+            if (type != PropertyType::Struct) return nullptr;
+            return static_cast<PropertyStruct*>(getter());
+        }
+
+        bool SetStringArrayValue(const std::vector<std::string>& value)
+        {
+            if (type != PropertyType::StringArray) return false;
+            setter(const_cast<void*>(static_cast<const void*>(&value)));
+            return true;
+        }
+
+        std::vector<std::string> GetStringArrayValue()
+        {
+            if (type != PropertyType::StringArray) return {};
+            return *static_cast<std::vector<std::string>*>(getter());
+        }
+
+        bool SetEnumValue(std::string value)//使用字符串设置枚举
+        {
+            if (type != PropertyType::Enum) return false;
+            setter(const_cast<void*>(static_cast<const void*>(&value)));
+            return true;
+        }
+
+        std::vector<std::string> GetEnumOptions()//获取枚举列表
+        {
+            if (type != PropertyType::Enum) return std::vector<std::string>();
+            std::vector<std::string> temp= *static_cast<std::vector<std::string>*>(getter());
+            temp.pop_back();
+            return temp;
+        }
+
+        std::string GetEnumCurrentValue()//获取枚举变量字符串表示
+        {
+            if (type != PropertyType::Enum) return "";
+            std::vector<std::string> temp = *static_cast<std::vector<std::string>*>(getter());
+            return temp.back();
+        }
+
     };
 
     // 属性结构基类
@@ -53,7 +180,7 @@ namespace ImGuiWidget
         virtual ~PropertyStruct() = default;
 
         // 获取所有可编辑属性
-        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() = 0;
+        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() { return std::unordered_set<PropertyInfo, PropertyInfo::Hasher>(); }
 
         // 类型安全的属性访问
         bool SetProperty(const std::string& name, void* value)

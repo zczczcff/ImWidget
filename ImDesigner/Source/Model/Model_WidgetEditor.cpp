@@ -2,9 +2,11 @@
 #include "ImWidget/ImWidget.h"
 #include "ImWidget/ImPanelWidget.h"
 #include "Tools/JLog.h"
+#include "Model/Command/CommandManager.h"
 
 Model_WidgetEditor::Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget):
-	RootWidget(rootwidget)
+	RootWidget(rootwidget),
+	m_EditCommandManager(new EditCommandManager())
 {
 }
 
@@ -25,4 +27,19 @@ bool Model_WidgetEditor::RemoveChildWidget(ImGuiWidget::ImWidget* WidgetToRemove
 bool Model_WidgetEditor::InsertChildTo(ImGuiWidget::ImWidget* child, ImGuiWidget::ImPanelWidget* Target, int InsertIndex)
 {
 	return false;
+}
+
+void Model_WidgetEditor::EditProperty(const ImGuiWidget::PropertyInfo& propInfo, const void* NewValue)
+{
+	m_EditCommandManager->ExecutePropertyEdit(propInfo, NewValue);
+}
+
+bool Model_WidgetEditor::CanUndo()
+{
+	return m_EditCommandManager->CanUndo();
+}
+
+bool Model_WidgetEditor::CanRedo()
+{
+	return m_EditCommandManager->CanRedo();
 }

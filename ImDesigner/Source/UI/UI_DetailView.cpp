@@ -60,9 +60,10 @@ void UI_DetailView::HandleSingleProperty(const ImGuiWidget::PropertyInfo& Single
 		PropertyName->SetText(SingleProperty.name);
 		ImGuiWidget::ImCheckBox* BoolSetBox = new ImGuiWidget::ImCheckBox(m_WidgetID + "_BoolSetBox");
 		BoolSetBox->SetChecked(*(bool*)SingleProperty.getter());
-		BoolSetBox->SetOnToggled([SingleProperty](bool NewSetting)
+		BoolSetBox->SetOnToggled([this,SingleProperty](bool NewSetting)
 			{
-				SingleProperty.setter(&NewSetting);
+				//SingleProperty.setter(&NewSetting);
+				OnPropertyChanged.Broadcast(SingleProperty, &NewSetting);
 			});
 		ItemBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
 		ItemBox->AddChildToHorizontalBox(BoolSetBox)->SetIfAutoSize(false);
@@ -76,7 +77,11 @@ void UI_DetailView::HandleSingleProperty(const ImGuiWidget::PropertyInfo& Single
 		PropertyName->SetText(SingleProperty.name);
 		ImGuiWidget::ImColorPicker* ColorPalette = new ImGuiWidget::ImColorPicker(m_WidgetID + "_ColorPalette");
 		ColorPalette->SetColor(*(ImU32*)SingleProperty.getter());
-		ColorPalette->SetOnColorChanged([SingleProperty](ImU32 NewColor) { SingleProperty.setter(&NewColor); });
+		ColorPalette->SetOnColorChanged([this,SingleProperty](ImU32 NewColor) 
+			{
+				//SingleProperty.setter(&NewColor); 
+				OnPropertyChanged.Broadcast(SingleProperty, &NewColor);
+			});
 
 		StructBox->SetHead(PropertyName);
 		StructBox->SetBody(ColorPalette);
@@ -91,9 +96,10 @@ void UI_DetailView::HandleSingleProperty(const ImGuiWidget::PropertyInfo& Single
 		PropertyName->SetText(SingleProperty.name);
 		ImGuiWidget::ImFloatInput* FloatInput = new ImGuiWidget::ImFloatInput(m_WidgetID + "_FloatInput");
 		FloatInput->SetValue(*(float*)SingleProperty.getter());
-		FloatInput->SetOnFloatValueChanged([SingleProperty](float value)
+		FloatInput->SetOnFloatValueChanged([this,SingleProperty](float value)
 			{
-				SingleProperty.setter(&value);
+				//SingleProperty.setter(&value);
+				OnPropertyChanged.Broadcast(SingleProperty, &value);
 			});
 
 		ItemBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
@@ -108,9 +114,10 @@ void UI_DetailView::HandleSingleProperty(const ImGuiWidget::PropertyInfo& Single
 		PropertyName->SetText(SingleProperty.name);
 		ImGuiWidget::ImIntInput* FloatInput = new ImGuiWidget::ImIntInput(m_WidgetID + "_IntInput");
 		FloatInput->SetValue(*(int*)SingleProperty.getter());
-		FloatInput->SetOnIntValueChanged([SingleProperty](int value)
+		FloatInput->SetOnIntValueChanged([this,SingleProperty](int value)
 			{
-				SingleProperty.setter(&value);
+				//SingleProperty.setter(&value);
+				OnPropertyChanged.Broadcast(SingleProperty, &value);
 			});
 
 		ItemBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
@@ -125,9 +132,10 @@ void UI_DetailView::HandleSingleProperty(const ImGuiWidget::PropertyInfo& Single
 		PropertyName->SetText(SingleProperty.name);
 		ImGuiWidget::ImInputText* Input = new ImGuiWidget::ImInputText(m_WidgetID + "_Input");
 		Input->SetText(*(std::string*)SingleProperty.getter());
-		Input->SetOnTextChanged([SingleProperty](const std::string& text)
+		Input->SetOnTextChanged([this,SingleProperty](const std::string& text)
 			{
-				SingleProperty.setter((void*)&text);
+				//SingleProperty.setter((void*)&text);
+				OnPropertyChanged.Broadcast(SingleProperty, (void*)&text);
 			});
 
 		ItemBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
@@ -166,18 +174,20 @@ void UI_DetailView::HandleSingleProperty(const ImGuiWidget::PropertyInfo& Single
 		ImVec2 currentv = *(ImVec2*)SingleProperty.getter();
 		X_Input->SetValue(currentv.x);
 		Y_Input->SetValue(currentv.y);
-		X_Input->SetOnFloatValueChanged([SingleProperty](float NewX)
+		X_Input->SetOnFloatValueChanged([this,SingleProperty](float NewX)
 			{
 				ImVec2 v = *(ImVec2*)SingleProperty.getter();
 				v.x = NewX;
-				SingleProperty.setter(&v);
+				//SingleProperty.setter(&v);
+				OnPropertyChanged.Broadcast(SingleProperty, (void*)&v);
 			});
 
-		Y_Input->SetOnFloatValueChanged([SingleProperty](float NewY)
+		Y_Input->SetOnFloatValueChanged([this,SingleProperty](float NewY)
 			{
 				ImVec2 v = *(ImVec2*)SingleProperty.getter();
 				v.y = NewY;
 				SingleProperty.setter(&v);
+				OnPropertyChanged.Broadcast(SingleProperty, (void*)&v);
 			});
 		ItemBox->AddChildToHorizontalBox(Vec_X);
 		ItemBox->AddChildToHorizontalBox(X_Input);
@@ -209,7 +219,8 @@ void UI_DetailView::HandleSingleProperty(const ImGuiWidget::PropertyInfo& Single
 				std::vector<std::string> stringvector = *(std::vector<std::string>*)SingleProperty.getter();
 				std::string NewString = "NewString_" + std::to_string(stringvector.size());
 				stringvector.push_back(NewString);
-				SingleProperty.setter(&stringvector);
+				//SingleProperty.setter(&stringvector);
+				OnPropertyChanged.Broadcast(SingleProperty, (void*)&stringvector);
 				auto buttonptr = StringListBox->ExtractChildAt(StringListBox->GetSlotNum() - 1);
 				StringListBox->AddChildToVerticalBox(HandleAddStringItem(SingleProperty, NewString, StringListBox))->SetIfAutoSize(false);
 				StringListBox->AddChildToVerticalBox(buttonptr)->SetIfAutoSize(false);
@@ -234,10 +245,11 @@ void UI_DetailView::HandleSingleProperty(const ImGuiWidget::PropertyInfo& Single
 		Options->SetItems(AllOptionsCopy);
 		Options->SetSelectedItem(SelectedOption);
 
-		Options->SetOnSelectionChanged([SingleProperty, AllOptionsCopy](int NewIndex)
+		Options->SetOnSelectionChanged([this,SingleProperty, AllOptionsCopy](int NewIndex)
 			{
 				std::string OptionSelect = AllOptionsCopy[NewIndex];
 				SingleProperty.setter(&OptionSelect);
+				OnPropertyChanged.Broadcast(SingleProperty, (void*)&OptionSelect);
 			});
 		StructBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
 		StructBox->AddChildToHorizontalBox(Options)->SetIfAutoSize(true);

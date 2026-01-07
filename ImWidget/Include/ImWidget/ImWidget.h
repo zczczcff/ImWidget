@@ -9,7 +9,7 @@
 namespace ImGuiWidget
 {
 	class ImPanelWidget;
-	class ImWidget
+	class ImWidget :public PropertyStruct
 	{
 	private:
 		ImWidgetRef m_selfRef;
@@ -129,7 +129,7 @@ namespace ImGuiWidget
 		virtual ImVec2 GetMinSize() { return ImVec2(-1.f, -1.f); }
 		std::string GetWidgetName() { return m_WidgetName; }
 
-		virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties()
+		virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
 		{
 			std::unordered_set<PropertyInfo, PropertyInfo::Hasher> Props;
 			Props.insert(
@@ -141,43 +141,7 @@ namespace ImGuiWidget
 			return Props;
 		}
 
-		bool SetProperty(const std::string& name, void* value)
-		{
-			auto properties = GetProperties();
-			PropertyInfo temp;
-			temp.name = name;
-
-			auto it = properties.find(temp);
-			if (it != properties.end())
-			{
-				it->setter(value);
-				return true;
-			}
-			return false;
-		}
-
-		template<typename T>
-		bool SetPropertyValue(const std::string& name, const T& value)
-		{
-			T copy = value;
-			return SetProperty(name, &copy);
-		}
-
 		virtual std::string GetRegisterTypeName() { return "ImWidget"; }
-
-		template<typename T>
-		T* GetPropertyPtr(const std::string& name)
-		{
-			auto properties = GetProperties();
-			PropertyInfo temp;
-			temp.name = name;
-
-			auto it = properties.find(temp);
-			if (it != properties.end())
-			{
-				return ((T*)it->getter());
-			}
-		}
 
 		bool IsInTree(ImWidget* WidgetTree)
 		{

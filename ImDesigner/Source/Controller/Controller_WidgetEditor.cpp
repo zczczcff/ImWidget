@@ -26,6 +26,11 @@ Controller_WidgetEditor::Controller_WidgetEditor(UI_WidgetTreeView* In_UI_Widget
 			m_Model_WidgetEditor->RemoveChildWidget(deletedwidget);
 		});
 
+	m_UI_FileDetail->OnPropertyChanged.Add([this](const ImGuiWidget::PropertyInfo& propInfo, const void* newValue) 
+		{
+			m_Model_WidgetEditor->EditProperty(propInfo, newValue);
+		});
+
 	m_Model_WidgetEditor->OnWidgetTreeChanged.Add([this]() 
 		{
 			m_UI_WidgetTreeView->Refresh();
