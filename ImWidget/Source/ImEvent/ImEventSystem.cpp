@@ -120,6 +120,9 @@ namespace ImGuiWidget
 
 		std::unique_ptr<ImMouseEvent> event;
 
+		// 改进的焦点处理逻辑
+		ImWidget* hitTarget = HitTest(m_rootWidget, pos);
+
 		if (type == ImEventType::MouseDown)
 		{
 			clickCount = CalculateClickCount(button, pos);
@@ -131,12 +134,11 @@ namespace ImGuiWidget
 			{
 				event = std::make_unique<ImMouseDownEvent>(mouseButton, clickCount);
 			}
-			
-			
-			// 改进的焦点处理逻辑
-			ImWidget* hitTarget = HitTest(m_rootWidget, pos);
+
 			if (hitTarget)
 			{
+				m_lastClickedWidget = hitTarget->GetWidgetRef();
+				event->SetTarget(m_lastClickedWidget);
 				// 查找第一个可聚焦的控件（沿着控件树向上）
 				ImWidget* focusTargetPtr = FindFocusableAncestor(hitTarget);
 				ImWidgetRef focusTarget;
@@ -164,6 +166,11 @@ namespace ImGuiWidget
 		else
 		{
 			event = std::make_unique<ImMouseUpEvent>(mouseButton, clickCount);
+
+			if (m_lastClickedWidget)
+			{
+				event->SetTarget(m_lastClickedWidget);
+			}
 
 			// 如果是鼠标释放，额外发送点击事件
 			if (clickCount > 0)

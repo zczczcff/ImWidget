@@ -16,6 +16,7 @@ namespace ImGuiWidget
         ImWidgetRef m_hoveredWidget;
         ImWidgetRef m_focusedWidget;
         ImWidgetRef m_lastHitWidget;
+        ImWidgetRef m_lastClickedWidget;
         ImVec2 m_lastMousePos;
         double m_lastClickTime[5] = { 0 };  // 每个按钮的上次点击时间
         ImVec2 m_lastClickPos[5];         // 每个按钮的上次点击位置
