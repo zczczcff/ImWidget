@@ -9,6 +9,7 @@
 namespace ImGuiWidget
 {
     class ImWindow;
+    class ButtonStateStyle;
 }
 
 class UI_WidgetTreeView :public ImGuiWidget::ImUserWidget
@@ -26,9 +27,10 @@ private:
     };
 
 private:
-    const ImU32 HIGHLIGHT_COLOR = IM_COL32(20, 200, 20, 255); // 高亮颜色
-    const ImU32 DEFAULT_COLOR = IM_COL32(0, 102, 204, 255);   // 默认颜色
-
+    //const ImU32 HIGHLIGHT_COLOR = IM_COL32(20, 200, 20, 255); // 高亮颜色
+    //ImU32 DEFAULT_COLOR = IM_COL32(250, 250, 250, 255);   // 默认颜色
+    ImGuiWidget::ButtonStateStyle* Highlight_Style = nullptr;
+    ImGuiWidget::ButtonStateStyle* Normal_Style = nullptr;
     TreeViewStruct m_TreeView;  // 单个树视图结构
 
     ImGuiWidget::ImWindow* WidgetMenu = nullptr;//右键菜单弹出窗口
@@ -43,6 +45,7 @@ public:
 
 private:
     void InitPopUpMenu();
+    void InitButtonStyle();
     ImGuiWidget::ImButton* CreateWidgetMenuButton(const std::string& Text,bool bHaveSubMenu=false);
     ImGuiWidget::ImButton* CreateWidgetInsertButton(const std::string& CN_Name, const std::string& RegisterName, ImTextureID icon);
     // 递归构建树节点
@@ -59,6 +62,7 @@ public:
     {
         SetAllowDragOn(true);
         InitPopUpMenu();
+        InitButtonStyle();
     }
 
     // 设置目标控件树

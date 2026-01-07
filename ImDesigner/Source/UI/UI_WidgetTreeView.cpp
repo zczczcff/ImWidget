@@ -70,6 +70,16 @@ void UI_WidgetTreeView::InitPopUpMenu()
         });
 }
 
+void UI_WidgetTreeView::InitButtonStyle()
+{
+    ImGuiWidget::ImButton* tempbutton = new ImGuiWidget::ImButton("tempbutton");
+    Highlight_Style = new ImGuiWidget::ButtonStateStyle();
+    Normal_Style=new ImGuiWidget::ButtonStateStyle();
+    (*Normal_Style) = tempbutton->GetNormalStyle();
+    (*Highlight_Style) = tempbutton->GetFocusedStyle();
+    delete tempbutton;
+}
+
 ImGuiWidget::ImButton* UI_WidgetTreeView::CreateWidgetMenuButton(const std::string& Text, bool bHaveSubMenu)
 {
     ImGuiWidget::ImButton* button = new ImGuiWidget::ImButton("UI_WidgetTreeView_WidgetMenuButton");
@@ -146,10 +156,12 @@ ImGuiWidget::ImWidget* UI_WidgetTreeView::BuildTreeNode(ImWidget* nodewidget, st
         ImGuiWidget::ImTextBlock* buttonText = new ImGuiWidget::ImTextBlock(nodewidget->GetWidgetName() + "_HeaderTxt");
         ImGuiWidget::ImTextBlock* deletebuttonText = new ImGuiWidget::ImTextBlock(nodewidget->GetWidgetName() + "_deleteTxt");
         buttonText->SetText(nodewidget->GetWidgetName());
+        buttonText->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::ImTextBlock::TextAlignment_Horizontal::Left);
         deletebuttonText->SetText("X");
         headerButton->SetContent(buttonText);
         deletebutton->SetContent(deletebuttonText);
-        headerButton->GetNormalStyle().BackgroundColor = DEFAULT_COLOR;
+        //headerButton->GetNormalStyle().BackgroundColor = DEFAULT_COLOR;
+        headerButton->SetNormalStyle(*Normal_Style);
         // 点击头部按钮选中控件
         headerButton->SetOnPressed([this, nodewidget, headerButton]() { On_WidgetSelectedButtonClicked(nodewidget, headerButton); });
         headerButton->OnRightClicked.Add([this, nodewidget]() { On_WidgetSelectedButtonRightClicked(nodewidget); });
@@ -160,11 +172,13 @@ ImGuiWidget::ImWidget* UI_WidgetTreeView::BuildTreeNode(ImWidget* nodewidget, st
         headerbox->AddChildToHorizontalBox(headerButton)->SetIfAutoSize(true);
         headerbox->AddChildToHorizontalBox(deletebutton)->SetIfAutoSize(false);
         expandableBox->SetHead(headerbox);
-
+        headerbox->bHaveBorder = false;
+        headerbox->bHaveBackGround = false;
         // 创建垂直容器存放子节点
         ImGuiWidget::ImVerticalBox* childContainer = new ImGuiWidget::ImVerticalBox(nodewidget->GetWidgetName() + "_ChildContainer");
         expandableBox->SetBody(childContainer);
-
+        childContainer->bHaveBorder = false;
+        childContainer->bHaveBackGround = false;
         // 递归添加子节点
         int slotCount = panelWidget->GetSlotNum();
         for (int i = 0; i < slotCount; ++i)
@@ -211,7 +225,8 @@ ImGuiWidget::ImWidget* UI_WidgetTreeView::BuildTreeNode(ImWidget* nodewidget, st
         buttonText->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Left);
         buttonText->SetText(nodewidget->GetWidgetName());
         nodeButton->SetContent(buttonText);
-        nodeButton->GetNormalStyle().BackgroundColor = DEFAULT_COLOR;
+        //nodeButton->GetNormalStyle().BackgroundColor = DEFAULT_COLOR;
+        nodeButton->SetNormalStyle(*Normal_Style);
         // 点击按钮选中控件
         nodeButton->SetOnPressed([this, nodewidget, nodeButton]() { On_WidgetSelectedButtonClicked(nodewidget, nodeButton); });
         nodeButton->OnRightClicked.Add([this, nodewidget]() { On_WidgetSelectedButtonRightClicked(nodewidget); });
@@ -222,6 +237,8 @@ ImGuiWidget::ImWidget* UI_WidgetTreeView::BuildTreeNode(ImWidget* nodewidget, st
         ImGuiWidget::ImHorizontalBox* NodeBox = new ImGuiWidget::ImHorizontalBox(nodewidget->GetWidgetName() + "_NodeBox");
         NodeBox->AddChildToHorizontalBox(nodeButton)->SetIfAutoSize(true);
         NodeBox->AddChildToHorizontalBox(deletebutton)->SetIfAutoSize(false);
+        NodeBox->bHaveBorder = false;
+        NodeBox->bHaveBackGround = false;
         return NodeBox;
     }
 }
@@ -235,11 +252,13 @@ void UI_WidgetTreeView::On_WidgetSelectedButtonClicked(ImGuiWidget::ImWidget* wi
 {
     if (m_TreeView.SelectedHeaderButton)
     {
-        m_TreeView.SelectedHeaderButton->GetNormalStyle().BackgroundColor = DEFAULT_COLOR;
+        //m_TreeView.SelectedHeaderButton->GetNormalStyle().BackgroundColor = DEFAULT_COLOR;
+        m_TreeView.SelectedHeaderButton->SetNormalStyle(*Normal_Style);
     }
     m_TreeView.SelectedHeaderButton = nodeButton;
     m_TreeView.SelectedWidget = widget;
-    nodeButton->GetNormalStyle().BackgroundColor = HIGHLIGHT_COLOR;
+    //nodeButton->GetNormalStyle().BackgroundColor = HIGHLIGHT_COLOR;
+    nodeButton->SetNormalStyle(*Highlight_Style);
     OnWidgetSelectedButtonClicked.Broadcast(widget);
 }
 
@@ -283,13 +302,15 @@ void UI_WidgetTreeView::SetSelectedWidget(ImWidget* widget)
     m_TreeView.SelectedWidget = widget;
     if (m_TreeView.SelectedHeaderButton)
     {
-        m_TreeView.SelectedHeaderButton->GetNormalStyle().BackgroundColor = DEFAULT_COLOR;
+        //m_TreeView.SelectedHeaderButton->GetNormalStyle().BackgroundColor = DEFAULT_COLOR;
+        m_TreeView.SelectedHeaderButton->SetNormalStyle(*Normal_Style);
     }
 
     auto it = m_TreeView.WidgetToHeaderButton.find(widget);
     if (it != m_TreeView.WidgetToHeaderButton.end())
     {
-        it->second->GetNormalStyle().BackgroundColor = HIGHLIGHT_COLOR;
+        //it->second->GetNormalStyle().BackgroundColor = HIGHLIGHT_COLOR;
+        it->second->SetNormalStyle(*Highlight_Style);
         m_TreeView.SelectedHeaderButton = it->second;
 
         ImGuiWidget::ImButton* HeaderButton = it->second;

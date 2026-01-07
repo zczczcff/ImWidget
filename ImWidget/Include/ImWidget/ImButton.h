@@ -299,39 +299,10 @@ namespace ImGuiWidget
         ImButton(const std::string& WidgetName) : 
             ImPanelWidget(WidgetName)
         {
-            // 初始化默认样式
-            m_NormalStyle = {
-                IM_COL32(0, 102, 204, 255),
-                4.0f,
-                true,
-                1.0f,
-                IM_COL32(200, 200, 200, 255)
-            };
-
-            m_HoveredStyle = {
-                IM_COL32(51, 153, 255, 255),
-                4.0f,
-                true,
-                1.0f,
-                IM_COL32(100, 150, 255, 255)
-            };
-
-            m_PressedStyle = {
-                IM_COL32(0, 51, 153, 255),
-                4.0f,
-                true,
-                2.0f,
-                IM_COL32(50, 100, 200, 255)
-            };
-
-            m_FocusedStyle = {
-                IM_COL32(0, 102, 204, 255),
-                4.0f,
-                true,
-                2.0f,
-                IM_COL32(255, 255, 100, 255)
-            };
-
+            m_NormalStyle = { IM_COL32(245, 250, 255, 255), 0.0f, false, 1.0f, IM_COL32(200, 220, 240, 255) };
+            m_HoveredStyle = { IM_COL32(210, 230, 250, 255), 0.0f, true, 1.0f, IM_COL32(120, 170, 220, 255) };
+            m_PressedStyle = { IM_COL32(190, 220, 245, 255), 0.0f, true, 2.0f, IM_COL32(100, 150, 210, 255) };
+            m_FocusedStyle = { IM_COL32(170, 200, 225, 255), 0.0f, true, 2.0f, IM_COL32(80, 130, 190, 255) };
             bHaveBackGround = false;
             bHoverable = true;
         }
