@@ -205,7 +205,7 @@ void MainUI::Init()
     ImScrollingTextList_LogList->SetPropertyValue<float>("ScrollbarRounding", 0.000000f);
     ImScrollingTextList_LogList->SetPropertyValue<ImU32>("TextColor", IM_COL32(0, 0, 0, 255));
     ImScrollingTextList_LogList->SetPropertyValue<ImU32>("ScrollbarBackgroundColor", IM_COL32(200, 200, 200, 255));
-    ImScrollingTextList_LogList->SetPropertyValue<float>("LineSpacing", -1.000000f);
+    ImScrollingTextList_LogList->SetPropertyValue<float>("LineSpacing", 2.000000f);
     ImScrollingTextList_LogList->SetPropertyValue<float>("ScrollbarWidth", 14.000000f);
     ImScrollingTextList_LogList->SetPropertyValue<ImU32>("ScrollbarGrabColor", IM_COL32(120, 120, 120, 255));
     ImScrollingTextList_LogList->SetPropertyValue<float>("ScrollbarGrabMinHeight", 20.000000f);

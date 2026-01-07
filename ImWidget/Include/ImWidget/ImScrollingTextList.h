@@ -96,7 +96,7 @@ namespace ImGuiWidget
         float m_AutoScrollAccumulator = 0.0f;
 
         // 行间距（保持不变）
-        float m_LineSpacing = 5.0f;
+        float m_LineSpacing = 2.0f;
 
         // 事件处理状态（保持不变）
         bool m_IsMouseOver = false;
@@ -400,6 +400,7 @@ namespace ImGuiWidget
             }
 
             const float line_spacing = (m_LineSpacing > 0) ? m_LineSpacing : ImGui::GetTextLineHeightWithSpacing();
+
             for (int itemIdx = 0; itemIdx < m_Items.size(); ++itemIdx)
             {
                 const auto& item = m_Items[itemIdx];
@@ -410,8 +411,17 @@ namespace ImGuiWidget
                     float lineBottom = lineTop + line.Size.y;
                     float nextLineTop = lineBottom + line_spacing;
 
-                    if (mousePosLocal.y >= lineTop && mousePosLocal.y < nextLineTop)
+                    // 计算当前行的中点（文本底部 + 行间隔的一半）
+                    float lineMidPoint = lineBottom + line_spacing * 0.5f;
+
+                    // 检查鼠标是否在当前行的判定范围内
+                    // 当前行的范围：从上一行的中点 到 当前行的中点
+                    float rangeStart = (lineIdx == 0) ? 0.0f : (line.Position.y - line_spacing * 0.5f);
+                    float rangeEnd = lineMidPoint;
+
+                    if (mousePosLocal.y >= rangeStart && mousePosLocal.y < rangeEnd)
                     {
+                        // 在行内文本区域
                         if (mousePosLocal.y <= lineBottom)
                         {
                             float mouseX = mousePosLocal.x;
@@ -429,11 +439,24 @@ namespace ImGuiWidget
                         }
                         else
                         {
+                            // 在行间隔的上半部分，仍属于当前行
                             return { itemIdx, lineIdx, static_cast<int>(line.Text.size()) };
                         }
                     }
                 }
             }
+
+            // 如果没找到，返回最后一行最后一个字符
+            if (!m_Items.empty())
+            {
+                const auto& lastItem = m_Items.back();
+                if (!lastItem.Lines.empty())
+                {
+                    const auto& lastLine = lastItem.Lines.back();
+                    return { static_cast<int>(m_Items.size() - 1), static_cast<int>(lastItem.Lines.size() - 1), static_cast<int>(lastLine.Text.size()) };
+                }
+            }
+
             return { -1, -1, -1 };
         }
 
@@ -548,12 +571,6 @@ namespace ImGuiWidget
                 if (m_IsMouseOver)
                 {
                     UpdateHoveredScrollbar(mousePos);
-
-                    // 处理文本选中拖动
-                    if (m_IsSelecting)
-                    {
-                        HandleSelecting(mousePos);
-                    }
                 }
                 return true;
 
@@ -565,10 +582,10 @@ namespace ImGuiWidget
                 break;
 
             case ImEventType::MouseUp:
-                if (event.GetButton() == ImMouseButton::Left)
-                {
-                    return HandleMouseUp();
-                }
+                //if (event.GetButton() == ImMouseButton::Left)
+                //{
+                //    return HandleMouseUp();
+                //}
                 break;
 
             case ImEventType::MouseWheel:
@@ -604,33 +621,47 @@ namespace ImGuiWidget
 
         bool HandleDragEvent(const ImDragEvent& event)
         {
-            if (m_DraggingScrollbar != 0)
+            if (event.GetType() == ImEventType::DragUpdate)
             {
-                ImVec2 mousePos = event.GetPosition();
-
-                if (m_DraggingScrollbar == 1)
-                { // 垂直滚动条
-                    float mouse_rel_y = mousePos.y - m_VerticalScrollbarRect.Min.y;
-                    float new_scroll_ratio = (mouse_rel_y - m_ScrollbarGrabDelta) /
-                        (m_VerticalScrollbarRect.GetHeight() - m_VerticalGrabRect.GetHeight());
-                    new_scroll_ratio = ImClamp(new_scroll_ratio, 0.0f, 1.0f);
-
-                    float max_scroll = ImMax(0.0f, m_TotalContentHeight - m_ContentRegion.y);
-                    m_ScrollOffsetY = new_scroll_ratio * max_scroll;
-                    ClampScrollPosition();
-                }
-                return true;
+                HandleSelecting(event.GetPosition());
             }
-            return false;
+            else if (event.GetType() == ImEventType::DragStart)
+            {
+                HandleDragStart(event.GetPosition());
+            }
+            else if (event.GetType() == ImEventType::DragEnd)
+            {
+                HandleDragEnd();
+            }
+            return true;
+
         }
 
         bool HandleMouseDown(const ImVec2& mousePos)
         {
             // 检查是否点击滚动条
+            m_DragStartPos = mousePos;
+            if (m_HoveredScrollbar == 1 && m_VerticalGrabRect.Contains(mousePos))
+            {
+                return true;
+            }
+            else//并非点击滚动条，则取消文本选中
+            {
+                m_IsSelecting = false;
+                m_HasSelection = false;
+
+                return true;
+            }
+        }
+
+        bool HandleDragStart(const ImVec2& mousePos)
+        {
+            // 检查是否点击滚动条
+            m_DragStartPos = mousePos;
             if (m_HoveredScrollbar == 1 && m_VerticalGrabRect.Contains(mousePos))
             {
                 m_DraggingScrollbar = 1;
-                m_DragStartPos = mousePos;
+
                 m_ScrollbarGrabDelta = mousePos.y - m_VerticalGrabRect.Min.y;
                 return true;
             }
@@ -647,7 +678,7 @@ namespace ImGuiWidget
             return true;
         }
 
-        bool HandleMouseUp()
+        bool HandleDragEnd()
         {
             if (m_DraggingScrollbar != 0)
             {
@@ -665,6 +696,22 @@ namespace ImGuiWidget
 
         void HandleSelecting(const ImVec2& mousePos)
         {
+			if (m_DraggingScrollbar != 0)
+			{
+				if (m_DraggingScrollbar == 1)
+				{ // 垂直滚动条
+					float mouse_rel_y = mousePos.y - m_VerticalScrollbarRect.Min.y;
+					float new_scroll_ratio = (mouse_rel_y - m_ScrollbarGrabDelta) /
+						(m_VerticalScrollbarRect.GetHeight() - m_VerticalGrabRect.GetHeight());
+					new_scroll_ratio = ImClamp(new_scroll_ratio, 0.0f, 1.0f);
+
+					float max_scroll = ImMax(0.0f, m_TotalContentHeight - m_ContentRegion.y);
+					m_ScrollOffsetY = new_scroll_ratio * max_scroll;
+					ClampScrollPosition();
+				}
+				return ;
+			}
+
             ImVec2 mousePosLocal = mousePos - Position;
             SelectionPoint newEnd = FindCharPosition(mousePosLocal);
 
@@ -677,16 +724,21 @@ namespace ImGuiWidget
             const float edgeThreshold = 30.0f;
             float scrollDelta = 0.0f;
             float mouseYRelative = mousePosLocal.y;
-            const float scrollSpeed = 0.5f;
+            const float scrollSpeed = 0.2f;
 
-            if (mouseYRelative < edgeThreshold)
-            {
-                scrollDelta = (mouseYRelative - edgeThreshold) * scrollSpeed;
-            }
-            else if (mouseYRelative > Size.y - edgeThreshold)
-            {
-                scrollDelta = (mouseYRelative - (Size.y - edgeThreshold)) * scrollSpeed;
-            }
+                float Sub_Y = mousePos.y - m_DragStartPos.y;
+                if (Sub_Y < -edgeThreshold || Sub_Y>edgeThreshold)
+                {
+					if (mouseYRelative < edgeThreshold)
+					{
+						scrollDelta = (mouseYRelative - edgeThreshold) * scrollSpeed;
+					}
+					else if (mouseYRelative > Size.y - edgeThreshold)
+					{
+						scrollDelta = (mouseYRelative - (Size.y - edgeThreshold)) * scrollSpeed;
+					}
+
+                }
 
             if (scrollDelta != 0.0f)
             {
@@ -790,6 +842,8 @@ namespace ImGuiWidget
 
             if (!m_VisibleRange.IsValid()) return;
 
+            const float line_spacing = (m_LineSpacing > 0) ? m_LineSpacing : ImGui::GetTextLineHeightWithSpacing();
+
             // 限制在可见范围内处理
             int startItem = ImMax(start.ItemIndex, m_VisibleRange.StartItem);
             int endItem = ImMin(end.ItemIndex, m_VisibleRange.EndItem);
@@ -824,9 +878,15 @@ namespace ImGuiWidget
                         float startX = screen_pos.x + (startChar > 0 ? line.CharOffsets[startChar] : 0);
                         float endX = screen_pos.x + (endChar < line.CharOffsets.size() ? line.CharOffsets[endChar] : line.Size.x);
 
+                        // 计算背景的高度（包含完整的行间隔）
+                        float backgroundHeight = line.Size.y + line_spacing;
+
+                        // 调整Y坐标，让背景从行间隔的中点开始
+                        float backgroundY = screen_pos.y - line_spacing * 0.5f;
+
                         drawList->AddRectFilled(
-                            ImVec2(startX, screen_pos.y),
-                            ImVec2(endX, screen_pos.y + line.Size.y),
+                            ImVec2(startX, backgroundY),
+                            ImVec2(endX, backgroundY + backgroundHeight),
                             ImGui::GetColorU32(ImGuiCol_TextSelectedBg)
                         );
                     }

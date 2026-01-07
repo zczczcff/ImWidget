@@ -719,7 +719,7 @@
                             200,
                             255
                         ],
-                        "LineSpacing": -1.0,
+                        "LineSpacing": 2.0,
                         "ScrollbarWidth": 14.0,
                         "ScrollbarGrabColor": [
                             120,
