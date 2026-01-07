@@ -212,7 +212,7 @@ public:
         m_PropertyInfo.SetBoolValue(m_OldValue);
     }
 
-
+    virtual bool CanMergeWith(const EditCommand* other) const { return false; }
 };
 
 // Vec2 Ù–‘±‡º≠√¸¡Ó
@@ -311,6 +311,8 @@ public:
     {
         m_PropertyInfo.SetStringArrayValue(m_OldValue);
     }
+
+    virtual bool CanMergeWith(const EditCommand* other) const { return false; }
 };
 
 // Ω·ππÃÂ Ù–‘±‡º≠√¸¡Ó
@@ -337,4 +339,6 @@ public:
     {
         m_PropertyInfo.SetStructValue(&m_OldValue);
     }
+
+    virtual bool CanMergeWith(const EditCommand* other) const { return false; }
 };

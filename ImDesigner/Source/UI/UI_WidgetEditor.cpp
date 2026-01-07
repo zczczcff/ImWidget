@@ -120,6 +120,14 @@ void UI_WidgetEditor::OnMouseDown(ImGuiWidget::ImMouseDownEvent& e)
 	e.StopPropagation();
 }
 
+void UI_WidgetEditor::OnKeyDown(ImGuiWidget::ImKeyDownEvent& e)
+{
+    if (bHasFocus && e.IsCtrl_Z())
+    {
+        OnRequestUndo.Broadcast();
+    }
+}
+
 void UI_WidgetEditor::PostRender()
 {
     if (SelectedWidgetRef)

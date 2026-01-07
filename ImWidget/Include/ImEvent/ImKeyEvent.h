@@ -51,6 +51,10 @@ namespace ImGuiWidget
         bool IsEnd() const { return m_keyCode == ImGuiKey_End; }
         bool IsPageUp() const { return m_keyCode == ImGuiKey_PageUp; }
         bool IsPageDown() const { return m_keyCode == ImGuiKey_PageDown; }
+        bool IsCtrl_Z()const { return m_keyCode == ImGuiKey_Z && m_modifiers.ctrl; }
+        bool IsCtrl_X()const { return m_keyCode == ImGuiKey_X && m_modifiers.ctrl; }
+        bool IsCtrl_C()const { return m_keyCode == ImGuiKey_C && m_modifiers.ctrl; }
+        bool IsCtrl_V()const { return m_keyCode == ImGuiKey_V && m_modifiers.ctrl; }
 
         // 检查是否按下特定修饰键组合
         bool IsCtrlPressed() const { return m_modifiers.ctrl; }

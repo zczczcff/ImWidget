@@ -17,6 +17,7 @@ public:
 	ImGuiWidget::ImWidget* GetRootWidget() { return RootWidget; }
 	bool InsertChildTo(ImGuiWidget::ImWidget* child, ImGuiWidget::ImPanelWidget* Target, int InsertIndex);
 	void EditProperty(const ImGuiWidget::PropertyInfo& propInfo, const void* NewValue);
+	void Undo();
 	bool CanUndo();
 	bool CanRedo();
 public:

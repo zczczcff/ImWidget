@@ -34,6 +34,14 @@ void Model_WidgetEditor::EditProperty(const ImGuiWidget::PropertyInfo& propInfo,
 	m_EditCommandManager->ExecutePropertyEdit(propInfo, NewValue);
 }
 
+void Model_WidgetEditor::Undo()
+{
+	if (CanUndo())
+	{
+		m_EditCommandManager->Undo();
+	}
+}
+
 bool Model_WidgetEditor::CanUndo()
 {
 	return m_EditCommandManager->CanUndo();

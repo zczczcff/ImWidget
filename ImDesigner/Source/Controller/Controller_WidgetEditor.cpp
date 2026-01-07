@@ -35,6 +35,10 @@ Controller_WidgetEditor::Controller_WidgetEditor(UI_WidgetTreeView* In_UI_Widget
 		{
 			m_UI_WidgetTreeView->Refresh();
 		});
+	m_UI_WidgetEditor->OnRequestUndo.Add([this]() 
+		{
+			m_Model_WidgetEditor->Undo();
+		});
 }
 
 void Controller_WidgetEditor::SetSelectedWidget(ImGuiWidget::ImWidget* SelectedWidget)

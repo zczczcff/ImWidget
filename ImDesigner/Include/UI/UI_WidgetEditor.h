@@ -9,6 +9,9 @@ private:
 	bool bAllowOperateChild = false;
 	float dashOffset = 0.0f;
     ImGuiWidget::ImWidgetRef SelectedWidgetRef;
+public:
+    ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetSelected;
+    ImMulticastDelegate<> OnRequestUndo;
 protected:
     // 动态虚线框绘制函数
     void DrawAnimatedDashedRect(
@@ -36,10 +39,10 @@ protected:
 
 	virtual void HandleEventInternal(ImGuiWidget::ImEvent* event) override;
 	virtual void OnMouseDown(ImGuiWidget::ImMouseDownEvent& e)override;
+    virtual void OnKeyDown(ImGuiWidget::ImKeyDownEvent& e) override;
     virtual void PostRender() override;
 
-public:
-	ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetSelected;
+
 public:
 	UI_WidgetEditor(const std::string& name, ImGuiWidget::ImWidget* EditorRootWidget);
     bool SetSelectedWidget(ImGuiWidget::ImWidget* widget);
