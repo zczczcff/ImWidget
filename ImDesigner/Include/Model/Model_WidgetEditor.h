@@ -10,9 +10,10 @@ private:
 	ImGuiWidget::ImWidget* RootWidget;
 	class EditCommandManager* m_EditCommandManager;
 public:
-	ImMultiDelegate<> OnWidgetTreeChanged;
+	ImMulticastDelegate<> OnWidgetTreeChanged;
 	ImMulticastDelegate<ImGuiWidget::PropertyStruct*, const std::string&> OnPropertyEditUnDoRedo;
-	ImMultiDelegate<bool, bool> OnUndoRedoStateChanged;
+	ImMulticastDelegate<> OnChildEditUndoRedo;
+	ImMulticastDelegate<bool, bool> OnUndoRedoStateChanged;
 public:
 	Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget);
 	bool RemoveChildWidget(ImGuiWidget::ImWidget* WidgetToRemove);

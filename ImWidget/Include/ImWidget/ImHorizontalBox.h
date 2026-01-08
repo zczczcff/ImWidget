@@ -43,7 +43,7 @@ namespace ImGuiWidget
             float sumSizeRatio = 0.f;     // 比例总和
 
             // 第一步：计算非自动大小控件所需宽度和比例总和
-            for (int i = 0; i < GetSlotNum(); i++)
+            for (int i = 0; i < GetChildNum(); i++)
             {
                 ImHorizontalBoxSlot* HSlot = static_cast<ImHorizontalBoxSlot*>(GetSlotAt(i));
                 if (!HSlot || !HSlot->IsValid()) continue;
@@ -64,7 +64,7 @@ namespace ImGuiWidget
 
             if (remainingWidth > 0.f) // 有足够空间
             {
-                for (int i = 0; i < GetSlotNum(); i++)
+                for (int i = 0; i < GetChildNum(); i++)
                 {
                     ImHorizontalBoxSlot* HSlot = static_cast<ImHorizontalBoxSlot*>(GetSlotAt(i));
                     if (!HSlot || !HSlot->IsValid()) continue;
@@ -90,7 +90,7 @@ namespace ImGuiWidget
             }
             else // 空间不足
             {
-                for (int i = 0; i < GetSlotNum(); i++)
+                for (int i = 0; i < GetChildNum(); i++)
                 {
                     ImHorizontalBoxSlot* HSlot = static_cast<ImHorizontalBoxSlot*>(GetSlotAt(i));
                     if (!HSlot || !HSlot->IsValid()) continue;
@@ -131,14 +131,14 @@ namespace ImGuiWidget
             float relativeX = RelativePosition.x - Position.x;
 
             // 如果没有子项，直接添加到末尾
-            if (GetSlotNum() == 0) {
+            if (GetChildNum() == 0) {
                 return AddChildInternal<ImHorizontalBoxSlot>(Child);
             }
 
             // 遍历所有子项，寻找插入位置
-            int insertIndex = GetSlotNum(); // 默认插入到最后
+            int insertIndex = GetChildNum(); // 默认插入到最后
 
-            for (int i = 0; i < GetSlotNum(); i++) {
+            for (int i = 0; i < GetChildNum(); i++) {
                 ImSlot* currentSlot = GetSlotAt(i);
 
                 // 计算当前子项的中点
@@ -167,7 +167,7 @@ namespace ImGuiWidget
         {
             float minWidth = 0.f;
             float minHeight = 0.f;
-            for (int i = 0; i < GetSlotNum(); i++)
+            for (int i = 0; i < GetChildNum(); i++)
             {
                 ImHorizontalBoxSlot* slot = static_cast<ImHorizontalBoxSlot*>(GetSlotAt(i));
                 if (slot && slot->IsValid())

@@ -88,7 +88,7 @@ namespace ImGuiWidget
 
         virtual void Relayout() override
         {
-            if (GetSlotNum() == 0) return;
+            if (GetChildNum() == 0) return;
 
             // 通过API获取slot并设置其位置和大小
             ImSlot* slot = GetSlotAt(0);

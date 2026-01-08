@@ -280,7 +280,7 @@ namespace ImGuiWidget
 
         // 处理容器控件及其子控件（使用完全限定名）
         if (auto panel = dynamic_cast<ImPanelWidget*>(widget)) {
-            int slotCount = panel->GetSlotNum();
+            int slotCount = panel->GetChildNum();
             for (int i = 0; i < slotCount; i++) {
                 ImSlot* slot = panel->GetSlot(i);
                 ImWidget* child = slot ? slot->GetContent() : nullptr;
@@ -358,7 +358,7 @@ namespace ImGuiWidget
 
             // 处理子控件
             if (auto panel = dynamic_cast<ImPanelWidget*>(widget)) {
-                int slotCount = panel->GetSlotNum();
+                int slotCount = panel->GetChildNum();
                 for (int i = 0; i < slotCount; i++) {
                     ImSlot* slot = panel->GetSlot(i);
                     if (slot && slot->GetContent()) {
@@ -533,7 +533,7 @@ namespace ImGuiWidget
             if (auto panel = dynamic_cast<ImPanelWidget*>(widget)) {
                 std::string panelVar = widgetVarMap[panel];
 
-                for (int i = 0; i < panel->GetSlotNum(); i++) {
+                for (int i = 0; i < panel->GetChildNum(); i++) {
                     ImSlot* slot = panel->GetSlot(i);
                     if (!slot || !slot->GetContent()) continue;
 

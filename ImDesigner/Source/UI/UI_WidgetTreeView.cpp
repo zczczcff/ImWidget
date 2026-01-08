@@ -190,7 +190,7 @@ ImGuiWidget::ImWidget* UI_WidgetTreeView::BuildTreeNode(ImWidget* nodewidget, st
         childContainer->bHaveBorder = false;
         childContainer->bHaveBackGround = false;
         // 递归添加子节点
-        int slotCount = panelWidget->GetSlotNum();
+        int slotCount = panelWidget->GetChildNum();
         for (int i = 0; i < slotCount; ++i)
         {
             ImGuiWidget::ImSlot* slot = panelWidget->GetSlotAt(i);

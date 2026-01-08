@@ -16,6 +16,7 @@ class EditCommand
 protected:
     std::chrono::steady_clock::time_point m_Timestamp; // √¸¡Ó ±º‰¥¡
     EditCommandType m_type;
+    std::string m_Description;
 public:
     EditCommand() : m_Timestamp(std::chrono::steady_clock::now()),m_type(EditCommandType::PropertyEdit) {}
     virtual ~EditCommand() = default;

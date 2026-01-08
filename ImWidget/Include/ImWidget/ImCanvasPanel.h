@@ -46,7 +46,7 @@ namespace ImGuiWidget
 	protected:
 		virtual void Relayout() override
 		{
-			for (int i = 0; i < GetSlotNum(); i++)
+			for (int i = 0; i < GetChildNum(); i++)
 			{
 				if (auto slot = (ImCanvasPanelSlot*)GetSlotAt(i))
 				{

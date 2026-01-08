@@ -34,6 +34,7 @@ Controller_WidgetEditor::Controller_WidgetEditor(UI_WidgetTreeView* In_UI_Widget
 	m_Model_WidgetEditor->OnWidgetTreeChanged.Add([this]() 
 		{
 			m_UI_WidgetTreeView->Refresh();
+			UpdateUndoRedoState();
 		});
 
 	m_Model_WidgetEditor->OnPropertyEditUnDoRedo.Add([this](ImGuiWidget::PropertyStruct* Target,const std::string& PropertyName)

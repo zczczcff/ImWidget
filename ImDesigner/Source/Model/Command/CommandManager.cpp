@@ -1,5 +1,8 @@
 #include "Model/Command/CommandManager.h"
 #include "Model/Command/Command_PropertyEdit.h"
+#include "Model/Command/Command_ChildEdit.h"
+#include "ImWidget/ImPanelWidget.h"
+#include "Tools/JLog.h"
 
 std::unique_ptr<EditCommand> EditCommandManager::CreatePropertyEditCommand(const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::PropertyStruct* target)
 {
@@ -76,6 +79,34 @@ void EditCommandManager::Execute(std::unique_ptr<EditCommand> command)
     m_RedoStack.clear();
 }
 
+bool EditCommandManager::ExecuteChildRemove(ImGuiWidget::ImPanelWidget* Target, int index)
+{
+    ImGuiWidget::ImWidget* child = Target->GetChildAt(index);
+    if (!child)
+    {
+        AddLogLineEx(u8"执行子控件移除失败，找不到子控件，target:", Target->GetWidgetName(), u8"位置：", index);
+        return false;
+    }
+    auto command = std::make_unique<ChildRemoveCommand>(Target, child, index);
+    Execute(std::move(command));
+    return true;
+}
+
+bool EditCommandManager::ExecuteChildRemove(ImGuiWidget::ImPanelWidget* Target, ImGuiWidget::ImWidget* child)
+{
+    for (int i = 0; i < Target->GetChildNum(); i++)
+    {
+        if (Target->GetChildAt(i) == child)
+        {
+            auto command = std::make_unique<ChildRemoveCommand>(Target, child, i);
+            Execute(std::move(command));
+            return true;
+        }
+    }
+    AddLogLineEx(u8"执行子控件移除失败，目标子控件不在父控件中，target:", Target->GetWidgetName(), "child:", child ? child->GetWidgetName() : "nullptr");
+    return false;
+}
+
 void EditCommandManager::Undo()
 {
     if (m_UndoStack.empty()) return;
@@ -87,6 +118,10 @@ void EditCommandManager::Undo()
     if (command->GetType() == EditCommandType::PropertyEdit)
     {
         OnPropertyEditUnDoRedo.Broadcast(p->GetTarget(), p->GetPropertyName());
+    }
+    else if (command->GetType() == EditCommandType::ChildChange)
+    {
+        OnChildEditUndoRedo.Broadcast();
     }
 
     // 移动到重做栈
@@ -106,6 +141,10 @@ void EditCommandManager::Redo()
     {
         PropertyEditCommand* p = static_cast<PropertyEditCommand*>(command.get());
         OnPropertyEditUnDoRedo.Broadcast(p->GetTarget(), p->GetPropertyName());
+    }
+    else if (command->GetType() == EditCommandType::ChildChange)
+    {
+        OnChildEditUndoRedo.Broadcast();
     }
 
     // 移回撤销栈

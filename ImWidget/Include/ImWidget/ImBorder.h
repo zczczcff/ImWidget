@@ -10,7 +10,7 @@ namespace ImGuiWidget
 	protected:
 		virtual void Relayout() override
 		{
-			if (GetSlotNum() > 0 && GetSlotAt(0) && GetSlotAt(0)->GetContent()) 
+			if (GetChildNum() > 0 && GetSlotAt(0) && GetSlotAt(0)->GetContent()) 
 			{
 				ImSlot* slot = GetSlotAt(0);
 				ImWidget* content = slot->GetContent();
@@ -37,7 +37,7 @@ namespace ImGuiWidget
 
 		virtual ImSlot* AddChild(ImWidget* child, ImVec2 RelativePosition = ImVec2(FLT_MIN, FLT_MIN))
 		{
-			if (GetSlotNum() >= 1)
+			if (GetChildNum() >= 1)
 			{
 				return nullptr;
 			}

@@ -726,7 +726,7 @@ namespace ImGuiWidget
 
 		//if (auto panel = dynamic_cast<ImPanelWidget*>(widget))
 		//{
-		//	for (int i = panel->GetSlotNum() - 1; i >= 0; --i)
+		//	for (int i = panel->GetChildNum() - 1; i >= 0; --i)
 		//	{
 		//		if (auto child = panel->GetChildAt(i))
 		//		{
@@ -1008,7 +1008,7 @@ namespace ImGuiWidget
 		// 递归收集子控件
 		if (auto panel = dynamic_cast<ImPanelWidget*>(root))
 		{
-			for (int i = 0; i < panel->GetSlotNum(); ++i)
+			for (int i = 0; i < panel->GetChildNum(); ++i)
 			{
 				if (auto child = panel->GetChildAt(i))
 				{

@@ -430,7 +430,7 @@ namespace ImGuiWidget
             float relativeX = RelativePosition.x;
 
             // 如果没有子项，直接添加到末尾
-            if (GetSlotNum() == 0)
+            if (GetChildNum() == 0)
             {
                 return AddPart(Child, 1.0f);
             }
@@ -439,10 +439,10 @@ namespace ImGuiWidget
             HandleLayout();
 
             // 遍历所有部分区域，寻找插入位置
-            int insertIndex = GetSlotNum(); // 默认插入到最后
+            int insertIndex = GetChildNum(); // 默认插入到最后
             float accumulatedWidth = 0.0f;
 
-            for (int i = 0; i < GetSlotNum(); i++)
+            for (int i = 0; i < GetChildNum(); i++)
             {
                 const ImRect& partRect = m_PartRects[i];
                 float partWidth = partRect.GetWidth();
@@ -507,7 +507,7 @@ namespace ImGuiWidget
         // 应用最小尺寸约束
         void ApplyMinSizeConstraints(std::vector<float>& widths, float availableWidth)
         {
-            const int numParts = GetSlotNum();
+            const int numParts = GetChildNum();
             if (numParts == 0) return;
 
             // 计算总的最小宽度
@@ -598,7 +598,7 @@ namespace ImGuiWidget
         // 计算实际宽度
         void CalculateWidths(std::vector<float>& widths, float contentWidth)
         {
-            const int numParts = GetSlotNum();
+            const int numParts = GetChildNum();
             if (numParts == 0) return;
 
             // 计算总比例
@@ -632,7 +632,7 @@ namespace ImGuiWidget
             ImGuiWindow* window = ImGui::GetCurrentWindow();
             if (window->SkipItems) return;
 
-            const int numParts = GetSlotNum();
+            const int numParts = GetChildNum();
             if (numParts == 0) return;
 
             const int numBars = numParts - 1;

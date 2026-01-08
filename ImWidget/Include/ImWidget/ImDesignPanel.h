@@ -91,7 +91,7 @@ namespace ImGuiWidget
         //只允许唯一子控件
         virtual ImSlot* AddChild(ImWidget* child, ImVec2 RelativePosition = ImVec2(FLT_MIN, FLT_MIN))override
         {
-            if (GetSlotNum() > 0)
+            if (GetChildNum() > 0)
             {
                 return nullptr;
             }
@@ -146,7 +146,7 @@ namespace ImGuiWidget
             RenderBackGround();
 
             // 设置子控件Slot并渲染
-            if (GetSlotNum() > 0) {
+            if (GetChildNum() > 0) {
                 ImSlot* slot = GetSlotAt(0);
                 if (slot) {
                     // 设置Slot位置和大小（填满设计面板）

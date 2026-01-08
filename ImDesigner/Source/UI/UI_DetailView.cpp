@@ -263,7 +263,7 @@ void UI_DetailView::HandleSingleProperty(
 				stringvector.push_back(NewString);
 				//SingleProperty.setter(&stringvector);
 				OnPropertyChanged.Broadcast(SingleProperty, (void*)&stringvector, Target);
-				auto buttonptr = StringListBox->ExtractChildAt(StringListBox->GetSlotNum() - 1);
+				auto buttonptr = StringListBox->ExtractChildAt(StringListBox->GetChildNum() - 1);
 				StringListBox->AddChildToVerticalBox(HandleAddStringItem(SingleProperty, NewString, StringListBox, Target,WidgetOwner))->SetIfAutoSize(false);
 				StringListBox->AddChildToVerticalBox(buttonptr)->SetIfAutoSize(false);
 			});

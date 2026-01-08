@@ -12,19 +12,28 @@ Model_WidgetEditor::Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget):
 		{
 			OnPropertyEditUnDoRedo.Broadcast(target, propertyname);
 		});
+
+	m_EditCommandManager->OnChildEditUndoRedo.Add([this]()
+		{
+			OnWidgetTreeChanged.Broadcast();
+		});
 }
 
 bool Model_WidgetEditor::RemoveChildWidget(ImGuiWidget::ImWidget* WidgetToRemove)
 {
 	if (!WidgetToRemove) return false;
 	if (!WidgetToRemove->IsInTree(RootWidget)) return false;
-	if (WidgetToRemove->GetParents()->RemoveChild(WidgetToRemove))
+
+	//if (WidgetToRemove->GetParents()->RemoveChild(WidgetToRemove))
+	//{
+	//	AddLogLineEx(u8"É¾³ý¿Ø¼þ£º[", WidgetToRemove->GetRegisterTypeName(), u8"]", WidgetToRemove->GetWidgetName());
+	//	delete WidgetToRemove;
+	//}
+	//OnWidgetTreeChanged.Broadcast();
+	if (m_EditCommandManager->ExecuteChildRemove(WidgetToRemove->GetParents(), WidgetToRemove))
 	{
-		AddLogLineEx(u8"É¾³ý¿Ø¼þ£º[", WidgetToRemove->GetRegisterTypeName(), u8"]", WidgetToRemove->GetWidgetName());
-		delete WidgetToRemove;
+		OnWidgetTreeChanged.Broadcast();
 	}
-	OnWidgetTreeChanged.Broadcast();
-	
 	return true;
 }
 

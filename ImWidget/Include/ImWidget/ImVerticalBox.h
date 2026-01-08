@@ -58,14 +58,14 @@ namespace ImGuiWidget
             float relativeY = RelativePosition.y - Position.y;
 
             // 如果没有子项，直接添加到末尾
-            if (GetSlotNum() == 0) {
+            if (GetChildNum() == 0) {
                 return AddChildInternal<ImVerticalBoxSlot>(Child);
             }
 
             // 遍历所有子项，寻找插入位置
-            int insertIndex = GetSlotNum(); // 默认插入到最后
+            int insertIndex = GetChildNum(); // 默认插入到最后
 
-            for (int i = 0; i < GetSlotNum(); i++) {
+            for (int i = 0; i < GetChildNum(); i++) {
                 ImSlot* currentSlot = GetSlotAt(i);
 
                 // 计算当前子项的中点
@@ -101,7 +101,7 @@ namespace ImGuiWidget
 		{
 			float minheight = 0.f;
 			float minlength = 0.f;
-            for (int i = 0; i < GetSlotNum(); i++)
+            for (int i = 0; i < GetChildNum(); i++)
             {
                 ImVerticalBoxSlot* child = (ImVerticalBoxSlot*)GetSlotAt(i);
                 if (child)
@@ -134,7 +134,7 @@ namespace ImGuiWidget
             float sumSizeRatio = 0.f;   // 比例总和
 
             // 第一步：计算非自动大小控件所需高度和比例总和
-            for (int i=0;i<GetSlotNum();i++)
+            for (int i=0;i<GetChildNum();i++)
             {
                 ImVerticalBoxSlot* VSlot = static_cast<ImVerticalBoxSlot*>(GetSlotAt(i));
                 if (!VSlot|| !VSlot->IsValid())continue;
@@ -155,7 +155,7 @@ namespace ImGuiWidget
 
             if (remainingHeight > 0.f) // 有足够空间
             {
-                for (int i = 0; i < GetSlotNum(); i++)
+                for (int i = 0; i < GetChildNum(); i++)
                 {
                     ImVerticalBoxSlot* VSlot = static_cast<ImVerticalBoxSlot*>(GetSlotAt(i));
                     if (!VSlot || !VSlot->IsValid())continue;
@@ -196,7 +196,7 @@ namespace ImGuiWidget
             }
             else // 空间不足
             {
-                for (int i = 0; i < GetSlotNum(); i++)
+                for (int i = 0; i < GetChildNum(); i++)
                 {
                     ImVerticalBoxSlot* VSlot = static_cast<ImVerticalBoxSlot*>(GetSlotAt(i));
                     if (!VSlot || !VSlot->IsValid())continue;

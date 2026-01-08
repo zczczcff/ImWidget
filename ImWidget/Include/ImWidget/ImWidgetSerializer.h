@@ -217,7 +217,7 @@ namespace ImGuiWidget
             nlohmann::ordered_json childrenJson = nlohmann::ordered_json::array();
 
             // 使用现有方法获取slot数量
-            int slotCount = panel->GetSlotNum();
+            int slotCount = panel->GetChildNum();
             for (int i = 0; i < slotCount; i++) {
                 // 使用现有方法获取slot
                 ImSlot* slot = panel->GetSlot(i);

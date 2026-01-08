@@ -98,18 +98,7 @@ namespace ImGuiWidget
 				child->SetParents(this);
 			}
 		}
-		// 插入子控件到指定位置
-		ImSlot* InsertChildAt(int index, ImWidget* child)
-		{
-			if (index < 0 || index > static_cast<int>(m_Slots.size())) {
-				return AddChild(child);
-			}
-			ImSlot* newSlot = CreateSlot(child);
-			m_Slots.insert(m_Slots.begin() + index, newSlot);
-			MarkLayoutDirty();
-			child->SetParents(this);
-			return newSlot;
-		}
+
 		virtual void HandleChildSizeDirty() 
 		{
 			MarkLayoutDirty();
@@ -145,6 +134,20 @@ namespace ImGuiWidget
 				}
 			}
 			MarkLayoutDirty();
+		}
+
+		// 插入子控件到指定位置
+		ImSlot* InsertChildAt(int index, ImWidget* child)
+		{
+			if (index < 0 || index > static_cast<int>(m_Slots.size()))
+			{
+				return AddChild(child);
+			}
+			ImSlot* newSlot = CreateSlot(child);
+			m_Slots.insert(m_Slots.begin() + index, newSlot);
+			MarkLayoutDirty();
+			child->SetParents(this);
+			return newSlot;
 		}
 
 		// 赋值运算符（深拷贝自身属性）
@@ -314,7 +317,7 @@ namespace ImGuiWidget
 
 		void SetBorderColor(ImU32 color) { BorderColor = color; }
 
-		int GetSlotNum() { return static_cast<int>(m_Slots.size()); }
+		int GetChildNum() { return static_cast<int>(m_Slots.size()); }
 
 		ImSlot* GetSlot(int Index) { return m_Slots[Index]; }
 

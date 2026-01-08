@@ -57,7 +57,7 @@ namespace ImGuiWidget
                 return nullptr;
             }
 
-            if (GetSlotNum() > 0)
+            if (GetChildNum() > 0)
             {
                 SetChildAt(0, content, DeleteOld);
             }
@@ -123,7 +123,7 @@ namespace ImGuiWidget
             // 渲染背景
             RenderBackGround();
 
-            if (GetSlotNum() > 0 && GetSlotAt(0) && GetSlotAt(0)->GetContent())
+            if (GetChildNum() > 0 && GetSlotAt(0) && GetSlotAt(0)->GetContent())
             {
                 // 使用布局计算后的滚动条状态
                 ImVec2 contentAvail = Size;
@@ -306,7 +306,7 @@ namespace ImGuiWidget
 
         virtual void Relayout() override
         {
-            if (GetSlotNum() > 0 && GetSlotAt(0) && GetSlotAt(0)->GetContent())
+            if (GetChildNum() > 0 && GetSlotAt(0) && GetSlotAt(0)->GetContent())
             {
                 ImSlot* slot = GetSlotAt(0);
                 ImWidget* content = slot->GetContent();
@@ -671,7 +671,7 @@ namespace ImGuiWidget
             if (!target) return;
 
             // 检查目标控件是否在当前滚动框的内容区域内
-            if (GetSlotNum() == 0 || !GetChildAt(0)) return;
+            if (GetChildNum() == 0 || !GetChildAt(0)) return;
 
             // 使用IsInTree方法检查目标控件是否在内容控件的子树中
             if (!target->IsInTree(this)) return;

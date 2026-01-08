@@ -3,6 +3,11 @@
 #include "ImWidget/ImWidgetProperty.h"
 #include "ImTools/ImDelegate.h"
 
+namespace ImGuiWidget
+{
+    class ImWidget;
+    class ImPanelWidget;
+}
 
 class EditCommandManager
 {
@@ -15,6 +20,7 @@ private:
     EditCommand* m_CurrentMergingCommand = nullptr;
 public:
     ImMulticastDelegate<ImGuiWidget::PropertyStruct*, const std::string&> OnPropertyEditUnDoRedo;
+    ImMulticastDelegate<> OnChildEditUndoRedo;
 private:
     std::unique_ptr<EditCommand> CreatePropertyEditCommand(
         const ImGuiWidget::PropertyInfo& propInfo,
@@ -33,6 +39,8 @@ public:
     {
         ExecutePropertyEditImpl(propInfo, newValue, target);
     }
+    bool ExecuteChildRemove(ImGuiWidget::ImPanelWidget* Target, int index);
+    bool ExecuteChildRemove(ImGuiWidget::ImPanelWidget* Target, ImGuiWidget::ImWidget* child);
     void Undo();
     void Redo();
     void Clear();

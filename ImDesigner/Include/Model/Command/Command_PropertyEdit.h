@@ -1,3 +1,4 @@
+#pragma once
 #include "CommandBase.h"
 #include "ImWidget/ImWidgetProperty.h"
 namespace ImGuiWidget
@@ -9,7 +10,6 @@ class PropertyEditCommand : public EditCommand
 {
 protected:
     ImGuiWidget::PropertyInfo m_PropertyInfo;
-    std::string m_Description;
     ImGuiWidget::PropertyStruct* m_Target;
 public:
     PropertyEditCommand(const ImGuiWidget::PropertyInfo& propInfo, ImGuiWidget::PropertyStruct* Target)

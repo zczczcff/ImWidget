@@ -373,14 +373,14 @@ namespace ImGuiWidget
                     slotIndex++;
                 }
 
-                if (tabHBox->GetSlotNum() > slotIndex)
+                if (tabHBox->GetChildNum() > slotIndex)
                 {
                     newPage.tabText = static_cast<ImTextBlock*>(tabHBox->GetSlotAt(slotIndex)->GetContent());
                     // 设置显示文本为displayName
                     newPage.tabText->SetText(newPage.displayName);
                 }
 
-                if (m_showCloseButton && tabHBox->GetSlotNum() > slotIndex + 1)
+                if (m_showCloseButton && tabHBox->GetChildNum() > slotIndex + 1)
                 {
                     newPage.closeButton = static_cast<ImButton*>(tabHBox->GetSlotAt(slotIndex + 1)->GetContent());
                 }
@@ -729,12 +729,12 @@ namespace ImGuiWidget
                 int slotIndex = 0;
                 if (pageData->hasIcon) slotIndex++;
 
-                if (tabHBox->GetSlotNum() > slotIndex)
+                if (tabHBox->GetChildNum() > slotIndex)
                 {
                     pageData->tabText = static_cast<ImTextBlock*>(tabHBox->GetSlotAt(slotIndex)->GetContent());
                 }
 
-                if (m_showCloseButton && tabHBox->GetSlotNum() > slotIndex + 1)
+                if (m_showCloseButton && tabHBox->GetChildNum() > slotIndex + 1)
                 {
                     pageData->closeButton = static_cast<ImButton*>(tabHBox->GetSlotAt(slotIndex + 1)->GetContent());
                 }
@@ -799,13 +799,13 @@ namespace ImGuiWidget
                     if (page.hasIcon) slotIndex++;
 
                     // 获取文本控件
-                    if (tabHBox->GetSlotNum() > slotIndex)
+                    if (tabHBox->GetChildNum() > slotIndex)
                     {
                         page.tabText = static_cast<ImTextBlock*>(tabHBox->GetSlotAt(slotIndex)->GetContent());
                     }
 
                     // 获取关闭按钮（如果存在）
-                    if (m_showCloseButton && tabHBox->GetSlotNum() > slotIndex + 1)
+                    if (m_showCloseButton && tabHBox->GetChildNum() > slotIndex + 1)
                     {
                         page.closeButton = static_cast<ImButton*>(tabHBox->GetSlotAt(slotIndex + 1)->GetContent());
                     }
