@@ -28,6 +28,9 @@
 #include "Resource/ExpandableBox.h"
 #include "Resource/ScrollBox.h"
 
+#include "Resource/Redo.h"
+#include "Resource/Undo.h"
+
 void IconManager::LoadIcons()
 {
 	int w, h;
@@ -58,6 +61,9 @@ void IconManager::LoadIcons()
 	TextureIDArray[(int)ImDesignerIcon::VerticalSplitter] = ImGuiWidget::GlobalApp->LoadTextureFromMemory(VerticalSplitter_data, VerticalSplitter_size, w, h);
 	TextureIDArray[(int)ImDesignerIcon::ExpandableBox] = ImGuiWidget::GlobalApp->LoadTextureFromMemory(ExpandableBox_data, ExpandableBox_size, w, h);
 	TextureIDArray[(int)ImDesignerIcon::ScrollBox] = ImGuiWidget::GlobalApp->LoadTextureFromMemory(ScrollBox_data, ScrollBox_size, w, h);
+
+	TextureIDArray[(int)ImDesignerIcon::Undo] = ImGuiWidget::GlobalApp->LoadTextureFromMemory(Undo_data, Undo_size, w, h);
+	TextureIDArray[(int)ImDesignerIcon::Redo] = ImGuiWidget::GlobalApp->LoadTextureFromMemory(Undo_data, Undo_size, w, h);
 }
 
 ImTextureID IconManager::GetIcon(ImDesignerIcon IconIndex)

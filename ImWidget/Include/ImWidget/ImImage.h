@@ -82,6 +82,11 @@ namespace ImGuiWidget
 			TintColor = ImGui::ColorConvertFloat4ToU32(Temp);
 		}
 
+		void SetTintcolor(ImU32 color)
+		{
+			TintColor = color;
+		}
+
 		virtual void Render() override
 		{
 			if (m_TextureID == 0) return;

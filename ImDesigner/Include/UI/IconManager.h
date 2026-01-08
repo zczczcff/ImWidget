@@ -31,6 +31,9 @@ enum class ImDesignerIcon
 	ExpandableBox,
 	ScrollBox,
 
+	Undo,
+	Redo,
+
 	IconNum
 };
 
