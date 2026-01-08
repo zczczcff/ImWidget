@@ -61,14 +61,14 @@ public:
     {
     }
 
-    virtual void Execute() override
+    virtual bool Execute() override
     {
-        m_PropertyInfo.SetColorValue(m_NewValue);
+        return m_PropertyInfo.SetColorValue(m_NewValue);
     }
 
-    virtual void Undo() override
+    virtual bool Undo() override
     {
-        m_PropertyInfo.SetColorValue(m_OldValue);
+        return m_PropertyInfo.SetColorValue(m_OldValue);
     }
 
     virtual bool MergeWith(std::unique_ptr<EditCommand> other) override
@@ -98,14 +98,14 @@ public:
     {
     }
 
-    virtual void Execute() override
+    virtual bool Execute() override
     {
-        m_PropertyInfo.SetStringValue(m_NewValue);
+        return m_PropertyInfo.SetStringValue(m_NewValue);
     }
 
-    virtual void Undo() override
+    virtual bool Undo() override
     {
-        m_PropertyInfo.SetStringValue(m_OldValue);
+        return m_PropertyInfo.SetStringValue(m_OldValue);
     }
 
     virtual bool MergeWith(std::unique_ptr<EditCommand> other) override
@@ -134,14 +134,14 @@ public:
     {
     }
 
-    virtual void Execute() override
+    virtual bool Execute() override
     {
-        m_PropertyInfo.SetFloatValue(m_NewValue);
+        return m_PropertyInfo.SetFloatValue(m_NewValue);
     }
 
-    virtual void Undo() override
+    virtual bool Undo() override
     {
-        m_PropertyInfo.SetFloatValue(m_OldValue);
+        return m_PropertyInfo.SetFloatValue(m_OldValue);
     }
 
     virtual bool MergeWith(std::unique_ptr<EditCommand> other) override
@@ -170,14 +170,14 @@ public:
     {
     }
 
-    virtual void Execute() override
+    virtual bool Execute() override
     {
-        m_PropertyInfo.SetIntValue(m_NewValue);
+        return m_PropertyInfo.SetIntValue(m_NewValue);
     }
 
-    virtual void Undo() override
+    virtual bool Undo() override
     {
-        m_PropertyInfo.SetIntValue(m_OldValue);
+        return m_PropertyInfo.SetIntValue(m_OldValue);
     }
 
     virtual bool MergeWith(std::unique_ptr<EditCommand> other) override
@@ -206,14 +206,14 @@ public:
     {
     }
 
-    virtual void Execute() override
+    virtual bool Execute() override
     {
-        m_PropertyInfo.SetBoolValue(m_NewValue);
+        return m_PropertyInfo.SetBoolValue(m_NewValue);
     }
 
-    virtual void Undo() override
+    virtual bool Undo() override
     {
-        m_PropertyInfo.SetBoolValue(m_OldValue);
+        return m_PropertyInfo.SetBoolValue(m_OldValue);
     }
 
     virtual bool CanMergeWith(const EditCommand* other) const { return false; }
@@ -234,14 +234,14 @@ public:
     {
     }
 
-    virtual void Execute() override
+    virtual bool Execute() override
     {
-        m_PropertyInfo.SetVec2Value(m_NewValue);
+        return m_PropertyInfo.SetVec2Value(m_NewValue);
     }
 
-    virtual void Undo() override
+    virtual bool Undo() override
     {
-        m_PropertyInfo.SetVec2Value(m_OldValue);
+        return m_PropertyInfo.SetVec2Value(m_OldValue);
     }
 
     virtual bool MergeWith(std::unique_ptr<EditCommand> other) override
@@ -270,14 +270,14 @@ public:
     {
     }
 
-    virtual void Execute() override
+    virtual bool Execute() override
     {
-        m_PropertyInfo.SetEnumValue(m_NewValue);
+        return m_PropertyInfo.SetEnumValue(m_NewValue);
     }
 
-    virtual void Undo() override
+    virtual bool Undo() override
     {
-        m_PropertyInfo.SetEnumValue(m_OldValue);
+        return m_PropertyInfo.SetEnumValue(m_OldValue);
     }
 
     virtual bool MergeWith(std::unique_ptr<EditCommand> other) override
@@ -306,14 +306,14 @@ public:
     {
     }
 
-    virtual void Execute() override
+    virtual bool Execute() override
     {
-        m_PropertyInfo.SetStringArrayValue(m_NewValue);
+        return m_PropertyInfo.SetStringArrayValue(m_NewValue);
     }
 
-    virtual void Undo() override
+    virtual bool Undo() override
     {
-        m_PropertyInfo.SetStringArrayValue(m_OldValue);
+        return m_PropertyInfo.SetStringArrayValue(m_OldValue);
     }
 
     virtual bool CanMergeWith(const EditCommand* other) const { return false; }
@@ -334,14 +334,14 @@ public:
     {
     }
 
-    virtual void Execute() override
+    virtual bool Execute() override
     {
-        m_PropertyInfo.SetStructValue(&m_NewValue);
+        return m_PropertyInfo.SetStructValue(&m_NewValue);
     }
 
-    virtual void Undo() override
+    virtual bool Undo() override
     {
-        m_PropertyInfo.SetStructValue(&m_OldValue);
+        return m_PropertyInfo.SetStructValue(&m_OldValue);
     }
 
     virtual bool CanMergeWith(const EditCommand* other) const { return false; }

@@ -2,28 +2,43 @@
 #include "ImWidget/ImPanelWidget.h"
 #include "Tools/JLog.h"
 
-void ChildAddCommand::Execute()
+bool ChildAddCommand::Execute()
 {
-	Target->InsertChildAt(index, Child);
+	if (Target->InsertChildAt(index, Child))
+	{
+		return true;
+	}
+	else return false;
 }
 
-void ChildAddCommand::Undo()
+bool ChildAddCommand::Undo()
 {
-	Target->RemoveChildAt(index, false);
+	if (Target->RemoveChildAt(index, false))
+	{
+		return true;
+	}
+	else return false;
 }
 
-void ChildRemoveCommand::Execute()
+bool ChildRemoveCommand::Execute()
 {
-	Target->RemoveChildAt(index, false);
-	AddLogLineEx(u8"移除控件：[", Target->GetRegisterTypeName(), "] ",
-		Target->GetWidgetName(), u8" -> 移除子控件 -> [",
-		Child->GetRegisterTypeName(), "] ",Child->GetWidgetName());
+	if (Target->RemoveChildAt(index, false))
+	{
+		AddLogLineEx(u8"移除控件：[", Target->GetRegisterTypeName(), "] ",
+			Target->GetWidgetName(), u8" -> 移除子控件 -> [",
+			Child->GetRegisterTypeName(), "] ", Child->GetWidgetName());
+		return true;
+	}
+	else return false;
 }
 
-void ChildRemoveCommand::Undo()
+bool ChildRemoveCommand::Undo()
 {
-	Target->InsertChildAt(index, Child);
-	AddLogLineEx(u8"撤销移除：[", Target->GetRegisterTypeName(), "] ",
-		Target->GetWidgetName(), u8" <- 恢复子控件 <- [",
-		Child->GetRegisterTypeName(), "] ", Child->GetWidgetName());
+	if (Target->InsertChildAt(index, Child))
+	{
+		AddLogLineEx(u8"撤销移除：[", Target->GetRegisterTypeName(), "] ",
+			Target->GetWidgetName(), u8" <- 恢复子控件 <- [",
+			Child->GetRegisterTypeName(), "] ", Child->GetWidgetName());
+	}
+	else return false;
 }

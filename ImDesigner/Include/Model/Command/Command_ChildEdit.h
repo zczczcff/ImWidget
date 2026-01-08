@@ -42,9 +42,9 @@ public:
 
     }
 
-    virtual void Execute() override;
+    virtual bool Execute() override;
 
-    virtual void Undo() override;
+    virtual bool Undo() override;
 };
 
 class ChildRemoveCommand :public ChildEditCommand
@@ -59,7 +59,7 @@ public:
 
     }
 
-    virtual void Execute() override;
+    virtual bool Execute() override;
 
-    virtual void Undo() override;
+    virtual bool Undo() override;
 };

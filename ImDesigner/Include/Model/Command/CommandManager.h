@@ -28,7 +28,7 @@ private:
         ImGuiWidget::PropertyStruct* target
     );
     void ExecutePropertyEditImpl(const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::PropertyStruct* target);
-    void Execute(std::unique_ptr<EditCommand> command);
+    bool Execute(std::unique_ptr<EditCommand> command);
 public:
     //template<typename T>
     //void ExecutePropertyEdit(const ImGuiWidget::PropertyInfo& propInfo, const T& NewValue)
@@ -41,6 +41,8 @@ public:
     }
     bool ExecuteChildRemove(ImGuiWidget::ImPanelWidget* Target, int index);
     bool ExecuteChildRemove(ImGuiWidget::ImPanelWidget* Target, ImGuiWidget::ImWidget* child);
+    bool ExecuteChildInsert(ImGuiWidget::ImPanelWidget* Target, ImGuiWidget::ImWidget* child, int index);
+    
     void Undo();
     void Redo();
     void Clear();

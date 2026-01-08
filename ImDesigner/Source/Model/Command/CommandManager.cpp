@@ -47,13 +47,13 @@ void EditCommandManager::ExecutePropertyEditImpl(const ImGuiWidget::PropertyInfo
     Execute(std::move(command));
 }
 
-void EditCommandManager::Execute(std::unique_ptr<EditCommand> command)
+bool EditCommandManager::Execute(std::unique_ptr<EditCommand> command)
 {
     if (bIsUndoRedo)//撤销重做中，直接执行并退出
     {
-        command->Execute();
-        return;
+        return command->Execute();
     }
+    bool success = true;
     // 检查是否可以与上一个命令合并
     if (!m_UndoStack.empty() && m_UndoStack.back()->CanMergeWith(command.get()))
     {
@@ -62,21 +62,26 @@ void EditCommandManager::Execute(std::unique_ptr<EditCommand> command)
         {
             // 合并成功，重新执行合并后的命令以确保状态正确
             m_UndoStack.back()->Execute();
-            return;
+            return true;
         }
     }
 
     // 无法合并，正常执行命令
-    command->Execute();
-    m_UndoStack.push_back(std::move(command));
-
-    // 限制撤销栈大小
-    if (m_UndoStack.size() > m_MaxStackSize)
+    if (command->Execute())
     {
-        m_UndoStack.erase(m_UndoStack.begin());
-    }
+        m_UndoStack.push_back(std::move(command));
 
-    m_RedoStack.clear();
+        // 限制撤销栈大小
+        if (m_UndoStack.size() > m_MaxStackSize)
+        {
+            m_UndoStack.erase(m_UndoStack.begin());
+        }
+
+        m_RedoStack.clear();
+        return true;
+    }
+    return false;
+
 }
 
 bool EditCommandManager::ExecuteChildRemove(ImGuiWidget::ImPanelWidget* Target, int index)
@@ -88,8 +93,7 @@ bool EditCommandManager::ExecuteChildRemove(ImGuiWidget::ImPanelWidget* Target, 
         return false;
     }
     auto command = std::make_unique<ChildRemoveCommand>(Target, child, index);
-    Execute(std::move(command));
-    return true;
+    return Execute(std::move(command));
 }
 
 bool EditCommandManager::ExecuteChildRemove(ImGuiWidget::ImPanelWidget* Target, ImGuiWidget::ImWidget* child)
@@ -99,12 +103,17 @@ bool EditCommandManager::ExecuteChildRemove(ImGuiWidget::ImPanelWidget* Target, 
         if (Target->GetChildAt(i) == child)
         {
             auto command = std::make_unique<ChildRemoveCommand>(Target, child, i);
-            Execute(std::move(command));
-            return true;
+            return Execute(std::move(command));
         }
     }
     AddLogLineEx(u8"执行子控件移除失败，目标子控件不在父控件中，target:", Target->GetWidgetName(), "child:", child ? child->GetWidgetName() : "nullptr");
     return false;
+}
+
+bool EditCommandManager::ExecuteChildInsert(ImGuiWidget::ImPanelWidget* Target, ImGuiWidget::ImWidget* child, int index)
+{
+    auto command = std::make_unique<ChildAddCommand>(Target, child, index);
+    return Execute(std::move(command));
 }
 
 void EditCommandManager::Undo()

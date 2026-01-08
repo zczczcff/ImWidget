@@ -20,8 +20,8 @@ protected:
 public:
     EditCommand() : m_Timestamp(std::chrono::steady_clock::now()),m_type(EditCommandType::PropertyEdit) {}
     virtual ~EditCommand() = default;
-    virtual void Execute() = 0;
-    virtual void Undo() = 0;
+    virtual bool Execute() = 0;
+    virtual bool Undo() = 0;
     virtual std::string GetDescription() const = 0;
     virtual bool CanMergeWith(const EditCommand* other) const { return false; }
     virtual bool MergeWith(std::unique_ptr<EditCommand> other) { return false; }

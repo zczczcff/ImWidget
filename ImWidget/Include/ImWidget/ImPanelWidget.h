@@ -141,7 +141,7 @@ namespace ImGuiWidget
 		{
 			if (index < 0 || index > static_cast<int>(m_Slots.size()))
 			{
-				return AddChild(child);
+				return nullptr;
 			}
 			ImSlot* newSlot = CreateSlot(child);
 			m_Slots.insert(m_Slots.begin() + index, newSlot);
@@ -205,7 +205,7 @@ namespace ImGuiWidget
 		}
 
 		// 按索引移除子控件
-		void RemoveChildAt(int index,bool bDeleteOld=true)
+		bool RemoveChildAt(int index,bool bDeleteOld=true)
 		{
 			if (index >= 0 && index < static_cast<int>(m_Slots.size()))
 			{
@@ -219,6 +219,11 @@ namespace ImGuiWidget
 				delete m_Slots[index]; // 删除slot对象
 				m_Slots.erase(m_Slots.begin() + index);
 				MarkLayoutDirty();
+				return true;
+			}
+			else
+			{
+				return false;
 			}
 		}
 
