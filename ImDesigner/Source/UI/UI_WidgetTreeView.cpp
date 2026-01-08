@@ -37,35 +37,44 @@ void UI_WidgetTreeView::InitPopUpMenu()
     WidgetMenu_InsertNew = windowmanager->CreatePopupWindow(ImVerticalBox_WidgetMenu_InsertNew->GetMinSize(), ImVec2(0, 0), ImVerticalBox_WidgetMenu_InsertNew, false, WidgetMenu);
     WidgetMenu_InsertNew->Close();
 
-    InsertBeforeButton->OnMouseIn.Add([this, InsertBeforeButton]()
+    CopyButton->OnMouseHover.Add([this]() 
+        {
+            WidgetMenu_InsertNew->Close();
+        });
+    DeleteButton->OnMouseHover.Add([this]() 
+        {
+            WidgetMenu_InsertNew->Close();
+        });
+
+    InsertBeforeButton->OnMouseHover.Add([this, InsertBeforeButton]()
         {
             ImVec2 PopupPos = InsertBeforeButton->GetPosition() + ImVec2(InsertBeforeButton->GetSize().x, 0);
             WidgetMenu_InsertNew->SetPosition(PopupPos);
             WidgetMenu_InsertNew->SetActive();
         });
-    InsertBeforeButton->OnMouseOut.Add([this]() 
+    InsertBeforeButton->OnMouseHoverOut.Add([this]() 
         {
             //WidgetMenu_InsertNew->Close(); 
         });
 
-    InsertToButton->OnMouseIn.Add([this, InsertToButton]()
+    InsertToButton->OnMouseHover.Add([this, InsertToButton]()
         {
             ImVec2 PopupPos = InsertToButton->GetPosition() + ImVec2(InsertToButton->GetSize().x, 0);
             WidgetMenu_InsertNew->SetPosition(PopupPos);
             WidgetMenu_InsertNew->SetActive();
         });
-    InsertToButton->OnMouseOut.Add([this]() 
+    InsertToButton->OnMouseHoverOut.Add([this]() 
         {
             //WidgetMenu_InsertNew->Close(); 
         });
 
-    InsertAfterButton->OnMouseIn.Add([this, InsertAfterButton]()
+    InsertAfterButton->OnMouseHover.Add([this, InsertAfterButton]()
         {
             ImVec2 PopupPos = InsertAfterButton->GetPosition() + ImVec2(InsertAfterButton->GetSize().x, 0);
             WidgetMenu_InsertNew->SetPosition(PopupPos);
             WidgetMenu_InsertNew->SetActive();
         });
-    InsertAfterButton->OnMouseOut.Add([this]() 
+    InsertAfterButton->OnMouseHoverOut.Add([this]() 
         {
             //WidgetMenu_InsertNew->Close(); 
         });

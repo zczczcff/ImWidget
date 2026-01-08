@@ -81,8 +81,9 @@ namespace ImGuiWidget
         ImMulticastDelegate<> OnRightClicked;
         ImMulticastDelegate<> OnLeftClicked;
         ImMulticastDelegate<> OnDoubleClicked;
-        ImMulticastDelegate<> OnMouseIn;
-        ImMulticastDelegate<> OnMouseOut;
+        ImMulticastDelegate<> OnMouseHoverIn;
+        ImMulticastDelegate<> OnMouseHover;
+        ImMulticastDelegate<> OnMouseHoverOut;
     protected:
         void RenderButton()
         {
@@ -288,11 +289,17 @@ namespace ImGuiWidget
 
         virtual void OnHoverStart() override
         {
-            OnMouseIn.Broadcast();
+            OnMouseHoverIn.Broadcast();
         }
+
+        virtual void OnHover() override
+        {
+            OnMouseHover.Broadcast();
+        }
+
         virtual void OnHoverEnd() override
         {
-            OnMouseOut.Broadcast();
+            OnMouseHoverOut.Broadcast();
         }
 
     public:

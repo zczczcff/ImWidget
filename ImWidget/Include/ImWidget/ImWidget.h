@@ -21,6 +21,7 @@ namespace ImGuiWidget
 		class ImSlot* m_Slot;
 		class ImWidget* m_Parents;
 
+		float m_HoverTime = 0.5;	//悬停计时，单位（s）
 		bool bVisible = true;     // 可见性
 		bool bFocusable = false;
 		bool bHasFocus = false;
@@ -174,22 +175,23 @@ namespace ImGuiWidget
 		{}
 
 		virtual void OnHoverStart() {};
+		virtual void OnHover() {};
 		virtual void OnHoverEnd() {};
 	public:
 		// 设置控件是否可获取焦点
-		virtual void SetFocusable(bool focusable)
+		void SetFocusable(bool focusable)
 		{
 			bFocusable = focusable;
 		}
 
 		// 检查控件是否可获取焦点
-		virtual bool IsFocusable() const
+		bool IsFocusable() const
 		{
 			return bFocusable && IsVisible();
 		}
 
 		// 检查控件当前是否有焦点
-		virtual bool HasFocus() const
+		bool HasFocus() const
 		{
 			return bHasFocus;
 		}
@@ -208,7 +210,7 @@ namespace ImGuiWidget
 		bool RequestFocus();
 
 		// 失去焦点
-		virtual void LoseFocus()
+		void LoseFocus()
 		{
 			if (bHasFocus)
 			{
@@ -221,6 +223,12 @@ namespace ImGuiWidget
 			return m_selfRef;  // 返回拷贝，增加引用计数
 		}
 
-		bool IsHoverable() { return bHoverable && IsVisible(); }
+		bool IsHoverable() const{ return bHoverable && IsVisible(); }
+
+		void SetHoverable(bool hoverable) { bHoverable = hoverable; }
+
+		float GetHoverTime()const { return m_HoverTime; }
+
+		void SetHoverTime(float Hovertime_Second) { m_HoverTime = Hovertime_Second; }
 	};
 }

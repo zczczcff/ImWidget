@@ -21,6 +21,7 @@ namespace ImGuiWidget
         double m_lastClickTime[5] = { 0 };  // 每个按钮的上次点击时间
         ImVec2 m_lastClickPos[5];         // 每个按钮的上次点击位置
         double m_hoverStartTime = 0.f;
+        float HoverTime = 0.5;//S
         // 双击检测参数
         const double DOUBLE_CLICK_TIME = 0.3;  // 300ms
         const float DOUBLE_CLICK_DISTANCE = 5.0f;  // 5像素
@@ -46,6 +47,8 @@ namespace ImGuiWidget
         void SetRootWidget(ImWidget* root) { m_rootWidget = root; }
 
         void SetFocus(ImWidget* widget);
+
+        void ResetHoverTime(float time);
     private:
         // 从ImGui收集事件
         //void CollectEventsFromImGui();
@@ -91,6 +94,8 @@ namespace ImGuiWidget
         void EndDrag(const ImVec2& pos, const ImModifierKeys& mods);
         void ProcessDropTargets(const ImVec2& pos, const ImModifierKeys& mods);
         void ProcessDrop(ImWidgetRef target, const ImVec2& pos, const ImModifierKeys& mods);
+
+        
 
         //焦点相关方法
 

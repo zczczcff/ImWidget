@@ -17,8 +17,9 @@ namespace ImGuiWidget
         MouseDoubleClick,
 
         //悬停事件
-        HoverIn,
-        HoverOut,
+        HoverIn,//悬停进入
+        Hover,//悬停指定的时间
+        HoverOut,//悬停退出
 
         // 键盘事件
         KeyDown,

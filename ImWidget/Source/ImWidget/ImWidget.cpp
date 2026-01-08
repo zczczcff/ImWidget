@@ -27,6 +27,11 @@ void ImGuiWidget::ImWidget::HandleEvent(ImEvent* event)
 		{
 			bHovered = true;
 			OnHoverStart();
+			event->As<ImHoverInEvent>()->SetHoverTime_Second(m_HoverTime);
+		}
+		else if (event->GetType() == ImEventType::Hover && bHoverable)
+		{
+			OnHover();
 		}
 		else if (event->GetType() == ImEventType::HoverOut && bHoverable)
 		{

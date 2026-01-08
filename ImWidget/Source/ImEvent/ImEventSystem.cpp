@@ -220,47 +220,17 @@ namespace ImGuiWidget
 				enterEvent->SetTarget(currentHitWidget->GetWidgetRef());
 				m_eventQueue.push_back(std::move(enterEvent));
 				m_lastHitWidget = currentHitWidget->GetWidgetRef();
-				// 开始悬停计时
-				
 			}
 			else
 			{
-				m_hoverStartTime = 0.0;
-				//m_hoveredWidget.Reset();
 				m_lastHitWidget.Reset();
 			}
 
-			if (ImWidget* CurrentHoveredWidget = FindHoverableAncestor(currentHitWidget))
-			{
-				if (CurrentHoveredWidget != m_hoveredWidget.GetWidget())
-				{
-					m_hoverStartTime = ImGui::GetTime();
+		}
 
-					if (m_hoveredWidget)
-					{
-						auto HoverOutEvent = std::make_unique<ImHoverOutEvent>();
-						HoverOutEvent->SetTarget(m_hoveredWidget);
-						DispatchEventImmediately(HoverOutEvent.get());
-					}
-					auto CurrentHoveredWidgetRef = CurrentHoveredWidget->GetWidgetRef();
-					auto HoverInEvent = std::make_unique<ImHoverInEvent>();
-					HoverInEvent->SetTarget(CurrentHoveredWidget->GetWidgetRef());
-					DispatchEventImmediately(HoverInEvent.get());
-					if (CurrentHoveredWidgetRef)
-					{
-						m_hoveredWidget = CurrentHoveredWidgetRef;
-					}
-					else
-					{
-						m_hoveredWidget.Reset();
-					}
-				}
-				else
-				{
-					//计时触发回调
-				}
-			}
-			else
+		if (ImWidget* CurrentHoveredWidget = FindHoverableAncestor(currentHitWidget))
+		{
+			if (CurrentHoveredWidget != m_hoveredWidget.GetWidget())
 			{
 				if (m_hoveredWidget)
 				{
@@ -268,10 +238,40 @@ namespace ImGuiWidget
 					HoverOutEvent->SetTarget(m_hoveredWidget);
 					DispatchEventImmediately(HoverOutEvent.get());
 				}
-				m_hoverStartTime = 0.0;
-				m_hoveredWidget.Reset();
+				auto CurrentHoveredWidgetRef = CurrentHoveredWidget->GetWidgetRef();
+				auto HoverInEvent = std::make_unique<ImHoverInEvent>(this);
+				HoverInEvent->SetTarget(CurrentHoveredWidget->GetWidgetRef());
+				ResetHoverTime(0.5);//先重设默认悬停计时
+				DispatchEventImmediately(HoverInEvent.get());
+				m_hoverStartTime = ImGui::GetTime();//必须等HoverIn事件触发完成后，控件设置了HoverTime，才开始计时
+				if (CurrentHoveredWidgetRef)
+				{
+					m_hoveredWidget = CurrentHoveredWidgetRef;
+				}
+				else
+				{
+					m_hoveredWidget.Reset();
+				}
 			}
-			
+			else
+			{
+				if (ImGui::GetTime() - m_hoverStartTime > HoverTime)//计时触发回调
+				{
+					auto HoverEvent = std::make_unique<ImHoverEvent>(this);
+					HoverEvent->SetTarget(CurrentHoveredWidget->GetWidgetRef());
+					DispatchEventImmediately(HoverEvent.get());
+				}
+			}
+		}
+		else
+		{
+			if (m_hoveredWidget)
+			{
+				auto HoverOutEvent = std::make_unique<ImHoverOutEvent>();
+				HoverOutEvent->SetTarget(m_hoveredWidget);
+				DispatchEventImmediately(HoverOutEvent.get());
+			}
+			m_hoveredWidget.Reset();
 		}
 
 		// 更新当前悬停控件
@@ -859,6 +859,11 @@ namespace ImGuiWidget
 			overEvent->SetTarget(currentTarget->GetWidgetRef());
 			m_eventQueue.push_back(std::move(overEvent));
 		}
+	}
+
+	void ImEventSystem::ResetHoverTime(float time)
+	{
+		HoverTime = time;
 	}
 
 	void ImEventSystem::ProcessDrop(ImWidgetRef target, const ImVec2& pos, const ImModifierKeys& mods)
