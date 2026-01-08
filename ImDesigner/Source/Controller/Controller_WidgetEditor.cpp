@@ -26,16 +26,27 @@ Controller_WidgetEditor::Controller_WidgetEditor(UI_WidgetTreeView* In_UI_Widget
 			m_Model_WidgetEditor->RemoveChildWidget(deletedwidget);
 		});
 
-	m_UI_FileDetail->OnPropertyChanged.Add([this](const ImGuiWidget::PropertyInfo& propInfo, const void* newValue) 
+	m_UI_FileDetail->OnPropertyChanged.Add([this](const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::PropertyStruct* Target)
 		{
-			m_Model_WidgetEditor->EditProperty(propInfo, newValue);
+			m_Model_WidgetEditor->EditProperty(propInfo, newValue, Target);
 		});
 
 	m_Model_WidgetEditor->OnWidgetTreeChanged.Add([this]() 
 		{
 			m_UI_WidgetTreeView->Refresh();
 		});
+
+	m_Model_WidgetEditor->OnPropertyEditUnDoRedo.Add([this](ImGuiWidget::PropertyStruct* Target,const std::string& PropertyName)
+		{
+			m_UI_FileDetail->UpdatePropertyDisplay(Target, PropertyName);
+		});
+
 	m_UI_WidgetEditor->OnRequestUndo.Add([this]() 
+		{
+			m_Model_WidgetEditor->Undo();
+		});
+
+	m_UI_FileDetail->OnRequestUndo.Add([this]() 
 		{
 			m_Model_WidgetEditor->Undo();
 		});

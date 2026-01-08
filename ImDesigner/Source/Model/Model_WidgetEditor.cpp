@@ -8,6 +8,10 @@ Model_WidgetEditor::Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget):
 	RootWidget(rootwidget),
 	m_EditCommandManager(new EditCommandManager())
 {
+	m_EditCommandManager->OnPropertyEditUnDoRedo.Add([this](ImGuiWidget::PropertyStruct* target, const std::string& propertyname)
+		{
+			OnPropertyEditUnDoRedo.Broadcast(target, propertyname);
+		});
 }
 
 bool Model_WidgetEditor::RemoveChildWidget(ImGuiWidget::ImWidget* WidgetToRemove)
@@ -29,9 +33,9 @@ bool Model_WidgetEditor::InsertChildTo(ImGuiWidget::ImWidget* child, ImGuiWidget
 	return false;
 }
 
-void Model_WidgetEditor::EditProperty(const ImGuiWidget::PropertyInfo& propInfo, const void* NewValue)
+void Model_WidgetEditor::EditProperty(const ImGuiWidget::PropertyInfo& propInfo, const void* NewValue, ImGuiWidget::PropertyStruct* Target)
 {
-	m_EditCommandManager->ExecutePropertyEdit(propInfo, NewValue);
+	m_EditCommandManager->ExecutePropertyEdit(propInfo, NewValue, Target);
 }
 
 void Model_WidgetEditor::Undo()

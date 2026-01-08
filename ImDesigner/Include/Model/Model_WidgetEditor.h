@@ -11,12 +11,13 @@ private:
 	class EditCommandManager* m_EditCommandManager;
 public:
 	ImMultiDelegate<> OnWidgetTreeChanged;
+	ImMulticastDelegate<ImGuiWidget::PropertyStruct*, const std::string&> OnPropertyEditUnDoRedo;
 public:
 	Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget);
 	bool RemoveChildWidget(ImGuiWidget::ImWidget* WidgetToRemove);
 	ImGuiWidget::ImWidget* GetRootWidget() { return RootWidget; }
 	bool InsertChildTo(ImGuiWidget::ImWidget* child, ImGuiWidget::ImPanelWidget* Target, int InsertIndex);
-	void EditProperty(const ImGuiWidget::PropertyInfo& propInfo, const void* NewValue);
+	void EditProperty(const ImGuiWidget::PropertyInfo& propInfo, const void* NewValue, ImGuiWidget::PropertyStruct* Target);
 	void Undo();
 	bool CanUndo();
 	bool CanRedo();

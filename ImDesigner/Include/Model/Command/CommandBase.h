@@ -4,13 +4,20 @@
 #include <string>
 #include <chrono>
 
+enum class EditCommandType
+{
+    PropertyEdit,
+    ChildChange,
+    Paste
+};
+
 class EditCommand
 {
 protected:
     std::chrono::steady_clock::time_point m_Timestamp; // ÃüÁîÊ±¼ä´Á
-
+    EditCommandType m_type;
 public:
-    EditCommand() : m_Timestamp(std::chrono::steady_clock::now()) {}
+    EditCommand() : m_Timestamp(std::chrono::steady_clock::now()),m_type(EditCommandType::PropertyEdit) {}
     virtual ~EditCommand() = default;
     virtual void Execute() = 0;
     virtual void Undo() = 0;
@@ -32,4 +39,6 @@ public:
             other->m_Timestamp - m_Timestamp);
         return diff <= window;
     }
+
+    EditCommandType GetType() const { return m_type; }
 };

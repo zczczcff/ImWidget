@@ -7,20 +7,44 @@
 class UI_DetailView : public ImGuiWidget::ImUserWidget
 {
 private:
+	struct PropertyInfor
+	{
+		ImGuiWidget::ImWidget* WidgetOwner;
+		std::unordered_map<std::string, std::function<void()>> Updaters;
+	};
+private:
 	std::map<ImGuiWidget::ImWidget*, ImGuiWidget::ImVerticalBox*> CachedDetails;
+	std::unordered_map<ImGuiWidget::PropertyStruct*, PropertyInfor*> CachedPropertyInfors;
 	ImGuiWidget::ImWidget* CurrentWidget;
 public:
-	ImMulticastDelegate<const ImGuiWidget::PropertyInfo&, const void*> OnPropertyChanged;
+	ImMulticastDelegate<const ImGuiWidget::PropertyInfo&, const void*, ImGuiWidget::PropertyStruct*> OnPropertyChanged;
+	ImMulticastDelegate<> OnRequestUndo;
 public:
 	UI_DetailView(const std::string& widgetname):
 		ImGuiWidget::ImUserWidget(widgetname),
 		CurrentWidget(nullptr)
-	{}
+	{
+		SetFocusable(true);
+	}
+private:
+	virtual void OnKeyDown(ImGuiWidget::ImKeyDownEvent& e) override;
 public:
 
-	ImGuiWidget::ImHorizontalBox* HandleAddStringItem(const ImGuiWidget::PropertyInfo& SingleProperty, std::string& SingleString, ImGuiWidget::ImVerticalBox* StringListBox);
+	ImGuiWidget::ImHorizontalBox* HandleAddStringItem
+	(const ImGuiWidget::PropertyInfo& SingleProperty, 
+		std::string& SingleString,
+		ImGuiWidget::ImVerticalBox* StringListBox,
+		ImGuiWidget::PropertyStruct* Target,
+		ImGuiWidget::ImWidget* WidgetOwner);
 
-	void HandleSingleProperty(const ImGuiWidget::PropertyInfo& SingleProperty, ImGuiWidget::ImVerticalBox* CurrentVerticalBox);
+	void HandleSingleProperty(
+		const ImGuiWidget::PropertyInfo& SingleProperty, 
+		ImGuiWidget::ImVerticalBox* CurrentVerticalBox,
+		ImGuiWidget::PropertyStruct* Target,
+		ImGuiWidget::ImWidget* WidgetOwner,
+		std::unordered_map<std::string, std::function<void()>>& Updaters);
 
 	void SetCurrentWidget(ImGuiWidget::ImWidget* widget);
+
+	void UpdatePropertyDisplay(ImGuiWidget::PropertyStruct* Target, const std::string& PropertyName);
 };
