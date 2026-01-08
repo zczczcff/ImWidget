@@ -1,5 +1,6 @@
 #pragma once
 #include "ImWidget/ImBasicWidgetDeclaration.h"
+#include "ImTools/ImDelegate.h"
 class UI_WidgetTreeView;
 class UI_WidgetEditor;
 class Model_WidgetEditor;
@@ -13,6 +14,8 @@ private:
 	UI_DetailView* m_UI_FileDetail;
 	Model_WidgetEditor* m_Model_WidgetEditor;
 public:
+	ImMulticastDelegate<bool, bool> OnUndoRedoStateChanged;
+public:
 	Controller_WidgetEditor(
 		UI_WidgetTreeView* In_UI_WidgetTreeView,
 		UI_WidgetEditor* In_UI_WidgetEditor,
@@ -20,4 +23,7 @@ public:
 		Model_WidgetEditor* In_Model_WidgetEditor);
 
 	void SetSelectedWidget(ImGuiWidget::ImWidget* SelectedWidget);
+	void RequestUndo();
+	void RequestRedo();
+	void UpdateUndoRedoState();
 };

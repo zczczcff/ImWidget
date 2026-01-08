@@ -4,6 +4,7 @@
 #include "UI/UI_WidgetTreeView.h"
 #include "UI/UI_ProjectView.h"
 #include "Controller/Controller_WidgetEditor.h"
+#include "Tools/JLog.h"
  Controller_MainController::Controller_MainController(MainUI* MainUI, Model_MainModel* MainModel)
 	:
 	m_MainUI(MainUI),
@@ -23,13 +24,13 @@
 				 m_MainUI->CreateNewWidgetEditorPage(EditedFile->rootwidget, FileName, FileFullPath);
 				 m_MainUI->CreateNewWidgetTreeView(FileFullPath, EditedFile->rootwidget);
 				 m_MainUI->CreateNewDetailView(FileFullPath);
-				 m_MainUI->ShowWidgetTreeViewByName(FileFullPath);
-				 m_MainUI->ShowDetailViewByName(FileFullPath);
+
 				 UI_WidgetTreeView* WidgetTreeView = m_MainUI->GetWidgetTreeViewByName(FileFullPath);
 				 UI_DetailView* DetailView = m_MainUI->GetDetailViewByName(FileFullPath);
 				 UI_WidgetEditor* WidgetEditor = m_MainUI->GetWidgetEditorByName(FileFullPath);
 				 Controller_WidgetEditor* NewController_WidgetEditor = new Controller_WidgetEditor(WidgetTreeView, WidgetEditor, DetailView, EditedFile->model_editor);
 				 WidgetEidtorControllers.insert(std::make_pair(FileFullPath, NewController_WidgetEditor));
+				 SwitchEditPage(FileFullPath);
 			 }
 		 });
 
@@ -47,6 +48,11 @@
 				 WidgetEidtorControllers.erase(it);
 				 m_MainUI->HandleCloseFile(FileFullPath);
 			 }
+		 });
+
+	 m_MainUI->OnEditorPageSelected.Add([this](const std::string& NewPageID) 
+		 {
+			 SwitchEditPage(NewPageID);
 		 });
 
 	 m_MainUI->GetProjectView()->OnRequestCreateFileInDir.Add([this](const std::string& Dir) 
@@ -74,9 +80,47 @@
 					 m_MainUI->GetProjectView()->ExpandToFile(NewFullPath);
 					 m_MainUI->GetProjectView()->ScrollToFileWithDelay(NewFullPath);
 					 m_MainUI->HandleRenameFile(OldFullPath, NewFullPath);
+					 if (CurrentFile == OldFullPath)
+					 {
+						 CurrentFile = NewFullPath;
+					 }
 				 }
 			 }
 		 });
 
 	 m_MainModel->OnLogUpdate = [this](std::vector<std::string>&& Logs) { m_MainUI->UpdateLog(std::move(Logs)); };
 }
+
+ void Controller_MainController::SwitchEditPage(const std::string& PageName)
+ {
+	 auto it = WidgetEidtorControllers.find(CurrentFile);
+	 if (it != WidgetEidtorControllers.end())
+	 {
+		 it->second->OnUndoRedoStateChanged.Clear();
+		 m_MainUI->OnRequestRedo.Clear();
+		 m_MainUI->OnRequestUndo.Clear();
+	 }
+
+	 auto newit = WidgetEidtorControllers.find(PageName);
+	 if (newit != WidgetEidtorControllers.end())
+	 {
+		 m_MainUI->ShowWidgetTreeViewByName(PageName);
+		 m_MainUI->ShowDetailViewByName(PageName);
+		 m_MainUI->ShowWidgetEditorByName(PageName);
+		 newit->second->OnUndoRedoStateChanged.Add([this](bool CanUndo, bool CanRedo)
+			 {
+				 m_MainUI->UpdateUndoRedoState(CanUndo, CanRedo);
+			 });
+		 m_MainUI->OnRequestRedo.Add([this, WidgetEditor = newit->second]()
+		 {
+			 WidgetEditor->RequestRedo();
+		 });
+
+		 m_MainUI->OnRequestUndo.Add([this, WidgetEditor = newit->second]()
+		 {
+			 WidgetEditor->RequestUndo();
+		 });
+		 newit->second->UpdateUndoRedoState();
+		 CurrentFile = PageName;
+	 }	 
+ }

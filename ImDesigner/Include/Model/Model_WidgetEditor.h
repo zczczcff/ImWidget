@@ -12,6 +12,7 @@ private:
 public:
 	ImMultiDelegate<> OnWidgetTreeChanged;
 	ImMulticastDelegate<ImGuiWidget::PropertyStruct*, const std::string&> OnPropertyEditUnDoRedo;
+	ImMultiDelegate<bool, bool> OnUndoRedoStateChanged;
 public:
 	Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget);
 	bool RemoveChildWidget(ImGuiWidget::ImWidget* WidgetToRemove);
@@ -19,7 +20,10 @@ public:
 	bool InsertChildTo(ImGuiWidget::ImWidget* child, ImGuiWidget::ImPanelWidget* Target, int InsertIndex);
 	void EditProperty(const ImGuiWidget::PropertyInfo& propInfo, const void* NewValue, ImGuiWidget::PropertyStruct* Target);
 	void Undo();
+	void Redo();
 	bool CanUndo();
 	bool CanRedo();
+private:
+	void UpdateUndoRedoState();
 public:
 };

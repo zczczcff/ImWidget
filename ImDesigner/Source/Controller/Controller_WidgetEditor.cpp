@@ -50,6 +50,10 @@ Controller_WidgetEditor::Controller_WidgetEditor(UI_WidgetTreeView* In_UI_Widget
 		{
 			m_Model_WidgetEditor->Undo();
 		});
+	m_Model_WidgetEditor->OnUndoRedoStateChanged.Add([this](bool CanUndo,bool CanRedo) 
+		{
+			OnUndoRedoStateChanged.Broadcast(CanUndo, CanRedo);
+		});
 }
 
 void Controller_WidgetEditor::SetSelectedWidget(ImGuiWidget::ImWidget* SelectedWidget)
@@ -57,4 +61,19 @@ void Controller_WidgetEditor::SetSelectedWidget(ImGuiWidget::ImWidget* SelectedW
 	m_UI_WidgetTreeView->SetSelectedWidget(SelectedWidget);
 	m_UI_WidgetEditor->SetSelectedWidget(SelectedWidget);
 	m_UI_FileDetail->SetCurrentWidget(SelectedWidget);
+}
+
+void Controller_WidgetEditor::RequestUndo()
+{
+	m_Model_WidgetEditor->Undo();
+}
+
+void Controller_WidgetEditor::RequestRedo()
+{
+	m_Model_WidgetEditor->Redo();
+}
+
+void Controller_WidgetEditor::UpdateUndoRedoState()
+{
+	OnUndoRedoStateChanged.Broadcast(m_Model_WidgetEditor->CanUndo(), m_Model_WidgetEditor->CanRedo());
 }

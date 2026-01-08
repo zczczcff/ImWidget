@@ -54,14 +54,17 @@ void MainUI::Init2()
 	//主工作界面
 	ImPageManager_Main = new ImGuiWidget::ImPageManager("ImPageManager_Main");
 	ImBorder_MainWorkSpace->SetContent(ImPageManager_Main);
-	ImGuiWidget::ImTextBlock* testtext = new ImGuiWidget::ImTextBlock("testblock");
-	testtext->SetText("test");
-	ImPageManager_Main->AddPage("test", testtext, IconManager::GetInstance()->GetIcon(ImDesignerIcon::SingleWidget));
+	//ImGuiWidget::ImTextBlock* testtext = new ImGuiWidget::ImTextBlock("testblock");
+	//testtext->SetText("test");
+	//ImPageManager_Main->AddPage("test", testtext, IconManager::GetInstance()->GetIcon(ImDesignerIcon::SingleWidget));
 	ImPageManager_Main->OnPageClosed().Add([this](const std::string& FilePath) 
 		{
 			On_EditorPageClosed(FilePath);
 		});
-	ImPageManager_Main->OnPageSelected().Add([this](const std::string& PageID) { On_EditorPageSelected(PageID); });
+	ImPageManager_Main->OnPageSelected().Add([this](const std::string& PageID) 
+		{
+			On_EditorPageSelected(PageID); 
+		});
 
 	//控件树视图
 	ImScrollBox_WidgetTree = new ImGuiWidget::ImScrollBox("ImScrollBox_WidgetTree");
@@ -72,6 +75,16 @@ void MainUI::Init2()
 	ImScrollBox_FileDetail = new ImGuiWidget::ImScrollBox("ImScrollBox_FileDetail");
 	ImScrollBox_FileDetail->bHaveBorder = false;
 	ImBorder_Right->SetContent(ImScrollBox_FileDetail);
+
+	//UndoRedo
+
+	ImButton_Undo->OnLeftClicked.Add([this]() { OnRequestUndo.Broadcast(); });
+	ImButton_Redo->OnLeftClicked.Add([this]() { OnRequestRedo.Broadcast(); });
+
+	ImImage_Undo->SetTextureID(IconManager::GetInstance()->GetIcon(ImDesignerIcon::Undo),20,20);
+	ImImage_Redo->SetTextureID(IconManager::GetInstance()->GetIcon(ImDesignerIcon::Redo),20,20);
+	UpdateUndoRedoState(false, false);
+
 }
 
 void MainUI::UpdateProjectView(ProjectFileManager* projectmananger)
@@ -101,6 +114,12 @@ UI_WidgetEditor* MainUI::GetWidgetEditorByName(const std::string& Name)
 	{
 		return nullptr;
 	}
+}
+
+bool MainUI::ShowWidgetEditorByName(const std::string& Name)
+{
+	ImPageManager_Main->SwitchToPage(Name);
+	return false;
 }
 
 bool MainUI::RenameWidgetEditorPage(const std::string& OldFullPath, const std::string& NewFullPath)
@@ -297,5 +316,26 @@ void MainUI::UpdateLog(std::vector<std::string>&& Logs)
 	for(auto& singlelog:Logs)
 	{
 		ImScrollingTextList_LogList->AddItem(singlelog);
+	}
+}
+
+void MainUI::UpdateUndoRedoState(bool CanUndo, bool CanRedo)
+{
+	if (CanUndo)
+	{
+		ImImage_Undo->SetTintcolor(IM_COL32(255, 255, 255, 255));
+	}
+	else
+	{
+		ImImage_Undo->SetTintcolor(IM_COL32(0, 0, 0, 100));
+	}
+
+	if (CanRedo)
+	{
+		ImImage_Redo->SetTintcolor(IM_COL32(255, 255, 255, 255));
+	}
+	else
+	{
+		ImImage_Redo->SetTintcolor(IM_COL32(0, 0, 0, 100));
 	}
 }

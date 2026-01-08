@@ -405,6 +405,7 @@ namespace ImGuiWidget
             // 添加到Tab栏
             m_tabBar->AddChildToHorizontalBox(tabButton)->SetIfAutoSize(false);
 
+
             // 如果是第一个页面，自动切换到该页面
             if (m_pages.size() == 1)
             {

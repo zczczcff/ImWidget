@@ -56,6 +56,7 @@ namespace ImGuiWidget
 			SlotType* newslot = new SlotType(child);
 			m_Slots.push_back(newslot);
 			MarkLayoutDirty();
+			MarkSizeDirty();
 			child->SetParents(this);
 			return newslot;
 		}

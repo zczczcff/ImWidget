@@ -15,6 +15,10 @@ void MainUI::Init()
     ImTextBlock_10 = new ImGuiWidget::ImTextBlock("ImTextBlock_10");
     ImButton_Generate = new ImGuiWidget::ImButton("ImButton_Generate");
     ImTextBlock_11 = new ImGuiWidget::ImTextBlock("ImTextBlock_11");
+    ImButton_Undo = new ImGuiWidget::ImButton("ImButton_Undo");
+    ImImage_Undo = new ImGuiWidget::ImImage("ImImage_Undo");
+    ImButton_Redo = new ImGuiWidget::ImButton("ImButton_Redo");
+    ImImage_Redo = new ImGuiWidget::ImImage("ImImage_Redo");
     ImVerticalSplitter_6 = new ImGuiWidget::ImVerticalSplitter("ImVerticalSplitter_6");
     ImHorizontalSplitter_1 = new ImGuiWidget::ImHorizontalSplitter("ImHorizontalSplitter_1");
     ImBorder_Left = new ImGuiWidget::ImBorder("ImBorder_Left");
@@ -85,7 +89,7 @@ void MainUI::Init()
     ImButton_Save_NormalStyle->SetPropertyValue<ImU32>("BorderColor", IM_COL32(255, 255, 255, 255));
     ImButton_Save->SetPropertyValue<std::string>("TooltipText", "");
     ImGuiWidget::PropertyStruct* ImButton_Save_HoveredStyle = ImButton_Save->GetPropertyPtr<ImGuiWidget::PropertyStruct>("HoveredStyle");
-    ImButton_Save_HoveredStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(198, 215, 255, 255));
+    ImButton_Save_HoveredStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(199, 215, 255, 255));
     ImButton_Save_HoveredStyle->SetPropertyValue<bool>("HasBorder", false);
     ImButton_Save_HoveredStyle->SetPropertyValue<float>("Rounding", 0.000000f);
     ImButton_Save_HoveredStyle->SetPropertyValue<float>("BorderThickness", 1.000000f);
@@ -99,7 +103,7 @@ void MainUI::Init()
     ImTextBlock_10->SetPropertyValue<std::string>("VerticalAlignment", "Center");
 
     ImGuiWidget::PropertyStruct* ImButton_Generate_PressedStyle = ImButton_Generate->GetPropertyPtr<ImGuiWidget::PropertyStruct>("PressedStyle");
-    ImButton_Generate_PressedStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(255, 255, 255, 255));
+    ImButton_Generate_PressedStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(255, 255, 255, 241));
     ImButton_Generate_PressedStyle->SetPropertyValue<bool>("HasBorder", false);
     ImButton_Generate_PressedStyle->SetPropertyValue<float>("Rounding", 0.000000f);
     ImButton_Generate_PressedStyle->SetPropertyValue<float>("BorderThickness", 1.000000f);
@@ -116,7 +120,7 @@ void MainUI::Init()
     ImButton_Generate_NormalStyle->SetPropertyValue<ImU32>("BorderColor", IM_COL32(255, 255, 255, 255));
     ImButton_Generate->SetPropertyValue<std::string>("TooltipText", "");
     ImGuiWidget::PropertyStruct* ImButton_Generate_HoveredStyle = ImButton_Generate->GetPropertyPtr<ImGuiWidget::PropertyStruct>("HoveredStyle");
-    ImButton_Generate_HoveredStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(198, 215, 255, 255));
+    ImButton_Generate_HoveredStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(199, 214, 255, 255));
     ImButton_Generate_HoveredStyle->SetPropertyValue<bool>("HasBorder", false);
     ImButton_Generate_HoveredStyle->SetPropertyValue<float>("Rounding", 0.000000f);
     ImButton_Generate_HoveredStyle->SetPropertyValue<float>("BorderThickness", 1.000000f);
@@ -128,6 +132,58 @@ void MainUI::Init()
     ImTextBlock_11->SetPropertyValue<ImU32>("TextColor", IM_COL32(0, 0, 0, 255));
     ImTextBlock_11->SetPropertyValue<std::string>("HorizontalAlignment", "Center");
     ImTextBlock_11->SetPropertyValue<std::string>("VerticalAlignment", "Center");
+
+    ImGuiWidget::PropertyStruct* ImButton_Undo_PressedStyle = ImButton_Undo->GetPropertyPtr<ImGuiWidget::PropertyStruct>("PressedStyle");
+    ImButton_Undo_PressedStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(255, 255, 255, 255));
+    ImButton_Undo_PressedStyle->SetPropertyValue<bool>("HasBorder", false);
+    ImButton_Undo_PressedStyle->SetPropertyValue<float>("Rounding", 0.000000f);
+    ImButton_Undo_PressedStyle->SetPropertyValue<float>("BorderThickness", 1.000000f);
+    ImButton_Undo_PressedStyle->SetPropertyValue<ImU32>("BorderColor", IM_COL32(255, 255, 255, 255));
+    ImButton_Undo->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
+    ImButton_Undo->SetPropertyValue<std::string>("Name", "ImButton_Undo");
+    ImButton_Undo->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
+    ImButton_Undo->SetPropertyValue<bool>("HaveBorder", false);
+    ImGuiWidget::PropertyStruct* ImButton_Undo_NormalStyle = ImButton_Undo->GetPropertyPtr<ImGuiWidget::PropertyStruct>("NormalStyle");
+    ImButton_Undo_NormalStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(247, 247, 247, 255));
+    ImButton_Undo_NormalStyle->SetPropertyValue<bool>("HasBorder", false);
+    ImButton_Undo_NormalStyle->SetPropertyValue<float>("Rounding", 0.000000f);
+    ImButton_Undo_NormalStyle->SetPropertyValue<float>("BorderThickness", 1.000000f);
+    ImButton_Undo_NormalStyle->SetPropertyValue<ImU32>("BorderColor", IM_COL32(255, 255, 255, 255));
+    ImButton_Undo->SetPropertyValue<std::string>("TooltipText", "");
+    ImGuiWidget::PropertyStruct* ImButton_Undo_HoveredStyle = ImButton_Undo->GetPropertyPtr<ImGuiWidget::PropertyStruct>("HoveredStyle");
+    ImButton_Undo_HoveredStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(199, 214, 255, 255));
+    ImButton_Undo_HoveredStyle->SetPropertyValue<bool>("HasBorder", false);
+    ImButton_Undo_HoveredStyle->SetPropertyValue<float>("Rounding", 0.000000f);
+    ImButton_Undo_HoveredStyle->SetPropertyValue<float>("BorderThickness", 1.000000f);
+    ImButton_Undo_HoveredStyle->SetPropertyValue<ImU32>("BorderColor", IM_COL32(255, 255, 255, 255));
+
+    ImImage_Undo->SetPropertyValue<std::string>("Name", "ImImage_Undo");
+
+    ImGuiWidget::PropertyStruct* ImButton_Redo_PressedStyle = ImButton_Redo->GetPropertyPtr<ImGuiWidget::PropertyStruct>("PressedStyle");
+    ImButton_Redo_PressedStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(255, 255, 255, 255));
+    ImButton_Redo_PressedStyle->SetPropertyValue<bool>("HasBorder", false);
+    ImButton_Redo_PressedStyle->SetPropertyValue<float>("Rounding", 0.000000f);
+    ImButton_Redo_PressedStyle->SetPropertyValue<float>("BorderThickness", 1.000000f);
+    ImButton_Redo_PressedStyle->SetPropertyValue<ImU32>("BorderColor", IM_COL32(255, 255, 255, 255));
+    ImButton_Redo->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
+    ImButton_Redo->SetPropertyValue<std::string>("Name", "ImButton_Redo");
+    ImButton_Redo->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
+    ImButton_Redo->SetPropertyValue<bool>("HaveBorder", false);
+    ImGuiWidget::PropertyStruct* ImButton_Redo_NormalStyle = ImButton_Redo->GetPropertyPtr<ImGuiWidget::PropertyStruct>("NormalStyle");
+    ImButton_Redo_NormalStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(247, 247, 247, 255));
+    ImButton_Redo_NormalStyle->SetPropertyValue<bool>("HasBorder", false);
+    ImButton_Redo_NormalStyle->SetPropertyValue<float>("Rounding", 0.000000f);
+    ImButton_Redo_NormalStyle->SetPropertyValue<float>("BorderThickness", 1.000000f);
+    ImButton_Redo_NormalStyle->SetPropertyValue<ImU32>("BorderColor", IM_COL32(255, 255, 255, 255));
+    ImButton_Redo->SetPropertyValue<std::string>("TooltipText", "");
+    ImGuiWidget::PropertyStruct* ImButton_Redo_HoveredStyle = ImButton_Redo->GetPropertyPtr<ImGuiWidget::PropertyStruct>("HoveredStyle");
+    ImButton_Redo_HoveredStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(199, 214, 255, 255));
+    ImButton_Redo_HoveredStyle->SetPropertyValue<bool>("HasBorder", false);
+    ImButton_Redo_HoveredStyle->SetPropertyValue<float>("Rounding", 0.000000f);
+    ImButton_Redo_HoveredStyle->SetPropertyValue<float>("BorderThickness", 1.000000f);
+    ImButton_Redo_HoveredStyle->SetPropertyValue<ImU32>("BorderColor", IM_COL32(255, 255, 255, 255));
+
+    ImImage_Redo->SetPropertyValue<std::string>("Name", "ImImage_Redo");
 
     ImVerticalSplitter_6->SetPropertyValue<ImU32>("BorderColor", IM_COL32(0, 0, 0, 255));
     ImVerticalSplitter_6->SetPropertyValue<std::string>("Name", "ImVerticalSplitter_6");
@@ -250,6 +306,22 @@ void MainUI::Init()
     ImHorizontalBox_4_slot2->SetPropertyValue<float>("PaddingLeft", 1.000000f);
     ImHorizontalBox_4_slot2->SetPropertyValue<float>("PaddingRight", 1.000000f);
 
+    ImGuiWidget::ImSlot* ImHorizontalBox_4_slot3 = ImHorizontalBox_4->AddChild(ImButton_Undo);
+    ImHorizontalBox_4_slot3->SetPropertyValue<float>("SizeRatio", 1.000000f);
+    ImHorizontalBox_4_slot3->SetPropertyValue<bool>("bAutoSize", false);
+    ImHorizontalBox_4_slot3->SetPropertyValue<float>("PaddingTop", 0.000000f);
+    ImHorizontalBox_4_slot3->SetPropertyValue<float>("PaddingBottom", 0.000000f);
+    ImHorizontalBox_4_slot3->SetPropertyValue<float>("PaddingLeft", 0.000000f);
+    ImHorizontalBox_4_slot3->SetPropertyValue<float>("PaddingRight", 0.000000f);
+
+    ImGuiWidget::ImSlot* ImHorizontalBox_4_slot4 = ImHorizontalBox_4->AddChild(ImButton_Redo);
+    ImHorizontalBox_4_slot4->SetPropertyValue<float>("SizeRatio", 1.000000f);
+    ImHorizontalBox_4_slot4->SetPropertyValue<bool>("bAutoSize", false);
+    ImHorizontalBox_4_slot4->SetPropertyValue<float>("PaddingTop", 0.000000f);
+    ImHorizontalBox_4_slot4->SetPropertyValue<float>("PaddingBottom", 0.000000f);
+    ImHorizontalBox_4_slot4->SetPropertyValue<float>("PaddingLeft", 0.000000f);
+    ImHorizontalBox_4_slot4->SetPropertyValue<float>("PaddingRight", 0.000000f);
+
     ImGuiWidget::ImSlot* ImButton_Project_slot0 = ImButton_Project->AddChild(ImTextBlock_9);
     ImButton_Project_slot0->SetPropertyValue<bool>("bAutoSize", true);
 
@@ -258,6 +330,12 @@ void MainUI::Init()
 
     ImGuiWidget::ImSlot* ImButton_Generate_slot0 = ImButton_Generate->AddChild(ImTextBlock_11);
     ImButton_Generate_slot0->SetPropertyValue<bool>("bAutoSize", true);
+
+    ImGuiWidget::ImSlot* ImButton_Undo_slot0 = ImButton_Undo->AddChild(ImImage_Undo);
+    ImButton_Undo_slot0->SetPropertyValue<bool>("bAutoSize", true);
+
+    ImGuiWidget::ImSlot* ImButton_Redo_slot0 = ImButton_Redo->AddChild(ImImage_Redo);
+    ImButton_Redo_slot0->SetPropertyValue<bool>("bAutoSize", true);
 
     ImGuiWidget::ImSlot* ImVerticalSplitter_6_slot0 = ImVerticalSplitter_6->AddChild(ImHorizontalSplitter_1);
     ImVerticalSplitter_6_slot0->SetPropertyValue<bool>("bAutoSize", true);

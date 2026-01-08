@@ -63,7 +63,7 @@ void IconManager::LoadIcons()
 	TextureIDArray[(int)ImDesignerIcon::ScrollBox] = ImGuiWidget::GlobalApp->LoadTextureFromMemory(ScrollBox_data, ScrollBox_size, w, h);
 
 	TextureIDArray[(int)ImDesignerIcon::Undo] = ImGuiWidget::GlobalApp->LoadTextureFromMemory(Undo_data, Undo_size, w, h);
-	TextureIDArray[(int)ImDesignerIcon::Redo] = ImGuiWidget::GlobalApp->LoadTextureFromMemory(Undo_data, Undo_size, w, h);
+	TextureIDArray[(int)ImDesignerIcon::Redo] = ImGuiWidget::GlobalApp->LoadTextureFromMemory(Redo_data, Redo_size, w, h);
 }
 
 ImTextureID IconManager::GetIcon(ImDesignerIcon IconIndex)

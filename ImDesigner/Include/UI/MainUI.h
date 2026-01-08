@@ -37,6 +37,10 @@ protected:
     ImGuiWidget::ImTextBlock* ImTextBlock_10;
     ImGuiWidget::ImButton* ImButton_Generate;
     ImGuiWidget::ImTextBlock* ImTextBlock_11;
+    ImGuiWidget::ImButton* ImButton_Undo;
+    ImGuiWidget::ImImage* ImImage_Undo;
+    ImGuiWidget::ImButton* ImButton_Redo;
+    ImGuiWidget::ImImage* ImImage_Redo;
     ImGuiWidget::ImVerticalSplitter* ImVerticalSplitter_6;
     ImGuiWidget::ImHorizontalSplitter* ImHorizontalSplitter_1;
     ImGuiWidget::ImBorder* ImBorder_Left;
@@ -73,6 +77,8 @@ public:
     ImMulticastDelegate<const std::string&, const std::string&> OnUIFileSelected;
     ImMulticastDelegate<const std::string&> OnEditorPageClosed;
     ImMulticastDelegate<const std::string&> OnEditorPageSelected;
+    ImMulticastDelegate<> OnRequestUndo;
+    ImMulticastDelegate<> OnRequestRedo;
     //ProjectView相关操作
 public:
     UI_ProjectView* GetProjectView() { return ProjectView; }
@@ -84,6 +90,7 @@ private:
 public:
     void CreateNewWidgetEditorPage(ImGuiWidget::ImWidget* FileRootWidget, const std::string& FileName, const std::string& FileFullPath);
     UI_WidgetEditor* GetWidgetEditorByName(const std::string& Name);
+    bool ShowWidgetEditorByName(const std::string& Name);
 private:
     bool RenameWidgetEditorPage(const std::string& OldFullPath, const std::string& NewFullPath);
 
@@ -112,4 +119,5 @@ public:
     //log更新
 public:
     void UpdateLog(std::vector<std::string>&& Logs);
+    void UpdateUndoRedoState(bool CanUndo, bool CanRedo);
 };

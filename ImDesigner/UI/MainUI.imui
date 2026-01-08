@@ -195,7 +195,7 @@
                         "TooltipText": "",
                         "HoveredStyle": {
                             "BackgroundColor": [
-                                198,
+                                199,
                                 215,
                                 255,
                                 255
@@ -251,7 +251,7 @@
                                 255,
                                 255,
                                 255,
-                                255
+                                241
                             ],
                             "HasBorder": false,
                             "Rounding": 0.0,
@@ -297,8 +297,8 @@
                         "TooltipText": "",
                         "HoveredStyle": {
                             "BackgroundColor": [
-                                198,
-                                215,
+                                199,
+                                214,
                                 255,
                                 255
                             ],
@@ -342,6 +342,190 @@
                         "PaddingBottom": 1.0,
                         "PaddingLeft": 1.0,
                         "PaddingRight": 1.0
+                    }
+                },
+                {
+                    "Type": "ImButton",
+                    "Name": "ImButton_Undo",
+                    "Properties": {
+                        "PressedStyle": {
+                            "BackgroundColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        },
+                        "BorderColor": [
+                            0,
+                            0,
+                            0,
+                            255
+                        ],
+                        "Name": "ImButton_Undo",
+                        "BackGroundColor": [
+                            255,
+                            255,
+                            255,
+                            255
+                        ],
+                        "HaveBorder": false,
+                        "NormalStyle": {
+                            "BackgroundColor": [
+                                247,
+                                247,
+                                247,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        },
+                        "TooltipText": "",
+                        "HoveredStyle": {
+                            "BackgroundColor": [
+                                199,
+                                214,
+                                255,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        }
+                    },
+                    "Children": [
+                        {
+                            "Type": "ImImage",
+                            "Name": "ImImage_Undo",
+                            "Properties": {
+                                "Name": "ImImage_Undo"
+                            },
+                            "ParentSlot": {
+                                "bAutoSize": true
+                            }
+                        }
+                    ],
+                    "ParentSlot": {
+                        "SizeRatio": 1.0,
+                        "bAutoSize": false,
+                        "PaddingTop": 0.0,
+                        "PaddingBottom": 0.0,
+                        "PaddingLeft": 0.0,
+                        "PaddingRight": 0.0
+                    }
+                },
+                {
+                    "Type": "ImButton",
+                    "Name": "ImButton_Redo",
+                    "Properties": {
+                        "PressedStyle": {
+                            "BackgroundColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        },
+                        "BorderColor": [
+                            0,
+                            0,
+                            0,
+                            255
+                        ],
+                        "Name": "ImButton_Redo",
+                        "BackGroundColor": [
+                            255,
+                            255,
+                            255,
+                            255
+                        ],
+                        "HaveBorder": false,
+                        "NormalStyle": {
+                            "BackgroundColor": [
+                                247,
+                                247,
+                                247,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        },
+                        "TooltipText": "",
+                        "HoveredStyle": {
+                            "BackgroundColor": [
+                                199,
+                                214,
+                                255,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        }
+                    },
+                    "Children": [
+                        {
+                            "Type": "ImImage",
+                            "Name": "ImImage_Redo",
+                            "Properties": {
+                                "Name": "ImImage_Redo"
+                            },
+                            "ParentSlot": {
+                                "bAutoSize": true
+                            }
+                        }
+                    ],
+                    "ParentSlot": {
+                        "SizeRatio": 1.0,
+                        "bAutoSize": false,
+                        "PaddingTop": 0.0,
+                        "PaddingBottom": 0.0,
+                        "PaddingLeft": 0.0,
+                        "PaddingRight": 0.0
                     }
                 }
             ],

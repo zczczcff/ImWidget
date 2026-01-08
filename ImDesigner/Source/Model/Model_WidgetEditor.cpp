@@ -36,6 +36,7 @@ bool Model_WidgetEditor::InsertChildTo(ImGuiWidget::ImWidget* child, ImGuiWidget
 void Model_WidgetEditor::EditProperty(const ImGuiWidget::PropertyInfo& propInfo, const void* NewValue, ImGuiWidget::PropertyStruct* Target)
 {
 	m_EditCommandManager->ExecutePropertyEdit(propInfo, NewValue, Target);
+	UpdateUndoRedoState();
 }
 
 void Model_WidgetEditor::Undo()
@@ -44,6 +45,16 @@ void Model_WidgetEditor::Undo()
 	{
 		m_EditCommandManager->Undo();
 	}
+	UpdateUndoRedoState();
+}
+
+void Model_WidgetEditor::Redo()
+{
+	if (CanRedo())
+	{
+		m_EditCommandManager->Redo();
+	}
+	UpdateUndoRedoState();
 }
 
 bool Model_WidgetEditor::CanUndo()
@@ -54,4 +65,9 @@ bool Model_WidgetEditor::CanUndo()
 bool Model_WidgetEditor::CanRedo()
 {
 	return m_EditCommandManager->CanRedo();
+}
+
+void Model_WidgetEditor::UpdateUndoRedoState()
+{
+	OnUndoRedoStateChanged.Broadcast(CanUndo(), CanRedo());
 }
