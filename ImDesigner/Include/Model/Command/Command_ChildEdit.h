@@ -11,6 +11,7 @@ class ChildEditCommand :public EditCommand
 {
 protected:
     ImGuiWidget::ImWidget* Target;
+    std::vector<uint8_t> SlotData;
     int index;
     //ImGuiWidget::ImWidget* Child;
 public:

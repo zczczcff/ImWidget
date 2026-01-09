@@ -25,6 +25,7 @@ namespace ImGuiWidget
         StringArray,     //新增：数组
         Enum
     };
+
     class PropertyStruct;
     // 属性信息结构
     struct PropertyInfo 
@@ -52,7 +53,7 @@ namespace ImGuiWidget
             return true;
         }
 
-        ImU32 GetColorValue()
+        ImU32 GetColorValue() const
         {
             if (type != PropertyType::Color) return INT32_MAX;
             return *static_cast<ImU32*>(getter());
@@ -65,7 +66,7 @@ namespace ImGuiWidget
             return true;
         }
 
-        float GetFloatValue()
+        float GetFloatValue()const
         {
             if (type != PropertyType::Float) return 0.0f;
             return *static_cast<float*>(getter());
@@ -78,7 +79,7 @@ namespace ImGuiWidget
             return true;
         }
 
-        bool GetBoolValue()
+        bool GetBoolValue()const
         {
             if (type != PropertyType::Bool) return false;
             return *static_cast<bool*>(getter());
@@ -91,7 +92,7 @@ namespace ImGuiWidget
             return true;
         }
 
-        int GetIntValue()
+        int GetIntValue()const
         {
             if (type != PropertyType::Int) return 0;
             return *static_cast<int*>(getter());
@@ -104,7 +105,7 @@ namespace ImGuiWidget
             return true;
         }
 
-        std::string GetStringValue()
+        std::string GetStringValue()const
         {
             if (type != PropertyType::String) return "";
             return *static_cast<std::string*>(getter());
@@ -117,7 +118,7 @@ namespace ImGuiWidget
             return true;
         }
 
-        ImVec2 GetVec2Value()
+        ImVec2 GetVec2Value()const
         {
             if (type != PropertyType::Vec2) return ImVec2(0, 0);
             return *static_cast<ImVec2*>(getter());
@@ -130,7 +131,7 @@ namespace ImGuiWidget
             return true;
         }
 
-        PropertyStruct* GetStructValue()
+        PropertyStruct* GetStructValue()const
         {
             if (type != PropertyType::Struct) return nullptr;
             return static_cast<PropertyStruct*>(getter());
@@ -143,7 +144,7 @@ namespace ImGuiWidget
             return true;
         }
 
-        std::vector<std::string> GetStringArrayValue()
+        std::vector<std::string> GetStringArrayValue()const
         {
             if (type != PropertyType::StringArray) return {};
             return *static_cast<std::vector<std::string>*>(getter());
@@ -156,7 +157,7 @@ namespace ImGuiWidget
             return true;
         }
 
-        std::vector<std::string> GetEnumOptions()//获取枚举列表
+        std::vector<std::string> GetEnumOptions()const//获取枚举列表
         {
             if (type != PropertyType::Enum) return std::vector<std::string>();
             std::vector<std::string> temp= *static_cast<std::vector<std::string>*>(getter());
@@ -164,7 +165,7 @@ namespace ImGuiWidget
             return temp;
         }
 
-        std::string GetEnumCurrentValue()//获取枚举变量字符串表示
+        std::string GetEnumCurrentValue()const//获取枚举变量字符串表示
         {
             if (type != PropertyType::Enum) return "";
             std::vector<std::string> temp = *static_cast<std::vector<std::string>*>(getter());
@@ -231,6 +232,12 @@ namespace ImGuiWidget
             T copy = value;
             return SetProperty(name, &copy);
         }
+
+        // 序列化函数
+        std::vector<uint8_t> Serialize();
+
+        // 反序列化函数
+        bool Deserialize(const std::vector<uint8_t>& data);
     };
 
 
