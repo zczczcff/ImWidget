@@ -10,7 +10,7 @@ void Model_WidgetEditor::CollectWidgetNames(ImGuiWidget::ImWidget* widget)
 {
 	std::queue<ImGuiWidget::ImWidget*> WidgetQueue;
 	WidgetQueue.push(widget);
-	while (WidgetQueue.empty())
+	while (!WidgetQueue.empty())
 	{
 		ImGuiWidget::ImWidget* Current = WidgetQueue.front();
 		ExistedWidgetName.insert(Current->GetWidgetName());

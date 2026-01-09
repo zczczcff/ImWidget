@@ -186,7 +186,7 @@ void UI_DetailView::HandleSingleProperty(
 		std::unordered_map<std::string, std::function<void()>> SubUpdaters;
 		for (auto& SubSingleProperty : SubTarget->GetProperties())
 		{
-			HandleSingleProperty(SubSingleProperty, StructPropertyBox, SubTarget,WidgetOwner,Updaters);
+			HandleSingleProperty(SubSingleProperty, StructPropertyBox, SubTarget,WidgetOwner, SubUpdaters);
 		}
 		PropertyInfor* NewPropertyInfor = new PropertyInfor{ WidgetOwner,std::move(SubUpdaters) };
 		CachedPropertyInfors.insert(std::make_pair(SubTarget, NewPropertyInfor));
@@ -372,7 +372,8 @@ void UI_DetailView::SetCurrentWidget(ImGuiWidget::ImWidget* widget)
 
 	//控件自身属性
 	std::unordered_map<std::string, std::function<void()>> Updaters;
-	for (auto& SingleProperty : widget->GetProperties())
+	auto properties = widget->GetProperties();
+	for (auto& SingleProperty : properties)
 	{
 		HandleSingleProperty(SingleProperty, VBox, widget, widget, Updaters);
 	}
