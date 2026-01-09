@@ -16,6 +16,7 @@ namespace ImGuiWidget
 	protected:
 		std::string m_WidgetID;
 		std::string m_WidgetName;
+		std::string m_ToolTip;
 		ImVec2 Position = { 0, 0 };  // 相对位置
 		ImVec2 Size = { 0, 0 };      // 控件尺寸
 		class ImSlot* m_Slot;
@@ -29,7 +30,7 @@ namespace ImGuiWidget
 		bool bHovered = false;
 		bool bSizeDirty = false;
 		bool bLayOutDirty = false;
-		
+		bool bEbableToolTip = false;
 		//处理子控件最小尺寸发生变化的情况(整个控件树重布局)
 		virtual void HandleChildSizeDirty(){}
 
@@ -258,5 +259,13 @@ namespace ImGuiWidget
 		float GetHoverTime()const { return m_HoverTime; }
 
 		void SetHoverTime(float Hovertime_Second) { m_HoverTime = Hovertime_Second; }
+
+		bool IsToolTipEnable() { return bEbableToolTip; }
+
+		bool SetToolTipEnable(bool EbableToolTip) { bEbableToolTip = EbableToolTip; }
+	
+		std::string& GetToolTip() { return m_ToolTip; }
+
+		void SetToolTip(const std::string& tooltip) { m_ToolTip = tooltip; }
 	};
 }
