@@ -3,6 +3,24 @@
 #include "ImWidget/ImPanelWidget.h"
 #include "Tools/JLog.h"
 #include "Model/Command/CommandManager.h"
+#include "ImWidget/ImWidgetFactory.h"
+#include <queue>
+
+void Model_WidgetEditor::CollectWidgetNames(ImGuiWidget::ImWidget* widget)
+{
+	std::queue<ImGuiWidget::ImWidget*> WidgetQueue;
+	WidgetQueue.push(widget);
+	while (WidgetQueue.empty())
+	{
+		ImGuiWidget::ImWidget* Current = WidgetQueue.front();
+		ExistedWidgetName.insert(Current->GetWidgetName());
+		for (int i = 0; i < Current->GetChildNum(); i++)
+		{
+			WidgetQueue.push(Current->GetChildAt(i));
+		}
+		WidgetQueue.pop();
+	}
+}
 
 Model_WidgetEditor::Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget):
 	RootWidget(rootwidget),
@@ -17,6 +35,8 @@ Model_WidgetEditor::Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget):
 		{
 			OnWidgetTreeChanged.Broadcast();
 		});
+
+	CollectWidgetNames(rootwidget);
 }
 
 bool Model_WidgetEditor::RemoveChildWidget(ImGuiWidget::ImWidget* WidgetToRemove)
@@ -33,12 +53,37 @@ bool Model_WidgetEditor::RemoveChildWidget(ImGuiWidget::ImWidget* WidgetToRemove
 	if (m_EditCommandManager->ExecuteChildRemove(WidgetToRemove->GetParents(), WidgetToRemove))
 	{
 		OnWidgetTreeChanged.Broadcast();
+		UpdateUndoRedoState();
 	}
 	return true;
 }
 
-bool Model_WidgetEditor::InsertChildTo(ImGuiWidget::ImWidget* child, ImGuiWidget::ImPanelWidget* Target, int InsertIndex)
+bool Model_WidgetEditor::InsertChildTo(ImGuiWidget::ImWidget* child, ImGuiWidget::ImWidget* Target, int InsertIndex)
 {
+	if (!child || !Target) return false;
+	if (m_EditCommandManager->ExecuteChildInsert(Target, child, InsertIndex))
+	{
+		CollectWidgetNames(child);
+		OnWidgetTreeChanged.Broadcast();
+		UpdateUndoRedoState();
+	}
+	return true;
+}
+
+bool Model_WidgetEditor::InsertChildTo(const std::string& WidgetRegisterName, ImGuiWidget::ImWidget* Target, int InsertIndex)
+{
+	ImGuiWidget::ImWidget* NewWidget = ImGuiWidget::ImWidgetFactory::GetInstance().CreateWidget(WidgetRegisterName, "");
+	if (NewWidget)
+	{
+		int i = 0;
+		while (ExistedWidgetName.find(WidgetRegisterName + std::to_string(i)) != ExistedWidgetName.end())
+		{
+			i++;
+		}
+		const std::string widgetname = WidgetRegisterName + std::to_string(i);
+		NewWidget->SetWidgetName(widgetname);
+		return InsertChildTo(NewWidget, Target, InsertIndex);
+	}
 	return false;
 }
 

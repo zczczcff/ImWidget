@@ -25,7 +25,12 @@ private:
         std::unordered_map<ImGuiWidget::ImButton*, ImGuiWidget::ImWidget*> HeaderButtonToWidget;
         ImGuiWidget::ImButton* SelectedHeaderButton = nullptr;
     };
-
+    enum class InsertChildMode
+    {
+        InsertPrevious,
+        InsertToThis,
+        InsertNext
+    };
 private:
     //const ImU32 HIGHLIGHT_COLOR = IM_COL32(20, 200, 20, 255); // 高亮颜色
     //ImU32 DEFAULT_COLOR = IM_COL32(250, 250, 250, 255);   // 默认颜色
@@ -35,14 +40,15 @@ private:
 
     ImGuiWidget::ImWindow* WidgetMenu = nullptr;//右键菜单弹出窗口
     ImGuiWidget::ImWidget* PopupMenuTargetWidget = nullptr;//右键弹出菜单目标控件
+    InsertChildMode m_InsertMode;
     ImGuiWidget::ImVerticalBox* ImVerticalBox_WidgetMenu = nullptr;//右键菜单
 
     ImGuiWidget::ImWindow* WidgetMenu_InsertNew = nullptr;//二级子菜单窗口
     ImGuiWidget::ImVerticalBox* ImVerticalBox_WidgetMenu_InsertNew = nullptr;//二级子菜单：插入控件
 public:
-    ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetDeleted;
+    ImMulticastDelegate<ImGuiWidget::ImWidget*> OnRequestWidgetDeleted;
     ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetSelectedButtonClicked;
-
+    ImMulticastDelegate<ImGuiWidget::ImWidget*, int, const std::string&> OnRequestInsertWidget;
 private:
     void InitPopUpMenu();
     void InitButtonStyle();
@@ -54,7 +60,6 @@ private:
     void On_WidgetDeleteButtonClicked(ImGuiWidget::ImWidget* widget);
     void On_WidgetSelectedButtonClicked(ImGuiWidget::ImWidget* widget, ImGuiWidget::ImButton* nodeButton);
     void On_WidgetSelectedButtonRightClicked(ImGuiWidget::ImWidget* widget);
-    void PopUp_WidgetMenu_InsertNew();
     void On_InsertWidgetButtonClicked(const std::string& InsertWidgetRegisterName);
 public:
     UI_WidgetTreeView(const std::string& WidgetName)

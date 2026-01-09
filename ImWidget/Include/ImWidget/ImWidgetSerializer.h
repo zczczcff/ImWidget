@@ -208,7 +208,7 @@ namespace ImGuiWidget
         j["Properties"] = SerializeWidgetProperties(root);
 
         // 序列化slot（如果存在）
-        //if (auto slot = root->GetSlot()) {
+        //if (auto slot = root->GetSlotAt()) {
         //    j["Slot"] = SerializeStructProperties(slot);
         //}
 
@@ -220,7 +220,7 @@ namespace ImGuiWidget
             int slotCount = panel->GetChildNum();
             for (int i = 0; i < slotCount; i++) {
                 // 使用现有方法获取slot
-                ImSlot* slot = panel->GetSlot(i);
+                ImSlot* slot = panel->GetSlotAt(i);
                 if (!slot) continue;
 
                 // 使用现有方法获取子控件
@@ -259,8 +259,8 @@ namespace ImGuiWidget
         }
 
         //// 设置slot属性（如果存在）
-        //if (j.contains("Slot") && widget->GetSlot()) {
-        //    DeserializeStructProperties(widget->GetSlot(), j["Slot"]);
+        //if (j.contains("Slot") && widget->GetSlotAt()) {
+        //    DeserializeStructProperties(widget->GetSlotAt(), j["Slot"]);
         //}
 
         // 检查是否是容器控件

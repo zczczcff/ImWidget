@@ -137,7 +137,7 @@ namespace ImGuiWidget
 		}
 
 		// 插入子控件到指定位置
-		ImSlot* InsertChildAt(int index, ImWidget* child)
+		virtual ImSlot* InsertChildAt(int index, ImWidget* child)override
 		{
 			if (index < 0 || index > static_cast<int>(m_Slots.size()))
 			{
@@ -149,7 +149,7 @@ namespace ImGuiWidget
 			child->SetParents(this);
 			return newSlot;
 		}
-
+		virtual int GetAllowMaxChildNum()override { return INT_MAX; }
 		// 赋值运算符（深拷贝自身属性）
 		//ImPanelWidget& operator=(const ImPanelWidget& other) {
 		//	if (this != &other) {
@@ -179,7 +179,7 @@ namespace ImGuiWidget
 			RemoveAllChild(true);
 		}
 
-		virtual ImSlot* AddChild(ImWidget* child,ImVec2 RelativePosition=ImVec2(FLT_MIN,FLT_MIN))
+		virtual ImSlot* AddChild(ImWidget* child,ImVec2 RelativePosition=ImVec2(FLT_MIN,FLT_MIN))override
 		{
 			ImSlot* newslot = CreateSlot(child);
 			m_Slots.push_back(newslot);
@@ -188,7 +188,7 @@ namespace ImGuiWidget
 			return newslot;
 		}
 
-		void RemoveAllChild(bool bDeleteContent = false)
+		virtual void RemoveAllChild(bool bDeleteContent = false)override
 		{
 			for (auto& slot : m_Slots)
 			{
@@ -205,7 +205,7 @@ namespace ImGuiWidget
 		}
 
 		// 按索引移除子控件
-		bool RemoveChildAt(int index,bool bDeleteOld=true)
+		virtual bool RemoveChildAt(int index,bool bDeleteOld=true)override
 		{
 			if (index >= 0 && index < static_cast<int>(m_Slots.size()))
 			{
@@ -228,7 +228,7 @@ namespace ImGuiWidget
 		}
 
 		// 按指针移除子控件
-		bool RemoveChild(ImWidget* child, bool bDeleteOld = false)
+		virtual bool RemoveChild(ImWidget* child, bool bDeleteOld = false)override
 		{
 			auto it = std::find_if(m_Slots.begin(), m_Slots.end(),
 				[child](ImSlot* slot) {
@@ -250,7 +250,7 @@ namespace ImGuiWidget
 		}
 
 		// 新增：取出子控件（移除slot但保留子控件指针）
-		ImWidget* ExtractChildAt(int index)
+		virtual ImWidget* ExtractChildAt(int index)override
 		{
 			if (index >= 0 && index < static_cast<int>(m_Slots.size()))
 			{
@@ -286,14 +286,14 @@ namespace ImGuiWidget
 		//}
 
 		// 获取子控件指针
-		ImWidget* GetChildAt(int index)
+		virtual ImWidget* GetChildAt(int index)override
 		{
 			if (index >= 0 && index < static_cast<int>(m_Slots.size()))
 				return m_Slots[index]->GetContent();
 			return nullptr;
 		}
 
-		ImSlot* GetSlotAt(int index)
+		virtual ImSlot* GetSlotAt(int index)override
 		{
 			if (index >= 0 && index < static_cast<int>(m_Slots.size()))
 				return m_Slots[index];
@@ -322,9 +322,7 @@ namespace ImGuiWidget
 
 		void SetBorderColor(ImU32 color) { BorderColor = color; }
 
-		int GetChildNum() { return static_cast<int>(m_Slots.size()); }
-
-		ImSlot* GetSlot(int Index) { return m_Slots[Index]; }
+		virtual int GetChildNum()override { return static_cast<int>(m_Slots.size()); }
 
 		virtual ImWidget* ChildHitTest(ImVec2 Pos) override
 		{

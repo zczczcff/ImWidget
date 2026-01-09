@@ -8,17 +8,21 @@ class Model_WidgetEditor
 {
 private:
 	ImGuiWidget::ImWidget* RootWidget;
+	std::unordered_set<std::string> ExistedWidgetName;
 	class EditCommandManager* m_EditCommandManager;
 public:
 	ImMulticastDelegate<> OnWidgetTreeChanged;
 	ImMulticastDelegate<ImGuiWidget::PropertyStruct*, const std::string&> OnPropertyEditUnDoRedo;
 	ImMulticastDelegate<> OnChildEditUndoRedo;
 	ImMulticastDelegate<bool, bool> OnUndoRedoStateChanged;
+
+	void CollectWidgetNames(ImGuiWidget::ImWidget* widget);
 public:
 	Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget);
-	bool RemoveChildWidget(ImGuiWidget::ImWidget* WidgetToRemove);
 	ImGuiWidget::ImWidget* GetRootWidget() { return RootWidget; }
-	bool InsertChildTo(ImGuiWidget::ImWidget* child, ImGuiWidget::ImPanelWidget* Target, int InsertIndex);
+	bool RemoveChildWidget(ImGuiWidget::ImWidget* WidgetToRemove);
+	bool InsertChildTo(ImGuiWidget::ImWidget* child, ImGuiWidget::ImWidget* Target, int InsertIndex);
+	bool InsertChildTo(const std::string& WidgetRegisterName, ImGuiWidget::ImWidget* Target, int InsertIndex);
 	void EditProperty(const ImGuiWidget::PropertyInfo& propInfo, const void* NewValue, ImGuiWidget::PropertyStruct* Target);
 	void Undo();
 	void Redo();

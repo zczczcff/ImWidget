@@ -41,7 +41,7 @@ namespace ImGuiWidget
 
             m_SelectedWidget = hitWidget;
             // 获取该控件的slot
-            ImSlot* hitSlot = hitWidget->GetSlot();
+            ImSlot* hitSlot = hitWidget->GetSlotAt();
             m_SelectedSlot = hitSlot;
 
             // 根据slot类型决定创建调整框还是简单边框

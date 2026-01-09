@@ -84,7 +84,7 @@ bool EditCommandManager::Execute(std::unique_ptr<EditCommand> command)
 
 }
 
-bool EditCommandManager::ExecuteChildRemove(ImGuiWidget::ImPanelWidget* Target, int index)
+bool EditCommandManager::ExecuteChildRemove(ImGuiWidget::ImWidget* Target, int index)
 {
     ImGuiWidget::ImWidget* child = Target->GetChildAt(index);
     if (!child)
@@ -96,7 +96,7 @@ bool EditCommandManager::ExecuteChildRemove(ImGuiWidget::ImPanelWidget* Target, 
     return Execute(std::move(command));
 }
 
-bool EditCommandManager::ExecuteChildRemove(ImGuiWidget::ImPanelWidget* Target, ImGuiWidget::ImWidget* child)
+bool EditCommandManager::ExecuteChildRemove(ImGuiWidget::ImWidget* Target, ImGuiWidget::ImWidget* child)
 {
     for (int i = 0; i < Target->GetChildNum(); i++)
     {
@@ -110,7 +110,7 @@ bool EditCommandManager::ExecuteChildRemove(ImGuiWidget::ImPanelWidget* Target, 
     return false;
 }
 
-bool EditCommandManager::ExecuteChildInsert(ImGuiWidget::ImPanelWidget* Target, ImGuiWidget::ImWidget* child, int index)
+bool EditCommandManager::ExecuteChildInsert(ImGuiWidget::ImWidget* Target, ImGuiWidget::ImWidget* child, int index)
 {
     auto command = std::make_unique<ChildAddCommand>(Target, child, index);
     return Execute(std::move(command));

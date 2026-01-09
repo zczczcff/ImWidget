@@ -89,10 +89,24 @@ namespace ImGuiWidget
 			counter++;
 			return counter;
 		}
+		void SetWidgetName(const std::string& NewName) { m_WidgetName = NewName; }
+
 		void SetParents(ImWidget* parents)
 		{
 			m_Parents = parents;
 		}
+
+		virtual ImSlot* InsertChildAt(int index, ImWidget* child) { return nullptr; }
+		virtual ImSlot* AddChild(ImWidget* child, ImVec2 RelativePosition = ImVec2(FLT_MIN, FLT_MIN)) { return nullptr; }
+		virtual int GetChildNum() { return 0; }
+		virtual int GetAllowMaxChildNum() { return 0; }
+		virtual void RemoveAllChild(bool bDeleteContent = false){}
+		virtual bool RemoveChildAt(int index, bool bDeleteOld = true) { return false; }
+		virtual bool RemoveChild(ImWidget* child, bool bDeleteOld = false) { return false; }
+		virtual ImWidget* ExtractChildAt(int index) { return nullptr; }
+		virtual ImWidget* GetChildAt(int index) { return nullptr; }
+		virtual ImSlot* GetSlotAt(int index) { return nullptr; }
+
 		ImPanelWidget* GetParents()
 		{
 			return (ImPanelWidget*)m_Parents;
@@ -101,7 +115,7 @@ namespace ImGuiWidget
 		{
 			m_Slot = slot;
 		}
-		ImSlot* GetSlot()
+		ImSlot* GetSlotAt()
 		{
 			return m_Slot;
 		}

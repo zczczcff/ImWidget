@@ -6,6 +6,9 @@ bool ChildAddCommand::Execute()
 {
 	if (Target->InsertChildAt(index, Child))
 	{
+		AddLogLineEx(u8"添加控件：[", Target->GetRegisterTypeName(), "] ",
+			Target->GetWidgetName(), u8" <- 添加子控件 <- [",
+			Child->GetRegisterTypeName(), "] ", Child->GetWidgetName());
 		return true;
 	}
 	else return false;
@@ -15,6 +18,9 @@ bool ChildAddCommand::Undo()
 {
 	if (Target->RemoveChildAt(index, false))
 	{
+		AddLogLineEx(u8"撤销添加：[", Target->GetRegisterTypeName(), "] ",
+			Target->GetWidgetName(), u8" -> 移除子控件 -> [",
+			Child->GetRegisterTypeName(), "] ", Child->GetWidgetName());
 		return true;
 	}
 	else return false;

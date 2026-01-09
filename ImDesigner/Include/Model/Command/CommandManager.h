@@ -39,9 +39,9 @@ public:
     {
         ExecutePropertyEditImpl(propInfo, newValue, target);
     }
-    bool ExecuteChildRemove(ImGuiWidget::ImPanelWidget* Target, int index);
-    bool ExecuteChildRemove(ImGuiWidget::ImPanelWidget* Target, ImGuiWidget::ImWidget* child);
-    bool ExecuteChildInsert(ImGuiWidget::ImPanelWidget* Target, ImGuiWidget::ImWidget* child, int index);
+    bool ExecuteChildRemove(ImGuiWidget::ImWidget* Target, int index);
+    bool ExecuteChildRemove(ImGuiWidget::ImWidget* Target, ImGuiWidget::ImWidget* child);
+    bool ExecuteChildInsert(ImGuiWidget::ImWidget* Target, ImGuiWidget::ImWidget* child, int index);
     
     void Undo();
     void Redo();

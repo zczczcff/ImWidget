@@ -239,7 +239,7 @@ namespace ImGuiWidget
         {
             ImVec2 minSize(HeadPad, HeadPad);
             minSize += (bHaveBorder ? ImVec2(BorderThickness, BorderThickness) * 2 : ImVec2(0, 0));
-            if (ImSlot* headSlot = GetSlot(0))
+            if (ImSlot* headSlot = GetSlotAt(0))
             {
                 if (ImWidget* content = headSlot->GetContent())
                 {
@@ -250,7 +250,7 @@ namespace ImGuiWidget
             }
             if (bIsExpanded)
             {
-                if (ImSlot* bodySlot = GetSlot(1))
+                if (ImSlot* bodySlot = GetSlotAt(1))
                 {
                     if (ImWidget* content = bodySlot->GetContent())
                     {

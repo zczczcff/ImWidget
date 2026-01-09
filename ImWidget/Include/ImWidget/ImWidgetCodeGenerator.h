@@ -282,7 +282,7 @@ namespace ImGuiWidget
         if (auto panel = dynamic_cast<ImPanelWidget*>(widget)) {
             int slotCount = panel->GetChildNum();
             for (int i = 0; i < slotCount; i++) {
-                ImSlot* slot = panel->GetSlot(i);
+                ImSlot* slot = panel->GetSlotAt(i);
                 ImWidget* child = slot ? slot->GetContent() : nullptr;
 
                 if (child) {
@@ -360,7 +360,7 @@ namespace ImGuiWidget
             if (auto panel = dynamic_cast<ImPanelWidget*>(widget)) {
                 int slotCount = panel->GetChildNum();
                 for (int i = 0; i < slotCount; i++) {
-                    ImSlot* slot = panel->GetSlot(i);
+                    ImSlot* slot = panel->GetSlotAt(i);
                     if (slot && slot->GetContent()) {
                         collectWidgets(slot->GetContent());
                     }
@@ -534,7 +534,7 @@ namespace ImGuiWidget
                 std::string panelVar = widgetVarMap[panel];
 
                 for (int i = 0; i < panel->GetChildNum(); i++) {
-                    ImSlot* slot = panel->GetSlot(i);
+                    ImSlot* slot = panel->GetSlotAt(i);
                     if (!slot || !slot->GetContent()) continue;
 
                     std::string childVar = widgetVarMap[slot->GetContent()];

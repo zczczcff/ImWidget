@@ -21,7 +21,7 @@ Controller_WidgetEditor::Controller_WidgetEditor(UI_WidgetTreeView* In_UI_Widget
 			SetSelectedWidget(SelectedWidget);
 		});
 
-	m_UI_WidgetTreeView->OnWidgetDeleted.Add([this](ImGuiWidget::ImWidget* deletedwidget)
+	m_UI_WidgetTreeView->OnRequestWidgetDeleted.Add([this](ImGuiWidget::ImWidget* deletedwidget)
 		{
 			m_Model_WidgetEditor->RemoveChildWidget(deletedwidget);
 		});
@@ -55,6 +55,12 @@ Controller_WidgetEditor::Controller_WidgetEditor(UI_WidgetTreeView* In_UI_Widget
 		{
 			OnUndoRedoStateChanged.Broadcast(CanUndo, CanRedo);
 		});
+
+	m_UI_WidgetTreeView->OnRequestInsertWidget.Add([this](ImGuiWidget::ImWidget* Target, int InsertIndex, const std::string& WidgetRegisterName)
+		{
+			m_Model_WidgetEditor->InsertChildTo(WidgetRegisterName, Target, InsertIndex);
+		});
+
 }
 
 void Controller_WidgetEditor::SetSelectedWidget(ImGuiWidget::ImWidget* SelectedWidget)

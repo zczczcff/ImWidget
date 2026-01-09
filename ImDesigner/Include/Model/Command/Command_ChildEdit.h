@@ -10,11 +10,11 @@ namespace ImGuiWidget
 class ChildEditCommand :public EditCommand
 {
 protected:
-    ImGuiWidget::ImPanelWidget* Target;
+    ImGuiWidget::ImWidget* Target;
     int index;
     //ImGuiWidget::ImWidget* Child;
 public:
-    ChildEditCommand(ImGuiWidget::ImPanelWidget* Target, int index):
+    ChildEditCommand(ImGuiWidget::ImWidget* Target, int index):
         Target(Target),
         index(index)
     {
@@ -35,7 +35,7 @@ class ChildAddCommand :public ChildEditCommand
 private:
 	ImGuiWidget::ImWidget* Child;
 public:
-	ChildAddCommand(ImGuiWidget::ImPanelWidget* Target, ImGuiWidget::ImWidget* Child, int index) :
+	ChildAddCommand(ImGuiWidget::ImWidget* Target, ImGuiWidget::ImWidget* Child, int index) :
 		ChildEditCommand(Target, index),
 		Child(Child)
 	{
@@ -52,7 +52,7 @@ class ChildRemoveCommand :public ChildEditCommand
 private:
     ImGuiWidget::ImWidget* Child;
 public:
-    ChildRemoveCommand(ImGuiWidget::ImPanelWidget* Target, ImGuiWidget::ImWidget* Child, int index) :
+    ChildRemoveCommand(ImGuiWidget::ImWidget* Target, ImGuiWidget::ImWidget* Child, int index) :
         ChildEditCommand(Target, index),
         Child(Child)
     {

@@ -10,13 +10,13 @@ void UI_WidgetTreeView::InitPopUpMenu()
     ImVerticalBox_WidgetMenu = new ImGuiWidget::ImVerticalBox("ImVerticalBox_WidgetMenu");
     ImGuiWidget::ImButton* CopyButton = CreateWidgetMenuButton(u8"复制");
     ImGuiWidget::ImButton* DeleteButton = CreateWidgetMenuButton(u8"删除");
-    ImGuiWidget::ImButton* InsertBeforeButton = CreateWidgetMenuButton(u8"在前一个位置插入", true);
+    ImGuiWidget::ImButton* InsertPreviousButton = CreateWidgetMenuButton(u8"在前一个位置插入", true);
     ImGuiWidget::ImButton* InsertToButton = CreateWidgetMenuButton(u8"插入控件", true);
     ImGuiWidget::ImButton* InsertAfterButton = CreateWidgetMenuButton(u8"在后一个位置插入", true);
     DeleteButton->OnLeftClicked.Add([this]() { On_WidgetDeleteButtonClicked(PopupMenuTargetWidget); });
     ImVerticalBox_WidgetMenu->AddChildToVerticalBox(CopyButton)->SetIfAutoSize(false);
     ImVerticalBox_WidgetMenu->AddChildToVerticalBox(DeleteButton)->SetIfAutoSize(false);
-    ImVerticalBox_WidgetMenu->AddChildToVerticalBox(InsertBeforeButton)->SetIfAutoSize(false);
+    ImVerticalBox_WidgetMenu->AddChildToVerticalBox(InsertPreviousButton)->SetIfAutoSize(false);
     ImVerticalBox_WidgetMenu->AddChildToVerticalBox(InsertToButton)->SetIfAutoSize(false);
     ImVerticalBox_WidgetMenu->AddChildToVerticalBox(InsertAfterButton)->SetIfAutoSize(false);
 
@@ -46,19 +46,21 @@ void UI_WidgetTreeView::InitPopUpMenu()
             WidgetMenu_InsertNew->Close();
         });
 
-    InsertBeforeButton->OnMouseHover.Add([this, InsertBeforeButton]()
+    InsertPreviousButton->OnMouseHover.Add([this, InsertPreviousButton]()
         {
-            ImVec2 PopupPos = InsertBeforeButton->GetPosition() + ImVec2(InsertBeforeButton->GetSize().x, 0);
+            m_InsertMode = InsertChildMode::InsertPrevious;
+            ImVec2 PopupPos = InsertPreviousButton->GetPosition() + ImVec2(InsertPreviousButton->GetSize().x, 0);
             WidgetMenu_InsertNew->SetPosition(PopupPos);
             WidgetMenu_InsertNew->SetActive();
         });
-    InsertBeforeButton->OnMouseHoverOut.Add([this]() 
+    InsertPreviousButton->OnMouseHoverOut.Add([this]() 
         {
             //WidgetMenu_InsertNew->Close(); 
         });
 
     InsertToButton->OnMouseHover.Add([this, InsertToButton]()
         {
+            m_InsertMode = InsertChildMode::InsertToThis;
             ImVec2 PopupPos = InsertToButton->GetPosition() + ImVec2(InsertToButton->GetSize().x, 0);
             WidgetMenu_InsertNew->SetPosition(PopupPos);
             WidgetMenu_InsertNew->SetActive();
@@ -70,6 +72,7 @@ void UI_WidgetTreeView::InitPopUpMenu()
 
     InsertAfterButton->OnMouseHover.Add([this, InsertAfterButton]()
         {
+            m_InsertMode = InsertChildMode::InsertNext;
             ImVec2 PopupPos = InsertAfterButton->GetPosition() + ImVec2(InsertAfterButton->GetSize().x, 0);
             WidgetMenu_InsertNew->SetPosition(PopupPos);
             WidgetMenu_InsertNew->SetActive();
@@ -255,7 +258,7 @@ ImGuiWidget::ImWidget* UI_WidgetTreeView::BuildTreeNode(ImWidget* nodewidget, st
 
 void UI_WidgetTreeView::On_WidgetDeleteButtonClicked(ImGuiWidget::ImWidget* widget)
 {
-    OnWidgetDeleted.Broadcast(widget);
+    OnRequestWidgetDeleted.Broadcast(widget);
 }
 
 void UI_WidgetTreeView::On_WidgetSelectedButtonClicked(ImGuiWidget::ImWidget* widget, ImGuiWidget::ImButton* nodeButton)
@@ -279,12 +282,33 @@ void UI_WidgetTreeView::On_WidgetSelectedButtonRightClicked(ImGuiWidget::ImWidge
     WidgetMenu->SetActive();
 }
 
-void UI_WidgetTreeView::PopUp_WidgetMenu_InsertNew()
-{
-}
-
 void UI_WidgetTreeView::On_InsertWidgetButtonClicked(const std::string& InsertWidgetRegisterName)
 {
+	if (!PopupMenuTargetWidget) return;
+
+	if (m_InsertMode == InsertChildMode::InsertToThis)
+	{
+		OnRequestInsertWidget.Broadcast(PopupMenuTargetWidget, PopupMenuTargetWidget->GetChildNum(), InsertWidgetRegisterName);
+	}
+	else if (PopupMenuTargetWidget != m_TreeView.TargetWidget)
+	{
+		int InsertIndex = -1;
+        ImGuiWidget::ImWidget* Target = PopupMenuTargetWidget->GetParents();
+		for (int i = 0; i < Target->GetChildNum(); i++)
+		{
+			if (Target->GetChildAt(i) == PopupMenuTargetWidget)
+			{
+				InsertIndex = i;
+				break;
+			}
+		}
+        if (InsertIndex < 0) return;
+		if (m_InsertMode == InsertChildMode::InsertNext)
+		{
+			InsertIndex++;
+		}
+		OnRequestInsertWidget.Broadcast(Target, InsertIndex, InsertWidgetRegisterName);
+	}
 }
 
 // 设置目标控件树

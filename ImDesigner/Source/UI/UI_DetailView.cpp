@@ -352,7 +352,7 @@ void UI_DetailView::SetCurrentWidget(ImGuiWidget::ImWidget* widget)
 	VBox->AddChildToVerticalBox(WidgetName)->SetIfAutoSize(false);
 
 	//¿Ø¼þ¸¸Ïî²ÛÊôÐÔ
-	if (auto Slot = widget->GetSlot())
+	if (auto Slot = widget->GetSlotAt())
 	{
 		ImGuiWidget::ImExpandableBox* SlotBox = new ImGuiWidget::ImExpandableBox(m_WidgetID + "_SlotBox");
 		ImGuiWidget::ImTextBlock* SlotName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_SlotName");
