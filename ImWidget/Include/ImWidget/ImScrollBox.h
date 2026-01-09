@@ -132,14 +132,9 @@ namespace ImGuiWidget
                 if (bHaveHorizonScrollbar)
                     contentAvail.y -= m_ScrollbarThickness;
 
-                // 创建子窗口用于内容裁剪
-                ImGuiWindow* window = ImGui::GetCurrentWindow();
-                ImGuiID id = ImGui::GetID(m_WidgetID.c_str());
-
-                ImGui::SetNextWindowPos(Position);
-                ImGui::BeginChild(id, contentAvail, ImGuiChildFlags_None,
-                    ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
-
+                ImGuiContext& g = *GImGui;
+                ImGuiWindow* window = g.CurrentWindow;
+                window->DrawList->PushClipRect(Position, Position + contentAvail, true);//裁剪
                 // 设置滚动偏移
                 ImVec2 childPos = ImGui::GetCursorPos();
                 if (m_HorizontalScrollEnabled) childPos.x -= m_ScrollPosition.x;
@@ -150,11 +145,7 @@ namespace ImGuiWidget
                 RenderChild();
 
                 // 确保内容区域大小正确
-                ImGui::SetCursorPos(ImVec2(0, 0));
-                ImGui::Dummy(m_ContentSize);
-
-                ImGui::EndChild();
-
+                window->DrawList->PopClipRect();
                 // 渲染滚动条
                 RenderCustomScrollbars();
             }

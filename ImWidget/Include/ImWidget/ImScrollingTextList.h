@@ -777,12 +777,10 @@ namespace ImGuiWidget
             const float visible_y2 = visible_y1 + Size.y;
 
             ImGuiID id = ImGui::GetID(m_WidgetID.c_str());
-            ImVec2 ContentSize(Size.x, Size.y - m_ScrollbarThickness);
+            ImVec2 ContentSize(Size.x - m_ScrollbarThickness, Size.y );
 
             // 创建子窗口用于裁剪
-            ImGui::SetNextWindowPos(Position);
-            ImGui::BeginChild(id, ContentSize, ImGuiChildFlags_None,
-                ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoScrollWithMouse);
+            drawList->PushClipRect(Position, Position + ContentSize, true);//裁剪
 
             ImDrawList* drawListContent = ImGui::GetWindowDrawList();
 
@@ -795,7 +793,7 @@ namespace ImGuiWidget
             // 只渲染可见文本
             DrawVisibleTextContent(drawListContent, visible_y1, visible_y2);
 
-            ImGui::EndChild();
+            drawList->PopClipRect();
 
             // 渲染滚动条
             DrawScrollbars(drawList);

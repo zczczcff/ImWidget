@@ -1,0 +1,3 @@
+1.UndoRedo时Slot的属性保存与恢复
+2.自适应popup多级子菜单弹窗位置
+3.Slot的ResetSize/ResetPosition及画布面板框架
