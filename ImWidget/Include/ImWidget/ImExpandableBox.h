@@ -26,7 +26,7 @@ namespace ImGuiWidget
     protected:
         virtual ImSlot* CreateSlot(ImWidget* Content) override
         {
-            return new ImPaddingSlot(Content);
+            return new ImPaddingSlot(Content,this);
         }
 
         virtual void Relayout() override

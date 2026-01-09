@@ -1,6 +1,6 @@
 #pragma once
 #include "ImWidget.h"
-#include "ImSolt.h"
+#include "ImSlot.h"
 #include <imgui_internal.h>
 #include <vector>
 #include <algorithm> // 添加algorithm头文件用于std::find_if
@@ -19,8 +19,6 @@ namespace ImGuiWidget
 		std::vector<ImSlot*> m_Slots;
 	protected:
 		float WidgetHitTestPadding = 5.f;
-		bool bLayOutDirty = false;
-
 
 		virtual void Relayout() {}
 		void RenderChild()
@@ -32,15 +30,6 @@ namespace ImGuiWidget
 			}
 		}
 		
-		void MarkLayoutDirty()
-		{
-			bLayOutDirty = true;
-		}
-		void ClearLayoutDirty()
-		{
-			bLayOutDirty = false;
-		}
-
 		void HandleLayout()
 		{
 			if (bLayOutDirty)
@@ -50,16 +39,6 @@ namespace ImGuiWidget
 			}
 		}
 
-		template<typename SlotType>
-		SlotType* AddChildInternal(ImWidget* child)
-		{
-			SlotType* newslot = new SlotType(child);
-			m_Slots.push_back(newslot);
-			MarkLayoutDirty();
-			MarkSizeDirty();
-			child->SetParents(this);
-			return newslot;
-		}
 		void SetChildAt(int index, ImWidget* child,bool DeleteOld = true)
 		{
 			if (m_Slots.size() > index)
@@ -118,8 +97,7 @@ namespace ImGuiWidget
 			BgColor(other.BgColor),
 			BorderColor(other.BorderColor),
 			bHaveBorder(other.bHaveBorder),
-			bHaveBackGround(other.bHaveBackGround),
-			bLayOutDirty(other.bLayOutDirty)
+			bHaveBackGround(other.bHaveBackGround)
 			// 注意：m_Slots 不拷贝（保持为空vector）
 		{
 			for (auto& slot : other.m_Slots)
@@ -169,10 +147,7 @@ namespace ImGuiWidget
 		//	}
 		//	return *this;
 		//}
-		virtual ImSlot* CreateSlot(ImWidget* Content)
-		{
-			return new ImSlot(Content);
-		}
+		virtual ImSlot* CreateSlot(ImWidget* Content) = 0;
 
 		virtual ~ImPanelWidget() // 添加析构函数管理内存
 		{
@@ -181,9 +156,11 @@ namespace ImGuiWidget
 
 		virtual ImSlot* AddChild(ImWidget* child,ImVec2 RelativePosition=ImVec2(FLT_MIN,FLT_MIN))override
 		{
+			if (m_Slots.size() >= GetAllowMaxChildNum()) return nullptr;
 			ImSlot* newslot = CreateSlot(child);
 			m_Slots.push_back(newslot);
 			MarkLayoutDirty();
+			MarkSizeDirty();
 			child->SetParents(this);
 			return newslot;
 		}
@@ -434,9 +411,6 @@ namespace ImGuiWidget
 
 		virtual std::string GetRegisterTypeName()override { return "ImPanelWidget"; }
 
-		virtual ImWidget* CopyWidget() override
-		{
-			return nullptr;
-		}
+		virtual ImWidget* CopyWidget() = 0;
 	};
 }

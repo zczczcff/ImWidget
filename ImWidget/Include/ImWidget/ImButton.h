@@ -149,7 +149,7 @@ namespace ImGuiWidget
 
         virtual ImSlot* CreateSlot(ImWidget* Content) override
         {
-            return new ImPaddingSlot(Content);
+            return new ImPaddingSlot(Content, this);
         }
 
         // 事件处理

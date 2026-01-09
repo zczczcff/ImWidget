@@ -6,7 +6,7 @@ namespace ImGuiWidget
 	class ImCanvasPanelSlot :public ImSlot
 	{
 	public:
-		ImCanvasPanelSlot(ImWidget* Content):ImSlot(Content){}
+		ImCanvasPanelSlot(ImWidget* Content, ImWidget* Owner):ImSlot(Content, Owner){}
 		ImVec2 RelativePosition;
 		ImVec2 SlotSize;
 		void SetSlotPosAndSize(const ImVec2& relativepos, const ImVec2& size)
@@ -59,10 +59,13 @@ namespace ImGuiWidget
 		}
 	public:
 		ImCanvasPanel(const std::string& WidgetName):ImPanelWidget(WidgetName){}
-
+		virtual ImSlot* CreateSlot(ImWidget* Content)
+		{
+			return new ImCanvasPanelSlot(Content, this);
+		}
 		ImCanvasPanelSlot* AddChildToCanvasPanel(ImWidget* Child)
 		{
-			auto slot = AddChildInternal<ImCanvasPanelSlot>(Child);
+			ImCanvasPanelSlot* slot = static_cast<ImCanvasPanelSlot*> (ImPanelWidget::AddChild(Child));
 			slot->RelativePosition = ImVec2(0, 0);
 			slot->SlotSize = Child->GetMinSize();
 			return slot;

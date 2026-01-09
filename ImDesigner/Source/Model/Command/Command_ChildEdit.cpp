@@ -1,6 +1,6 @@
 ﻿#include "Model/Command/Command_ChildEdit.h"
 #include "ImWidget/ImWidget.h"
-#include "ImWidget/ImSolt.h"
+#include "ImWidget/ImSlot.h"
 #include "Tools/JLog.h"
 
 bool ChildAddCommand::Execute()

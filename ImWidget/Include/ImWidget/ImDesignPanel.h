@@ -87,19 +87,12 @@ namespace ImGuiWidget
                 delete m_ResizableBox;
             }
         }
-
-        //只允许唯一子控件
-        virtual ImSlot* AddChild(ImWidget* child, ImVec2 RelativePosition = ImVec2(FLT_MIN, FLT_MIN))override
+        virtual ImSlot* CreateSlot(ImWidget* Content)
         {
-            if (GetChildNum() > 0)
-            {
-                return nullptr;
-            }
-            else
-            {
-                return AddChildInternal<ImSlot>(child);
-            }
+            return new ImSlot(Content, this);
         }
+        //只允许唯一子控件
+        virtual int GetAllowMaxChildNum()override { return 1; }
         // 设置回调函数
         void SetOnSelected(std::function<void(ImWidget*)> callback) { OnSelected = callback; }
         void SetOnUnSelected(std::function<void()> callback) { OnUnSelected = callback; }
@@ -251,5 +244,7 @@ namespace ImGuiWidget
         }
 
         virtual std::string GetRegisterTypeName()override { return "ImDesignPanel"; }
+
+        virtual ImWidget* CopyWidget() { return new ImDesignPanel(*this); }
     };
 }

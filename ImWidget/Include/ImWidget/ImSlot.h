@@ -2,6 +2,7 @@
 #include <imgui.h>
 #include <string>
 #include "ImWidgetProperty.h"
+#include "ImWidget/ImWidget.h"
 
 namespace ImGuiWidget
 {
@@ -10,13 +11,14 @@ namespace ImGuiWidget
 	{
 	protected:
 		ImWidget* Content;
+		ImWidget* Owner;
 		bool bAutoSize = true;
 		//用于缓存布局信息
 		ImVec2 SlotPosition = ImVec2(0.f, 0.f);
 		ImVec2 SlotSize = ImVec2(0.f, 0.f);
 	public:
-		ImSlot():Content(nullptr) {}
-		ImSlot(ImWidget* Content):Content(Content)
+		ImSlot():Content(nullptr), Owner(nullptr){}
+		ImSlot(ImWidget* Content, ImWidget* Owner):Content(Content),Owner(Owner)
 		{
 			if (Content)
 			{
@@ -24,7 +26,8 @@ namespace ImGuiWidget
 			}
 		}
 		ImSlot(const ImSlot& other)
-			:Content(nullptr),
+			:Content(nullptr), 
+			Owner(nullptr),
 			bAutoSize(other.bAutoSize),
 			SlotPosition(other.SlotPosition),
 			SlotSize(other.SlotSize)
@@ -47,7 +50,14 @@ namespace ImGuiWidget
 			Content->SetSize(SlotSize);
 		}
 		bool GetIfAutoSize() { return bAutoSize; }
-		void SetIfAutoSize(bool Value) { bAutoSize = Value; }
+		void SetIfAutoSize(bool Value) 
+		{
+			if (bAutoSize != Value)
+			{
+				bAutoSize = Value;
+				Owner->MarkLayoutDirty();
+			}
+		}
 		void Render()
 		{
 			if (Content)
@@ -76,7 +86,7 @@ namespace ImGuiWidget
 				"bAutoSize",
 				PropertyType::Bool,
 				"Layout",
-				[this](void* v) { bAutoSize = *static_cast<bool*>(v); },
+				[this](void* v) { SetIfAutoSize(*static_cast<bool*>(v)); },
 				[this]() -> void* { return &bAutoSize; }
 				});
 			return props;
@@ -102,7 +112,7 @@ namespace ImGuiWidget
 		float PaddingRight = 0.f;
 
 		ImPaddingSlot(){}
-		ImPaddingSlot(ImWidget* Content):ImSlot(Content){}
+		ImPaddingSlot(ImWidget* Content,ImWidget* Owner):ImSlot(Content,Owner){}
 
 		virtual void ApplyLayout()
 		{
@@ -130,7 +140,7 @@ namespace ImGuiWidget
 				"PaddingTop",
 				PropertyType::Float,
 				"Padding",
-				[this](void* v) { PaddingTop = *static_cast<float*>(v); },
+				[this](void* v) { PaddingTop = *static_cast<float*>(v); Owner->MarkLayoutDirty(); },
 				[this]() -> void* { return &PaddingTop; }
 				});
 
@@ -139,7 +149,7 @@ namespace ImGuiWidget
 				"PaddingBottom",
 				PropertyType::Float,
 				"Padding",
-				[this](void* v) { PaddingBottom = *static_cast<float*>(v); },
+				[this](void* v) { PaddingBottom = *static_cast<float*>(v); Owner->MarkLayoutDirty();},
 				[this]() -> void* { return &PaddingBottom; }
 				});
 			props.insert
@@ -147,7 +157,7 @@ namespace ImGuiWidget
 				"PaddingLeft",
 				PropertyType::Float,
 				"Padding",
-				[this](void* v) { PaddingLeft = *static_cast<float*>(v); },
+				[this](void* v) { PaddingLeft = *static_cast<float*>(v); Owner->MarkLayoutDirty();},
 				[this]() -> void* { return &PaddingLeft; }
 				});
 			props.insert
@@ -155,7 +165,7 @@ namespace ImGuiWidget
 				"PaddingRight",
 				PropertyType::Float,
 				"Padding",
-				[this](void* v) { PaddingRight = *static_cast<float*>(v); },
+				[this](void* v) { PaddingRight = *static_cast<float*>(v); Owner->MarkLayoutDirty();},
 				[this]() -> void* { return &PaddingRight; }
 				});
 			return props;

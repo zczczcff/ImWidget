@@ -6,7 +6,7 @@ namespace ImGuiWidget
     class ImHorizontalBoxSlot : public ImPaddingSlot // 改为继承ImPaddingSlot
     {
     public:
-        ImHorizontalBoxSlot(ImWidget* Content) : ImPaddingSlot(Content) {}
+        ImHorizontalBoxSlot(ImWidget* Content, ImWidget* Slot) : ImPaddingSlot(Content, Slot) {}
 
         float SizeRatio = 1.f; // 宽度比例
 
@@ -17,7 +17,7 @@ namespace ImGuiWidget
                 "SizeRatio",
                 PropertyType::Float,
                 "Layout",
-                [this](void* v) { SizeRatio = *static_cast<float*>(v); },
+                [this](void* v) { SizeRatio = *static_cast<float*>(v); Owner->MarkLayoutDirty(); },
                 [this]() -> void* { return &SizeRatio; }
                 });
             return props;
@@ -34,7 +34,7 @@ namespace ImGuiWidget
     protected:
         virtual ImSlot* CreateSlot(ImWidget* Content)override
         {
-            return new ImHorizontalBoxSlot(Content);
+            return new ImHorizontalBoxSlot(Content, this);
         }
         virtual void Relayout() override // 重写布局算法
         {
@@ -118,43 +118,9 @@ namespace ImGuiWidget
 
         ImHorizontalBoxSlot* AddChildToHorizontalBox(ImWidget* child)
         {
-            return AddChildInternal<ImHorizontalBoxSlot>(child);
+            return static_cast<ImHorizontalBoxSlot*>(ImPanelWidget::AddChild(child));
         }
-        virtual ImSlot* AddChild(ImWidget* Child, ImVec2 RelativePosition = ImVec2(FLT_MIN, FLT_MIN)) override
-        {
-            // 如果没有指定相对位置，添加到末尾
-            if (RelativePosition.x == FLT_MIN) {
-                return AddChildInternal<ImHorizontalBoxSlot>(Child);
-            }
 
-            // 计算在水平框中的相对位置
-            float relativeX = RelativePosition.x - Position.x;
-
-            // 如果没有子项，直接添加到末尾
-            if (GetChildNum() == 0) {
-                return AddChildInternal<ImHorizontalBoxSlot>(Child);
-            }
-
-            // 遍历所有子项，寻找插入位置
-            int insertIndex = GetChildNum(); // 默认插入到最后
-
-            for (int i = 0; i < GetChildNum(); i++) {
-                ImSlot* currentSlot = GetSlotAt(i);
-
-                // 计算当前子项的中点
-                float currentMid = currentSlot->GetContent()->GetPosition().x +
-                    currentSlot->GetContent()->GetSize().x / 2.0f;
-
-                // 如果位置在当前子项中点之前，插入在当前位置
-                if (relativeX <= currentMid) {
-                    insertIndex = i;
-                    break;
-                }
-            }
-
-            // 插入到找到的位置
-            return InsertChildAt(insertIndex, Child);
-        }
         virtual void Render() override
         {
             HandleLayout(); // 添加布局处理调用

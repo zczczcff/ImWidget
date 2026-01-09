@@ -9,8 +9,8 @@
 void ImGuiWidget::ImWidgetFactory::Initialize()
 {
     // 注册所有内置控件类型
-    RegisterType<ImWidget>("ImWidget");
-    RegisterType<ImPanelWidget>("ImPanelWidget");
+    //RegisterType<ImWidget>("ImWidget");
+    //RegisterType<ImPanelWidget>("ImPanelWidget");
     RegisterType<ImCanvasPanel>("ImCanvasPanel");
     RegisterType<ImHorizontalBox>("ImHorizontalBox");
     RegisterType<ImVerticalBox>("ImVerticalBox");

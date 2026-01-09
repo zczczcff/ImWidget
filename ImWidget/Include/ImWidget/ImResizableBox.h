@@ -9,7 +9,7 @@ namespace ImGuiWidget
     class ImResizableBoxSlot : public ImSlot
     {
     public:
-        ImResizableBoxSlot(ImWidget* Content) : ImSlot(Content) {}
+        ImResizableBoxSlot(ImWidget* Content, ImWidget* Owner) : ImSlot(Content, Owner) {}
     };
 
     class ImResizableBox : public ImPanelWidget
@@ -54,7 +54,14 @@ namespace ImGuiWidget
         {
             bHaveBorder = false; // 禁用基类边框绘制
         }
+        ImResizableBox(const ImResizableBox& other):ImPanelWidget(other.m_WidgetName)
+        {
 
+        }
+        virtual ImSlot* CreateSlot(ImWidget* Content)
+        {
+            return new ImSlot(Content, this);
+        }
         virtual ImSlot* AddChild(ImWidget* child, ImVec2 RelativePosition = ImVec2(FLT_MIN, FLT_MIN)) override
         {
             if (GetChildAt(0))
@@ -357,5 +364,7 @@ namespace ImGuiWidget
         }
 
         virtual std::string GetRegisterTypeName()override { return "ImResizableBox"; }
+
+        virtual ImWidget* CopyWidget() { return new ImResizableBox(*this); }
     };
 }

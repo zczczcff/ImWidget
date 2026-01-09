@@ -41,6 +41,11 @@ namespace ImGuiWidget
             SetFocusable(true);
         }
 
+        virtual ImSlot* CreateSlot(ImWidget* Content)
+        {
+            return new ImSlot(Content, this);
+        }
+
         // ÉèÖÃÄÚÈİ¿Ø¼ş
         ImSlot* SetContent(ImWidget* content, bool DeleteOld = true)
         {

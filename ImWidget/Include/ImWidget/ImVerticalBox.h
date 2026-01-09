@@ -7,7 +7,7 @@ namespace ImGuiWidget
 	class ImVerticalBoxSlot :public ImPaddingSlot
 	{
 	public:
-		ImVerticalBoxSlot(ImWidget* Content):ImPaddingSlot(Content){}
+		ImVerticalBoxSlot(ImWidget* Content, ImWidget* Owner):ImPaddingSlot(Content,Owner){}
 
 		float SizeRatio = 1.f;
 
@@ -19,7 +19,7 @@ namespace ImGuiWidget
                 "SizeRatio",
                 PropertyType::Float,
                 "Layout",
-                [this](void* val) { this->SizeRatio = *static_cast<float*>(val); },
+                [this](void* val) { this->SizeRatio = *static_cast<float*>(val); Owner->MarkLayoutDirty();},
                 [this]() { return static_cast<void*>(&this->SizeRatio); }
                 });
 
@@ -38,50 +38,15 @@ namespace ImGuiWidget
     protected:
         virtual ImSlot* CreateSlot(ImWidget* Content)override
         {
-            return new ImVerticalBoxSlot(Content);
+            return new ImVerticalBoxSlot(Content,this);
         }
 		
 	public:
 		ImVerticalBox(const std::string& WidgetName):ImPanelWidget(WidgetName){}
 		ImVerticalBoxSlot* AddChildToVerticalBox(ImWidget* child)
 		{
-			return AddChildInternal<ImVerticalBoxSlot>(child);
+            return static_cast<ImVerticalBoxSlot*>(ImPanelWidget::AddChild(child));
 		}
-        virtual ImSlot* AddChild(ImWidget* Child, ImVec2 RelativePosition = ImVec2(FLT_MIN, FLT_MIN)) override
-        {
-            // 如果没有指定相对位置，添加到末尾
-            if (RelativePosition.y == FLT_MIN) {
-                return AddChildInternal<ImVerticalBoxSlot>(Child);
-            }
-
-            // 计算在垂直框中的相对位置
-            float relativeY = RelativePosition.y - Position.y;
-
-            // 如果没有子项，直接添加到末尾
-            if (GetChildNum() == 0) {
-                return AddChildInternal<ImVerticalBoxSlot>(Child);
-            }
-
-            // 遍历所有子项，寻找插入位置
-            int insertIndex = GetChildNum(); // 默认插入到最后
-
-            for (int i = 0; i < GetChildNum(); i++) {
-                ImSlot* currentSlot = GetSlotAt(i);
-
-                // 计算当前子项的中点
-                float currentMid = currentSlot->GetContent()->GetPosition().y +
-                    currentSlot->GetContent()->GetSize().y / 2.0f;
-
-                // 如果位置在当前子项中点之前，插入在当前位置
-                if (relativeY <= currentMid) {
-                    insertIndex = i;
-                    break;
-                }
-            }
-
-            // 插入到找到的位置
-            return InsertChildAt(insertIndex, Child);
-        }
 
 		virtual void Render() override
 		{

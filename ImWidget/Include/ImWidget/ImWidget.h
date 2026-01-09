@@ -28,12 +28,15 @@ namespace ImGuiWidget
 		bool bHoverable = false;
 		bool bHovered = false;
 		bool bSizeDirty = false;
+		bool bLayOutDirty = false;
 		
-		//处理子控件最小尺寸发生变化的情况
+		//处理子控件最小尺寸发生变化的情况(整个控件树重布局)
 		virtual void HandleChildSizeDirty(){}
 
 		//控件最小尺寸发生变化时调用
 		virtual void MarkSizeDirty();
+
+
 	public:
 		ImWidget(const std::string& WidgetName)
 			:m_selfRef(this),// 新对象创建新的自我引用
@@ -83,6 +86,17 @@ namespace ImGuiWidget
 			}
 			return *this;
 		}
+
+		//布局变化时调用，一般会在Render中重布局自身
+		void MarkLayoutDirty()
+		{
+			bLayOutDirty = true;
+		}
+		void ClearLayoutDirty()
+		{
+			bLayOutDirty = false;
+		}
+
 		static int GetConstructCounter()
 		{
 			static int counter = 0;

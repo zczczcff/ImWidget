@@ -32,18 +32,9 @@ namespace ImGuiWidget
 		ImBorder(const std::string& WidgetName):ImPanelWidget(WidgetName){}
 		virtual ImSlot* CreateSlot(ImWidget* Content)
 		{
-			return new ImPaddingSlot(Content);
+			return new ImPaddingSlot(Content,this);
 		}
-
-		virtual ImSlot* AddChild(ImWidget* child, ImVec2 RelativePosition = ImVec2(FLT_MIN, FLT_MIN))
-		{
-			if (GetChildNum() >= 1)
-			{
-				return nullptr;
-			}
-
-			return AddChildInternal<ImPaddingSlot>(child);
-		}
+		virtual int GetAllowMaxChildNum()override { return 1; }
 
 		void SetContent(ImWidget* Content,bool DeleteOld = true)
 		{

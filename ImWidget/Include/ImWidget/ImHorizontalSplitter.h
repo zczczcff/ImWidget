@@ -67,8 +67,8 @@ namespace ImGuiWidget
         float Ratio = 1.0f;
         float MinSize = 30.0f;
 
-        ImHorizontalSplitterSlot(ImWidget* Content)
-            : ImPaddingSlot(Content)
+        ImHorizontalSplitterSlot(ImWidget* Content, ImWidget* Owner)
+            : ImPaddingSlot(Content, Owner)
         {
         }
         virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
@@ -77,13 +77,13 @@ namespace ImGuiWidget
 
             baseProps.insert(
                 { "Ratio", PropertyType::Float, "Layout",
-                  [this](void* v) { Ratio = *static_cast<float*>(v); },
+                  [this](void* v) { Ratio = *static_cast<float*>(v); Owner->MarkLayoutDirty();},
                   [this]() -> void* { return &Ratio; } }
             );
 
             baseProps.insert(
                 { "MinSize", PropertyType::Float, "Layout",
-                  [this](void* v) { MinSize = *static_cast<float*>(v); },
+                  [this](void* v) { MinSize = *static_cast<float*>(v); Owner->MarkLayoutDirty();},
                   [this]() -> void* { return &MinSize; } }
             );
 
@@ -117,7 +117,7 @@ namespace ImGuiWidget
     private:
         virtual ImSlot* CreateSlot(ImWidget* Content)override
         {
-            return new ImHorizontalSplitterSlot(Content);
+            return new ImHorizontalSplitterSlot(Content, this);
         }
     public:
         ImHorizontalSplitter(const std::string& WidgetName)
@@ -401,7 +401,7 @@ namespace ImGuiWidget
 
         ImHorizontalSplitterSlot* AddPart(ImWidget* widget, float ratio = 1.0f)
         {
-            auto* slot = AddChildInternal<ImHorizontalSplitterSlot>(widget);
+            ImHorizontalSplitterSlot* slot = static_cast<ImHorizontalSplitterSlot*>(ImPanelWidget::AddChild(widget));
             slot->Ratio = ratio;
             return slot;
         }
