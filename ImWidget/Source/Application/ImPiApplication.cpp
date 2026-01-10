@@ -106,7 +106,7 @@ void ImPiApplication::GlfwErrorCallback(int error, const char* description) {
 }
 
 
-ImTextureID ImPiApplication::LoadTextureFromFile(const char* filename, int& width, int& height) {
+ImTextureID ImPiApplication::LoadImageFromFile(const char* filename, int& width, int& height) {
     // º”‘ÿÕºœÒ
     int channels;
     unsigned char* data = stbi_load(filename, &width, &height, &channels, 4);

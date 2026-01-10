@@ -60,7 +60,7 @@ namespace ImGuiWidget
 				GlobalApp->ReleaseTexture(m_TextureID);
 				m_TextureID = 0;
 			}
-			m_TextureID = GlobalApp->LoadTextureFromFile(FilePath.c_str(), OriginalWidth, OriginalHeight);
+			m_TextureID = GlobalApp->LoadImageFromFile(FilePath.c_str(), OriginalWidth, OriginalHeight);
 			if (m_TextureID != 0)
 			{
 				return true;

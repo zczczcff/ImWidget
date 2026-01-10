@@ -328,19 +328,19 @@ void MainUI::UpdateUndoRedoState(bool CanUndo, bool CanRedo)
 {
 	if (CanUndo)
 	{
-		ImImage_Undo->SetTintcolor(IM_COL32(255, 255, 255, 255));
+		ImImage_Undo->SetTintcolor(IM_COL32(0, 120, 212, 255));
 	}
 	else
 	{
-		ImImage_Undo->SetTintcolor(IM_COL32(0, 0, 0, 100));
+		ImImage_Undo->SetTintcolor(IM_COL32(158, 158, 158, 255));
 	}
 
 	if (CanRedo)
 	{
-		ImImage_Redo->SetTintcolor(IM_COL32(255, 255, 255, 255));
+		ImImage_Redo->SetTintcolor(IM_COL32(0, 120, 212, 255));
 	}
 	else
 	{
-		ImImage_Redo->SetTintcolor(IM_COL32(0, 0, 0, 100));
+		ImImage_Redo->SetTintcolor(IM_COL32(158, 158, 158, 255));
 	}
 }

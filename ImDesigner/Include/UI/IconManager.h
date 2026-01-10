@@ -6,7 +6,6 @@ enum class ImDesignerIcon
 	ClosedFolder,
 	OpenedFolder,
 	UIFile,
-	SingleWidget,
 	ComboWidget,
 
 	Button,
@@ -33,6 +32,10 @@ enum class ImDesignerIcon
 
 	Undo,
 	Redo,
+
+	WidgetTree,
+	SingleWidget,
+	Dialog,
 
 	IconNum
 };

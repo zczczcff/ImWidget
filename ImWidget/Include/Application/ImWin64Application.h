@@ -22,8 +22,10 @@ public:
     void Run();
     ; 
         // 新增纹理加载函数
-    ImTextureID LoadTextureFromFile(const char* filename,int& width,int& height)override;
-    ImTextureID LoadTextureFromMemory(const unsigned char* image_data, int data_size, int& width, int& height) override;
+    ImTextureID LoadImageFromFile(const char* filename,int& width,int& height)override;
+    ID3D11ShaderResourceView* CreateD3D11TextureFromRGBA(const unsigned char* rgba_data, int width, int height);
+	ImTextureID LoadImageFromMemory(const unsigned char* image_data, int data_size, int& width, int& height) override;
+    ImTextureID LoadTextureFromRGBAData(unsigned char* image_data, int width, int height) override;
     void ReleaseTexture(ImTextureID TextureID)override; // 新增释放函数
 protected:
     HINSTANCE       m_hInstance;

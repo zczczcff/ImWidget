@@ -209,7 +209,7 @@ LRESULT WINAPI ImWin64Application::WndProc(HWND hWnd, UINT msg, WPARAM wParam, L
 
 
 // 新增纹理加载函数实现
-ImTextureID ImWin64Application::LoadTextureFromFile(const char* filename, int& width, int& height)
+ImTextureID ImWin64Application::LoadImageFromFile(const char* filename, int& width, int& height)
 {
     // 使用stb_image加载图片
     int channels;
@@ -263,13 +263,13 @@ ImTextureID ImWin64Application::LoadTextureFromFile(const char* filename, int& w
     return (ImTextureID)textureView;
 }
 
-ImTextureID ImWin64Application::LoadTextureFromMemory(const unsigned char* image_data, int data_size, int& width, int& height)
+// 公共函数：从RGBA数据创建DirectX11纹理
+ID3D11ShaderResourceView* ImWin64Application::CreateD3D11TextureFromRGBA(
+    const unsigned char* rgba_data, int width, int height)
 {
-    int channels;
-    unsigned char* decoded_data = stbi_load_from_memory(image_data, data_size, &width, &height, &channels, 4);
-    if (decoded_data == nullptr)
+    if (rgba_data == nullptr || width <= 0 || height <= 0)
     {
-        return (ImTextureID)nullptr;
+        return nullptr;
     }
 
     // 创建DX11纹理
@@ -287,16 +287,14 @@ ImTextureID ImWin64Application::LoadTextureFromMemory(const unsigned char* image
     desc.CPUAccessFlags = 0;
 
     D3D11_SUBRESOURCE_DATA subResource;
-    subResource.pSysMem = decoded_data;
+    subResource.pSysMem = rgba_data;
     subResource.SysMemPitch = desc.Width * 4;
     subResource.SysMemSlicePitch = 0;
 
     HRESULT hr = m_pd3dDevice->CreateTexture2D(&desc, &subResource, &texture);
-    stbi_image_free(decoded_data); // 释放解码后的图片内存
-
-    if (FAILED(hr))
+    if (FAILED(hr) || texture == nullptr)
     {
-        return (ImTextureID)nullptr;
+        return nullptr;
     }
 
     // 创建着色器资源视图
@@ -313,8 +311,41 @@ ImTextureID ImWin64Application::LoadTextureFromMemory(const unsigned char* image
 
     if (FAILED(hr))
     {
+        return nullptr;
+    }
+
+    return textureView;
+}
+
+// 函数1：从内存加载图片
+ImTextureID ImWin64Application::LoadImageFromMemory(
+    const unsigned char* image_data, int data_size, int& width, int& height)
+{
+    int channels;
+    unsigned char* decoded_data = stbi_load_from_memory(
+        image_data, data_size, &width, &height, &channels, 4);
+
+    if (decoded_data == nullptr)
+    {
         return (ImTextureID)nullptr;
     }
+
+    // 使用公共函数创建纹理
+    ID3D11ShaderResourceView* textureView =
+        CreateD3D11TextureFromRGBA(decoded_data, width, height);
+
+    stbi_image_free(decoded_data); // 释放解码后的图片内存
+
+    return (ImTextureID)textureView;
+}
+
+// 函数2：从RGBA数据加载纹理
+ImTextureID ImWin64Application::LoadTextureFromRGBAData(
+    unsigned char* RGBA_data, int width, int height)
+{
+    // 使用公共函数创建纹理
+    ID3D11ShaderResourceView* textureView =
+        CreateD3D11TextureFromRGBA(RGBA_data, width, height);
 
     return (ImTextureID)textureView;
 }
