@@ -79,8 +79,11 @@ void MainUI::Init2()
 	//UndoRedo
 
 	ImButton_Undo->OnLeftClicked.Add([this]() { OnRequestUndo.Broadcast(); });
+	ImButton_Undo->SetToolTipEnable(true);
+	ImButton_Undo->SetToolTip(u8"³·Ïú£¨Ctrl+Z£©");
 	ImButton_Redo->OnLeftClicked.Add([this]() { OnRequestRedo.Broadcast(); });
-
+	ImButton_Redo->SetToolTipEnable(true);
+	ImButton_Redo->SetToolTip(u8"ÖØ×ö");
 	ImImage_Undo->SetTextureID(IconManager::GetInstance()->GetIcon(ImDesignerIcon::Undo),20,20);
 	ImImage_Redo->SetTextureID(IconManager::GetInstance()->GetIcon(ImDesignerIcon::Redo),20,20);
 	UpdateUndoRedoState(false, false);

@@ -262,7 +262,7 @@ namespace ImGuiWidget
 
 		bool IsToolTipEnable() { return bEbableToolTip; }
 
-		bool SetToolTipEnable(bool EbableToolTip) { bEbableToolTip = EbableToolTip; }
+		void SetToolTipEnable(bool EbableToolTip) { bEbableToolTip = EbableToolTip; }
 	
 		std::string& GetToolTip() { return m_ToolTip; }
 

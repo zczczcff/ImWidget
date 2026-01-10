@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include "ImWindow.h"
 #include <imgui.h>
+#include <imgui_internal.h>
 
 namespace ImGuiWidget
 {
@@ -19,6 +20,11 @@ namespace ImGuiWidget
 
         // 弹出窗口管理
         std::vector<ImWindow*> m_popupStack; // 弹出窗口栈，用于管理多级菜单
+
+        class ImWidget* ToolTipWidget = nullptr;
+        ImVec2 ToolTipPos;
+        ImVec2 ToolTipSize;
+        float ToolTipPadding = 4.f;
     public:
         ImWindowManager();
         ~ImWindowManager();
@@ -93,6 +99,13 @@ namespace ImGuiWidget
 
         // 递归查找窗口
         ImWindow* FindWindowRecursive(ImWindow* start, const std::string& id) const;
+
+        //自适应弹窗位置计算
+        ImRect CalculateAdaptivePopupPosition(
+            const ImRect& OriginalRect,
+            bool HasParent = false,
+            const ImRect& ParentsRect = ImRect(-1, -1, -1, -1)
+        );
     public:
         ImEventSystem* GetEventSystem() { return m_EventSystem; }
     };

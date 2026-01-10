@@ -8,9 +8,13 @@
 #include "ImEvent/ImInputEvent.h"
 #include "ImEvent/ImHoverEvent.h"
 #include "ImWidget/ImUserWidget.h"
+#include "ImWidget/ImTextBlock.h"
 namespace ImGuiWidget
 {
-	ImGuiWidget::ImEventSystem::ImEventSystem(ImWidget* root) : m_rootWidget(root) {}
+	ImGuiWidget::ImEventSystem::ImEventSystem(ImWidget* root) 
+		: m_rootWidget(root) ,
+		m_ToolTipWidgetText(new ImTextBlock("ToolTipText"))
+	{}
 
 	void ImEventSystem::CollectMouseEvent()
 	{
@@ -199,7 +203,12 @@ namespace ImGuiWidget
 	{
 		// 检测当前鼠标下的控件
 		ImWidget* currentHitWidget = HitTest(m_rootWidget, io.MousePos);
-
+		
+		ImWidgetRef CurrentHitWidgetRef;
+		if (currentHitWidget)
+		{
+			CurrentHitWidgetRef = currentHitWidget->GetWidgetRef();
+		}
 		// 处理鼠标进入/离开事件
 		if (currentHitWidget != m_lastHitWidget.GetWidget())
 		{
@@ -273,6 +282,44 @@ namespace ImGuiWidget
 			}
 			m_hoveredWidget.Reset();
 		}
+
+		if (!CurrentHitWidgetRef)//在hover事件分发可能导致HitWidget销毁，故先检测其有效性
+		{
+			OnDisableToolTip();
+			return;
+		}
+
+		if (ImWidget* CurrentToolTipEnableWidget = FindToolTipWidgetAncestor(currentHitWidget))
+		{
+			if (CurrentToolTipEnableWidget != m_lastToolTipEnableWidget.GetWidget())
+			{
+				if (m_lastToolTipEnableWidget)//如果已经触发了tooltip,则不需要计时立即触发下一个
+				{
+					m_ToolTipWidgetText->SetText(CurrentToolTipEnableWidget->GetToolTip());
+					OnEnableToolTip(m_ToolTipWidgetText, io.MousePos + ImVec2(0, 20));
+				}
+				else//从之前没有tooltip的状态切换到现在有tooltip，则开始计时
+				{
+					m_ToolTipHoverStartTime = ImGui::GetTime();
+				}
+				m_lastToolTipEnableWidget = CurrentToolTipEnableWidget->GetWidgetRef();
+			}
+			else
+			{
+				if (ImGui::GetTime() - m_ToolTipHoverStartTime > ToolTipHoverTime)
+				{
+					m_ToolTipWidgetText->SetText(CurrentToolTipEnableWidget->GetToolTip());
+					OnEnableToolTip(m_ToolTipWidgetText, io.MousePos + ImVec2(0, 20));
+					m_ToolTipHoverStartTime = DBL_MAX;
+				}
+			}
+		}
+		else
+		{
+			m_lastToolTipEnableWidget.Reset();
+			OnDisableToolTip();
+		}
+
 
 		// 更新当前悬停控件
 		//if (currentHitWidget)
@@ -1054,6 +1101,19 @@ namespace ImGuiWidget
 		while (current)
 		{
 			if (current->IsHoverable())
+			{
+				return current;
+			}
+			current = current->GetParents();
+		}
+		return nullptr;
+	}
+	ImWidget* ImEventSystem::FindToolTipWidgetAncestor(ImWidget* widget)
+	{
+		ImWidget* current = widget;
+		while (current)
+		{
+			if (current->IsToolTipEnable())
 			{
 				return current;
 			}

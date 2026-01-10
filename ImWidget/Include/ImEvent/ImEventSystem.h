@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <memory>
+#include <functional>
 #include "ImEvent/ImEventType.h"
 #include "ImEvent/ImEvent.h"
 #include "ImTools/ImWidgetRef.h"
@@ -11,17 +12,21 @@ namespace ImGuiWidget
     class ImEventSystem {
     private:
         class ImWidget* m_rootWidget;
+        class ImTextBlock* m_ToolTipWidgetText;
         std::vector<std::unique_ptr<ImEvent>> m_eventQueue;
         // 状态跟踪
         ImWidgetRef m_hoveredWidget;
         ImWidgetRef m_focusedWidget;
         ImWidgetRef m_lastHitWidget;
         ImWidgetRef m_lastClickedWidget;
+        ImWidgetRef m_lastToolTipEnableWidget;
         ImVec2 m_lastMousePos;
         double m_lastClickTime[5] = { 0 };  // 每个按钮的上次点击时间
         ImVec2 m_lastClickPos[5];         // 每个按钮的上次点击位置
         double m_hoverStartTime = 0.f;
+        double m_ToolTipHoverStartTime = 0.f;
         float HoverTime = 0.5;//S
+        float ToolTipHoverTime = 0.3;
         // 双击检测参数
         const double DOUBLE_CLICK_TIME = 0.3;  // 300ms
         const float DOUBLE_CLICK_DISTANCE = 5.0f;  // 5像素
@@ -31,6 +36,10 @@ namespace ImGuiWidget
         bool keyStates[ImGuiKey_COUNT] = { false };
         double keyPressTime[ImGuiKey_COUNT] = { 0.0 };
         int keyRepeatCount[ImGuiKey_COUNT] = { 0 };
+    public:
+        std::function<void(ImWidget*,ImVec2)> OnEnableToolTip;
+        std::function<void()> OnDisableToolTip;
+
     public:
         ImEventSystem(ImWidget* root);
 
@@ -121,6 +130,8 @@ namespace ImGuiWidget
         ImWidget* FindFocusableAncestor(ImWidget* widget);
 
         ImWidget* FindHoverableAncestor(ImWidget* widget);
+
+        ImWidget* FindToolTipWidgetAncestor(ImWidget* widget);
     };
 
 }
