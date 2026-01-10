@@ -59,6 +59,20 @@ namespace ImGuiWidget
     //    }
     //    
     //}
+
+    void ImWindow::SetPopupRect(const ImVec2& Min, const ImVec2 Max)
+    {
+        if (!IsPopup()) return;
+        m_manager->SetPopupWindowRect(this, Min, Max);
+    }
+
+    void ImWindow::SetPopupRect(const ImVec2& Min)
+    {
+        if (!IsPopup()) return;
+        if (!m_rootWidget) return;
+        m_manager->SetPopupWindowRect(this, Min, Min + m_rootWidget->GetMinSize());
+    }
+
     void ImWindow::Close()
     {
         m_manager->CloseWindow(this);

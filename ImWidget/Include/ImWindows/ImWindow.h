@@ -3,6 +3,7 @@
 #include "ImEvent/ImEventSystem.h"
 #include <string>
 #include "ImTools/ImDelegate.h"
+#include <imgui.h>
 
 namespace ImGuiWidget
 {
@@ -72,6 +73,8 @@ namespace ImGuiWidget
         void SetPosition(const ImVec2& pos) { m_position = pos; }
         const ImVec2& GetPosition() const { return m_position; }
 
+        void SetPopupRect(const ImVec2& Min, const ImVec2 Max);
+        void SetPopupRect(const ImVec2& Min);
 
         bool IsOpen() const { return bIsOpen; }
         void Close();

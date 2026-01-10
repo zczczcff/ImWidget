@@ -16,7 +16,7 @@ namespace ImGuiWidget
 	protected:
 		std::string m_WidgetID;
 		std::string m_WidgetName;
-		std::string m_ToolTip;
+		std::string m_ToolTipText;
 		ImVec2 Position = { 0, 0 };  // 相对位置
 		ImVec2 Size = { 0, 0 };      // 控件尺寸
 		class ImSlot* m_Slot;
@@ -163,11 +163,23 @@ namespace ImGuiWidget
 		{
 			std::unordered_set<PropertyInfo, PropertyInfo::Hasher> Props;
 			Props.insert(
-			{
-				"Name",PropertyType::String,"Name",
-				[this](void* v) {m_WidgetName = *(std::string*)v; },
-				[this]()->void* {return &m_WidgetName; }
-			});
+				{
+					"Name",PropertyType::String,"Name",
+					[this](void* v) { m_WidgetName = *(std::string*)v; },
+					[this]()->void* { return &m_WidgetName; }
+				});
+			Props.insert(
+				{
+					"EnableToolTip",PropertyType::Bool,"ToolTip",
+					[this](void* v) { SetToolTipEnable(*(bool*)v); },
+					[this]()->void* { return &bEbableToolTip; }
+				});
+			Props.insert(
+				{
+					"ToolTipText",PropertyType::String,"ToolTip",
+					[this](void* v) { SetToolTip(*(std::string*)v); },
+					[this]()->void* { return &m_ToolTipText; }
+				});
 			return Props;
 		}
 
@@ -263,9 +275,10 @@ namespace ImGuiWidget
 		bool IsToolTipEnable() { return bEbableToolTip; }
 
 		void SetToolTipEnable(bool EbableToolTip) { bEbableToolTip = EbableToolTip; }
-	
-		std::string& GetToolTip() { return m_ToolTip; }
 
-		void SetToolTip(const std::string& tooltip) { m_ToolTip = tooltip; }
+		std::string GetToolTip() { return m_ToolTipText; }
+
+		void SetToolTip(const std::string& tooltiptext) { m_ToolTipText = tooltiptext; }
+
 	};
 }

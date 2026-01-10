@@ -266,9 +266,14 @@ namespace ImGuiWidget
 			{
 				if (ImGui::GetTime() - m_hoverStartTime > HoverTime)//计时触发回调
 				{
+					float OldHoverTime = HoverTime;
 					auto HoverEvent = std::make_unique<ImHoverEvent>(this);
 					HoverEvent->SetTarget(CurrentHoveredWidget->GetWidgetRef());
 					DispatchEventImmediately(HoverEvent.get());
+					if (HoverTime <= OldHoverTime)//如果没有Hover事件中没有增设HoverTime,则将m_hoverStartTime置为最大值防止Hover事件反复触发
+					{
+						m_hoverStartTime = DBL_MAX;
+					}
 				}
 			}
 		}

@@ -50,7 +50,7 @@ void UI_WidgetTreeView::InitPopUpMenu()
         {
             m_InsertMode = InsertChildMode::InsertPrevious;
             ImVec2 PopupPos = InsertPreviousButton->GetPosition() + ImVec2(InsertPreviousButton->GetSize().x, 0);
-            WidgetMenu_InsertNew->SetPosition(PopupPos);
+            WidgetMenu_InsertNew->SetPopupRect(PopupPos);
             WidgetMenu_InsertNew->SetActive();
         });
     InsertPreviousButton->OnMouseHoverOut.Add([this]() 
@@ -62,7 +62,7 @@ void UI_WidgetTreeView::InitPopUpMenu()
         {
             m_InsertMode = InsertChildMode::InsertToThis;
             ImVec2 PopupPos = InsertToButton->GetPosition() + ImVec2(InsertToButton->GetSize().x, 0);
-            WidgetMenu_InsertNew->SetPosition(PopupPos);
+            WidgetMenu_InsertNew->SetPopupRect(PopupPos);
             WidgetMenu_InsertNew->SetActive();
         });
     InsertToButton->OnMouseHoverOut.Add([this]() 
@@ -74,7 +74,7 @@ void UI_WidgetTreeView::InitPopUpMenu()
         {
             m_InsertMode = InsertChildMode::InsertNext;
             ImVec2 PopupPos = InsertAfterButton->GetPosition() + ImVec2(InsertAfterButton->GetSize().x, 0);
-            WidgetMenu_InsertNew->SetPosition(PopupPos);
+            WidgetMenu_InsertNew->SetPopupRect(PopupPos);
             WidgetMenu_InsertNew->SetActive();
         });
     InsertAfterButton->OnMouseHoverOut.Add([this]() 
@@ -278,7 +278,7 @@ void UI_WidgetTreeView::On_WidgetSelectedButtonClicked(ImGuiWidget::ImWidget* wi
 void UI_WidgetTreeView::On_WidgetSelectedButtonRightClicked(ImGuiWidget::ImWidget* widget)
 {
     PopupMenuTargetWidget = widget;
-    WidgetMenu->SetPosition(ImGuiWidget::GetMousePos());
+    WidgetMenu->SetPopupRect(ImGuiWidget::GetMousePos());
     WidgetMenu->SetActive();
 }
 

@@ -105,6 +105,7 @@ void MainUI::CreateNewWidgetEditorPage(ImGuiWidget::ImWidget* FileRootWidget, co
 	UI_WidgetEditor* NewWidget_UIEditor = new UI_WidgetEditor(FileName + "_Editor", FileRootWidget);
 	ImPageManager_Main->AddPage(FileFullPath, NewWidget_UIEditor, IconManager::GetInstance()->GetIcon(ImDesignerIcon::UIFile), FileName);
 	ImPageManager_Main->SwitchToPage(FileFullPath);
+	ImPageManager_Main->SetPageToolTip(FileFullPath, FileFullPath);
 }
 
 UI_WidgetEditor* MainUI::GetWidgetEditorByName(const std::string& Name)
@@ -130,6 +131,7 @@ bool MainUI::RenameWidgetEditorPage(const std::string& OldFullPath, const std::s
 	if (!ImPageManager_Main->ResetPageID(OldFullPath, NewFullPath))return false;
 	std::string NewFileName = FileUtil::getFileNameWithExtension(NewFullPath);
 	ImPageManager_Main->SetPageDisplayName(NewFullPath, NewFileName);
+	ImPageManager_Main->SetPageToolTip(NewFullPath, NewFullPath);
 	return true;
 }
 

@@ -226,6 +226,25 @@ namespace ImGuiWidget
     {
     }
 
+    void ImWindowManager::SetPopupWindowRect(ImWindow* window, const ImVec2& Min, const ImVec2& Max)
+    {
+        if (!window)return;
+        if (!window->IsPopup()) return;
+        ImRect OriginalRect = ImRect(Min, Max);
+        ImRect AdaptiveRect = OriginalRect;
+        if (ImWindow* parentwindow = window->GetParentWindow())
+        {
+            ImRect ParentRect(parentwindow->GetPosition(), parentwindow->GetPosition() + parentwindow->GetSize());
+            AdaptiveRect = CalculateAdaptivePopupPosition(OriginalRect, true, ParentRect);
+        }
+        else
+        {
+            AdaptiveRect = CalculateAdaptivePopupPosition(OriginalRect);
+        }
+        window->SetPosition(AdaptiveRect.Min);
+        window->SetSize(AdaptiveRect.GetSize());
+    }
+
     ImWindow* ImWindowManager::FindWindowById(const std::string& id)
     {
         auto it = std::find_if(m_windows.begin(), m_windows.end(),
@@ -537,223 +556,222 @@ namespace ImGuiWidget
     void ImWindowManager::UpdatePopupState()
     {
     }
-
-    ImRect ImWindowManager::CalculateAdaptivePopupPosition(const ImRect& OriginalRect, bool HasParent, const ImRect& ParentsRect)
+    ImRect ImWindowManager::CalculateAdaptivePopupPosition(const ImRect& OriginalRect, bool HasParent, const ImRect& ParentRect)
     {
-        // 获取主视口和屏幕工作区
+        // 获取主视口和可用工作区域
         ImGuiViewport* viewport = ImGui::GetMainViewport();
-        ImVec2 work_pos = viewport->WorkPos;      // 工作区位置（减去任务栏等）
-        ImVec2 work_size = viewport->WorkSize;    // 工作区大小
+        ImVec2 workPos = viewport->WorkPos;
+        ImVec2 workSize = viewport->WorkSize;
+        ImRect availableRect(workPos.x, workPos.y,
+            workPos.x + workSize.x,
+            workPos.y + workSize.y);
 
-        ImRect work_rect(work_pos, work_pos + work_size);
-        ImRect result_rect = OriginalRect;
+        // 初始化结果矩形为原始矩形
+        ImRect resultRect = OriginalRect;
+        ImVec2 popupSize(OriginalRect.GetWidth(), OriginalRect.GetHeight());
 
-        float popup_width = OriginalRect.GetWidth();
-        float popup_height = OriginalRect.GetHeight();
-
-        // 如果没有父窗口，只考虑屏幕边界
-        if (!HasParent || (ParentsRect.Min.x < 0 && ParentsRect.Min.y < 0))
+        // 如果有父窗口，需要考虑避让父窗口
+        if (HasParent && ParentRect.Min.x >= 0 && ParentRect.Min.y >= 0)
         {
-            // 确保弹窗不超出屏幕右边界
-            if (result_rect.Max.x > work_rect.Max.x)
-            {
-                result_rect.TranslateX(work_rect.Max.x - result_rect.Max.x);
-            }
-
-            // 确保弹窗不超出屏幕左边界
-            if (result_rect.Min.x < work_rect.Min.x)
-            {
-                result_rect.TranslateX(work_rect.Min.x - result_rect.Min.x);
-            }
-
-            // 确保弹窗不超出屏幕下边界
-            if (result_rect.Max.y > work_rect.Max.y)
-            {
-                result_rect.TranslateY(work_rect.Max.y - result_rect.Max.y);
-            }
-
-            // 确保弹窗不超出屏幕上边界
-            if (result_rect.Min.y < work_rect.Min.y)
-            {
-                result_rect.TranslateY(work_rect.Min.y - result_rect.Min.y);
-            }
-
-            return result_rect;
-        }
-
-        // 有父窗口的情况：需要避免覆盖父窗口
-        // 1. 优先考虑父窗口的四个方向
-        ImRect candidate_rects[4];
-        float scores[4] = { 0 };
-
-        // 右侧
-        candidate_rects[0] = ImRect(
-            ParentsRect.Max.x,
-            ParentsRect.Min.y,
-            ParentsRect.Max.x + popup_width,
-            ParentsRect.Min.y + popup_height
-        );
-
-        // 左侧
-        candidate_rects[1] = ImRect(
-            ParentsRect.Min.x - popup_width,
-            ParentsRect.Min.y,
-            ParentsRect.Min.x,
-            ParentsRect.Min.y + popup_height
-        );
-
-        // 下方
-        candidate_rects[2] = ImRect(
-            ParentsRect.Min.x,
-            ParentsRect.Max.y,
-            ParentsRect.Min.x + popup_width,
-            ParentsRect.Max.y + popup_height
-        );
-
-        // 上方
-        candidate_rects[3] = ImRect(
-            ParentsRect.Min.x,
-            ParentsRect.Min.y - popup_height,
-            ParentsRect.Min.x + popup_width,
-            ParentsRect.Min.y
-        );
-
-        // 计算每个候选位置的得分
-        for (int i = 0; i < 4; ++i)
-        {
-            // 基础分：完全在屏幕内
-            if (work_rect.Contains(candidate_rects[i]))
-            {
-                scores[i] += 100.0f;
-            }
-
-            // 不与父窗口重叠
-            if (!candidate_rects[i].Overlaps(ParentsRect))
-            {
-                scores[i] += 50.0f;
-            }
-
-            // 距离原始位置的距离（越近得分越高）
-            float distance = ImLengthSqr(
-                candidate_rects[i].GetCenter() - OriginalRect.GetCenter()
+            // 策略1: 右侧放置（二级菜单常见布局）
+            ImRect rightPlacement(
+                ParentRect.Max.x,
+                OriginalRect.Min.y,
+                ParentRect.Max.x + popupSize.x,
+                OriginalRect.Min.y + popupSize.y
             );
-            scores[i] += 100.0f / (1.0f + distance * 0.001f);
 
-            // 可见区域比例
-            ImRect visible_rect = work_rect;
-            visible_rect.ClipWithFull(candidate_rects[i]);
-            float visible_area = visible_rect.GetArea();
-            float total_area = candidate_rects[i].GetArea();
-            if (total_area > 0)
+            // 策略2: 上下调整，判断是否可用
+            auto adjustVertical = [&](ImRect& rect)
             {
-                scores[i] += 50.0f * (visible_area / total_area);
-            }
-        }
-
-        // 找到得分最高的位置
-        int best_index = 0;
-        for (int i = 1; i < 4; ++i)
-        {
-            if (scores[i] > scores[best_index])
-            {
-                best_index = i;
-            }
-        }
-
-        result_rect = candidate_rects[best_index];
-
-        // 2. 如果最佳候选位置不理想，尝试在屏幕内寻找更好的位置
-        if (scores[best_index] < 50.0f || result_rect.Overlaps(ParentsRect))
-        {
-            // 尝试在屏幕内寻找位置
-            ImVec2 best_pos = OriginalRect.Min;
-            float best_score = -FLT_MAX;
-
-            // 尝试多个位置
-            for (int y_dir = -1; y_dir <= 1; ++y_dir)
-            {
-                for (int x_dir = -1; x_dir <= 1; ++x_dir)
+                if (rect.Min.y < availableRect.Min.y)
                 {
-                    if (x_dir == 0 && y_dir == 0) continue;
+                    float offset = availableRect.Min.y - rect.Min.y;
+                    rect.Min.y += offset;
+                    rect.Max.y += offset;
+                }
+                if (rect.Max.y > availableRect.Max.y)
+                {
+                    float offset = rect.Max.y - availableRect.Max.y;
+                    rect.Min.y -= offset;
+                    rect.Max.y -= offset;
+                }
+            };
 
-                    ImVec2 test_pos = OriginalRect.Min;
+            // 策略3: 左侧放置
+            ImRect leftPlacement(
+                ParentRect.Min.x - popupSize.x,
+                OriginalRect.Min.y,
+                ParentRect.Min.x,
+                OriginalRect.Min.y + popupSize.y
+            );
 
-                    if (x_dir < 0)
-                    {
-                        test_pos.x = std::max(work_rect.Min.x, ParentsRect.Min.x - popup_width - 5.0f);
-                    }
-                    else if (x_dir > 0)
-                    {
-                        test_pos.x = std::min(work_rect.Max.x - popup_width, ParentsRect.Max.x + 5.0f);
-                    }
+            // 策略4: 下方放置
+            ImRect bottomPlacement(
+                OriginalRect.Min.x,
+                ParentRect.Max.y,
+                OriginalRect.Min.x + popupSize.x,
+                ParentRect.Max.y + popupSize.y
+            );
 
-                    if (y_dir < 0)
-                    {
-                        test_pos.y = std::max(work_rect.Min.y, ParentsRect.Min.y - popup_height - 5.0f);
-                    }
-                    else if (y_dir > 0)
-                    {
-                        test_pos.y = std::min(work_rect.Max.y - popup_height, ParentsRect.Max.y + 5.0f);
-                    }
+            // 策略5: 上方放置
+            ImRect topPlacement(
+                OriginalRect.Min.x,
+                ParentRect.Min.y - popupSize.y,
+                OriginalRect.Min.x + popupSize.x,
+                ParentRect.Min.y
+            );
 
-                    ImRect test_rect(test_pos, test_pos + ImVec2(popup_width, popup_height));
+            // 检查各策略是否在可用区域内且不覆盖父窗口
+            auto isValidPlacement = [&](const ImRect& rect) -> bool
+            {
+                // 检查是否在可用区域内
+                bool inBounds = rect.Min.x >= availableRect.Min.x &&
+                    rect.Min.y >= availableRect.Min.y &&
+                    rect.Max.x <= availableRect.Max.x &&
+                    rect.Max.y <= availableRect.Max.y;
 
-                    // 计算分数
-                    float score = 0.0f;
-                    if (!test_rect.Overlaps(ParentsRect))
-                    {
-                        score += 100.0f;
-                    }
+                // 检查是否与父窗口重叠
+                bool notOverlap = !rect.Overlaps(ParentRect);
 
-                    float visible_area = 1.0f;
-                    if (work_rect.Contains(test_rect))
+                return inBounds && notOverlap;
+            };
+
+            // 按优先级尝试各策略
+            if (isValidPlacement(rightPlacement))
+            {
+                resultRect = rightPlacement;
+            }
+            else
+            {
+                // 如果右侧不行，则上下调整
+                adjustVertical(rightPlacement);
+                if (isValidPlacement(rightPlacement))
+                {
+                    resultRect = rightPlacement;
+                }
+                else
+                {
+                    // 否则尝试左侧放置
+                    if (isValidPlacement(leftPlacement))
                     {
-                        score += 100.0f;
+                        resultRect = leftPlacement;
                     }
                     else
                     {
-                        ImRect visible_part = work_rect;
-                        visible_part.ClipWithFull(test_rect);
-                        visible_area = visible_part.GetArea() / test_rect.GetArea();
-                        score += 100.0f * visible_area;
-                    }
-
-                    float distance = ImLengthSqr(test_rect.GetCenter() - OriginalRect.GetCenter());
-                    score += 50.0f / (1.0f + distance * 0.001f);
-
-                    if (score > best_score)
-                    {
-                        best_score = score;
-                        best_pos = test_pos;
+                        adjustVertical(leftPlacement);
+                        if (isValidPlacement(leftPlacement))
+                        {
+                            resultRect = leftPlacement;
+                        }
+                        else
+                        {
+                            // 尝试下方放置
+                            if (isValidPlacement(bottomPlacement))
+                            {
+                                resultRect = bottomPlacement;
+                            }
+                            else
+                            {
+                                adjustVertical(bottomPlacement);
+                                if (isValidPlacement(bottomPlacement))
+                                {
+                                    resultRect = bottomPlacement;
+                                }
+                                else
+                                {
+                                    // 尝试上方放置
+                                    if (isValidPlacement(topPlacement))
+                                    {
+                                        resultRect = topPlacement;
+                                    }
+                                    else
+                                    {
+                                        adjustVertical(topPlacement);
+                                        if (isValidPlacement(topPlacement))
+                                        {
+                                            resultRect = topPlacement;
+                                        }
+                                        else
+                                        {
+                                            // 无法避免父窗口重叠，覆盖父窗口
+                                            resultRect = ParentRect;
+                                            // 调整到可用区域内
+                                            if (resultRect.Max.x > availableRect.Max.x)
+                                            {
+                                                float offset = resultRect.Max.x - availableRect.Max.x;
+                                                resultRect.Min.x -= offset;
+                                                resultRect.Max.x -= offset;
+                                            }
+                                            if (resultRect.Min.x < availableRect.Min.x)
+                                            {
+                                                float offset = availableRect.Min.x - resultRect.Min.x;
+                                                resultRect.Min.x += offset;
+                                                resultRect.Max.x += offset;
+                                            }
+                                            if (resultRect.Max.y > availableRect.Max.y)
+                                            {
+                                                float offset = resultRect.Max.y - availableRect.Max.y;
+                                                resultRect.Min.y -= offset;
+                                                resultRect.Max.y -= offset;
+                                            }
+                                            if (resultRect.Min.y < availableRect.Min.y)
+                                            {
+                                                float offset = availableRect.Min.y - resultRect.Min.y;
+                                                resultRect.Min.y += offset;
+                                                resultRect.Max.y += offset;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
-
-            result_rect = ImRect(best_pos, best_pos + ImVec2(popup_width, popup_height));
         }
 
-        // 3. 最终边界检查
-        // 水平方向
-        if (result_rect.Min.x < work_rect.Min.x)
+        // 如果没有父窗口，确保弹窗在可用区域内
+        else
         {
-            result_rect.TranslateX(work_rect.Min.x - result_rect.Min.x);
-        }
-        else if (result_rect.Max.x > work_rect.Max.x)
-        {
-            result_rect.TranslateX(work_rect.Max.x - result_rect.Max.x);
+            // 保证弹窗在可用屏幕范围内
+            if (resultRect.Max.x > availableRect.Max.x)
+            {
+                float offset = resultRect.Max.x - availableRect.Max.x;
+                resultRect.Min.x -= offset;
+                resultRect.Max.x -= offset;
+            }
+            if (resultRect.Min.x < availableRect.Min.x)
+            {
+                float offset = availableRect.Min.x - resultRect.Min.x;
+                resultRect.Min.x += offset;
+                resultRect.Max.x += offset;
+            }
+            if (resultRect.Max.y > availableRect.Max.y)
+            {
+                float offset = resultRect.Max.y - availableRect.Max.y;
+                resultRect.Min.y -= offset;
+                resultRect.Max.y -= offset;
+            }
+            if (resultRect.Min.y < availableRect.Min.y)
+            {
+                float offset = availableRect.Min.y - resultRect.Min.y;
+                resultRect.Min.y += offset;
+                resultRect.Max.y += offset;
+            }
         }
 
-        // 垂直方向
-        if (result_rect.Min.y < work_rect.Min.y)
+        // 如果仍然超出可用区域，将弹窗放置在原点
+        if (resultRect.Min.x < availableRect.Min.x || resultRect.Min.y < availableRect.Min.y ||
+            resultRect.Max.x > availableRect.Max.x || resultRect.Max.y > availableRect.Max.y)
         {
-            result_rect.TranslateY(work_rect.Min.y - result_rect.Min.y);
-        }
-        else if (result_rect.Max.y > work_rect.Max.y)
-        {
-            result_rect.TranslateY(work_rect.Max.y - result_rect.Max.y);
+            resultRect.Min.x = availableRect.Min.x;
+            resultRect.Min.y = availableRect.Min.y;
+            resultRect.Max.x = availableRect.Min.x + popupSize.x;
+            resultRect.Max.y = availableRect.Min.y + popupSize.y;
         }
 
-        return result_rect;
+        return resultRect;
     }
 
 } // namespace ImGuiWidget

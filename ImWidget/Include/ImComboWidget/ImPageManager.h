@@ -104,7 +104,8 @@ namespace ImGuiWidget
             {
                 closeButton = new ImButton("CloseButton_" + pageData.pageID);
                 closeButton->SetOriginalMinSize(ImVec2(m_closeButtonSize, m_closeButtonSize));
-
+                closeButton->SetToolTipEnable(true);
+                closeButton->SetToolTip(u8"关闭");
                 ImTextBlock* closeText = new ImTextBlock("CloseText_" + pageData.pageID);
                 closeText->SetText(u8"×");
                 closeText->SetTextColor(IM_COL32(100, 100, 100, 255)); // 浅灰色文字
@@ -465,6 +466,17 @@ namespace ImGuiWidget
             }
             RecreateTabForPage(NewPageID);
             return true;
+        }
+
+        bool SetPageToolTip(const std::string& PageID, const std::string& ToolTipText)
+        {
+            if (PageData* data = FindPageData(PageID))
+            {
+                data->tabButton->SetToolTipEnable(true);
+                data->tabButton->SetToolTip(ToolTipText);
+                return true;
+            }
+            else return false;
         }
 
         // 3. 获取页面显示名称

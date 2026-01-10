@@ -59,6 +59,8 @@ namespace ImGuiWidget
 
         void SetWindowInactive(ImWindow* window);
 
+        void SetPopupWindowRect(ImWindow* window, const ImVec2& Min, const ImVec2& Max);
+
         // 获取所有窗口
         const std::vector<ImWindow*>& GetWindows() const { return m_windows; }
 
