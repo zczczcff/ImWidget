@@ -263,6 +263,49 @@ namespace ImGuiWidget
             return minSize;
         }
 
+        virtual ImWidget* ChildHitTest(ImVec2 Pos) override
+        {
+            // 首先检查点击位置是否在控件区域内
+            ImRect widgetRect(Position, Position + Size);
+            if (!widgetRect.Contains(Pos))
+            {
+                return nullptr;
+            }
+
+            // 从后往前检查子控件（视觉上层的控件先检查）
+
+            // 如果展开状态，检查body控件
+            if (bIsExpanded)
+            {
+                if (ImSlot* bodySlot = GetSlotAt(1))
+                {
+                    if (ImWidget* bodyContent = bodySlot->GetContent())
+                    {
+                        ImWidget* bodyHit = bodyContent->ChildHitTest(Pos);
+                        if (bodyHit)
+                        {
+                            return bodyHit;
+                        }
+                    }
+                }
+            }
+
+            // 检查head控件
+            if (ImSlot* headSlot = GetSlotAt(0))
+            {
+                if (ImWidget* headContent = headSlot->GetContent())
+                {
+                    ImWidget* headHit = headContent->ChildHitTest(Pos);
+                    if (headHit)
+                    {
+                        return headHit;
+                    }
+                }
+            }
+            // 如果没有命中任何子控件，但点击在控件区域内，返回控件本身
+            return this;
+        }
+
         virtual void Render() override
         {
             RenderBackGround();
