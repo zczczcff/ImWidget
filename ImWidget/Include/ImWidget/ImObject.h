@@ -26,36 +26,36 @@ namespace ImGuiWidget
         Enum
     };
 
-    //std::string PropertyTypeToString(const PropertyType& type)
-    //{
-    //    switch (type)
-    //    {
-    //    case PropertyType::Color: return "Color";
-    //    case PropertyType::Float: return "Float";
-    //    case PropertyType::Bool: return "Bool";
-    //    case PropertyType::Int: return "Int";
-    //    case PropertyType::String: return "String";
-    //    case PropertyType::Vec2: return "Vec2";
-    //    case PropertyType::Struct: return "Struct";
-    //    case PropertyType::StringArray:return "StringArray";
-    //    case PropertyType::Enum:return "Enum";
-    //    default: return "UnknownType";
-    //    }
-    //}
+    inline std::string PropertyTypeToString(const PropertyType& type)
+    {
+        switch (type)
+        {
+        case PropertyType::Color: return "Color";
+        case PropertyType::Float: return "Float";
+        case PropertyType::Bool: return "Bool";
+        case PropertyType::Int: return "Int";
+        case PropertyType::String: return "String";
+        case PropertyType::Vec2: return "Vec2";
+        case PropertyType::Struct: return "Struct";
+        case PropertyType::StringArray:return "StringArray";
+        case PropertyType::Enum:return "Enum";
+        default: return "UnknownType";
+        }
+    }
 
-    //PropertyType StringToPropertyType(const std::string& s)
-    //{
-    //    if (s == "Color") return PropertyType::Color;
-    //    else if (s == "Float") return PropertyType::Float;
-    //    else if (s == "Bool") return PropertyType::Bool;
-    //    else if (s == "Int") return PropertyType::Int;
-    //    else if (s == "String") return PropertyType::String;
-    //    else if (s == "Vec2") return PropertyType::Vec2;
-    //    else if (s == "Struct") return PropertyType::Struct;
-    //    else if (s == "StringArray") return PropertyType::StringArray;
-    //    else if (s == "Enum") return PropertyType::Enum;
-    //    else return PropertyType::Float;
-    //}
+    inline PropertyType StringToPropertyType(const std::string& s)
+    {
+        if (s == "Color") return PropertyType::Color;
+        else if (s == "Float") return PropertyType::Float;
+        else if (s == "Bool") return PropertyType::Bool;
+        else if (s == "Int") return PropertyType::Int;
+        else if (s == "String") return PropertyType::String;
+        else if (s == "Vec2") return PropertyType::Vec2;
+        else if (s == "Struct") return PropertyType::Struct;
+        else if (s == "StringArray") return PropertyType::StringArray;
+        else if (s == "Enum") return PropertyType::Enum;
+        else return PropertyType::Float;
+    }
 
     class ImObject;
     typedef ImObject PropertyStruct ;

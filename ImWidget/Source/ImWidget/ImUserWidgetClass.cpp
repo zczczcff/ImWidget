@@ -24,15 +24,49 @@ namespace ImGuiWidget
     ImUserWidgetClass::variable* ImUserWidgetClass::AddStructVar(const std::string& varName, const std::string& RegisterName, variableQualifiers qualifier)
     {
 		if (FindVariable(varName)) return nullptr;
+		if (ImObject* NewObject = ImObjectFactory::GetInstance().CreateObject(RegisterName))
+		{
+			variable newvar =
+			{
+				varName ,
+				variableType::ImObject,
+				qualifier,
+				PropertyType::Struct,
+				NewObject
+			};
+			m_vars.push_back(newvar);
+			return &m_vars.back();
+		}
+        return nullptr;
+    }
 
-        return nullptr;
-    }
-    ImUserWidgetClass::variable* ImUserWidgetClass::AddSinglePropertyVar(const std::string& varName, PropertyType Ptype, variableQualifiers qualifier)
-    {
-        return nullptr;
-    }
+	ImUserWidgetClass::variable* ImUserWidgetClass::AddIntVar(const std::string& varName, variableQualifiers qualifier)
+	{
+		if (FindVariable(varName)) return nullptr;
+		variable newvar =
+		{
+			varName ,
+			variableType::ImObject,
+			qualifier,
+			PropertyType::Struct,
+			new int(0)
+		};
+		m_vars.push_back(newvar);
+		return &m_vars.back();
+		
+	}
+
     bool ImUserWidgetClass::RemovePropertyByName(const std::string& varName)
     {
+		for (auto it = m_vars.begin(); it != m_vars.end(); ++it)
+		{
+			if (it->varName == varName)
+			{
+				DeletePropertyValue(it->Ptype, it->var);
+				m_vars.erase(it);
+				return true;
+			}
+		}
         return false;
     }
     nlohmann::ordered_json ImUserWidgetClass::ToJson() const
@@ -62,7 +96,7 @@ namespace ImGuiWidget
 			else if (var.Vtype == variableType::property)
 			{
 				singleVarJson = SerializeProperty(var.Ptype, var.var);
-				//singleVarJson["VarType"] = PropertyTypeToString(var.Ptype);
+				singleVarJson["VarType"] = PropertyTypeToString(var.Ptype);
 			}
 			
 			varsJson.push_back(singleVarJson);
@@ -316,6 +350,9 @@ namespace ImGuiWidget
         case PropertyType::Enum:
             delete static_cast<std::vector<std::string>*>(valuePtr);
             break;
+		case PropertyType::Struct:
+			delete static_cast<ImObject*>(valuePtr);
+			break;
         default:
             break;
         }
