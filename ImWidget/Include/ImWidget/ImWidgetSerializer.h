@@ -10,8 +10,8 @@
 
 namespace ImGuiWidget
 {
-    nlohmann::ordered_json SerializeProperties(PropertyStruct* obj);
-    void DeserializeProperties(PropertyStruct* obj, const nlohmann::ordered_json& j);
+    nlohmann::ordered_json SerializeProperties(ImObject* obj);
+    void DeserializeProperties(ImObject* obj, const nlohmann::ordered_json& j);
 
 
 
@@ -53,7 +53,7 @@ namespace ImGuiWidget
         case PropertyType::Struct:
         {
             // 嵌套结构体需要递归处理
-            PropertyStruct* childStruct = static_cast<PropertyStruct*>(valuePtr);
+            ImObject* childStruct = static_cast<ImObject*>(valuePtr);
             if (childStruct)
             {
                 j = SerializeProperties(childStruct);
@@ -142,7 +142,7 @@ namespace ImGuiWidget
         case PropertyType::Struct:
         {
             // 嵌套结构体需要递归处理
-            PropertyStruct* childStruct = static_cast<PropertyStruct*>(valuePtr);
+            ImObject* childStruct = static_cast<ImObject*>(valuePtr);
             if (childStruct && j.is_object())
             {
                 DeserializeProperties(childStruct, j);
@@ -180,7 +180,7 @@ namespace ImGuiWidget
     }
 
     // 通用的属性序列化函数
-    nlohmann::ordered_json SerializeProperties(PropertyStruct* obj)
+    nlohmann::ordered_json SerializeProperties(ImObject* obj)
     {
         nlohmann::ordered_json j;
         if (!obj) return j;
@@ -198,7 +198,7 @@ namespace ImGuiWidget
     }
 
     // 通用的属性反序列化函数
-    void DeserializeProperties(PropertyStruct* obj, const nlohmann::ordered_json& j)
+    void DeserializeProperties(ImObject* obj, const nlohmann::ordered_json& j)
     {
         if (!obj) return;
 

@@ -9,7 +9,7 @@
 
 namespace ImGuiWidget
 {
-    class ButtonStateStyle : public PropertyStruct 
+    class ButtonStateStyle : public ImObject 
     {
     public:
         ImU32 BackgroundColor = IM_COL32(0, 0, 0, 0);

@@ -10,9 +10,9 @@ class PropertyEditCommand : public EditCommand
 {
 protected:
     ImGuiWidget::PropertyInfo m_PropertyInfo;
-    ImGuiWidget::PropertyStruct* m_Target;
+    ImGuiWidget::ImObject* m_Target;
 public:
-    PropertyEditCommand(const ImGuiWidget::PropertyInfo& propInfo, ImGuiWidget::PropertyStruct* Target)
+    PropertyEditCommand(const ImGuiWidget::PropertyInfo& propInfo, ImGuiWidget::ImObject* Target)
         : m_PropertyInfo(propInfo),
         m_Target(Target)
     {
@@ -43,7 +43,7 @@ public:
     // 获取属性类型
     ImGuiWidget::PropertyType GetPropertyType() const { return m_PropertyInfo.type; }
 
-    ImGuiWidget::PropertyStruct* GetTarget() { return m_Target; }
+    ImGuiWidget::ImObject* GetTarget() { return m_Target; }
 };
 
 // 颜色编辑命令合并
@@ -54,7 +54,7 @@ private:
     ImU32 m_NewValue;
 
 public:
-    ColorEditCommand(const ImGuiWidget::PropertyInfo& propInfo, ImU32 newValue, ImGuiWidget::PropertyStruct* Target)
+    ColorEditCommand(const ImGuiWidget::PropertyInfo& propInfo, ImU32 newValue, ImGuiWidget::ImObject* Target)
         : PropertyEditCommand(propInfo,Target)
         , m_OldValue(m_PropertyInfo.GetColorValue())
         , m_NewValue(newValue)
@@ -91,7 +91,7 @@ private:
     std::string m_NewValue;
 
 public:
-    StringEditCommand(const ImGuiWidget::PropertyInfo& propInfo, const std::string& newValue, ImGuiWidget::PropertyStruct* Target)
+    StringEditCommand(const ImGuiWidget::PropertyInfo& propInfo, const std::string& newValue, ImGuiWidget::ImObject* Target)
         : PropertyEditCommand(propInfo,Target)
         , m_OldValue(m_PropertyInfo.GetStringValue())
         , m_NewValue(newValue)
@@ -127,7 +127,7 @@ private:
     float m_NewValue;
 
 public:
-    FloatEditCommand(const ImGuiWidget::PropertyInfo& propInfo, float newValue, ImGuiWidget::PropertyStruct* Target)
+    FloatEditCommand(const ImGuiWidget::PropertyInfo& propInfo, float newValue, ImGuiWidget::ImObject* Target)
         : PropertyEditCommand(propInfo,Target)
         , m_OldValue(m_PropertyInfo.GetFloatValue())
         , m_NewValue(newValue)
@@ -163,7 +163,7 @@ private:
     int m_NewValue;
 
 public:
-    IntEditCommand(const ImGuiWidget::PropertyInfo& propInfo, int newValue, ImGuiWidget::PropertyStruct* Target)
+    IntEditCommand(const ImGuiWidget::PropertyInfo& propInfo, int newValue, ImGuiWidget::ImObject* Target)
         : PropertyEditCommand(propInfo,Target)
         , m_OldValue(m_PropertyInfo.GetIntValue())
         , m_NewValue(newValue)
@@ -199,7 +199,7 @@ private:
     bool m_NewValue;
 
 public:
-    BoolEditCommand(const ImGuiWidget::PropertyInfo& propInfo, bool newValue, ImGuiWidget::PropertyStruct* Target)
+    BoolEditCommand(const ImGuiWidget::PropertyInfo& propInfo, bool newValue, ImGuiWidget::ImObject* Target)
         : PropertyEditCommand(propInfo,Target)
         , m_OldValue(m_PropertyInfo.GetBoolValue())
         , m_NewValue(newValue)
@@ -227,7 +227,7 @@ private:
     ImVec2 m_NewValue;
 
 public:
-    Vec2EditCommand(const ImGuiWidget::PropertyInfo& propInfo, const ImVec2& newValue, ImGuiWidget::PropertyStruct* Target)
+    Vec2EditCommand(const ImGuiWidget::PropertyInfo& propInfo, const ImVec2& newValue, ImGuiWidget::ImObject* Target)
         : PropertyEditCommand(propInfo,Target)
         , m_OldValue(m_PropertyInfo.GetVec2Value())
         , m_NewValue(newValue)
@@ -263,7 +263,7 @@ private:
     std::string m_NewValue;
 
 public:
-    EnumEditCommand(const ImGuiWidget::PropertyInfo& propInfo, const std::string& newValue, ImGuiWidget::PropertyStruct* Target)
+    EnumEditCommand(const ImGuiWidget::PropertyInfo& propInfo, const std::string& newValue, ImGuiWidget::ImObject* Target)
         : PropertyEditCommand(propInfo,Target)
         , m_OldValue(m_PropertyInfo.GetEnumCurrentValue())
         , m_NewValue(newValue)
@@ -299,7 +299,7 @@ private:
     std::vector<std::string> m_NewValue;
 
 public:
-    StringArrayEditCommand(const ImGuiWidget::PropertyInfo& propInfo, const std::vector<std::string>& newValue, ImGuiWidget::PropertyStruct* Target)
+    StringArrayEditCommand(const ImGuiWidget::PropertyInfo& propInfo, const std::vector<std::string>& newValue, ImGuiWidget::ImObject* Target)
         : PropertyEditCommand(propInfo,Target)
         , m_OldValue(m_PropertyInfo.GetStringArrayValue())
         , m_NewValue(newValue)
@@ -323,11 +323,11 @@ public:
 class StructEditCommand : public PropertyEditCommand
 {
 private:
-    ImGuiWidget::PropertyStruct m_OldValue;
-    ImGuiWidget::PropertyStruct m_NewValue;
+    ImGuiWidget::ImObject m_OldValue;
+    ImGuiWidget::ImObject m_NewValue;
 
 public:
-    StructEditCommand(const ImGuiWidget::PropertyInfo& propInfo, ImGuiWidget::PropertyStruct newValue, ImGuiWidget::PropertyStruct* Target)
+    StructEditCommand(const ImGuiWidget::PropertyInfo& propInfo, ImGuiWidget::ImObject newValue, ImGuiWidget::ImObject* Target)
         : PropertyEditCommand(propInfo,Target)
         , m_OldValue(*m_PropertyInfo.GetStructValue())
         , m_NewValue(newValue)

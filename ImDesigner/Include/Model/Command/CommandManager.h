@@ -19,15 +19,15 @@ private:
     bool bIsUndoRedo = false;
     EditCommand* m_CurrentMergingCommand = nullptr;
 public:
-    ImMulticastDelegate<ImGuiWidget::PropertyStruct*, const std::string&> OnPropertyEditUnDoRedo;
+    ImMulticastDelegate<ImGuiWidget::ImObject*, const std::string&> OnPropertyEditUnDoRedo;
     ImMulticastDelegate<> OnChildEditUndoRedo;
 private:
     std::unique_ptr<EditCommand> CreatePropertyEditCommand(
         const ImGuiWidget::PropertyInfo& propInfo,
         const void* newValue,
-        ImGuiWidget::PropertyStruct* target
+        ImGuiWidget::ImObject* target
     );
-    void ExecutePropertyEditImpl(const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::PropertyStruct* target);
+    void ExecutePropertyEditImpl(const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::ImObject* target);
     bool Execute(std::unique_ptr<EditCommand> command);
 public:
     //template<typename T>
@@ -35,7 +35,7 @@ public:
     //{
     //    ExecutePropertyEditImpl(propInfo, &NewValue);
     //}
-    void ExecutePropertyEdit(const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::PropertyStruct* target)
+    void ExecutePropertyEdit(const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::ImObject* target)
     {
         ExecutePropertyEditImpl(propInfo, newValue, target);
     }

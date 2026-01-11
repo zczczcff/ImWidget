@@ -147,7 +147,7 @@ namespace ImGuiWidget
                 break;
             }
             case PropertyType::Struct: {
-                PropertyStruct* structValue = prop.GetStructValue();
+                ImObject* structValue = prop.GetStructValue();
                 if (structValue)
                 {
                     std::vector<uint8_t> nestedData = structValue->Serialize();
@@ -179,7 +179,7 @@ namespace ImGuiWidget
 
         // 修改后的反序列化属性函数，接受属性映射
         bool DeserializeProperty(
-            PropertyStruct* obj,
+            ImObject* obj,
             const std::string& propName,
             Serializer& ser,
             const std::vector<uint8_t>& data,
@@ -230,7 +230,7 @@ namespace ImGuiWidget
                 uint32_t nestedSize = ser.ReadUInt32(data);
                 if (nestedSize > 0)
                 {
-                    PropertyStruct* structValue = prop.GetStructValue();
+                    ImObject* structValue = prop.GetStructValue();
                     if (structValue)
                     {
                         std::vector<uint8_t> nestedData(data.begin() + ser.GetReadPos(),
@@ -301,8 +301,8 @@ namespace ImGuiWidget
         }
     }
 
-    // PropertyStruct 的序列化实现
-    std::vector<uint8_t> PropertyStruct::Serialize()
+    // ImObject 的序列化实现
+    std::vector<uint8_t> ImObject::Serialize()
     {
         Serializer serializer;
         auto properties = GetProperties();
@@ -319,8 +319,8 @@ namespace ImGuiWidget
         return serializer.GetData();
     }
 
-    // PropertyStruct 的反序列化实现 - 修改后只调用一次GetProperties()
-    bool PropertyStruct::Deserialize(const std::vector<uint8_t>& data)
+    // ImObject 的反序列化实现 - 修改后只调用一次GetProperties()
+    bool ImObject::Deserialize(const std::vector<uint8_t>& data)
     {
         if (data.empty()) return false;
 

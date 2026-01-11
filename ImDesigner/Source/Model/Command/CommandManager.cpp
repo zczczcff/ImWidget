@@ -4,7 +4,7 @@
 #include "ImWidget/ImPanelWidget.h"
 #include "Tools/JLog.h"
 
-std::unique_ptr<EditCommand> EditCommandManager::CreatePropertyEditCommand(const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::PropertyStruct* target)
+std::unique_ptr<EditCommand> EditCommandManager::CreatePropertyEditCommand(const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::ImObject* target)
 {
     switch (propInfo.type)
     {
@@ -33,14 +33,14 @@ std::unique_ptr<EditCommand> EditCommandManager::CreatePropertyEditCommand(const
         return std::make_unique<StringArrayEditCommand>(propInfo, *static_cast<const std::vector<std::string>*>(newValue), target);
 
     case ImGuiWidget::PropertyType::Struct:
-        return std::make_unique<StructEditCommand>(propInfo, *static_cast<const ImGuiWidget::PropertyStruct*>(newValue), target);
+        return std::make_unique<StructEditCommand>(propInfo, *static_cast<const ImGuiWidget::ImObject*>(newValue), target);
 
     default:
         return nullptr;
     }
 }
 
-void EditCommandManager::ExecutePropertyEditImpl(const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::PropertyStruct* target)
+void EditCommandManager::ExecutePropertyEditImpl(const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::ImObject* target)
 {
     auto command = CreatePropertyEditCommand(propInfo, newValue, target);
     if (!command) return;

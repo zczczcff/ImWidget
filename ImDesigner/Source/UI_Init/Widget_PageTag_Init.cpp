@@ -13,7 +13,7 @@ void Widget_PageTag::Init()
     ImButton_Close = new ImGuiWidget::ImButton("ImButton_Close");
     ImTextBlock_6 = new ImGuiWidget::ImTextBlock("ImTextBlock_6");
 
-    ImGuiWidget::PropertyStruct* ImButton_PageButton_PressedStyle = ImButton_PageButton->GetPropertyPtr<ImGuiWidget::PropertyStruct>("PressedStyle");
+    ImGuiWidget::ImObject* ImButton_PageButton_PressedStyle = ImButton_PageButton->GetPropertyPtr<ImGuiWidget::ImObject>("PressedStyle");
     ImButton_PageButton_PressedStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(200, 220, 255, 255));
     ImButton_PageButton_PressedStyle->SetPropertyValue<bool>("HasBorder", false);
     ImButton_PageButton_PressedStyle->SetPropertyValue<float>("Rounding", 0.000000f);
@@ -23,14 +23,14 @@ void Widget_PageTag::Init()
     ImButton_PageButton->SetPropertyValue<std::string>("Name", "ImButton_PageButton");
     ImButton_PageButton->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
     ImButton_PageButton->SetPropertyValue<bool>("HaveBorder", true);
-    ImGuiWidget::PropertyStruct* ImButton_PageButton_NormalStyle = ImButton_PageButton->GetPropertyPtr<ImGuiWidget::PropertyStruct>("NormalStyle");
+    ImGuiWidget::ImObject* ImButton_PageButton_NormalStyle = ImButton_PageButton->GetPropertyPtr<ImGuiWidget::ImObject>("NormalStyle");
     ImButton_PageButton_NormalStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(240, 245, 255, 255));
     ImButton_PageButton_NormalStyle->SetPropertyValue<bool>("HasBorder", false);
     ImButton_PageButton_NormalStyle->SetPropertyValue<float>("Rounding", 0.000000f);
     ImButton_PageButton_NormalStyle->SetPropertyValue<float>("BorderThickness", 1.000000f);
     ImButton_PageButton_NormalStyle->SetPropertyValue<ImU32>("BorderColor", IM_COL32(255, 255, 255, 255));
     ImButton_PageButton->SetPropertyValue<std::string>("TooltipText", "");
-    ImGuiWidget::PropertyStruct* ImButton_PageButton_HoveredStyle = ImButton_PageButton->GetPropertyPtr<ImGuiWidget::PropertyStruct>("HoveredStyle");
+    ImGuiWidget::ImObject* ImButton_PageButton_HoveredStyle = ImButton_PageButton->GetPropertyPtr<ImGuiWidget::ImObject>("HoveredStyle");
     ImButton_PageButton_HoveredStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(225, 235, 255, 255));
     ImButton_PageButton_HoveredStyle->SetPropertyValue<bool>("HasBorder", false);
     ImButton_PageButton_HoveredStyle->SetPropertyValue<float>("Rounding", 0.000000f);
@@ -49,7 +49,7 @@ void Widget_PageTag::Init()
     ImTextBlock_PageName->SetPropertyValue<std::string>("HorizontalAlignment", "Center");
     ImTextBlock_PageName->SetPropertyValue<std::string>("VerticalAlignment", "Center");
 
-    ImGuiWidget::PropertyStruct* ImButton_Close_PressedStyle = ImButton_Close->GetPropertyPtr<ImGuiWidget::PropertyStruct>("PressedStyle");
+    ImGuiWidget::ImObject* ImButton_Close_PressedStyle = ImButton_Close->GetPropertyPtr<ImGuiWidget::ImObject>("PressedStyle");
     ImButton_Close_PressedStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(224, 90, 90, 255));
     ImButton_Close_PressedStyle->SetPropertyValue<bool>("HasBorder", false);
     ImButton_Close_PressedStyle->SetPropertyValue<float>("Rounding", 0.000000f);
@@ -59,14 +59,14 @@ void Widget_PageTag::Init()
     ImButton_Close->SetPropertyValue<std::string>("Name", "ImButton_Close");
     ImButton_Close->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
     ImButton_Close->SetPropertyValue<bool>("HaveBorder", false);
-    ImGuiWidget::PropertyStruct* ImButton_Close_NormalStyle = ImButton_Close->GetPropertyPtr<ImGuiWidget::PropertyStruct>("NormalStyle");
+    ImGuiWidget::ImObject* ImButton_Close_NormalStyle = ImButton_Close->GetPropertyPtr<ImGuiWidget::ImObject>("NormalStyle");
     ImButton_Close_NormalStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(136, 136, 136, 255));
     ImButton_Close_NormalStyle->SetPropertyValue<bool>("HasBorder", false);
     ImButton_Close_NormalStyle->SetPropertyValue<float>("Rounding", 0.000000f);
     ImButton_Close_NormalStyle->SetPropertyValue<float>("BorderThickness", 1.000000f);
     ImButton_Close_NormalStyle->SetPropertyValue<ImU32>("BorderColor", IM_COL32(255, 255, 255, 255));
     ImButton_Close->SetPropertyValue<std::string>("TooltipText", "");
-    ImGuiWidget::PropertyStruct* ImButton_Close_HoveredStyle = ImButton_Close->GetPropertyPtr<ImGuiWidget::PropertyStruct>("HoveredStyle");
+    ImGuiWidget::ImObject* ImButton_Close_HoveredStyle = ImButton_Close->GetPropertyPtr<ImGuiWidget::ImObject>("HoveredStyle");
     ImButton_Close_HoveredStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(255, 107, 107, 255));
     ImButton_Close_HoveredStyle->SetPropertyValue<bool>("HasBorder", false);
     ImButton_Close_HoveredStyle->SetPropertyValue<float>("Rounding", 0.000000f);

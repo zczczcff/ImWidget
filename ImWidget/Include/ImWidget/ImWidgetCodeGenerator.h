@@ -135,7 +135,7 @@ namespace ImGuiWidget
         case PropertyType::Int: return "int";
         case PropertyType::String: return "std::string";
         case PropertyType::Vec2: return "ImVec2";
-        case PropertyType::Struct: return "PropertyStruct";
+        case PropertyType::Struct: return "ImObject";
         case PropertyType::StringArray:return "std::vector<std::string>";
         case PropertyType::Enum:return "std::string";
         default: return "UnknownType";
@@ -143,7 +143,7 @@ namespace ImGuiWidget
     }
 
     // 递归生成结构体属性的初始化代码
-    std::string GenerateStructPropertiesCode(PropertyStruct* propStruct,
+    std::string GenerateStructPropertiesCode(ImObject* propStruct,
         const std::string& structAccessor,
         int indentLevel)
     {
@@ -160,7 +160,7 @@ namespace ImGuiWidget
             std::string valueCode;
             if (prop.type == PropertyType::Struct) {
                 // 嵌套结构体递归处理
-                PropertyStruct* nestedStruct = static_cast<PropertyStruct*>(valuePtr);
+                ImObject* nestedStruct = static_cast<ImObject*>(valuePtr);
                 std::string nestedAccessor = structAccessor + "." + prop.name;
                 oss << GenerateStructPropertiesCode(nestedStruct, nestedAccessor, indentLevel + 1);
             }
@@ -195,7 +195,7 @@ namespace ImGuiWidget
 
             if (prop.type == PropertyType::Struct) {
                 // 结构体属性需要特殊处理
-                PropertyStruct* propStruct = static_cast<PropertyStruct*>(valuePtr);
+                ImObject* propStruct = static_cast<ImObject*>(valuePtr);
                 std::string structAccessor = varName + ".Get" + prop.name + "()";
 
                 oss << "// Initialize " << prop.name << " properties\n";
@@ -223,10 +223,10 @@ namespace ImGuiWidget
 
             if (prop.type == PropertyType::Struct) 
             {
-                PropertyStruct* nestedStruct = static_cast<PropertyStruct*>(valuePtr);
+                ImObject* nestedStruct = static_cast<ImObject*>(valuePtr);
                 std::string nestedAccessor = accessor + "_" + prop.name;
-                context.oss << context.indentStr() << "PropertyStruct* " << nestedAccessor
-                    << " = " << accessor << "->GetPropertyPtr<PropertyStruct>(" << prop.name
+                context.oss << context.indentStr() << "ImObject* " << nestedAccessor
+                    << " = " << accessor << "->GetPropertyPtr<ImObject>(" << prop.name
                     << ");\n";
                 GeneratePropertiesCode(nestedStruct, nestedAccessor, context);
             }
@@ -261,11 +261,11 @@ namespace ImGuiWidget
             if (!valuePtr) continue;
 
             if (prop.type == PropertyType::Struct) {
-                PropertyStruct* nestedStruct = static_cast<PropertyStruct*>(valuePtr);
+                ImObject* nestedStruct = static_cast<ImObject*>(valuePtr);
                 std::string nestedAccessor = varName + "_" + prop.name;
                 context.oss << context.indentStr()
-                    << "ImGuiWidget::PropertyStruct* " << nestedAccessor
-                    << " = " << varName << "->GetPropertyPtr<ImGuiWidget::PropertyStruct>(\""
+                    << "ImGuiWidget::ImObject* " << nestedAccessor
+                    << " = " << varName << "->GetPropertyPtr<ImGuiWidget::ImObject>(\""
                     << prop.name << "\");\n";
                 GeneratePropertiesCode(nestedStruct, nestedAccessor, context);
             }
@@ -508,10 +508,10 @@ namespace ImGuiWidget
                 if (!valuePtr) continue;
 
                 if (prop.type == PropertyType::Struct) {
-                    PropertyStruct* nestedStruct = static_cast<PropertyStruct*>(valuePtr);
+                    ImObject* nestedStruct = static_cast<ImObject*>(valuePtr);
                     std::string nestedAccessor = varName + "_" + prop.name;
-                    initCode << "    ImGuiWidget::PropertyStruct* " << nestedAccessor
-                        << " = " << varName << "->GetPropertyPtr<ImGuiWidget::PropertyStruct>(\""
+                    initCode << "    ImGuiWidget::ImObject* " << nestedAccessor
+                        << " = " << varName << "->GetPropertyPtr<ImGuiWidget::ImObject>(\""
                         << prop.name << "\");\n";
                     CodeGenContext context{ initCode, 1 };
                     GeneratePropertiesCode(nestedStruct, nestedAccessor, context);
@@ -554,10 +554,10 @@ namespace ImGuiWidget
                         if (!valuePtr) continue;
 
                         if (prop.type == PropertyType::Struct) {
-                            PropertyStruct* nestedStruct = static_cast<PropertyStruct*>(valuePtr);
+                            ImObject* nestedStruct = static_cast<ImObject*>(valuePtr);
                             std::string nestedAccessor = slotVar + "_" + prop.name;
-                            initCode << "    ImGuiWidget::PropertyStruct* " << nestedAccessor
-                                << " = " << slotVar << "->GetPropertyPtr<ImGuiWidget::PropertyStruct>(\""
+                            initCode << "    ImGuiWidget::ImObject* " << nestedAccessor
+                                << " = " << slotVar << "->GetPropertyPtr<ImGuiWidget::ImObject>(\""
                                 << prop.name << "\");\n";
                             CodeGenContext context{ initCode, 1 };
                             GeneratePropertiesCode(nestedStruct, nestedAccessor, context);

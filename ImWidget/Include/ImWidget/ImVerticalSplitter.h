@@ -5,7 +5,7 @@
 
 namespace ImGuiWidget
 {
-    struct ImVerticalSplitterStyle : public PropertyStruct
+    struct ImVerticalSplitterStyle : public ImObject
     {
         float BarHeight = 4.0f;
         ImU32 Color = IM_COL32(100, 100, 100, 255);

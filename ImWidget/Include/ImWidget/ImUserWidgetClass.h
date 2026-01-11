@@ -11,7 +11,7 @@ namespace ImGuiWidget
 		enum class variableType
 		{
 			widget,
-			propertystruct,
+			ImObject,
 			property
 		};
 		enum class variableQualifiers

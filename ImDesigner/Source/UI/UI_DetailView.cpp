@@ -14,7 +14,7 @@ ImGuiWidget::ImHorizontalBox* UI_DetailView::HandleAddStringItem(
 	const ImGuiWidget::PropertyInfo& SingleProperty,
 	std::string& SingleString,
 	ImGuiWidget::ImVerticalBox* StringListBox,
-	ImGuiWidget::PropertyStruct* Target,
+	ImGuiWidget::ImObject* Target,
 	ImGuiWidget::ImWidget* WidgetOwner)
 {
 	ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
@@ -67,7 +67,7 @@ ImGuiWidget::ImHorizontalBox* UI_DetailView::HandleAddStringItem(
 void UI_DetailView::HandleSingleProperty(
 	const ImGuiWidget::PropertyInfo& SingleProperty, 
 	ImGuiWidget::ImVerticalBox* CurrentVerticalBox,
-	ImGuiWidget::PropertyStruct* Target,
+	ImGuiWidget::ImObject* Target,
 	ImGuiWidget::ImWidget* WidgetOwner,
 	std::unordered_map<std::string, std::function<void()>>& Updaters)
 {
@@ -181,7 +181,7 @@ void UI_DetailView::HandleSingleProperty(
 		ImGuiWidget::ImVerticalBox* StructPropertyBox = new ImGuiWidget::ImVerticalBox(m_WidgetID + "_StructPropertyBox");
 		StructBox->SetHead(PropertyName);
 		StructBox->SetBody(StructPropertyBox);
-		ImGuiWidget::PropertyStruct* SubTarget = (ImGuiWidget::PropertyStruct*)(SingleProperty.getter());
+		ImGuiWidget::ImObject* SubTarget = (ImGuiWidget::ImObject*)(SingleProperty.getter());
 
 		std::unordered_map<std::string, std::function<void()>> SubUpdaters;
 		for (auto& SubSingleProperty : SubTarget->GetProperties())
@@ -385,7 +385,7 @@ void UI_DetailView::SetCurrentWidget(ImGuiWidget::ImWidget* widget)
 	SetRootWidget(VBox, false);
 }
 
-void UI_DetailView::UpdatePropertyDisplay(ImGuiWidget::PropertyStruct* Target, const std::string& PropertyName)
+void UI_DetailView::UpdatePropertyDisplay(ImGuiWidget::ImObject* Target, const std::string& PropertyName)
 {
 	auto it = CachedPropertyInfors.find(Target);
 	if (it == CachedPropertyInfors.end())

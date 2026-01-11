@@ -26,7 +26,7 @@ Model_WidgetEditor::Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget):
 	RootWidget(rootwidget),
 	m_EditCommandManager(new EditCommandManager())
 {
-	m_EditCommandManager->OnPropertyEditUnDoRedo.Add([this](ImGuiWidget::PropertyStruct* target, const std::string& propertyname)
+	m_EditCommandManager->OnPropertyEditUnDoRedo.Add([this](ImGuiWidget::ImObject* target, const std::string& propertyname)
 		{
 			OnPropertyEditUnDoRedo.Broadcast(target, propertyname);
 		});
@@ -87,7 +87,7 @@ bool Model_WidgetEditor::InsertChildTo(const std::string& WidgetRegisterName, Im
 	return false;
 }
 
-void Model_WidgetEditor::EditProperty(const ImGuiWidget::PropertyInfo& propInfo, const void* NewValue, ImGuiWidget::PropertyStruct* Target)
+void Model_WidgetEditor::EditProperty(const ImGuiWidget::PropertyInfo& propInfo, const void* NewValue, ImGuiWidget::ImObject* Target)
 {
 	m_EditCommandManager->ExecutePropertyEdit(propInfo, NewValue, Target);
 	UpdateUndoRedoState();

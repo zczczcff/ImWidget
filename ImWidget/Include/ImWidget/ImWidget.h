@@ -9,7 +9,7 @@
 namespace ImGuiWidget
 {
 	class ImPanelWidget;
-	class ImWidget :public PropertyStruct
+	class ImWidget :public ImObject
 	{
 	private:
 		ImWidgetRef m_selfRef;
@@ -183,7 +183,7 @@ namespace ImGuiWidget
 			return Props;
 		}
 
-		virtual std::string GetRegisterTypeName() { return "ImWidget"; }
+		virtual std::string GetRegisterTypeName() override { return "ImWidget"; }
 
 		bool IsInTree(ImWidget* WidgetTree)
 		{

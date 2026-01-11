@@ -51,9 +51,9 @@ namespace ImGuiWidget
 				singleVarJson = SerializeWidgetTree(static_cast<ImWidget*>(var.var));
 				singleVarJson["VarType"] = "Widget";
 			}
-			else if (var.Vtype == variableType::propertystruct)
+			else if (var.Vtype == variableType::ImObject)
 			{
-				singleVarJson = SerializeProperty(PropertyType::Struct,static_cast<PropertyStruct*>(var.var));
+				singleVarJson = SerializeProperty(PropertyType::Struct,static_cast<ImObject*>(var.var));
 				singleVarJson["VarType"] = "Struct";
 			}
 			else if (var.Vtype == variableType::property)
@@ -124,9 +124,9 @@ namespace ImGuiWidget
 				}
 				else if (varTypeStr == "Struct")
 				{
-					newVar.Vtype = variableType::propertystruct;
-					// 创建PropertyStruct实例
-					PropertyStruct* structPtr = new PropertyStruct();
+					newVar.Vtype = variableType::ImObject;
+					// 创建ImObject实例
+					ImObject* structPtr = new ImObject();
 					if (varJson.is_object())
 					{
 						DeserializeProperties(structPtr, varJson);

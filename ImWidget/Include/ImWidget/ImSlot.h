@@ -7,7 +7,7 @@
 namespace ImGuiWidget
 {
 	class ImWidget;
-	class ImSlot :public PropertyStruct
+	class ImSlot :public ImObject
 	{
 	protected:
 		ImWidget* Content;

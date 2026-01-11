@@ -12,7 +12,7 @@ void Widget_ExampleWidgetButton::Init()
     ImImage_Icon = new ImGuiWidget::ImImage("ImImage_Icon");
     ImTextBlock_WidgetTypeName = new ImGuiWidget::ImTextBlock("ImTextBlock_WidgetTypeName");
 
-    ImGuiWidget::PropertyStruct* ImButton_ExampleButton_PressedStyle = ImButton_ExampleButton->GetPropertyPtr<ImGuiWidget::PropertyStruct>("PressedStyle");
+    ImGuiWidget::ImObject* ImButton_ExampleButton_PressedStyle = ImButton_ExampleButton->GetPropertyPtr<ImGuiWidget::ImObject>("PressedStyle");
     ImButton_ExampleButton_PressedStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(136, 255, 206, 255));
     ImButton_ExampleButton_PressedStyle->SetPropertyValue<bool>("HasBorder", false);
     ImButton_ExampleButton_PressedStyle->SetPropertyValue<float>("Rounding", 0.000000f);
@@ -22,14 +22,14 @@ void Widget_ExampleWidgetButton::Init()
     ImButton_ExampleButton->SetPropertyValue<std::string>("Name", "ImButton_ExampleButton");
     ImButton_ExampleButton->SetPropertyValue<ImU32>("BackGroundColor", IM_COL32(255, 255, 255, 255));
     ImButton_ExampleButton->SetPropertyValue<bool>("HaveBorder", true);
-    ImGuiWidget::PropertyStruct* ImButton_ExampleButton_NormalStyle = ImButton_ExampleButton->GetPropertyPtr<ImGuiWidget::PropertyStruct>("NormalStyle");
+    ImGuiWidget::ImObject* ImButton_ExampleButton_NormalStyle = ImButton_ExampleButton->GetPropertyPtr<ImGuiWidget::ImObject>("NormalStyle");
     ImButton_ExampleButton_NormalStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(255, 255, 255, 255));
     ImButton_ExampleButton_NormalStyle->SetPropertyValue<bool>("HasBorder", false);
     ImButton_ExampleButton_NormalStyle->SetPropertyValue<float>("Rounding", 0.000000f);
     ImButton_ExampleButton_NormalStyle->SetPropertyValue<float>("BorderThickness", 1.000000f);
     ImButton_ExampleButton_NormalStyle->SetPropertyValue<ImU32>("BorderColor", IM_COL32(255, 255, 255, 255));
     ImButton_ExampleButton->SetPropertyValue<std::string>("TooltipText", "");
-    ImGuiWidget::PropertyStruct* ImButton_ExampleButton_HoveredStyle = ImButton_ExampleButton->GetPropertyPtr<ImGuiWidget::PropertyStruct>("HoveredStyle");
+    ImGuiWidget::ImObject* ImButton_ExampleButton_HoveredStyle = ImButton_ExampleButton->GetPropertyPtr<ImGuiWidget::ImObject>("HoveredStyle");
     ImButton_ExampleButton_HoveredStyle->SetPropertyValue<ImU32>("BackgroundColor", IM_COL32(224, 253, 221, 255));
     ImButton_ExampleButton_HoveredStyle->SetPropertyValue<bool>("HasBorder", false);
     ImButton_ExampleButton_HoveredStyle->SetPropertyValue<float>("Rounding", 0.000000f);

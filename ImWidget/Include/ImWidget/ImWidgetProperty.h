@@ -21,7 +21,7 @@ namespace ImGuiWidget
         Int,        // int
         String,     // std::string
         Vec2,       // ImVec2
-        Struct,      // PropertyStruct 派生类
+        Struct,      // ImObject 派生类
         StringArray,     //新增：数组
         Enum
     };
@@ -57,7 +57,8 @@ namespace ImGuiWidget
     //    else return PropertyType::Float;
     //}
 
-    class PropertyStruct;
+    class ImObject;
+    typedef ImObject PropertyStruct ;
     // 属性信息结构
     struct PropertyInfo 
     {
@@ -155,17 +156,17 @@ namespace ImGuiWidget
             return *static_cast<ImVec2*>(getter());
         }
 
-        bool SetStructValue(PropertyStruct* value)
+        bool SetStructValue(ImObject* value)
         {
             if (type != PropertyType::Struct) return false;
             setter(static_cast<void*>(value));
             return true;
         }
 
-        PropertyStruct* GetStructValue()const
+        ImObject* GetStructValue()const
         {
             if (type != PropertyType::Struct) return nullptr;
-            return static_cast<PropertyStruct*>(getter());
+            return static_cast<ImObject*>(getter());
         }
 
         bool SetStringArrayValue(const std::vector<std::string>& value)
@@ -206,10 +207,10 @@ namespace ImGuiWidget
     };
 
     // 属性结构基类
-    class PropertyStruct 
+    class ImObject 
     {
     public:
-        virtual ~PropertyStruct() = default;
+        virtual ~ImObject() = default;
 
         // 获取所有可编辑属性
         virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() { return std::unordered_set<PropertyInfo, PropertyInfo::Hasher>(); }
@@ -270,7 +271,7 @@ namespace ImGuiWidget
         // 反序列化函数
         bool Deserialize(const std::vector<uint8_t>& data);
 
-        virtual std::string GetRegisterName() { return ""; }
+        virtual std::string GetRegisterTypeName() { return ""; }
     };
 
 
