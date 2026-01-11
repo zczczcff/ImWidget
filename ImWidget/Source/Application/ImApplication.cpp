@@ -1,5 +1,3 @@
-#include "..\..\Include\Application\ImApplication.h"
-#include "..\..\Include\Application\ImApplication.h"
 #include "Application/ImApplication.h"
 #include "ImTools/DelayEventQueue.h"
 extern void ImTick();

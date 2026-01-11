@@ -1,13 +1,13 @@
 #pragma once
 
 #include "ImWidget.h"
-#include "../Application/ImApplication.h"
+#include "Application/ImApplication.h"
+#include "ImGlobalInstance.h"
 #include <imgui_internal.h>
 
 
 namespace ImGuiWidget
 {
-	extern ImApplication* GlobalApp;
 	class ImImage :public ImWidget
 	{
 	private:
@@ -57,10 +57,10 @@ namespace ImGuiWidget
 		{
 			if (m_TextureID != 0)
 			{
-				GlobalApp->ReleaseTexture(m_TextureID);
+				GetGlobalInstance()->GetGlobalApp()->ReleaseTexture(m_TextureID);
 				m_TextureID = 0;
 			}
-			m_TextureID = GlobalApp->LoadImageFromFile(FilePath.c_str(), OriginalWidth, OriginalHeight);
+			m_TextureID = GetGlobalInstance()->GetGlobalApp()->LoadImageFromFile(FilePath.c_str(), OriginalWidth, OriginalHeight);
 			if (m_TextureID != 0)
 			{
 				return true;

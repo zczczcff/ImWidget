@@ -1,5 +1,6 @@
 #include "ImWidget/ImUserWidgetClass.h"
 #include "ImWidget/ImWidgetFactory.h"
+#include "ImWidget/ImObjectFactory.h"
 namespace ImGuiWidget
 {
     ImUserWidgetClass::variable* ImUserWidgetClass::AddWidgetVar(const std::string& varName, const std::string& RegisterName, variableQualifiers qualifier)
@@ -22,6 +23,8 @@ namespace ImGuiWidget
     }
     ImUserWidgetClass::variable* ImUserWidgetClass::AddStructVar(const std::string& varName, const std::string& RegisterName, variableQualifiers qualifier)
     {
+		if (FindVariable(varName)) return nullptr;
+
         return nullptr;
     }
     ImUserWidgetClass::variable* ImUserWidgetClass::AddSinglePropertyVar(const std::string& varName, PropertyType Ptype, variableQualifiers qualifier)

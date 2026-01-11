@@ -31,7 +31,7 @@ namespace ImGuiWidget
         {}
         virtual ImVec2 GetMinSize() 
         { 
-			ImGui::PushFont(ImApplication::GetFont(TextSize));
+			ImGui::PushFont(::ImApplication::GetFont(TextSize));
 			ImVec2 MinSize = ImVec2(ImGui::CalcTextSize(m_Text.c_str()).x, TextSize);
 			ImGui::PopFont();
 			return MinSize;
@@ -47,7 +47,7 @@ namespace ImGuiWidget
         }
 		virtual void Render() 
 		{
-			ImGui::PushFont(ImApplication::GetFont(TextSize));
+			ImGui::PushFont(::ImApplication::GetFont(TextSize));
             ImGuiContext& g = *GImGui;
             ImGuiWindow* window = g.CurrentWindow;
             // 计算文本尺寸（不换行）

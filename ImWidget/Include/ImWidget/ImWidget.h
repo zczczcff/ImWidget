@@ -4,7 +4,7 @@
 #include <imgui_internal.h>
 #include <vector>
 
-#include "ImWidgetProperty.h"
+#include "ImObject.h"
 #include "ImTools/ImWidgetRef.h"
 namespace ImGuiWidget
 {

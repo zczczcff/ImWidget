@@ -1,6 +1,6 @@
 #pragma once
 #include "CommandBase.h"
-#include "ImWidget/ImWidgetProperty.h"
+#include "ImWidget/ImObject.h"
 namespace ImGuiWidget
 {
     class ImWidget;

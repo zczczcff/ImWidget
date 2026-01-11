@@ -1,6 +1,7 @@
 
 #if defined(_WIN32)
 #include "ImWin64Application.h"
+#include "ImWidget/ImGlobalInstance.h"
 // 添加stb_image库支持
 #define STB_IMAGE_IMPLEMENTATION
 #include <stb_image.h> // 确保项目包含stb_image.h文件
@@ -53,6 +54,7 @@ bool ImWin64Application::Initialize()
     ImGui_ImplDX11_Init(m_pd3dDevice, m_pd3dDeviceContext);
 
     IMGUIInit();
+    ImGuiWidget::GetGlobalInstance()->SetGlobalApp(this);
     return true;
 }
 

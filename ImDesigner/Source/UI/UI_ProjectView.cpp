@@ -33,7 +33,7 @@ void UI_ProjectView::InitPopUpMenu()
     //创建弹出菜单
     ImVerticalBox_FolderOperatorMenu = new ImGuiWidget::ImVerticalBox("ImVerticalBox_FolderOperatorMenu");
     // 创建弹出菜单窗口
-    m_FolderOperatorMenuWindow = ImGuiWidget::GlobalApp->GetWindowManager()->CreatePopupWindow(ImVec2(0, 0), ImVec2(0, 0), ImVerticalBox_FolderOperatorMenu, false);
+    m_FolderOperatorMenuWindow = ImGuiWidget::GetGlobalInstance()->GetGlobalApp()->GetWindowManager()->CreatePopupWindow(ImVec2(0, 0), ImVec2(0, 0), ImVerticalBox_FolderOperatorMenu, false);
     m_FolderOperatorMenuWindow->Close();
 
     ImGuiWidget::ImButton* ImButton_CreateNewFile = CreateWidgetMenuButton(u8"新建", m_FolderOperatorMenuWindow);

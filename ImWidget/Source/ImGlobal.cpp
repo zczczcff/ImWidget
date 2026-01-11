@@ -1,12 +1,13 @@
 #include "ImGlobal.h"
 #include "Application/ImApplication.h"
 #include "ImEvent/ImEventSystem.h"
+#include "ImGlobalInstance.h"
+
 namespace ImGuiWidget
 {
-	extern ImApplication* GlobalApp;
 	ImApplication* GetGlobalApp()
 	{
-		return GlobalApp;
+		return ImGuiWidget::GetGlobalInstance()->GetGlobalApp();
 	}
 	ImVec2 GetMousePos()
 	{
@@ -14,6 +15,6 @@ namespace ImGuiWidget
 	}
 	void RequestFocus(ImWidget* TargetWidget)
 	{
-		GlobalApp->GetWindowManager()->GetEventSystem()->SetFocus(TargetWidget);
+		ImGuiWidget::GetGlobalInstance()->GetGlobalApp()->GetWindowManager()->GetEventSystem()->SetFocus(TargetWidget);
 	}
 }

@@ -35,4 +35,6 @@ namespace ImGuiWidget
 	class ImBorder;
 
 	class ImCurve;
+
+	void RegisterBaseWidget();
 }

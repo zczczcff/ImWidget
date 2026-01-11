@@ -1,5 +1,4 @@
 #pragma once
-#include "ImWidgetProperty.h"
 #include "ImWidget.h"
 #include "ImPanelWidget.h"
 #include "ImWidgetFactory.h"

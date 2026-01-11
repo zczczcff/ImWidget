@@ -1,11 +1,15 @@
 #include "Application/ImApplication.h"
-
+#include "ImWidget/ImGlobalInstance.h"
 extern ImGuiWidget::ImWidget* ImInit();
 extern void ImTick();
 
 namespace ImGuiWidget
 {
-    ImApplication* GlobalApp;
+    ImGlobalInstance* GetGlobalInstance()
+    {
+		static ImGlobalInstance instance;
+		return &instance;
+    }
 }
 
 //void ImApplication::Render()
@@ -20,7 +24,7 @@ namespace ImGuiWidget
 
 void AbstractMainFun(ImApplication* app)
 {
-    ImGuiWidget::GlobalApp = app;
+    //ImGuiWidget::GlobalApp = app;
     if (!app->Initialize())
         return ;
     app->SetRootWidget(ImInit());

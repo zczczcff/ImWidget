@@ -2,6 +2,7 @@
 #include <imgui.h>
 class ImApplication;
 
+
 namespace ImGuiWidget
 {
 	class ImWidget;

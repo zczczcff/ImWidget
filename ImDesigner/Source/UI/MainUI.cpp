@@ -48,7 +48,7 @@ void MainUI::Init2()
 	ImPageManager_LeftPart->AddPage(u8"项目目录", ProjectView);
 	
 
-	m_FolderOperatorMenuWindow = ImGuiWidget::GlobalApp->GetWindowManager()->CreatePopupWindow(ImVec2(0, 0), ImVec2(0, 0), nullptr, false);
+	m_FolderOperatorMenuWindow = ImGuiWidget::GetGlobalInstance()->GetGlobalApp()->GetWindowManager()->CreatePopupWindow(ImVec2(0, 0), ImVec2(0, 0), nullptr, false);
 	m_FolderOperatorMenuWindow->Close();
 
 	//主工作界面

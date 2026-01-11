@@ -1,7 +1,7 @@
 #pragma once
 #include <imgui.h>
 #include <string>
-#include "ImWidgetProperty.h"
+#include "ImObject.h"
 #include "ImWidget/ImWidget.h"
 
 namespace ImGuiWidget

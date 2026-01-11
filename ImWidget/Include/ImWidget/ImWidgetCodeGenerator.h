@@ -3,7 +3,6 @@
 #include <iomanip>
 #include <unordered_set>
 #include "ImWidget.h"
-#include "ImWidgetProperty.h"
 #include "ImPanelWidget.h"
 #include <fstream>
 #include <regex>

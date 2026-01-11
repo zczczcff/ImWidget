@@ -3,7 +3,7 @@
 #include <string>
 #include "ImWidget/ImBasicWidgetDeclaration.h"
 #include "ImTools/ImDelegate.h"
-#include "ImWidget/ImWidgetProperty.h"
+#include "ImWidget/ImObject.h"
 class Model_WidgetEditor
 {
 private:

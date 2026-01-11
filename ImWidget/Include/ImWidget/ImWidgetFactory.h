@@ -4,16 +4,18 @@
 #include <memory>
 #include <string>
 #include "ImWidget.h"
+#include "ImGlobalInstance.h"
 
 namespace ImGuiWidget
 {
+    class ImWidgetFactory;
+    
     // 控件工厂类
     class ImWidgetFactory
     {
+        friend class ImGlobalInstance;
     private:
-        // 构造函数私有化
-        ImWidgetFactory() { Initialize(); };
-
+        ImWidgetFactory(){ }
         // 控件创建函数类型
         using WidgetCreator = std::function<ImWidget* (const std::string&)>;
 
@@ -31,8 +33,9 @@ namespace ImGuiWidget
         // 获取单例实例
         static ImWidgetFactory& GetInstance()
         {
-            static ImWidgetFactory instance;
-            return instance;
+            //static ImWidgetFactory instance;
+            //return instance;
+            return *(GetGlobalInstance()->GetWidgetFactory());
         }
 
         /**
@@ -41,18 +44,24 @@ namespace ImGuiWidget
          * @param typeName 类型名称（字符串标识符）
          */
         template<typename WidgetType>
-        void RegisterType(const std::string& typeName)
+        void RegisterType()
         {
             // 获取实际类型名称（用于调试）
             std::string actualTypeName = typeid(WidgetType).name();
 
-            // 注册创建函数
-            m_creators[typeName] = [](const std::string& name) -> ImWidget* {
+            auto creatortemp= [](const std::string& name) -> ImWidget*
+            {
                 return new WidgetType(name);
             };
+            ImWidget* tempwidget = creatortemp(actualTypeName);
+
+            // 注册创建函数
+            m_creators[tempwidget->GetRegisterTypeName()] = creatortemp;
 
             // 保存实际类型名称
-            m_typeNames[typeName] = actualTypeName;
+            m_typeNames[tempwidget->GetRegisterTypeName()] = actualTypeName;
+
+            delete tempwidget;
         }
 
         /**
@@ -64,7 +73,8 @@ namespace ImGuiWidget
         ImWidget* CreateWidget(const std::string& typeName, const std::string& widgetName)
         {
             auto it = m_creators.find(typeName);
-            if (it != m_creators.end()) {
+            if (it != m_creators.end())
+            {
                 return it->second(widgetName);
             }
             return nullptr;
@@ -77,7 +87,8 @@ namespace ImGuiWidget
         std::vector<std::string> GetRegisteredTypes() const
         {
             std::vector<std::string> types;
-            for (const auto& pair : m_creators) {
+            for (const auto& pair : m_creators)
+            {
                 types.push_back(pair.first);
             }
             return types;
@@ -91,23 +102,20 @@ namespace ImGuiWidget
         std::string GetActualTypeName(const std::string& typeName) const
         {
             auto it = m_typeNames.find(typeName);
-            if (it != m_typeNames.end()) {
+            if (it != m_typeNames.end())
+            {
                 return it->second;
             }
             return "Unknown";
         }
-
-        /**
-         * @brief 初始化工厂，注册所有内置控件类型
-         */
-        void Initialize();
     };
 
     // 简化注册的宏
 #define REGISTER_WIDGET_TYPE(WidgetType) \
-        ImGuiWidget::ImWidgetFactory::GetInstance().RegisterType<WidgetType>(#WidgetType)
+        ImGuiWidget::ImWidgetFactory::GetInstance().RegisterType<WidgetType>()
 
     // 简化创建控件的宏
 #define CREATE_WIDGET(typeName, widgetName) \
         ImGuiWidget::ImWidgetFactory::GetInstance().CreateWidget(typeName, widgetName)
+
 }

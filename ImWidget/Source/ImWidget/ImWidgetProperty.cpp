@@ -1,4 +1,4 @@
-#include "ImWidget/ImWidgetProperty.h"
+#include "ImWidget/ImObject.h"
 
 namespace ImGuiWidget
 {
