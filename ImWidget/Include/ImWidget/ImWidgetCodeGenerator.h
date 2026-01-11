@@ -127,7 +127,7 @@ namespace ImGuiWidget
     }
 
     // 辅助函数：将PropertyType转换为类型名称字符串
-    std::string PropertyTypeToString(PropertyType type) {
+    std::string PropertyTypeToCppTypeString(PropertyType type) {
         switch (type) {
         case PropertyType::Color: return "ImU32";
         case PropertyType::Float: return "float";
@@ -168,7 +168,7 @@ namespace ImGuiWidget
                 valueCode = ValueToCode(prop.type, valuePtr);
 
                 oss << indent << structAccessor
-                    << ".SetPropertyValue<" << PropertyTypeToString(prop.type) << ">(\""
+                    << ".SetPropertyValue<" << PropertyTypeToCppTypeString(prop.type) << ">(\""
                     << prop.name << "\", " << valueCode << ");\n";
             }
         }
@@ -205,7 +205,7 @@ namespace ImGuiWidget
                 // 基本类型属性
                 std::string valueCode = ValueToCode(prop.type, valuePtr);
 
-                oss << varName << ".SetPropertyValue<" << PropertyTypeToString(prop.type)
+                oss << varName << ".SetPropertyValue<" << PropertyTypeToCppTypeString(prop.type)
                     << ">(\"" << prop.name << "\", " << valueCode << ");\n";
             }
         }
@@ -235,7 +235,7 @@ namespace ImGuiWidget
                 std::string valueCode = ValueToCode(prop.type, valuePtr);
                 context.oss << context.indentStr()
                     << accessor << "->SetPropertyValue<"
-                    << PropertyTypeToString(prop.type) << ">(\""
+                    << PropertyTypeToCppTypeString(prop.type) << ">(\""
                     << prop.name << "\", " << valueCode << ");\n";
             }
         }
@@ -273,7 +273,7 @@ namespace ImGuiWidget
                 std::string valueCode = ValueToCode(prop.type, valuePtr);
                 context.oss << context.indentStr()
                     << varName << "->SetPropertyValue<"
-                    << PropertyTypeToString(prop.type) << ">(\""
+                    << PropertyTypeToCppTypeString(prop.type) << ">(\""
                     << prop.name << "\", " << valueCode << ");\n";
             }
         }
@@ -306,7 +306,7 @@ namespace ImGuiWidget
                         std::string valueCode = ValueToCode(prop.type, valuePtr);
                         context.oss << context.indentStr()
                             << childSlotName << "->SetPropertyValue<"
-                            << PropertyTypeToString(prop.type) << ">(\""
+                            << PropertyTypeToCppTypeString(prop.type) << ">(\""
                             << prop.name << "\", " << valueCode << ");\n";
                     }
                 }
@@ -519,7 +519,7 @@ namespace ImGuiWidget
                 else {
                     std::string valueCode = ValueToCode(prop.type, valuePtr);
                     initCode << "    " << varName << "->SetPropertyValue<"
-                        << PropertyTypeToString(prop.type) << ">(\""
+                        << PropertyTypeToCppTypeString(prop.type) << ">(\""
                         << prop.name << "\", " << valueCode << ");\n";
                 }
             }
@@ -565,7 +565,7 @@ namespace ImGuiWidget
                         else {
                             std::string valueCode = ValueToCode(prop.type, valuePtr);
                             initCode << "    " << slotVar << "->SetPropertyValue<"
-                                << PropertyTypeToString(prop.type) << ">(\""
+                                << PropertyTypeToCppTypeString(prop.type) << ">(\""
                                 << prop.name << "\", " << valueCode << ");\n";
                         }
                     }
