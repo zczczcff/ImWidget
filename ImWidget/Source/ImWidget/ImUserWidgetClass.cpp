@@ -62,7 +62,7 @@ namespace ImGuiWidget
 		{
 			if (it->varName == varName)
 			{
-				DeletePropertyValue(it->Ptype, it->var);
+				DeletePropertyValue(it->Ptype, it->var.v_Voidp);
 				m_vars.erase(it);
 				return true;
 			}
@@ -77,26 +77,26 @@ namespace ImGuiWidget
 		j["BaseClassName"] = BaseClassName;
 
 		nlohmann::ordered_json varsJson = nlohmann::ordered_json::array();
-		for (auto& var : m_vars)
+		for (auto& SingleValue : m_vars)
 		{
 			nlohmann::ordered_json singleVarJson;
-			singleVarJson["VarName"] = var.varName;
-			singleVarJson["Qualifier"] = static_cast<int>(var.Qtype);
+			singleVarJson["VarName"] = SingleValue.varName;
+			singleVarJson["Qualifier"] = static_cast<int>(SingleValue.Qtype);
 
-			if (var.Vtype == variableType::widget)
+			if (SingleValue.Vtype == variableType::widget)
 			{
-				singleVarJson = SerializeWidgetTree(static_cast<ImWidget*>(var.var));
+				singleVarJson = SerializeWidgetTree(SingleValue.var.v_widget);
 				singleVarJson["VarType"] = "Widget";
 			}
-			else if (var.Vtype == variableType::ImObject)
+			else if (SingleValue.Vtype == variableType::ImObject)
 			{
-				singleVarJson = SerializeProperty(PropertyType::Struct,static_cast<ImObject*>(var.var));
+				singleVarJson = SerializeProperty(PropertyType::Struct, SingleValue.var.v_object);
 				singleVarJson["VarType"] = "Struct";
 			}
-			else if (var.Vtype == variableType::property)
+			else if (SingleValue.Vtype == variableType::property)
 			{
-				singleVarJson = SerializeProperty(var.Ptype, var.var);
-				singleVarJson["VarType"] = PropertyTypeToString(var.Ptype);
+				singleVarJson = SerializeProperty(SingleValue.Ptype, SingleValue.var.v_Voidp);
+				singleVarJson["VarType"] = PropertyTypeToString(SingleValue.Ptype);
 			}
 			
 			varsJson.push_back(singleVarJson);
@@ -152,7 +152,7 @@ namespace ImGuiWidget
 					ImWidget* widget = CreateWidgetFromJson(varJson);
 					if (widget)
 					{
-						newVar.var = widget;
+						newVar.var.v_widget = widget;
 					}
 					else
 					{
@@ -168,7 +168,7 @@ namespace ImGuiWidget
 					{
 						DeserializeProperties(structPtr, varJson);
 					}
-					newVar.var = structPtr;
+					newVar.var.v_object = structPtr;
 				}
 				else
 				{
@@ -184,7 +184,7 @@ namespace ImGuiWidget
 						ImU32* colorPtr = new ImU32(IM_COLOR_SET_RGBA(255, 255, 255, 255));
 						if (DeserializeProperty(newVar.Ptype, colorPtr, varJson))
 						{
-							newVar.var = colorPtr;
+							newVar.var.v_color = colorPtr;
 						}
 						else
 						{
@@ -198,7 +198,7 @@ namespace ImGuiWidget
 						float* floatPtr = new float(0.0f);
 						if (DeserializeProperty(newVar.Ptype, floatPtr, varJson))
 						{
-							newVar.var = floatPtr;
+							newVar.var.v_flt = floatPtr;
 						}
 						else
 						{
@@ -212,7 +212,7 @@ namespace ImGuiWidget
 						bool* boolPtr = new bool(false);
 						if (DeserializeProperty(newVar.Ptype, boolPtr, varJson))
 						{
-							newVar.var = boolPtr;
+							newVar.var.v_bool = boolPtr;
 						}
 						else
 						{
@@ -226,7 +226,7 @@ namespace ImGuiWidget
 						int* intPtr = new int(0);
 						if (DeserializeProperty(newVar.Ptype, intPtr, varJson))
 						{
-							newVar.var = intPtr;
+							newVar.var.v_int = intPtr;
 						}
 						else
 						{
@@ -240,7 +240,7 @@ namespace ImGuiWidget
 						std::string* stringPtr = new std::string();
 						if (DeserializeProperty(newVar.Ptype, stringPtr, varJson))
 						{
-							newVar.var = stringPtr;
+							newVar.var.v_str = stringPtr;
 						}
 						else
 						{
@@ -254,7 +254,7 @@ namespace ImGuiWidget
 						ImVec2* vec2Ptr = new ImVec2(0, 0);
 						if (DeserializeProperty(newVar.Ptype, vec2Ptr, varJson))
 						{
-							newVar.var = vec2Ptr;
+							newVar.var.v_vec2 = vec2Ptr;
 						}
 						else
 						{
@@ -268,25 +268,11 @@ namespace ImGuiWidget
 						std::vector<std::string>* arrayPtr = new std::vector<std::string>();
 						if (DeserializeProperty(newVar.Ptype, arrayPtr, varJson))
 						{
-							newVar.var = arrayPtr;
+							newVar.var.v_strarray = arrayPtr;
 						}
 						else
 						{
 							delete arrayPtr;
-							continue;
-						}
-						break;
-					}
-					case PropertyType::Enum:
-					{
-						std::vector<std::string>* enumPtr = new std::vector<std::string>();
-						if (DeserializeProperty(newVar.Ptype, enumPtr, varJson))
-						{
-							newVar.var = enumPtr;
-						}
-						else
-						{
-							delete enumPtr;
 							continue;
 						}
 						break;

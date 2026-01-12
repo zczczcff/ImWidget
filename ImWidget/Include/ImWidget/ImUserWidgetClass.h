@@ -7,7 +7,7 @@ namespace ImGuiWidget
 {
 	class ImUserWidgetClass
 	{
-	private:
+	public:
 		enum class variableType
 		{
 			widget,
@@ -20,13 +20,28 @@ namespace ImGuiWidget
 			q_Protected,
 			q_Private
 		};
+
+		union VarValue
+		{
+			void* v_Voidp;
+			ImWidget* v_widget;
+			ImObject* v_object;
+			int* v_int;
+			float* v_flt;
+			ImU32* v_color;
+			bool* v_bool;
+			std::string* v_str;
+			ImVec2* v_vec2;
+			std::vector<std::string>* v_strarray;
+		};
+
 		struct variable
 		{
 			std::string varName;
 			variableType Vtype;
 			variableQualifiers Qtype;
 			PropertyType Ptype;
-			void* var;
+			VarValue var;
 		};
 	private:
 		std::string ClassName;
@@ -36,6 +51,8 @@ namespace ImGuiWidget
 		const variable* FindVariable(const std::string& varName) const;
 		void DeletePropertyValue(PropertyType propType, void* valuePtr);
 	public:
+		std::string GetClassName() { return ClassName; }
+		void SetClassName(const std::string& name) { ClassName = name; }
 		size_t GetVariableCount() const
 		{
 			return m_vars.size();
