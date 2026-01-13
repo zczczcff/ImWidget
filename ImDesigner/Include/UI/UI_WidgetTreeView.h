@@ -56,7 +56,7 @@ private:
     ImGuiWidget::ImButton* CreateWidgetInsertButton(const std::string& CN_Name, const std::string& RegisterName, ImTextureID icon);
     // 递归构建树节点
     ImGuiWidget::ImWidget* BuildTreeNode(ImGuiWidget::ImWidget* widget, std::unordered_set<ImGuiWidget::ImWidget*>& m_ExpandedNode, int depth = 0);
-
+    ImGuiWidget::ImWidget* BuildRootNode(ImGuiWidget::ImWidget* widget, std::unordered_set<ImGuiWidget::ImWidget*>& m_ExpandedNode);
     void On_WidgetDeleteButtonClicked(ImGuiWidget::ImWidget* widget);
     void On_WidgetSelectedButtonClicked(ImGuiWidget::ImWidget* widget, ImGuiWidget::ImButton* nodeButton);
     void On_WidgetSelectedButtonRightClicked(ImGuiWidget::ImWidget* widget);

@@ -256,6 +256,76 @@ ImGuiWidget::ImWidget* UI_WidgetTreeView::BuildTreeNode(ImWidget* nodewidget, st
     }
 }
 
+ImGuiWidget::ImWidget* UI_WidgetTreeView::BuildRootNode(ImGuiWidget::ImWidget* widget, std::unordered_set<ImGuiWidget::ImWidget*>& m_ExpandedNode)
+{
+    ImGuiWidget::ImButton* HeadButton = new ImGuiWidget::ImButton(widget->GetWidgetName() + "_HeadButton");
+    ImGuiWidget::ImHorizontalBox* HBox = new ImGuiWidget::ImHorizontalBox(widget->GetWidgetName() + "_HBox");
+    HBox->bHaveBackGround = false;
+    ImGuiWidget::ImTextBlock* text = new ImGuiWidget::ImTextBlock(widget->GetWidgetName() + "_text");
+    text->SetText(widget->GetWidgetName());
+    text->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Center);
+    ImGuiWidget::ImImage* icon = nullptr;
+    HeadButton->SetOnPressed([this, widget, HeadButton]() { On_WidgetSelectedButtonClicked(widget, HeadButton); });
+    HeadButton->OnRightClicked.Add([this, widget]() { On_WidgetSelectedButtonRightClicked(widget); });
+    m_TreeView.WidgetToHeaderButton[widget] = HeadButton;
+    m_TreeView.HeaderButtonToWidget[HeadButton] = widget;
+    HeadButton->SetNormalStyle(*Normal_Style);
+    if (widget->GetChildNum() > 0)
+    {
+        icon = new ImGuiWidget::ImImage(widget->GetWidgetName() + "_icon", IconManager::GetInstance()->GetIcon(ImDesignerIcon::WidgetTree), 24, 24);
+        icon->SetTintcolor(IM_COL32(20, 180, 20, 255));
+        ImGuiWidget::ImExpandableBox* expandableBox = new ImGuiWidget::ImExpandableBox(widget->GetWidgetName() + "_TreeNode");
+        HBox->AddChildToHorizontalBox(icon)->SetIfAutoSize(false);
+        HBox->AddChildToHorizontalBox(text)->SetIfAutoSize(true);
+        HeadButton->SetContent(HBox);
+
+        expandableBox->bHaveBorder = false;
+        ImGuiWidget::ImVerticalBox* childContainer = new ImGuiWidget::ImVerticalBox(widget->GetWidgetName() + "_ChildContainer");
+        expandableBox->SetHead(HeadButton);
+        expandableBox->SetBody(childContainer);
+        //childContainer->bHaveBorder = false;
+        childContainer->bHaveBackGround = false;
+
+        for (int i = 0; i < widget->GetChildNum(); ++i)
+        {
+                ImWidget* childNode = BuildTreeNode(widget->GetChildAt(i), m_ExpandedNode);
+                if (childNode)
+                {
+                    childContainer->AddChildToVerticalBox(childNode)->SetIfAutoSize(false);
+                }
+        }
+
+        if (m_ExpandedNode.find(widget) != m_ExpandedNode.end())
+        {
+            expandableBox->SetExpandedState(true);
+        }
+
+        expandableBox->SetOnExpandedStateChanged([this, widget, &m_ExpandedNode](bool newstate) mutable
+            {
+                if (newstate)
+                {
+                    m_ExpandedNode.insert(widget);
+                }
+                else
+                {
+                    m_ExpandedNode.erase(widget);
+                }
+            });
+        return expandableBox;
+    }
+    else
+    {
+        icon = new ImGuiWidget::ImImage(widget->GetWidgetName() + "_icon", IconManager::GetInstance()->GetIcon(ImDesignerIcon::SingleWidget), 24, 24);
+        icon->SetTintcolor(IM_COL32(20, 20, 180, 255));
+        HBox->AddChildToHorizontalBox(icon)->SetIfAutoSize(false);
+        HBox->AddChildToHorizontalBox(text)->SetIfAutoSize(true);
+        HeadButton->SetContent(HBox);
+        return HeadButton;
+    }
+
+
+}
+
 void UI_WidgetTreeView::On_WidgetDeleteButtonClicked(ImGuiWidget::ImWidget* widget)
 {
     OnRequestWidgetDeleted.Broadcast(widget);
@@ -320,7 +390,7 @@ void UI_WidgetTreeView::SetTargetWidget(ImWidget* Target)
     Clear();
 
     m_TreeView.TargetWidget = Target;
-    m_TreeView.TreeViewRoot = BuildTreeNode(Target, m_TreeView.m_ExpandedNode);
+    m_TreeView.TreeViewRoot = BuildRootNode(Target, m_TreeView.m_ExpandedNode);
     SetRootWidget(m_TreeView.TreeViewRoot, false);
 }
 

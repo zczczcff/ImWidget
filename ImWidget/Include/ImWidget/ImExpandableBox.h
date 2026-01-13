@@ -13,6 +13,7 @@ namespace ImGuiWidget
         float TriangleSize = 7.f;
         float HeadPad;
         float BodyPad = 6.f;
+        float m_LastHeaderHeight = 0.f; // 跟踪上一次的header高度
 
         ImVec2 p0, p1, p2, p3, p4, p5; // TrianglePoints
         ImRect buttonrect_NotExpanded, buttonrect_Expanded;
@@ -47,6 +48,13 @@ namespace ImGuiWidget
                 slot->SetSlotSize(ImVec2(headlength, headhight) - (bHaveBorder ? ImVec2(BorderThickness, BorderThickness) * 2 : ImVec2(0.f, 0.f)));
                 //slot->SetSlotSize(ImVec2(minsize.x, headhight));
                 slot->ApplyLayout();
+
+                // header高度变化时重新计算三角形位置
+                if (headhight != m_LastHeaderHeight)
+                {
+                    m_LastHeaderHeight = headhight;
+                    ReCaculateTriangle();
+                }
             }
             if (bIsExpanded)
             {
@@ -187,17 +195,17 @@ namespace ImGuiWidget
             p0 = ImVec2
             (
                 (2 * TriangleSize - TriangleSize / 1.414f) / 2,
-                (HeadPad - 1.414f * TriangleSize) / 2.f
+                (m_LastHeaderHeight - 1.414f * TriangleSize) / 2.f
             );
             p1 = ImVec2
             (
                 (2 * TriangleSize + TriangleSize / 1.414f) / 2,
-                HeadPad / 2.f
+                m_LastHeaderHeight / 2.f
             );
             p2 = ImVec2
             (
                 (2 * TriangleSize - TriangleSize / 1.414f) / 2,
-                (HeadPad + 1.414f * TriangleSize) / 2.f
+                (m_LastHeaderHeight + 1.414f * TriangleSize) / 2.f
             );
 
             buttonrect_NotExpanded = ImRect
@@ -211,19 +219,19 @@ namespace ImGuiWidget
             p3 = ImVec2
             (
                 (HeadPad - 1.414f * TriangleSize) / 2.f,
-                (HeadPad - TriangleSize / 1.414f) / 2.f
+                (m_LastHeaderHeight - TriangleSize / 1.414f) / 2.f
             );
 
             p4 = ImVec2
             (
                 HeadPad / 2.f,
-                (HeadPad + TriangleSize / 1.414f) / 2.f
+                (m_LastHeaderHeight + TriangleSize / 1.414f) / 2.f
             );
 
             p5 = ImVec2
             (
                 (HeadPad + 1.414f * TriangleSize) / 2.f,
-                (HeadPad - TriangleSize / 1.414f) / 2.f
+                (m_LastHeaderHeight - TriangleSize / 1.414f) / 2.f
             );
 
             buttonrect_Expanded = ImRect
