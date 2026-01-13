@@ -4,10 +4,10 @@
 class DragObject_ExampleWidget :public ImGuiWidget::ImDragObject
 {
 public:
-	std::string WidgetTypeName;
+	std::string WidgetRegisterTypeName;
 	std::string DisplayText;
-	DragObject_ExampleWidget(const std::string& WidgetTypeName, const std::string& DisplayText) :
-		WidgetTypeName(WidgetTypeName),
+	DragObject_ExampleWidget(const std::string& WidgetRegisterTypeName, const std::string& DisplayText) :
+		WidgetRegisterTypeName(WidgetRegisterTypeName),
 		DisplayText(DisplayText)
 	{
 		ImGuiWidget::ImTextBlock* previewtextblock = new ImGuiWidget::ImTextBlock("DragObject_PreviewTextBlock");

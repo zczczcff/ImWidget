@@ -69,7 +69,7 @@ namespace ImGuiWidget
 		variable* AddWidgetVar(const std::string& varName, const std::string& RegisterName, variableQualifiers qualifier = variableQualifiers::q_Protected);
 		variable* AddStructVar(const std::string& varName, const std::string& RegisterName, variableQualifiers qualifier = variableQualifiers::q_Protected);
 		variable* AddIntVar(const std::string& varName, variableQualifiers qualifier = variableQualifiers::q_Protected);
-
+		variable* FindVarByName(const std::string& varName);
 
 		bool RemovePropertyByName(const std::string& varName);
 

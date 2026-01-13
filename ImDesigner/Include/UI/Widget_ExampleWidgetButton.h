@@ -13,9 +13,9 @@ public:
     void Init2();
     void SetDisplayName(const std::string& displayname);
     void SetIcon(ImTextureID texture);
-    Widget_ExampleWidgetButton(const std::string& name, const std::string& displayname, const std::string& WidgetTypeName, ImTextureID texture):
+    Widget_ExampleWidgetButton(const std::string& name, const std::string& displayname, const std::string& WidgetRegisterTypeName, ImTextureID texture):
         ImGuiWidget::ImUserWidget(name),
-        m_WidgetTypeName(WidgetTypeName)
+        m_WidgetTypeName(WidgetRegisterTypeName)
     {
         Init();
         Init2();

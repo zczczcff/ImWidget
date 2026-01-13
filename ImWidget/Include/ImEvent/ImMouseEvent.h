@@ -41,6 +41,9 @@ namespace ImGuiWidget
         void SetDelta(const ImVec2& delta) { m_delta = delta; }
         void SetModifiers(const ImModifierKeys& mods) { m_modifiers = mods; }
 
+        bool IsMouseLeft() const { return m_button == ImMouseButton::Left; }
+        bool IsMouseMiddle() const { return m_button == ImMouseButton::Middle; }
+        bool IsMouseRight() const {return m_button== ImMouseButton::Right;}
         // ×ø±ê×ª»»
         ImVec2 GetPositionRelativeTo(ImWidget* widget) const;
 

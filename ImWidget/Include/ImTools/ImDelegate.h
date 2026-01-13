@@ -113,6 +113,24 @@ public:
         return false;
     }
 
+    // 添加快速转发到另一个同类型委托
+    HandleType AddForward(ImMulticastDelegate<Args...>& targetDelegate)
+    {
+        return Add([&targetDelegate](Args... args)
+            {
+                targetDelegate.Broadcast(std::forward<Args>(args)...);
+            });
+    }
+
+    // 添加线程安全的快速转发
+    HandleType AddForwardThreadSafe(ImMulticastDelegate<Args...>& targetDelegate)
+    {
+        return Add([&targetDelegate](Args... args)
+            {
+                targetDelegate.BroadcastThreadSafe(std::forward<Args>(args)...);
+            });
+    }
+
     // 清除所有委托
     void Clear()
     {
