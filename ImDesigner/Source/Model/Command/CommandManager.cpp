@@ -1,6 +1,8 @@
 #include "Model/Command/CommandManager.h"
 #include "Model/Command/Command_PropertyEdit.h"
 #include "Model/Command/Command_ChildEdit.h"
+#include "Model/Command/Command_VarEdit.h"
+
 #include "ImWidget/ImPanelWidget.h"
 #include "Tools/JLog.h"
 
@@ -40,11 +42,11 @@ std::unique_ptr<EditCommand> EditCommandManager::CreatePropertyEditCommand(const
     }
 }
 
-void EditCommandManager::ExecutePropertyEditImpl(const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::ImObject* target)
+bool EditCommandManager::ExecutePropertyEditImpl(const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::ImObject* target)
 {
     auto command = CreatePropertyEditCommand(propInfo, newValue, target);
-    if (!command) return;
-    Execute(std::move(command));
+    if (!command) return false;
+    return Execute(std::move(command));
 }
 
 bool EditCommandManager::Execute(std::unique_ptr<EditCommand> command)
@@ -116,6 +118,12 @@ bool EditCommandManager::ExecuteChildInsert(ImGuiWidget::ImWidget* Target, ImGui
     return Execute(std::move(command));
 }
 
+bool EditCommandManager::ExcuteVarRename(ImGuiWidget::ImUserWidgetClass* Target, const std::string& OldName, const std::string& NewName)
+{
+    auto command = std::make_unique<VarRenameCommand>(Target, OldName, NewName, [this](const std::string& Old_Name, const std::string& New_Name) { OnVarRename.Broadcast(Old_Name, New_Name); });
+    return Execute(std::move(command));
+}
+
 void EditCommandManager::Undo()
 {
     if (m_UndoStack.empty()) return;
@@ -132,6 +140,7 @@ void EditCommandManager::Undo()
     {
         OnChildEditUndoRedo.Broadcast();
     }
+    
 
     // 移动到重做栈
     m_RedoStack.push_back(std::move(command));

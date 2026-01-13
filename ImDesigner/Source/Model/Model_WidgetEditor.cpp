@@ -22,8 +22,9 @@ void Model_WidgetEditor::CollectWidgetNames(ImGuiWidget::ImWidget* widget)
 	}
 }
 
-Model_WidgetEditor::Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget):
+Model_WidgetEditor::Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget, std::unordered_set<std::string>& ExistedWidgetName):
 	RootWidget(rootwidget),
+	ExistedWidgetName(ExistedWidgetName),
 	m_EditCommandManager(new EditCommandManager())
 {
 	m_EditCommandManager->OnPropertyEditUnDoRedo.Add([this](ImGuiWidget::ImObject* target, const std::string& propertyname)
@@ -87,10 +88,14 @@ bool Model_WidgetEditor::InsertChildTo(const std::string& WidgetRegisterName, Im
 	return false;
 }
 
-void Model_WidgetEditor::EditProperty(const ImGuiWidget::PropertyInfo& propInfo, const void* NewValue, ImGuiWidget::ImObject* Target)
+bool Model_WidgetEditor::EditProperty(const ImGuiWidget::PropertyInfo& propInfo, const void* NewValue, ImGuiWidget::ImObject* Target)
 {
-	m_EditCommandManager->ExecutePropertyEdit(propInfo, NewValue, Target);
-	UpdateUndoRedoState();
+	if (m_EditCommandManager->ExecutePropertyEdit(propInfo, NewValue, Target))
+	{
+		UpdateUndoRedoState();
+		return true;
+	}
+	return false;
 }
 
 void Model_WidgetEditor::Undo()

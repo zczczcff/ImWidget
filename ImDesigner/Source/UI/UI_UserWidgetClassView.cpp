@@ -83,6 +83,7 @@ bool UI_UserWidgetClassView::RemoveVarView(const std::string& varName)
 
 void UI_UserWidgetClassView::OnDrop(ImGuiWidget::ImDragEvent& e) 
 {
+	if (!TitleButton->GetRect().Contains(e.GetPosition())) return;//如果落在标题上才进行下一步
 	if (auto dragedWidget = std::dynamic_pointer_cast<DragObject_ExampleWidget>(e.GetDragObject()))
 	{
 		OnRequestAddWidgetTree.Broadcast(dragedWidget->WidgetRegisterTypeName);

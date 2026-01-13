@@ -1,4 +1,5 @@
 #include "..\..\Include\ImWidget\ImUserWidgetClass.h"
+#include "..\..\Include\ImWidget\ImUserWidgetClass.h"
 #include "ImWidget/ImUserWidgetClass.h"
 #include "ImWidget/ImWidgetFactory.h"
 #include "ImWidget/ImObjectFactory.h"
@@ -67,6 +68,18 @@ namespace ImGuiWidget
 			}
 		}
 		return nullptr;
+	}
+
+	bool ImUserWidgetClass::RenameVar(const std::string& OldName, const std::string& NewName)
+	{
+		if (variable* var = FindVarByName(OldName))
+		{
+			if (FindVarByName(NewName)) return false;
+
+			var->varName = NewName;
+			return true;
+		}
+		return false;
 	}
 
     bool ImUserWidgetClass::RemovePropertyByName(const std::string& varName)

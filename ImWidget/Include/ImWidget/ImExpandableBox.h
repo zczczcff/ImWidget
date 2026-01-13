@@ -125,7 +125,7 @@ namespace ImGuiWidget
         {
             if (event->GetButton() == ImMouseButton::Left)
             {
-                ImVec2 clickPos = event->GetLocalPosition();
+                ImVec2 clickPos = event->GetPosition()-Position;
                 ImRect buttonRect = bIsExpanded ? buttonrect_Expanded : buttonrect_NotExpanded;
 
                 // 检查是否点击了三角形按钮区域

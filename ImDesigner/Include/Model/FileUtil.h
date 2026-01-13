@@ -141,6 +141,11 @@ public:
         return fs::path(file_path).stem().string();
     }
 
+    static bool IsFileExist(const std::string& fullPath)
+    {
+        return fs::exists(fullPath);
+    }
+
     static std::string createUniqueFile(const std::string& directoryPath,
         const std::string& filePrefix = "NEWFile",
         const std::string& fileSuffix = ".txt",

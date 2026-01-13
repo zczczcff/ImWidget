@@ -8,6 +8,7 @@ enum class EditCommandType
 {
     PropertyEdit,
     ChildChange,
+    RenameVar,
     Paste
 };
 
@@ -22,7 +23,7 @@ public:
     virtual ~EditCommand() = default;
     virtual bool Execute() = 0;
     virtual bool Undo() = 0;
-    virtual std::string GetDescription() const = 0;
+    virtual std::string GetDescription() { return ""; };
     virtual bool CanMergeWith(const EditCommand* other) const { return false; }
     virtual bool MergeWith(std::unique_ptr<EditCommand> other) { return false; }
 
