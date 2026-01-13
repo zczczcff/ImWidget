@@ -33,7 +33,7 @@ namespace ImGuiWidget
     };
 
     // 辅助函数：将ImU32颜色转换为IM_COL32宏
-    std::string ColorToCode(ImU32 color) {
+    inline std::string ColorToCode(ImU32 color) {
         int r = IM_COLOR_GET_R(color);
         int g = IM_COLOR_GET_G(color);
         int b = IM_COLOR_GET_B(color);
@@ -45,14 +45,14 @@ namespace ImGuiWidget
     }
 
     // 辅助函数：将ImVec2转换为代码
-    std::string Vec2ToCode(const ImVec2& vec) {
+    inline std::string Vec2ToCode(const ImVec2& vec) {
         std::ostringstream oss;
         oss << "ImVec2(" << std::to_string(vec.x) << "f, " << std::to_string(vec.y) << "f)";
         return oss.str();
     }
 
     // 辅助函数：将值转换为字符串表示
-    std::string ValueToCode(PropertyType type, void* valuePtr) {
+    inline std::string ValueToCode(PropertyType type, void* valuePtr) {
         // 定义中文检测函数 (检测非ASCII字符)
         auto NeedsU8Prefix = [](const std::string& str) {
             for (char c : str) {
@@ -126,7 +126,7 @@ namespace ImGuiWidget
     }
 
     // 辅助函数：将PropertyType转换为类型名称字符串
-    std::string PropertyTypeToCppTypeString(PropertyType type) {
+    inline std::string PropertyTypeToCppTypeString(PropertyType type) {
         switch (type) {
         case PropertyType::Color: return "ImU32";
         case PropertyType::Float: return "float";
@@ -142,7 +142,7 @@ namespace ImGuiWidget
     }
 
     // 递归生成结构体属性的初始化代码
-    std::string GenerateStructPropertiesCode(ImObject* propStruct,
+    inline std::string GenerateStructPropertiesCode(ImObject* propStruct,
         const std::string& structAccessor,
         int indentLevel)
     {
@@ -176,7 +176,7 @@ namespace ImGuiWidget
     }
 
     // 主函数：生成控件的初始化代码
-    std::string GenerateWidgetInitializationCode(ImWidget* widget,
+    inline std::string GenerateWidgetInitializationCode(ImWidget* widget,
         const std::string& varName)
     {
         if (!widget) return "";
@@ -213,7 +213,7 @@ namespace ImGuiWidget
     }
 
     template<typename T>
-    void GeneratePropertiesCode(T* obj, const std::string& accessor, CodeGenContext& context)
+    inline void GeneratePropertiesCode(T* obj, const std::string& accessor, CodeGenContext& context)
     {
         auto properties = obj->GetProperties();
         for (const auto& prop : properties) {
@@ -241,7 +241,7 @@ namespace ImGuiWidget
     }
 
 
-    void GenerateWidgetTreeCode(ImWidget* widget, CodeGenContext& context) {
+    inline void GenerateWidgetTreeCode(ImWidget* widget, CodeGenContext& context) {
         if (!widget) return;
 
         // 生成变量名
@@ -314,7 +314,7 @@ namespace ImGuiWidget
     }
 
 
-    bool ExportUserWidgetToFiles(ImWidget* rootWidget,
+    inline bool ExportUserWidgetToFiles(ImWidget* rootWidget,
         const std::string& widgetName,
         const std::string& CppoutputDirectory,
         const std::string& HeaderoutputDirectory)

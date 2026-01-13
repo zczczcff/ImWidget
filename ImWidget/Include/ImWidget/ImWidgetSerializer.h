@@ -15,7 +15,7 @@ namespace ImGuiWidget
 
 
     // 单个属性的序列化函数
-    nlohmann::ordered_json SerializeProperty(PropertyType type, void* valuePtr)
+    inline nlohmann::ordered_json SerializeProperty(PropertyType type, void* valuePtr)
     {
         nlohmann::ordered_json j;
 
@@ -81,7 +81,7 @@ namespace ImGuiWidget
     }
 
     // 单个属性的反序列化函数
-    bool DeserializeProperty(PropertyType type, void* valuePtr, const nlohmann::ordered_json& j)
+    inline bool DeserializeProperty(PropertyType type, void* valuePtr, const nlohmann::ordered_json& j)
     {
         switch (type)
         {
@@ -179,7 +179,7 @@ namespace ImGuiWidget
     }
 
     // 通用的属性序列化函数
-    nlohmann::ordered_json SerializeProperties(ImObject* obj)
+    inline nlohmann::ordered_json SerializeProperties(ImObject* obj)
     {
         nlohmann::ordered_json j;
         if (!obj) return j;
@@ -197,7 +197,7 @@ namespace ImGuiWidget
     }
 
     // 通用的属性反序列化函数
-    void DeserializeProperties(ImObject* obj, const nlohmann::ordered_json& j)
+    inline void DeserializeProperties(ImObject* obj, const nlohmann::ordered_json& j)
     {
         if (!obj) return;
 
@@ -214,7 +214,7 @@ namespace ImGuiWidget
     }
 
     // 序列化控件树
-    nlohmann::ordered_json SerializeWidgetTree(ImWidget* root)
+    inline nlohmann::ordered_json SerializeWidgetTree(ImWidget* root)
     {
         nlohmann::ordered_json j;
         if (!root) return j;
@@ -259,7 +259,7 @@ namespace ImGuiWidget
         return j;
     }
 
-    ImWidget* CreateWidgetFromJson(const nlohmann::ordered_json& j)
+    inline ImWidget* CreateWidgetFromJson(const nlohmann::ordered_json& j)
     {
         if (j.empty()) return nullptr;
 
@@ -301,7 +301,7 @@ namespace ImGuiWidget
     }
 
     // 保存控件树到文件
-    bool SaveWidgetTreeToFile(ImWidget* root, const std::string& filename)
+    inline bool SaveWidgetTreeToFile(ImWidget* root, const std::string& filename)
     {
         nlohmann::ordered_json j = SerializeWidgetTree(root);
         if (j.empty()) return false;
@@ -322,7 +322,7 @@ namespace ImGuiWidget
         return false;
     }
 
-    ImWidget* LoadWidgetTreeFromFile(const std::string& filename)
+    inline ImWidget* LoadWidgetTreeFromFile(const std::string& filename)
     {
         std::ifstream file(filename);
         if (!file.is_open()) return nullptr;
