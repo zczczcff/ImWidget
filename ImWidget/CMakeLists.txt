@@ -162,6 +162,7 @@ target_include_directories(ImWidget PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Extern/imgui-master>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Extern/imgui-master/backends>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Extern/nlohmann_json/single_include/nlohmann>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Extern/nlohmann_json/single_include>
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/Extern/stb_image>
     
     # 安装接口使用相对路径

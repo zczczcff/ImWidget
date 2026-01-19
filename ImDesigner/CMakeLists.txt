@@ -57,7 +57,7 @@ set(IMWIDGET_PLATFORM ${BUILD_PLATFORM} CACHE STRING "Forced platform" FORCE)
 
 # 添加子项目（保持二进制目录隔离）
 add_subdirectory(../ImWidget ${CMAKE_CURRENT_BINARY_DIR}/ImWidget)
-
+add_subdirectory(ThirdParty/EditorKit ${CMAKE_CURRENT_BINARY_DIR}/EditorKit)
 #-----------------------------------------------
 # 可执行文件配置
 #-----------------------------------------------
