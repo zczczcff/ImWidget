@@ -1,0 +1,139 @@
+{
+    "Type": "ImButton",
+    "Name": "ImButton_ExampleButton",
+    "Properties": {
+        "PressedStyle": {
+            "BackgroundColor": [
+                136,
+                255,
+                206,
+                255
+            ],
+            "HasBorder": false,
+            "Rounding": 0.0,
+            "BorderThickness": 1.0,
+            "BorderColor": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        "BorderColor": [
+            0,
+            0,
+            0,
+            255
+        ],
+        "Name": "ImButton_ExampleButton",
+        "BackGroundColor": [
+            255,
+            255,
+            255,
+            255
+        ],
+        "HaveBorder": true,
+        "NormalStyle": {
+            "BackgroundColor": [
+                255,
+                255,
+                255,
+                255
+            ],
+            "HasBorder": false,
+            "Rounding": 0.0,
+            "BorderThickness": 1.0,
+            "BorderColor": [
+                255,
+                255,
+                255,
+                255
+            ]
+        },
+        "TooltipText": "",
+        "HoveredStyle": {
+            "BackgroundColor": [
+                224,
+                253,
+                221,
+                255
+            ],
+            "HasBorder": false,
+            "Rounding": 0.0,
+            "BorderThickness": 1.0,
+            "BorderColor": [
+                255,
+                255,
+                255,
+                255
+            ]
+        }
+    },
+    "Children": [
+        {
+            "Type": "ImHorizontalBox",
+            "Name": "ImHorizontalBox_0",
+            "Properties": {
+                "BorderColor": [
+                    0,
+                    0,
+                    0,
+                    255
+                ],
+                "Name": "ImHorizontalBox_0",
+                "BackGroundColor": [
+                    255,
+                    255,
+                    255,
+                    0
+                ],
+                "HaveBorder": false
+            },
+            "Children": [
+                {
+                    "Type": "ImImage",
+                    "Name": "ImImage_Icon",
+                    "Properties": {
+                        "Name": "ImImage_Icon"
+                    },
+                    "ParentSlot": {
+                        "SizeRatio": 1.0,
+                        "bAutoSize": false,
+                        "PaddingTop": 0.0,
+                        "PaddingBottom": 0.0,
+                        "PaddingLeft": 4.0,
+                        "PaddingRight": 8.0
+                    }
+                },
+                {
+                    "Type": "ImTextBlock",
+                    "Name": "ImTextBlock_WidgetTypeName",
+                    "Properties": {
+                        "TextFontSize": 14,
+                        "Text": "",
+                        "Name": "ImTextBlock_WidgetTypeName",
+                        "TextColor": [
+                            0,
+                            0,
+                            0,
+                            255
+                        ],
+                        "HorizontalAlignment": "Left",
+                        "VerticalAlignment": "Center"
+                    },
+                    "ParentSlot": {
+                        "SizeRatio": 1.0,
+                        "bAutoSize": true,
+                        "PaddingTop": 0.0,
+                        "PaddingBottom": 0.0,
+                        "PaddingLeft": 0.0,
+                        "PaddingRight": 0.0
+                    }
+                }
+            ],
+            "ParentSlot": {
+                "bAutoSize": true
+            }
+        }
+    ]
+}

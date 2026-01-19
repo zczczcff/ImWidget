@@ -1,0 +1,937 @@
+{
+    "Type": "ImVerticalBox",
+    "Name": "ImVerticalBox_3",
+    "Properties": {
+        "BorderColor": [
+            0,
+            0,
+            0,
+            255
+        ],
+        "Name": "ImVerticalBox_3",
+        "BackGroundColor": [
+            255,
+            255,
+            255,
+            255
+        ],
+        "HaveBorder": false
+    },
+    "Children": [
+        {
+            "Type": "ImHorizontalBox",
+            "Name": "ImHorizontalBox_4",
+            "Properties": {
+                "BorderColor": [
+                    0,
+                    0,
+                    0,
+                    255
+                ],
+                "Name": "ImHorizontalBox_4",
+                "BackGroundColor": [
+                    247,
+                    247,
+                    247,
+                    255
+                ],
+                "HaveBorder": true
+            },
+            "Children": [
+                {
+                    "Type": "ImButton",
+                    "Name": "ImButton_Project",
+                    "Properties": {
+                        "PressedStyle": {
+                            "BackgroundColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        },
+                        "BorderColor": [
+                            0,
+                            0,
+                            0,
+                            255
+                        ],
+                        "Name": "ImButton_Project",
+                        "BackGroundColor": [
+                            255,
+                            255,
+                            255,
+                            255
+                        ],
+                        "HaveBorder": false,
+                        "NormalStyle": {
+                            "BackgroundColor": [
+                                247,
+                                247,
+                                247,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        },
+                        "TooltipText": "",
+                        "HoveredStyle": {
+                            "BackgroundColor": [
+                                198,
+                                215,
+                                255,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        }
+                    },
+                    "Children": [
+                        {
+                            "Type": "ImTextBlock",
+                            "Name": "ImTextBlock_9",
+                            "Properties": {
+                                "TextFontSize": 14,
+                                "Text": "项目",
+                                "Name": "ImTextBlock_9",
+                                "TextColor": [
+                                    0,
+                                    0,
+                                    0,
+                                    255
+                                ],
+                                "HorizontalAlignment": "Center",
+                                "VerticalAlignment": "Center"
+                            },
+                            "ParentSlot": {
+                                "bAutoSize": true
+                            }
+                        }
+                    ],
+                    "ParentSlot": {
+                        "SizeRatio": 1.0,
+                        "bAutoSize": false,
+                        "PaddingTop": 1.0,
+                        "PaddingBottom": 1.0,
+                        "PaddingLeft": 1.0,
+                        "PaddingRight": 1.0
+                    }
+                },
+                {
+                    "Type": "ImButton",
+                    "Name": "ImButton_Save",
+                    "Properties": {
+                        "PressedStyle": {
+                            "BackgroundColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        },
+                        "BorderColor": [
+                            0,
+                            0,
+                            0,
+                            255
+                        ],
+                        "Name": "ImButton_Save",
+                        "BackGroundColor": [
+                            255,
+                            255,
+                            255,
+                            255
+                        ],
+                        "HaveBorder": false,
+                        "NormalStyle": {
+                            "BackgroundColor": [
+                                247,
+                                247,
+                                247,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        },
+                        "TooltipText": "",
+                        "HoveredStyle": {
+                            "BackgroundColor": [
+                                199,
+                                215,
+                                255,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        }
+                    },
+                    "Children": [
+                        {
+                            "Type": "ImTextBlock",
+                            "Name": "ImTextBlock_10",
+                            "Properties": {
+                                "TextFontSize": 14,
+                                "Text": "保存",
+                                "Name": "ImTextBlock_10",
+                                "TextColor": [
+                                    0,
+                                    0,
+                                    0,
+                                    255
+                                ],
+                                "HorizontalAlignment": "Center",
+                                "VerticalAlignment": "Center"
+                            },
+                            "ParentSlot": {
+                                "bAutoSize": true
+                            }
+                        }
+                    ],
+                    "ParentSlot": {
+                        "SizeRatio": 1.0,
+                        "bAutoSize": false,
+                        "PaddingTop": 1.0,
+                        "PaddingBottom": 1.0,
+                        "PaddingLeft": 1.0,
+                        "PaddingRight": 1.0
+                    }
+                },
+                {
+                    "Type": "ImButton",
+                    "Name": "ImButton_Generate",
+                    "Properties": {
+                        "PressedStyle": {
+                            "BackgroundColor": [
+                                255,
+                                255,
+                                255,
+                                241
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        },
+                        "BorderColor": [
+                            0,
+                            0,
+                            0,
+                            255
+                        ],
+                        "Name": "ImButton_Generate",
+                        "BackGroundColor": [
+                            255,
+                            255,
+                            255,
+                            255
+                        ],
+                        "HaveBorder": false,
+                        "NormalStyle": {
+                            "BackgroundColor": [
+                                247,
+                                247,
+                                247,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        },
+                        "TooltipText": "",
+                        "HoveredStyle": {
+                            "BackgroundColor": [
+                                199,
+                                214,
+                                255,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        }
+                    },
+                    "Children": [
+                        {
+                            "Type": "ImTextBlock",
+                            "Name": "ImTextBlock_11",
+                            "Properties": {
+                                "TextFontSize": 14,
+                                "Text": "生成",
+                                "Name": "ImTextBlock_11",
+                                "TextColor": [
+                                    0,
+                                    0,
+                                    0,
+                                    255
+                                ],
+                                "HorizontalAlignment": "Center",
+                                "VerticalAlignment": "Center"
+                            },
+                            "ParentSlot": {
+                                "bAutoSize": true
+                            }
+                        }
+                    ],
+                    "ParentSlot": {
+                        "SizeRatio": 1.0,
+                        "bAutoSize": false,
+                        "PaddingTop": 1.0,
+                        "PaddingBottom": 1.0,
+                        "PaddingLeft": 1.0,
+                        "PaddingRight": 1.0
+                    }
+                },
+                {
+                    "Type": "ImButton",
+                    "Name": "ImButton_Undo",
+                    "Properties": {
+                        "PressedStyle": {
+                            "BackgroundColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        },
+                        "BorderColor": [
+                            0,
+                            0,
+                            0,
+                            255
+                        ],
+                        "Name": "ImButton_Undo",
+                        "BackGroundColor": [
+                            255,
+                            255,
+                            255,
+                            255
+                        ],
+                        "HaveBorder": false,
+                        "NormalStyle": {
+                            "BackgroundColor": [
+                                247,
+                                247,
+                                247,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        },
+                        "TooltipText": "",
+                        "HoveredStyle": {
+                            "BackgroundColor": [
+                                199,
+                                214,
+                                255,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        }
+                    },
+                    "Children": [
+                        {
+                            "Type": "ImImage",
+                            "Name": "ImImage_Undo",
+                            "Properties": {
+                                "Name": "ImImage_Undo"
+                            },
+                            "ParentSlot": {
+                                "bAutoSize": true
+                            }
+                        }
+                    ],
+                    "ParentSlot": {
+                        "SizeRatio": 1.0,
+                        "bAutoSize": false,
+                        "PaddingTop": 0.0,
+                        "PaddingBottom": 0.0,
+                        "PaddingLeft": 0.0,
+                        "PaddingRight": 0.0
+                    }
+                },
+                {
+                    "Type": "ImButton",
+                    "Name": "ImButton_Redo",
+                    "Properties": {
+                        "PressedStyle": {
+                            "BackgroundColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        },
+                        "BorderColor": [
+                            0,
+                            0,
+                            0,
+                            255
+                        ],
+                        "Name": "ImButton_Redo",
+                        "BackGroundColor": [
+                            255,
+                            255,
+                            255,
+                            255
+                        ],
+                        "HaveBorder": false,
+                        "NormalStyle": {
+                            "BackgroundColor": [
+                                247,
+                                247,
+                                247,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        },
+                        "TooltipText": "",
+                        "HoveredStyle": {
+                            "BackgroundColor": [
+                                199,
+                                214,
+                                255,
+                                255
+                            ],
+                            "HasBorder": false,
+                            "Rounding": 0.0,
+                            "BorderThickness": 1.0,
+                            "BorderColor": [
+                                255,
+                                255,
+                                255,
+                                255
+                            ]
+                        }
+                    },
+                    "Children": [
+                        {
+                            "Type": "ImImage",
+                            "Name": "ImImage_Redo",
+                            "Properties": {
+                                "Name": "ImImage_Redo"
+                            },
+                            "ParentSlot": {
+                                "bAutoSize": true
+                            }
+                        }
+                    ],
+                    "ParentSlot": {
+                        "SizeRatio": 1.0,
+                        "bAutoSize": false,
+                        "PaddingTop": 0.0,
+                        "PaddingBottom": 0.0,
+                        "PaddingLeft": 0.0,
+                        "PaddingRight": 0.0
+                    }
+                }
+            ],
+            "ParentSlot": {
+                "SizeRatio": 0.5,
+                "bAutoSize": false,
+                "PaddingTop": 0.0,
+                "PaddingBottom": 0.0,
+                "PaddingLeft": 0.0,
+                "PaddingRight": 0.0
+            }
+        },
+        {
+            "Type": "ImVerticalSplitter",
+            "Name": "ImVerticalSplitter_6",
+            "Properties": {
+                "BorderColor": [
+                    0,
+                    0,
+                    0,
+                    255
+                ],
+                "Name": "ImVerticalSplitter_6",
+                "BackGroundColor": [
+                    255,
+                    255,
+                    255,
+                    255
+                ],
+                "HaveBorder": false,
+                "SplitterStyle": {
+                    "BarHeight": 4.0,
+                    "Color": [
+                        100,
+                        100,
+                        100,
+                        255
+                    ],
+                    "HoveredColor": [
+                        120,
+                        120,
+                        120,
+                        255
+                    ],
+                    "ActiveColor": [
+                        150,
+                        150,
+                        150,
+                        255
+                    ],
+                    "Rounding": 0.0
+                }
+            },
+            "Children": [
+                {
+                    "Type": "ImHorizontalSplitter",
+                    "Name": "ImHorizontalSplitter_1",
+                    "Properties": {
+                        "BorderColor": [
+                            0,
+                            0,
+                            0,
+                            255
+                        ],
+                        "Name": "ImHorizontalSplitter_1",
+                        "BackGroundColor": [
+                            255,
+                            255,
+                            255,
+                            255
+                        ],
+                        "HaveBorder": true,
+                        "SplitterStyle": {
+                            "ActiveColor": [
+                                150,
+                                150,
+                                150,
+                                255
+                            ],
+                            "BarWidth": 4.0,
+                            "Color": [
+                                100,
+                                100,
+                                100,
+                                255
+                            ],
+                            "HoveredColor": [
+                                120,
+                                120,
+                                120,
+                                255
+                            ],
+                            "Rounding": 0.0
+                        }
+                    },
+                    "Children": [
+                        {
+                            "Type": "ImBorder",
+                            "Name": "ImBorder_Left",
+                            "Properties": {
+                                "BorderColor": [
+                                    0,
+                                    0,
+                                    0,
+                                    255
+                                ],
+                                "Name": "ImBorder_Left",
+                                "BackGroundColor": [
+                                    255,
+                                    255,
+                                    255,
+                                    255
+                                ],
+                                "HaveBorder": true
+                            },
+                            "Children": [
+                                {
+                                    "Type": "ImVerticalSplitter",
+                                    "Name": "ImVerticalSplitter_0",
+                                    "Properties": {
+                                        "BorderColor": [
+                                            0,
+                                            0,
+                                            0,
+                                            255
+                                        ],
+                                        "Name": "ImVerticalSplitter_0",
+                                        "BackGroundColor": [
+                                            255,
+                                            255,
+                                            255,
+                                            255
+                                        ],
+                                        "HaveBorder": true,
+                                        "SplitterStyle": {
+                                            "BarHeight": 4.0,
+                                            "Color": [
+                                                100,
+                                                100,
+                                                100,
+                                                255
+                                            ],
+                                            "HoveredColor": [
+                                                120,
+                                                120,
+                                                120,
+                                                255
+                                            ],
+                                            "ActiveColor": [
+                                                150,
+                                                150,
+                                                150,
+                                                255
+                                            ],
+                                            "Rounding": 0.0
+                                        }
+                                    },
+                                    "Children": [
+                                        {
+                                            "Type": "ImScrollBox",
+                                            "Name": "ImScrollBox_WidgetList",
+                                            "Properties": {
+                                                "BorderColor": [
+                                                    0,
+                                                    0,
+                                                    0,
+                                                    255
+                                                ],
+                                                "Name": "ImScrollBox_WidgetList",
+                                                "BackGroundColor": [
+                                                    255,
+                                                    255,
+                                                    255,
+                                                    255
+                                                ],
+                                                "ScrollbarGrabHoveredColor": [
+                                                    120,
+                                                    120,
+                                                    120,
+                                                    255
+                                                ],
+                                                "ScrollbarBgColor": [
+                                                    40,
+                                                    40,
+                                                    40,
+                                                    255
+                                                ],
+                                                "HaveBorder": true,
+                                                "ScrollbarThickness": 10.0,
+                                                "ScrollbarGrabColor": [
+                                                    100,
+                                                    100,
+                                                    100,
+                                                    255
+                                                ],
+                                                "ScrollbarGrabActiveColor": [
+                                                    150,
+                                                    150,
+                                                    150,
+                                                    255
+                                                ],
+                                                "HorizontalScrollEnabled": true,
+                                                "VerticalScrollEnabled": true,
+                                                "ShowHorizontalScrollbar": true,
+                                                "ShowVerticalScrollbar": true
+                                            },
+                                            "Children": [
+                                                {
+                                                    "Type": "ImVerticalBox",
+                                                    "Name": "ImVerticalBox_WidgetList",
+                                                    "Properties": {
+                                                        "BorderColor": [
+                                                            0,
+                                                            0,
+                                                            0,
+                                                            255
+                                                        ],
+                                                        "Name": "ImVerticalBox_WidgetList",
+                                                        "BackGroundColor": [
+                                                            255,
+                                                            255,
+                                                            255,
+                                                            255
+                                                        ],
+                                                        "HaveBorder": false
+                                                    },
+                                                    "ParentSlot": {
+                                                        "bAutoSize": true
+                                                    }
+                                                }
+                                            ],
+                                            "ParentSlot": {
+                                                "bAutoSize": true,
+                                                "PaddingTop": 0.0,
+                                                "PaddingBottom": 0.0,
+                                                "PaddingLeft": 0.0,
+                                                "Ratio": 1.0,
+                                                "PaddingRight": 0.0,
+                                                "MinSize": 30.0
+                                            }
+                                        },
+                                        {
+                                            "Type": "ImBorder",
+                                            "Name": "ImBorder_LeftTab",
+                                            "Properties": {
+                                                "BorderColor": [
+                                                    0,
+                                                    0,
+                                                    0,
+                                                    255
+                                                ],
+                                                "Name": "ImBorder_LeftTab",
+                                                "BackGroundColor": [
+                                                    255,
+                                                    255,
+                                                    255,
+                                                    255
+                                                ],
+                                                "HaveBorder": false
+                                            },
+                                            "ParentSlot": {
+                                                "bAutoSize": true,
+                                                "PaddingTop": 0.0,
+                                                "PaddingBottom": 0.0,
+                                                "PaddingLeft": 0.0,
+                                                "Ratio": 1.0,
+                                                "PaddingRight": 0.0,
+                                                "MinSize": 30.0
+                                            }
+                                        }
+                                    ],
+                                    "ParentSlot": {
+                                        "bAutoSize": true,
+                                        "PaddingTop": 0.0,
+                                        "PaddingBottom": 0.0,
+                                        "PaddingLeft": 0.0,
+                                        "PaddingRight": 0.0
+                                    }
+                                }
+                            ],
+                            "ParentSlot": {
+                                "bAutoSize": true,
+                                "PaddingTop": 0.0,
+                                "PaddingBottom": 0.0,
+                                "PaddingLeft": 0.0,
+                                "Ratio": 0.30000001192092896,
+                                "PaddingRight": 0.0,
+                                "MinSize": 30.0
+                            }
+                        },
+                        {
+                            "Type": "ImBorder",
+                            "Name": "ImBorder_MainWorkSpace",
+                            "Properties": {
+                                "BorderColor": [
+                                    0,
+                                    0,
+                                    0,
+                                    255
+                                ],
+                                "Name": "ImBorder_MainWorkSpace",
+                                "BackGroundColor": [
+                                    255,
+                                    255,
+                                    255,
+                                    255
+                                ],
+                                "HaveBorder": true
+                            },
+                            "ParentSlot": {
+                                "bAutoSize": true,
+                                "PaddingTop": 0.0,
+                                "PaddingBottom": 0.0,
+                                "PaddingLeft": 0.0,
+                                "Ratio": 1.0,
+                                "PaddingRight": 0.0,
+                                "MinSize": 30.0
+                            }
+                        },
+                        {
+                            "Type": "ImBorder",
+                            "Name": "ImBorder_Right",
+                            "Properties": {
+                                "BorderColor": [
+                                    0,
+                                    0,
+                                    0,
+                                    255
+                                ],
+                                "Name": "ImBorder_Right",
+                                "BackGroundColor": [
+                                    255,
+                                    255,
+                                    255,
+                                    255
+                                ],
+                                "HaveBorder": false
+                            },
+                            "ParentSlot": {
+                                "bAutoSize": true,
+                                "PaddingTop": 0.0,
+                                "PaddingBottom": 0.0,
+                                "PaddingLeft": 0.0,
+                                "Ratio": 0.30000001192092896,
+                                "PaddingRight": 0.0,
+                                "MinSize": 30.0
+                            }
+                        }
+                    ],
+                    "ParentSlot": {
+                        "bAutoSize": true,
+                        "PaddingTop": 0.0,
+                        "PaddingBottom": 0.0,
+                        "PaddingLeft": 0.0,
+                        "Ratio": 1.0,
+                        "PaddingRight": 0.0,
+                        "MinSize": 30.0
+                    }
+                },
+                {
+                    "Type": "ImScrollingTextList",
+                    "Name": "ImScrollingTextList_LogList",
+                    "Properties": {
+                        "Name": "ImScrollingTextList_LogList",
+                        "ScrollbarRounding": 0.0,
+                        "TextColor": [
+                            0,
+                            0,
+                            0,
+                            255
+                        ],
+                        "ScrollbarBackgroundColor": [
+                            200,
+                            200,
+                            200,
+                            255
+                        ],
+                        "LineSpacing": 2.0,
+                        "ScrollbarWidth": 14.0,
+                        "ScrollbarGrabColor": [
+                            120,
+                            120,
+                            120,
+                            255
+                        ],
+                        "ScrollbarGrabMinHeight": 20.0
+                    },
+                    "ParentSlot": {
+                        "bAutoSize": true,
+                        "PaddingTop": 0.0,
+                        "PaddingBottom": 0.0,
+                        "PaddingLeft": 0.0,
+                        "Ratio": 0.20000000298023224,
+                        "PaddingRight": 0.0,
+                        "MinSize": 30.0
+                    }
+                }
+            ],
+            "ParentSlot": {
+                "SizeRatio": 1.0,
+                "bAutoSize": true,
+                "PaddingTop": 0.0,
+                "PaddingBottom": 0.0,
+                "PaddingLeft": 0.0,
+                "PaddingRight": 0.0
+            }
+        }
+    ]
+}
