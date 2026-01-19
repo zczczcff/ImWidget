@@ -94,6 +94,7 @@ target_sources(${TARGET_NAME} PRIVATE ${All_Resource} ${All_Headers} ${All_IMUI}
 
 # 自动继承ImWidget的头文件设置
 target_link_libraries(${TARGET_NAME} PRIVATE ImWidget)
+target_link_libraries(${TARGET_NAME} PRIVATE EditorKit)
 
 # 添加公共包含目录
 target_include_directories(${TARGET_NAME} PRIVATE
