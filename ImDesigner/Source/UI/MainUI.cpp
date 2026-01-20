@@ -15,6 +15,13 @@
 #include "Public/WidgetInfor.h"
 #include "UI/IconManager.h"
 
+// Action键定义
+const std::string ACTION_UI_FILE_SELECTED = "UIFileSelected";
+const std::string ACTION_EDITOR_PAGE_CLOSED = "EditorPageClosed";
+const std::string ACTION_EDITOR_PAGE_SELECTED = "EditorPageSelected";
+const std::string ACTION_REQUEST_UNDO = "RequestUndo";
+const std::string ACTION_REQUEST_REDO = "RequestRedo";
+
 void MainUI::Init2()
 {
 	ImButton_Project->SetFocusable(false);
@@ -40,7 +47,11 @@ void MainUI::Init2()
 	
 	// 创建项目视图实例
 	ProjectView = new UI_ProjectView("ProjectView");
-	ProjectView->OnUIFileSelected.Add([this](const std::string& FileName, const std::string& FileFullPath) { OnUIFileSelected.Broadcast(FileName, FileFullPath); });
+	ProjectView->OnUIFileSelected.Add([this](const std::string& FileName, const std::string& FileFullPath) 
+		{
+			m_ActionSystem->Execute(ACTION_UI_FILE_SELECTED, FileName ,FileFullPath);
+			//OnUIFileSelected.Broadcast(FileName, FileFullPath); 
+		});
 	ImBorder_LeftTab->SetContent(ImPageManager_LeftPart, false);
 	ImPageManager_LeftPart->SetTabPosition(ImGuiWidget::ImPageManager::TabPosition::Bottom);
 	ImPageManager_LeftPart->SetShowCloseButton(false);
@@ -78,15 +89,32 @@ void MainUI::Init2()
 
 	//UndoRedo
 
-	ImButton_Undo->OnLeftClicked.Add([this]() { OnRequestUndo.Broadcast(); });
+	ImButton_Undo->OnLeftClicked.Add([this]() 
+		{
+			m_ActionSystem->Execute(ACTION_REQUEST_UNDO);
+			//OnRequestUndo.Broadcast(); 
+		});
 	ImButton_Undo->SetToolTipEnable(true);
 	ImButton_Undo->SetToolTip(u8"撤销（Ctrl+Z）");
-	ImButton_Redo->OnLeftClicked.Add([this]() { OnRequestRedo.Broadcast(); });
+	ImButton_Redo->OnLeftClicked.Add([this]() 
+		{
+			m_ActionSystem->Execute(ACTION_REQUEST_REDO);
+			//OnRequestRedo.Broadcast();
+		});
 	ImButton_Redo->SetToolTipEnable(true);
 	ImButton_Redo->SetToolTip(u8"重做");
 	ImImage_Undo->SetTextureID(IconManager::GetInstance()->GetIcon(ImDesignerIcon::Undo),20,20);
 	ImImage_Redo->SetTextureID(IconManager::GetInstance()->GetIcon(ImDesignerIcon::Redo),20,20);
 	UpdateUndoRedoState(false, false);
+
+}
+
+void MainUI::EventInit()
+{
+	m_EditorEventbus->Subscribe("MainUI_CreateNewWidgetEditorPage", [this](ImGuiWidget::ImWidget* FileRootWidget, std::string FileName, std::string FileFullPath)
+		{
+			CreateNewWidgetEditorPage(FileRootWidget, FileName, FileFullPath);
+		});
 
 }
 
@@ -137,12 +165,14 @@ bool MainUI::RenameWidgetEditorPage(const std::string& OldFullPath, const std::s
 
 void MainUI::On_EditorPageClosed(const std::string& FilePath)
 {
-	OnEditorPageClosed.Broadcast(FilePath);
+	m_ActionSystem->Execute(ACTION_EDITOR_PAGE_CLOSED, FilePath);
+	//OnEditorPageClosed.Broadcast(FilePath);
 }
 
 void MainUI::On_EditorPageSelected(const std::string& PageID)
 {
-	OnEditorPageSelected.Broadcast(PageID);
+	m_ActionSystem->Execute(ACTION_EDITOR_PAGE_SELECTED, PageID);
+	//OnEditorPageSelected.Broadcast(PageID);
 }
 
 bool MainUI::CreateNewWidgetTreeView(const std::string& Name, ImGuiWidget::ImWidget* TargetWidget)

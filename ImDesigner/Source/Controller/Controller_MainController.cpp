@@ -16,12 +16,13 @@
 		 });
 	 m_MainModel->Init();
 
-	 m_MainUI->OnUIFileSelected.Add([this](const std::string& FileName, const std::string& FileFullPath)
+	 m_ActionSystem->AddSequentialProcessor("UIFileSelected", [this](std::string FileName, std::string FileFullPath)
 		 {
 			 auto EditedFile = m_MainModel->BeginEditFile(FileFullPath);
 			 if (EditedFile)
 			 {
-				 m_MainUI->CreateNewWidgetEditorPage(EditedFile->rootwidget, FileName, FileFullPath);
+				 //m_MainUI->CreateNewWidgetEditorPage(EditedFile->rootwidget, FileName, FileFullPath);
+				 m_EditorEventbus->Publish("MainUI_CreateNewWidgetEditorPage", EditedFile->rootwidget, FileName, FileFullPath);
 				 m_MainUI->CreateNewWidgetTreeView(FileFullPath, EditedFile->rootwidget);
 				 m_MainUI->CreateNewDetailView(FileFullPath);
 
@@ -34,7 +35,25 @@
 			 }
 		 });
 
-	 m_MainUI->OnEditorPageClosed.Add([this](const std::string& FileFullPath)
+	 //m_MainUI->OnUIFileSelected.Add([this](const std::string& FileName, const std::string& FileFullPath)
+		// {
+		//	 auto EditedFile = m_MainModel->BeginEditFile(FileFullPath);
+		//	 if (EditedFile)
+		//	 {
+		//		 //m_MainUI->CreateNewWidgetEditorPage(EditedFile->rootwidget, FileName, FileFullPath);
+		//		 m_EditorEventbus->Publish("MainUI_CreateNewWidgetEditorPage", EditedFile->rootwidget, FileName, FileFullPath);
+		//		 m_MainUI->CreateNewWidgetTreeView(FileFullPath, EditedFile->rootwidget);
+		//		 m_MainUI->CreateNewDetailView(FileFullPath);
+
+		//		 UI_WidgetTreeView* WidgetTreeView = m_MainUI->GetWidgetTreeViewByName(FileFullPath);
+		//		 UI_DetailView* DetailView = m_MainUI->GetDetailViewByName(FileFullPath);
+		//		 UI_WidgetEditor* WidgetEditor = m_MainUI->GetWidgetEditorByName(FileFullPath);
+		//		 Controller_WidgetEditor* NewController_WidgetEditor = new Controller_WidgetEditor(WidgetTreeView, WidgetEditor, DetailView, EditedFile->model_editor);
+		//		 WidgetEidtorControllers.insert(std::make_pair(FileFullPath, NewController_WidgetEditor));
+		//		 SwitchEditPage(FileFullPath);
+		//	 }
+		// });
+	 m_ActionSystem->AddSequentialProcessor("EditorPageClosed", [this](std::string FileFullPath)
 		 {
 			 m_MainModel->FinishEditFile(FileFullPath);
 			 auto it = WidgetEidtorControllers.find(FileFullPath);
@@ -49,11 +68,31 @@
 				 m_MainUI->HandleCloseFile(FileFullPath);
 			 }
 		 });
+	 //m_MainUI->OnEditorPageClosed.Add([this](const std::string& FileFullPath)
+		// {
+		//	 m_MainModel->FinishEditFile(FileFullPath);
+		//	 auto it = WidgetEidtorControllers.find(FileFullPath);
+		//	 if (it == WidgetEidtorControllers.end())
+		//	 {
+		//		 //±¨´í
+		//	 }
+		//	 else
+		//	 {
+		//		 delete it->second;
+		//		 WidgetEidtorControllers.erase(it);
+		//		 m_MainUI->HandleCloseFile(FileFullPath);
+		//	 }
+		// });
 
-	 m_MainUI->OnEditorPageSelected.Add([this](const std::string& NewPageID) 
+	 m_ActionSystem->AddSequentialProcessor("EditorPageSelected", [this](std::string NewPageID)
 		 {
 			 SwitchEditPage(NewPageID);
 		 });
+
+	 //m_MainUI->OnEditorPageSelected.Add([this](const std::string& NewPageID) 
+		// {
+		//	 SwitchEditPage(NewPageID);
+		// });
 
 	 m_MainUI->GetProjectView()->OnRequestCreateFileInDir.Add([this](const std::string& Dir) 
 		 {
@@ -97,8 +136,8 @@
 	 if (it != WidgetEidtorControllers.end())
 	 {
 		 it->second->OnUndoRedoStateChanged.Clear();
-		 m_MainUI->OnRequestRedo.Clear();
-		 m_MainUI->OnRequestUndo.Clear();
+		 //m_MainUI->OnRequestRedo.Clear();
+		 //m_MainUI->OnRequestUndo.Clear();
 	 }
 
 	 auto newit = WidgetEidtorControllers.find(PageName);
@@ -111,15 +150,16 @@
 			 {
 				 m_MainUI->UpdateUndoRedoState(CanUndo, CanRedo);
 			 });
-		 m_MainUI->OnRequestRedo.Add([this, WidgetEditor = newit->second]()
-		 {
-			 WidgetEditor->RequestRedo();
-		 });
 
-		 m_MainUI->OnRequestUndo.Add([this, WidgetEditor = newit->second]()
-		 {
-			 WidgetEditor->RequestUndo();
-		 });
+		 //m_MainUI->OnRequestRedo.Add([this, WidgetEditor = newit->second]()
+		 //{
+			// WidgetEditor->RequestRedo();
+		 //});
+
+		 //m_MainUI->OnRequestUndo.Add([this, WidgetEditor = newit->second]()
+		 //{
+			// WidgetEditor->RequestUndo();
+		 //});
 		 newit->second->UpdateUndoRedoState();
 		 CurrentFile = PageName;
 	 }	 

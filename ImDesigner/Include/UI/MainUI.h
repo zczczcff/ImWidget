@@ -4,6 +4,8 @@
 #include "ImBasicWidgetDeclaration.h"
 #include "ImTools/ImDelegate.h"
 #include <map>
+#include "EditorGlobalInterface.h"
+
 
 namespace ImGuiWidget
 {
@@ -15,7 +17,7 @@ class UI_WidgetEditor;
 class UI_DetailView;
 class UI_ProjectView;
 
-class MainUI : public ImGuiWidget::ImUserWidget
+class MainUI : public ImGuiWidget::ImUserWidget,public EditorGlobalInterface
 {
 public:
     void Init();
@@ -24,6 +26,7 @@ public:
 {
     Init();
     Init2();
+    EventInit();
 }
 
 protected:
@@ -74,11 +77,13 @@ protected:
     ImGuiWidget::ImWindow* m_FileOperatorMenuWindow;
     ImGuiWidget::ImVerticalBox* ImVerticalBox_FileOperatorMenu;
 public:
-    ImMulticastDelegate<const std::string&, const std::string&> OnUIFileSelected;
-    ImMulticastDelegate<const std::string&> OnEditorPageClosed;
-    ImMulticastDelegate<const std::string&> OnEditorPageSelected;
-    ImMulticastDelegate<> OnRequestUndo;
-    ImMulticastDelegate<> OnRequestRedo;
+    //ImMulticastDelegate<const std::string&, const std::string&> OnUIFileSelected;
+    //ImMulticastDelegate<const std::string&> OnEditorPageClosed;
+    //ImMulticastDelegate<const std::string&> OnEditorPageSelected;
+    //ImMulticastDelegate<> OnRequestUndo;
+    //ImMulticastDelegate<> OnRequestRedo;
+protected:
+    void EventInit();
     //ProjectView相关操作
 public:
     UI_ProjectView* GetProjectView() { return ProjectView; }
@@ -87,8 +92,9 @@ private:
     void On_EditorPageClosed(const std::string& FilePath);
     void On_EditorPageSelected(const std::string& PageID);
     //WidgetEditor相关操作
-public:
+
     void CreateNewWidgetEditorPage(ImGuiWidget::ImWidget* FileRootWidget, const std::string& FileName, const std::string& FileFullPath);
+public:
     UI_WidgetEditor* GetWidgetEditorByName(const std::string& Name);
     bool ShowWidgetEditorByName(const std::string& Name);
 private:
