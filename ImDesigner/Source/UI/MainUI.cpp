@@ -14,13 +14,8 @@
 #include "Model/FileUtil.h"
 #include "Public/WidgetInfor.h"
 #include "UI/IconManager.h"
+#include "EditorAction.h"
 
-// Action¼ü¶¨Òå
-const std::string ACTION_UI_FILE_SELECTED = "UIFileSelected";
-const std::string ACTION_EDITOR_PAGE_CLOSED = "EditorPageClosed";
-const std::string ACTION_EDITOR_PAGE_SELECTED = "EditorPageSelected";
-const std::string ACTION_REQUEST_UNDO = "RequestUndo";
-const std::string ACTION_REQUEST_REDO = "RequestRedo";
 
 void MainUI::Init2()
 {
@@ -49,7 +44,7 @@ void MainUI::Init2()
 	ProjectView = new UI_ProjectView("ProjectView");
 	ProjectView->OnUIFileSelected.Add([this](const std::string& FileName, const std::string& FileFullPath) 
 		{
-			m_ActionSystem->Execute(ACTION_UI_FILE_SELECTED, FileName ,FileFullPath);
+			ExecuteAction(Action::MainUI::UI_FILE_SELECTED, FileName ,FileFullPath);
 			//OnUIFileSelected.Broadcast(FileName, FileFullPath); 
 		});
 	ImBorder_LeftTab->SetContent(ImPageManager_LeftPart, false);
@@ -91,14 +86,14 @@ void MainUI::Init2()
 
 	ImButton_Undo->OnLeftClicked.Add([this]() 
 		{
-			m_ActionSystem->Execute(ACTION_REQUEST_UNDO);
+			ExecuteAction(Action::MainUI::REQUEST_UNDO);
 			//OnRequestUndo.Broadcast(); 
 		});
 	ImButton_Undo->SetToolTipEnable(true);
 	ImButton_Undo->SetToolTip(u8"³·Ïú£¨Ctrl+Z£©");
 	ImButton_Redo->OnLeftClicked.Add([this]() 
 		{
-			m_ActionSystem->Execute(ACTION_REQUEST_REDO);
+			ExecuteAction(Action::MainUI::REQUEST_REDO);
 			//OnRequestRedo.Broadcast();
 		});
 	ImButton_Redo->SetToolTipEnable(true);
@@ -111,7 +106,7 @@ void MainUI::Init2()
 
 void MainUI::EventInit()
 {
-	m_EditorEventbus->Subscribe("MainUI_CreateNewWidgetEditorPage", [this](ImGuiWidget::ImWidget* FileRootWidget, std::string FileName, std::string FileFullPath)
+	Subscribe("MainUI_CreateNewWidgetEditorPage", [this](ImGuiWidget::ImWidget* FileRootWidget, std::string FileName, std::string FileFullPath)
 		{
 			CreateNewWidgetEditorPage(FileRootWidget, FileName, FileFullPath);
 		});
@@ -165,13 +160,13 @@ bool MainUI::RenameWidgetEditorPage(const std::string& OldFullPath, const std::s
 
 void MainUI::On_EditorPageClosed(const std::string& FilePath)
 {
-	m_ActionSystem->Execute(ACTION_EDITOR_PAGE_CLOSED, FilePath);
+	ExecuteAction(Action::MainUI::EDITOR_PAGE_CLOSED, FilePath);
 	//OnEditorPageClosed.Broadcast(FilePath);
 }
 
 void MainUI::On_EditorPageSelected(const std::string& PageID)
 {
-	m_ActionSystem->Execute(ACTION_EDITOR_PAGE_SELECTED, PageID);
+	ExecuteAction(Action::MainUI::EDITOR_PAGE_SELECTED, PageID);
 	//OnEditorPageSelected.Broadcast(PageID);
 }
 

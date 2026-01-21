@@ -5,6 +5,8 @@
 #include "UI/UI_ProjectView.h"
 #include "Controller/Controller_WidgetEditor.h"
 #include "Tools/JLog.h"
+#include "EditorAction.h"
+
  Controller_MainController::Controller_MainController(MainUI* MainUI, Model_MainModel* MainModel)
 	:
 	m_MainUI(MainUI),
@@ -16,13 +18,13 @@
 		 });
 	 m_MainModel->Init();
 
-	 m_ActionSystem->AddSequentialProcessor("UIFileSelected", [this](std::string FileName, std::string FileFullPath)
+	 AddSequentialProcessor(Action::MainUI::UI_FILE_SELECTED, [this](std::string FileName, std::string FileFullPath)
 		 {
 			 auto EditedFile = m_MainModel->BeginEditFile(FileFullPath);
 			 if (EditedFile)
 			 {
 				 //m_MainUI->CreateNewWidgetEditorPage(EditedFile->rootwidget, FileName, FileFullPath);
-				 m_EditorEventbus->Publish("MainUI_CreateNewWidgetEditorPage", EditedFile->rootwidget, FileName, FileFullPath);
+				 Publish("MainUI_CreateNewWidgetEditorPage", EditedFile->rootwidget, FileName, FileFullPath);
 				 m_MainUI->CreateNewWidgetTreeView(FileFullPath, EditedFile->rootwidget);
 				 m_MainUI->CreateNewDetailView(FileFullPath);
 
@@ -53,7 +55,7 @@
 		//		 SwitchEditPage(FileFullPath);
 		//	 }
 		// });
-	 m_ActionSystem->AddSequentialProcessor("EditorPageClosed", [this](std::string FileFullPath)
+	 AddSequentialProcessor(Action::MainUI::EDITOR_PAGE_CLOSED, [this](std::string FileFullPath)
 		 {
 			 m_MainModel->FinishEditFile(FileFullPath);
 			 auto it = WidgetEidtorControllers.find(FileFullPath);
@@ -84,7 +86,7 @@
 		//	 }
 		// });
 
-	 m_ActionSystem->AddSequentialProcessor("EditorPageSelected", [this](std::string NewPageID)
+	 AddSequentialProcessor(Action::MainUI::EDITOR_PAGE_SELECTED, [this](std::string NewPageID)
 		 {
 			 SwitchEditPage(NewPageID);
 		 });

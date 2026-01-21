@@ -1,15 +1,19 @@
 #pragma once
 #include <EditorKit/KEventBus.h>
 #include <EditorKit/ActionSystem.h>
+#include <EditorKit/StaticString.h>
+
+using KeyStringType = StaticString;
+using ActionID = ActionHandle<KeyStringType>;
 
 class EditorGlobal
 {
 private:
-	EventBus<>* m_eventbus;
-	ActionSystem<std::string>* m_ActionSystem;
+	EventBus<KeyStringType>* m_eventbus;
+	ActionSystem<KeyStringType>* m_ActionSystem;
 	EditorGlobal():
-		m_eventbus(new EventBus<>()),
-		m_ActionSystem(new ActionSystem<std::string>)
+		m_eventbus(new EventBus<KeyStringType>()),
+		m_ActionSystem(new ActionSystem<KeyStringType>)
 	{}
 	static EditorGlobal* GetInstance()
 	{
@@ -18,11 +22,11 @@ private:
 	}
 
 public:
-	static EventBus<>* GetEventBusInstance()
+	static EventBus<KeyStringType>* GetEventBusInstance()
 	{
 		return GetInstance()->m_eventbus;
 	}
-	static ActionSystem<std::string>* GetActionSystemInstance()
+	static ActionSystem<KeyStringType>* GetActionSystemInstance()
 	{
 		return GetInstance()->m_ActionSystem;
 	}
