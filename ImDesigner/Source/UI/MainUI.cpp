@@ -42,11 +42,11 @@ void MainUI::Init2()
 	
 	// 创建项目视图实例
 	ProjectView = new UI_ProjectView("ProjectView");
-	ProjectView->OnUIFileSelected.Add([this](const std::string& FileName, const std::string& FileFullPath) 
-		{
-			ExecuteAction(Action::MainUI::UI_FILE_SELECTED, FileName ,FileFullPath);
-			//OnUIFileSelected.Broadcast(FileName, FileFullPath); 
-		});
+	//ProjectView->OnUIFileSelected.Add([this](const std::string& FileName, const std::string& FileFullPath) 
+	//	{
+	//		ExecuteAction(Action::MainUI::UI_FILE_SELECTED, FileName ,FileFullPath);
+	//		//OnUIFileSelected.Broadcast(FileName, FileFullPath); 
+	//	});
 	ImBorder_LeftTab->SetContent(ImPageManager_LeftPart, false);
 	ImPageManager_LeftPart->SetTabPosition(ImGuiWidget::ImPageManager::TabPosition::Bottom);
 	ImPageManager_LeftPart->SetShowCloseButton(false);
@@ -113,10 +113,10 @@ void MainUI::EventInit()
 
 }
 
-void MainUI::UpdateProjectView(ProjectFileManager* projectmananger)
-{
-	ProjectView->UpdateProjectView(projectmananger);
-}
+//void MainUI::UpdateProjectView(ProjectFileManager* projectmananger)
+//{
+//	ProjectView->UpdateProjectView(projectmananger);
+//}
 
 void MainUI::CreateNewWidgetEditorPage(ImGuiWidget::ImWidget* FileRootWidget, const std::string& FileName, const std::string& FileFullPath)
 {

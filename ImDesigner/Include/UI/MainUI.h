@@ -87,7 +87,7 @@ protected:
     //ProjectView相关操作
 public:
     UI_ProjectView* GetProjectView() { return ProjectView; }
-    void UpdateProjectView(class ProjectFileManager* projectmananger);
+    //void UpdateProjectView(class ProjectFileManager* projectmananger);
 private:
     void On_EditorPageClosed(const std::string& FilePath);
     void On_EditorPageSelected(const std::string& PageID);

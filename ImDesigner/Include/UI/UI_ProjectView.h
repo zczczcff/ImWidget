@@ -4,11 +4,13 @@
 #include "ImTools/ImDelegate.h"
 #include <map>
 #include <unordered_map>
+#include "EditorGlobalInterface.h"
+
 namespace ImGuiWidget
 {
     class ImWindow;
 }
-class UI_ProjectView : public ImGuiWidget::ImUserWidget
+class UI_ProjectView : public ImGuiWidget::ImUserWidget,public EditorGlobalInterface
 {
 private:
     ImGuiWidget::ImScrollBox* ImScrollBox_Folder;
@@ -23,15 +25,16 @@ private:
     ImGuiWidget::ImVerticalBox* ImVerticalBox_FileOperatorMenu;
     std::string CurrentOperatedDirPath;
 public:
-    ImMulticastDelegate<const std::string&, const std::string&> OnUIFileSelected;
-    ImMulticastDelegate <const std::string&> OnRequestCreateFileInDir;
-    ImMulticastDelegate<const std::string&, const std::string&> OnFileRenamed;
+    //ImMulticastDelegate<const std::string&, const std::string&> OnUIFileSelected;
+    //ImMulticastDelegate <const std::string&> OnRequestCreateFileInDir;
+    //ImMulticastDelegate<const std::string&, const std::string&> OnFileRenamed;
 public:
     UI_ProjectView(const std::string& name);
     
 
 private:
     void Init();
+    void InitEvents();
     void InitPopUpMenu();
     ImGuiWidget::ImButton* CreateWidgetMenuButton(const std::string& Text, ImGuiWidget::ImWindow* BindPopupWindow);
     void SetProjectViewVBoxContent(class ProjectFileManager* projectmananger, ImGuiWidget::ImVerticalBox* Vbox, const std::string& CurrentPath);
@@ -43,7 +46,7 @@ private:
     // 事件处理函数
     void On_UIFileButtonClicked(const std::string& FileName, const std::string& FileFullPath);
     void On_CommitFileRename(const std::string& OldFullPath, const std::string& NewFullPath);
-public:
+
     void ExpandToFile(const std::string& FileFullPath);
     void UpdateProjectView(class ProjectFileManager* projectmananger);
 	void ActivateFileRename(const std::string& FileFullPath, bool ScrollToTarget = false);

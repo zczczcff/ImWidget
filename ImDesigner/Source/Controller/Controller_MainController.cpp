@@ -6,6 +6,7 @@
 #include "Controller/Controller_WidgetEditor.h"
 #include "Tools/JLog.h"
 #include "EditorAction.h"
+#include "EditorEvents.h"
 
  Controller_MainController::Controller_MainController(MainUI* MainUI, Model_MainModel* MainModel)
 	:
@@ -14,11 +15,12 @@
 {
 	 m_MainModel->OnProjectConfigChanged.Add([this](ProjectFileManager* projectmananger) 
 		 {
-			 m_MainUI->UpdateProjectView(projectmananger);
+			 Publish(Events::ProjectView::UPDATE_PROJECT_VIEW, projectmananger);
+			 //m_MainUI->UpdateProjectView(projectmananger);
 		 });
 	 m_MainModel->Init();
 
-	 AddSequentialProcessor(Action::MainUI::UI_FILE_SELECTED, [this](std::string FileName, std::string FileFullPath)
+	 AddSequentialProcessor(Action::ProjectView::UI_FILE_SELECTED, [this](std::string FileName, std::string FileFullPath)
 		 {
 			 auto EditedFile = m_MainModel->BeginEditFile(FileFullPath);
 			 if (EditedFile)
@@ -95,16 +97,25 @@
 		// {
 		//	 SwitchEditPage(NewPageID);
 		// });
-
-	 m_MainUI->GetProjectView()->OnRequestCreateFileInDir.Add([this](const std::string& Dir) 
+	 AddSequentialProcessor(Action::ProjectView::CREATE_NEW_FILE, [this](std::string Dir)
 		 {
-			 std::string NewFilePath= m_MainModel->CteateNewUIFileInDir(Dir);
+			 std::string NewFilePath = m_MainModel->CteateNewUIFileInDir(Dir);
 			 if (!NewFilePath.empty())
 			 {
-				 m_MainUI->GetProjectView()->ActivateFileRename(NewFilePath, true);
+				 Publish(Events::ProjectView::ACTIVATE_FILE_RENAME, NewFilePath, true);
+				 //m_MainUI->GetProjectView()->ActivateFileRename(NewFilePath, true);
 			 }
 		 });
-	 m_MainUI->GetProjectView()->OnFileRenamed.Add([this](const std::string& OldFullPath, const std::string& NewFullPath) 
+	 //m_MainUI->GetProjectView()->OnRequestCreateFileInDir.Add([this](const std::string& Dir) 
+		// {
+		//	 std::string NewFilePath= m_MainModel->CteateNewUIFileInDir(Dir);
+		//	 if (!NewFilePath.empty())
+		//	 {
+		//		 m_MainUI->GetProjectView()->ActivateFileRename(NewFilePath, true);
+		//	 }
+		// });
+
+	 AddSequentialProcessor(Action::ProjectView::RENAME_FILE, [this](std::string OldFullPath, std::string NewFullPath)
 		 {
 			 if (m_MainModel->RenameFile(OldFullPath, NewFullPath))
 			 {
@@ -118,8 +129,10 @@
 					 Controller_WidgetEditor* v = it->second;
 					 WidgetEidtorControllers.erase(it);
 					 WidgetEidtorControllers.insert(std::make_pair(NewFullPath, v));
-					 m_MainUI->GetProjectView()->ExpandToFile(NewFullPath);
-					 m_MainUI->GetProjectView()->ScrollToFileWithDelay(NewFullPath);
+					 Publish(Events::ProjectView::EXPAND_TO_FILE, NewFullPath);
+					 //m_MainUI->GetProjectView()->ExpandToFile(NewFullPath);
+					 Publish(Events::ProjectView::SCROLL_TO_FILE_WITH_DELAY, NewFullPath);
+					 //m_MainUI->GetProjectView()->ScrollToFileWithDelay(NewFullPath);
 					 m_MainUI->HandleRenameFile(OldFullPath, NewFullPath);
 					 if (CurrentFile == OldFullPath)
 					 {
@@ -128,6 +141,31 @@
 				 }
 			 }
 		 });
+
+	 //m_MainUI->GetProjectView()->OnFileRenamed.Add([this](const std::string& OldFullPath, const std::string& NewFullPath) 
+		// {
+		//	 if (m_MainModel->RenameFile(OldFullPath, NewFullPath))
+		//	 {
+		//		 auto it = WidgetEidtorControllers.find(OldFullPath);
+		//		 if (it == WidgetEidtorControllers.end())
+		//		 {
+		//			 //±¨´í
+		//		 }
+		//		 else
+		//		 {
+		//			 Controller_WidgetEditor* v = it->second;
+		//			 WidgetEidtorControllers.erase(it);
+		//			 WidgetEidtorControllers.insert(std::make_pair(NewFullPath, v));
+		//			 m_MainUI->GetProjectView()->ExpandToFile(NewFullPath);
+		//			 m_MainUI->GetProjectView()->ScrollToFileWithDelay(NewFullPath);
+		//			 m_MainUI->HandleRenameFile(OldFullPath, NewFullPath);
+		//			 if (CurrentFile == OldFullPath)
+		//			 {
+		//				 CurrentFile = NewFullPath;
+		//			 }
+		//		 }
+		//	 }
+		// });
 
 	 m_MainModel->OnLogUpdate = [this](std::vector<std::string>&& Logs) { m_MainUI->UpdateLog(std::move(Logs)); };
 }

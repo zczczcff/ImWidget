@@ -7,12 +7,15 @@
 #include "Model/FileUtil.h"
 #include "ImGlobal.h"
 #include "ImTools/DelayEventQueue.h"
+#include "EditorAction.h"
+#include "EditorEvents.h"
 
 UI_ProjectView::UI_ProjectView(const std::string& name)
     : ImGuiWidget::ImUserWidget(name)
 {
     Init();
     InitPopUpMenu();
+    InitEvents();
 }
 
 void UI_ProjectView::Init()
@@ -28,6 +31,26 @@ void UI_ProjectView::Init()
     SetRootWidget(ImScrollBox_Folder);
 }
 
+void UI_ProjectView::InitEvents()
+{
+    Subscribe(Events::ProjectView::ACTIVATE_FILE_RENAME, [this](std::string FileFullPath, bool ScrollToTarget) 
+        {
+            ActivateFileRename(FileFullPath, ScrollToTarget);
+        });
+    Subscribe(Events::ProjectView::EXPAND_TO_FILE, [this](std::string FileFullPath)
+        {
+            ExpandToFile(FileFullPath);
+        });
+    Subscribe(Events::ProjectView::SCROLL_TO_FILE_WITH_DELAY, [this](std::string FileFullPath)
+        {
+            ScrollToFileWithDelay(FileFullPath);
+        });
+    Subscribe(Events::ProjectView::UPDATE_PROJECT_VIEW, [this](ProjectFileManager* projectmananger)
+        {
+            UpdateProjectView(projectmananger);
+        });
+}
+
 void UI_ProjectView::InitPopUpMenu()
 {
     //创建弹出菜单
@@ -39,7 +62,11 @@ void UI_ProjectView::InitPopUpMenu()
     ImGuiWidget::ImButton* ImButton_CreateNewFile = CreateWidgetMenuButton(u8"新建", m_FolderOperatorMenuWindow);
     
     ImVerticalBox_FolderOperatorMenu->AddChildToVerticalBox(ImButton_CreateNewFile)->SetIfAutoSize(false);
-    ImButton_CreateNewFile->OnLeftClicked.Add([this]() { OnRequestCreateFileInDir.Broadcast(CurrentOperatedDirPath); });
+    ImButton_CreateNewFile->OnLeftClicked.Add([this]() 
+        {
+            ExecuteAction(Action::ProjectView::CREATE_NEW_FILE, CurrentOperatedDirPath);
+            //OnRequestCreateFileInDir.Broadcast(CurrentOperatedDirPath); 
+        });
 
 }
 
@@ -188,7 +215,8 @@ void UI_ProjectView::PopupDirRightKeyWindow()
 
 void UI_ProjectView::On_UIFileButtonClicked(const std::string& FileName, const std::string& FileFullPath)
 {
-    OnUIFileSelected.Broadcast(FileName, FileFullPath);
+    ExecuteAction(Action::ProjectView::UI_FILE_SELECTED, FileName, FileFullPath);
+    //OnUIFileSelected.Broadcast(FileName, FileFullPath);
 }
 
 void UI_ProjectView::ExpandToFile(const std::string& FileFullPath)
@@ -241,7 +269,8 @@ void UI_ProjectView::ActivateFileRename(const std::string& FileFullPath, bool Sc
             {
                 if (NewFileName != FileUtil::getFileNameWithExtension(FileFullPath))
                 {
-                    OnFileRenamed.Broadcast(FileFullPath, Dir + "/" + NewFileName);
+                    ExecuteAction(Action::ProjectView::RENAME_FILE, FileFullPath, Dir + "/" + NewFileName);
+                    //OnFileRenamed.Broadcast(FileFullPath, Dir + "/" + NewFileName);
                     delete OldButton;
                 }
                 else

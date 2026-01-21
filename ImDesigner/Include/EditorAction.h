@@ -14,5 +14,12 @@ namespace Action
 		extern const KeyStringType REQUEST_REDO;//请求重做
 	}
 
+	namespace ProjectView
+	{
+		extern const KeyStringType UI_FILE_SELECTED;//UI文件被选中（点击）
+		extern const KeyStringType CREATE_NEW_FILE;//请求创建新文件
+		extern const KeyStringType RENAME_FILE;//请求重命名文件
+	}
+
 }
 
