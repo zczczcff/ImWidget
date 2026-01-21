@@ -35,6 +35,7 @@ public:
 private:
     void Init();
     void InitEvents();
+    void InitAction();
     void InitPopUpMenu();
     ImGuiWidget::ImButton* CreateWidgetMenuButton(const std::string& Text, ImGuiWidget::ImWindow* BindPopupWindow);
     void SetProjectViewVBoxContent(class ProjectFileManager* projectmananger, ImGuiWidget::ImVerticalBox* Vbox, const std::string& CurrentPath);

@@ -113,6 +113,14 @@ void MainUI::EventInit()
 
 }
 
+void MainUI::ActionInit()
+{
+	AddSequentialProcessor(Action::ProjectView::RENAME_FILE, [this](std::string OldFullPath, std::string NewFullPath)
+		{
+			HandleRenameFile(OldFullPath, NewFullPath);
+		});
+}
+
 //void MainUI::UpdateProjectView(ProjectFileManager* projectmananger)
 //{
 //	ProjectView->UpdateProjectView(projectmananger);

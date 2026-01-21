@@ -115,32 +115,32 @@
 		//	 }
 		// });
 
-	 AddSequentialProcessor(Action::ProjectView::RENAME_FILE, [this](std::string OldFullPath, std::string NewFullPath)
-		 {
-			 if (m_MainModel->RenameFile(OldFullPath, NewFullPath))
-			 {
-				 auto it = WidgetEidtorControllers.find(OldFullPath);
-				 if (it == WidgetEidtorControllers.end())
-				 {
-					 //±¨´í
-				 }
-				 else
-				 {
-					 Controller_WidgetEditor* v = it->second;
-					 WidgetEidtorControllers.erase(it);
-					 WidgetEidtorControllers.insert(std::make_pair(NewFullPath, v));
-					 Publish(Events::ProjectView::EXPAND_TO_FILE, NewFullPath);
-					 //m_MainUI->GetProjectView()->ExpandToFile(NewFullPath);
-					 Publish(Events::ProjectView::SCROLL_TO_FILE_WITH_DELAY, NewFullPath);
-					 //m_MainUI->GetProjectView()->ScrollToFileWithDelay(NewFullPath);
-					 m_MainUI->HandleRenameFile(OldFullPath, NewFullPath);
-					 if (CurrentFile == OldFullPath)
-					 {
-						 CurrentFile = NewFullPath;
-					 }
-				 }
-			 }
-		 });
+	 //AddSequentialProcessor(Action::ProjectView::RENAME_FILE, [this](std::string OldFullPath, std::string NewFullPath)
+		// {
+		//	 if (m_MainModel->RenameFile(OldFullPath, NewFullPath))
+		//	 {
+		//		 auto it = WidgetEidtorControllers.find(OldFullPath);
+		//		 if (it == WidgetEidtorControllers.end())
+		//		 {
+		//			 //±¨´í
+		//		 }
+		//		 else
+		//		 {
+		//			 Controller_WidgetEditor* v = it->second;
+		//			 WidgetEidtorControllers.erase(it);
+		//			 WidgetEidtorControllers.insert(std::make_pair(NewFullPath, v));
+		//			 Publish(Events::ProjectView::EXPAND_TO_FILE, NewFullPath);
+		//			 //m_MainUI->GetProjectView()->ExpandToFile(NewFullPath);
+		//			 Publish(Events::ProjectView::SCROLL_TO_FILE_WITH_DELAY, NewFullPath);
+		//			 //m_MainUI->GetProjectView()->ScrollToFileWithDelay(NewFullPath);
+		//			 m_MainUI->HandleRenameFile(OldFullPath, NewFullPath);
+		//			 if (CurrentFile == OldFullPath)
+		//			 {
+		//				 CurrentFile = NewFullPath;
+		//			 }
+		//		 }
+		//	 }
+		// });
 
 	 //m_MainUI->GetProjectView()->OnFileRenamed.Add([this](const std::string& OldFullPath, const std::string& NewFullPath) 
 		// {

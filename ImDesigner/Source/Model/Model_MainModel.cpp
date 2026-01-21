@@ -5,7 +5,15 @@
 #include "Model/FileUtil.h"
 #include "Tools/JAsyncLog.h"
 #include "Tools/JLog.h"
-void Model_MainModel::Tick() 
+#include "EditorAction.h"
+void Model_MainModel::InitAction()
+{
+	AddValidator(Action::ProjectView::RENAME_FILE, [this](std::string OldFullPath, std::string NewFullPath)
+		{
+			return RenameFile(OldFullPath, NewFullPath);
+		});
+}
+void Model_MainModel::Tick()
 {
 	std::vector<std::string> RecentLogs = m_Log->GetRecentLogs();
 	if (RecentLogs.size() > 0&&OnLogUpdate)

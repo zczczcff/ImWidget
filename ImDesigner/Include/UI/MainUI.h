@@ -27,6 +27,7 @@ public:
     Init();
     Init2();
     EventInit();
+    ActionInit();
 }
 
 protected:
@@ -84,6 +85,7 @@ public:
     //ImMulticastDelegate<> OnRequestRedo;
 protected:
     void EventInit();
+    void ActionInit();
     //ProjectView相关操作
 public:
     UI_ProjectView* GetProjectView() { return ProjectView; }

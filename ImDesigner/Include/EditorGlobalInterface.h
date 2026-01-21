@@ -41,6 +41,14 @@ protected:
 		return id;
 	}
 
+	template<typename Callable>
+	ActionHandle<KeyStringType> AddValidator(const KeyStringType& actionKey, Callable&& validator,
+		const std::string& description = "", int priority = 0)
+	{
+		ActionID id = m_ActionSystem->AddValidator(actionKey, validator, description, priority);
+		AllActionProcessor.insert(id);
+		return id;
+	}
 
 public:
 	EditorGlobalInterface()

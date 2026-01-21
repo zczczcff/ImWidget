@@ -16,6 +16,7 @@ UI_ProjectView::UI_ProjectView(const std::string& name)
     Init();
     InitPopUpMenu();
     InitEvents();
+    InitAction();
 }
 
 void UI_ProjectView::Init()
@@ -49,6 +50,11 @@ void UI_ProjectView::InitEvents()
         {
             UpdateProjectView(projectmananger);
         });
+}
+
+void UI_ProjectView::InitAction()
+{
+
 }
 
 void UI_ProjectView::InitPopUpMenu()
@@ -269,17 +275,24 @@ void UI_ProjectView::ActivateFileRename(const std::string& FileFullPath, bool Sc
             {
                 if (NewFileName != FileUtil::getFileNameWithExtension(FileFullPath))
                 {
-                    ExecuteAction(Action::ProjectView::RENAME_FILE, FileFullPath, Dir + "/" + NewFileName);
+                    std::string NewFileFullPath = Dir + "/" + NewFileName;
+                    auto result = ExecuteAction(Action::ProjectView::RENAME_FILE, FileFullPath, NewFileFullPath);
+                    if (result.success)
+                    {
+                        ExpandToFile(NewFileFullPath);
+                        ScrollToFileWithDelay(NewFileFullPath);
+                        delete OldButton;
+                        return;
+                    }
                     //OnFileRenamed.Broadcast(FileFullPath, Dir + "/" + NewFileName);
-                    delete OldButton;
+                    
                 }
-                else
-                {
-                    it->second->RemoveChildAt(1, false);
-                    it->second->AddChildToHorizontalBox(OldButton);
-                    delete ImInputText_Rename;
-                }
-            });
+
+				it->second->RemoveChildAt(1, false);
+				it->second->AddChildToHorizontalBox(OldButton);
+				delete ImInputText_Rename;
+
+			});
     }
 }
 

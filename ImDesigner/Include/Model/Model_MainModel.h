@@ -4,13 +4,14 @@
 #include "ImTools/ImDelegate.h"
 #include "Tools/ProjectFileManager.h"
 #include <map>
+#include "EditorGlobalInterface.h"
 namespace ImGuiWidget
 {
 	class ImWidget;
 }
 class Model_WidgetEditor;
 class JAsyncLog;
-class Model_MainModel
+class Model_MainModel:public EditorGlobalInterface
 {
 public:
 	struct EditedUIFile
@@ -32,7 +33,13 @@ private:
 public:
 	ImMulticastDelegate<ProjectFileManager*> OnProjectConfigChanged;
 	std::function<void(std::vector<std::string>&&)> OnLogUpdate;
+private:
+	void InitAction();
 public:
+	Model_MainModel()
+	{
+		InitAction();
+	}
 	void Tick();
 	void Init();
 	EditedUIFile* BeginEditFile(const std::string& FileFullPath);
