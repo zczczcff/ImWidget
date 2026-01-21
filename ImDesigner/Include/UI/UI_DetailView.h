@@ -3,8 +3,9 @@
 #include "ImWidget/ImBasicWidgetDeclaration.h"
 #include "ImTools/ImDelegate.h"
 #include <map>
+#include "EditorGlobalInterface.h"
 
-class UI_DetailView : public ImGuiWidget::ImUserWidget
+class UI_DetailView : public ImGuiWidget::ImUserWidget,public EditorGlobalInterface
 {
 private:
 	struct PropertyInfor
@@ -25,9 +26,11 @@ public:
 		CurrentWidget(nullptr)
 	{
 		SetFocusable(true);
+		ActionInit();
 	}
 private:
 	virtual void OnKeyDown(ImGuiWidget::ImKeyDownEvent& e) override;
+	void ActionInit();
 public:
 
 	ImGuiWidget::ImHorizontalBox* HandleAddStringItem

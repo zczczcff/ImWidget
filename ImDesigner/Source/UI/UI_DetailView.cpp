@@ -1,6 +1,7 @@
 #include "UI/UI_DetailView.h"
 #include "ImWidget/ImBasicWidgetList.h"
 #include "Tools/JLog.h"
+#include "EditorAction.h"
 
 void UI_DetailView::OnKeyDown(ImGuiWidget::ImKeyDownEvent& e) 
 {
@@ -8,6 +9,14 @@ void UI_DetailView::OnKeyDown(ImGuiWidget::ImKeyDownEvent& e)
 	{
 		OnRequestUndo.Broadcast();
 	}
+}
+
+void UI_DetailView::ActionInit()
+{
+	AddSequentialProcessor(Action::WIDGET_SELECTED, [this](ImGuiWidget::ImWidget* SelectedWidget)
+		{
+			SetCurrentWidget(SelectedWidget);
+		});
 }
 
 ImGuiWidget::ImHorizontalBox* UI_DetailView::HandleAddStringItem(

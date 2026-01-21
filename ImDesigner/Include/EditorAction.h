@@ -21,5 +21,13 @@ namespace Action
 		extern const KeyStringType RENAME_FILE;//请求重命名文件
 	}
 
+	namespace UIFileView
+	{
+		extern const KeyStringType REQUEST_DELETE_WIDGET;//请求删除控件
+		
+		extern const KeyStringType REQUEST_INSERT_WIDGET;//请求插入控件
+	}
+
+	extern const KeyStringType WIDGET_SELECTED;//控件被选中（点击）
 }
 

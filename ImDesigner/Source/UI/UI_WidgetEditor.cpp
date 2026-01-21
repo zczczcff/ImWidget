@@ -1,5 +1,5 @@
 #include "UI/UI_WidgetEditor.h"
-
+#include "EditorAction.h"
 
 // 动态虚线框绘制函数
 void UI_WidgetEditor::DrawAnimatedDashedRect(const ImVec2& min, const ImVec2& max, ImU32 color, float thickness, float dashLen, float gapLen, float& offset, float speed)
@@ -113,7 +113,8 @@ void UI_WidgetEditor::OnMouseDown(ImGuiWidget::ImMouseDownEvent& e)
 		ImGuiWidget::ImWidget* HitChild = EditorRootWidget->ChildHitTest(e.GetPosition());
 		if (HitChild && HitChild != SelectedWidgetRef.GetWidget())
 		{
-			OnWidgetSelected.Broadcast(HitChild);
+            ExecuteAction(Action::WIDGET_SELECTED, HitChild);
+			//OnWidgetSelected.Broadcast(HitChild);
             SelectedWidgetRef = HitChild->GetWidgetRef();
 		}
 	}
@@ -138,12 +139,21 @@ void UI_WidgetEditor::PostRender()
     }
 }
 
+void UI_WidgetEditor::ActionInit()
+{
+    AddSequentialProcessor(Action::WIDGET_SELECTED, [this](ImGuiWidget::ImWidget* SelectedWidget)
+        {
+            SetSelectedWidget(SelectedWidget);
+        });
+}
+
 UI_WidgetEditor::UI_WidgetEditor(const std::string& name, ImGuiWidget::ImWidget* EditorRootWidget) :
 	ImUserWidget(name),
 	EditorRootWidget(EditorRootWidget)
 {
 	SetFocusable(true);
 	SetRootWidget(EditorRootWidget, false);
+    ActionInit();
 }
 
 bool UI_WidgetEditor::SetSelectedWidget(ImGuiWidget::ImWidget* widget)

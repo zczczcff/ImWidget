@@ -3,6 +3,15 @@
 #include "ImGlobal.h"
 #include "Public/WidgetInfor.h"
 #include "Tools/JLog.h"
+#include "EditorAction.h"
+
+void UI_WidgetTreeView::ActionInit()
+{
+    AddSequentialProcessor(Action::WIDGET_SELECTED, [this](ImGuiWidget::ImWidget* SelectedWidget) 
+        {
+            SetSelectedWidget(SelectedWidget);
+        });
+}
 
 void UI_WidgetTreeView::InitPopUpMenu()
 {
@@ -328,7 +337,8 @@ ImGuiWidget::ImWidget* UI_WidgetTreeView::BuildRootNode(ImGuiWidget::ImWidget* w
 
 void UI_WidgetTreeView::On_WidgetDeleteButtonClicked(ImGuiWidget::ImWidget* widget)
 {
-    OnRequestWidgetDeleted.Broadcast(widget);
+    ExecuteAction(Action::UIFileView::REQUEST_DELETE_WIDGET, widget);
+    //OnRequestWidgetDeleted.Broadcast(widget);
 }
 
 void UI_WidgetTreeView::On_WidgetSelectedButtonClicked(ImGuiWidget::ImWidget* widget, ImGuiWidget::ImButton* nodeButton)
@@ -342,7 +352,8 @@ void UI_WidgetTreeView::On_WidgetSelectedButtonClicked(ImGuiWidget::ImWidget* wi
     m_TreeView.SelectedWidget = widget;
     //nodeButton->GetNormalStyle().BackgroundColor = HIGHLIGHT_COLOR;
     nodeButton->SetNormalStyle(*Highlight_Style);
-    OnWidgetSelectedButtonClicked.Broadcast(widget);
+    ExecuteAction(Action::WIDGET_SELECTED, widget);
+    //OnWidgetSelectedButtonClicked.Broadcast(widget);
 }
 
 void UI_WidgetTreeView::On_WidgetSelectedButtonRightClicked(ImGuiWidget::ImWidget* widget)
@@ -358,7 +369,8 @@ void UI_WidgetTreeView::On_InsertWidgetButtonClicked(const std::string& InsertWi
 
 	if (m_InsertMode == InsertChildMode::InsertToThis)
 	{
-		OnRequestInsertWidget.Broadcast(PopupMenuTargetWidget, PopupMenuTargetWidget->GetChildNum(), InsertWidgetRegisterName);
+        ExecuteAction(Action::UIFileView::REQUEST_INSERT_WIDGET, PopupMenuTargetWidget, PopupMenuTargetWidget->GetChildNum(), InsertWidgetRegisterName);
+		//OnRequestInsertWidget.Broadcast(PopupMenuTargetWidget, PopupMenuTargetWidget->GetChildNum(), InsertWidgetRegisterName);
 	}
 	else if (PopupMenuTargetWidget != m_TreeView.TargetWidget)
 	{
@@ -377,7 +389,8 @@ void UI_WidgetTreeView::On_InsertWidgetButtonClicked(const std::string& InsertWi
 		{
 			InsertIndex++;
 		}
-		OnRequestInsertWidget.Broadcast(Target, InsertIndex, InsertWidgetRegisterName);
+        ExecuteAction(Action::UIFileView::REQUEST_INSERT_WIDGET, Target, InsertIndex, InsertWidgetRegisterName);
+		//OnRequestInsertWidget.Broadcast(Target, InsertIndex, InsertWidgetRegisterName);
 	}
 }
 

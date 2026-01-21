@@ -5,6 +5,7 @@
 #include "Model/Command/CommandManager.h"
 #include "ImWidget/ImWidgetFactory.h"
 #include <queue>
+#include "EditorAction.h"
 
 void Model_WidgetEditor::CollectWidgetNames(ImGuiWidget::ImWidget* widget)
 {
@@ -22,6 +23,18 @@ void Model_WidgetEditor::CollectWidgetNames(ImGuiWidget::ImWidget* widget)
 	}
 }
 
+void Model_WidgetEditor::ActionInit()
+{
+	AddValidator(Action::UIFileView::REQUEST_DELETE_WIDGET, [this](ImGuiWidget::ImWidget* deletedwidget)
+		{
+			return RemoveChildWidget(deletedwidget);
+		});
+	AddValidator(Action::UIFileView::REQUEST_INSERT_WIDGET, [this](ImGuiWidget::ImWidget* Target, int InsertIndex, std::string WidgetRegisterName) 
+		{
+			return InsertChildTo(WidgetRegisterName, Target, InsertIndex);
+		});
+}
+
 Model_WidgetEditor::Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget):
 	RootWidget(rootwidget),
 	m_EditCommandManager(new EditCommandManager())
@@ -37,6 +50,7 @@ Model_WidgetEditor::Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget):
 		});
 
 	CollectWidgetNames(rootwidget);
+	ActionInit();
 }
 
 bool Model_WidgetEditor::RemoveChildWidget(ImGuiWidget::ImWidget* WidgetToRemove)

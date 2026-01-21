@@ -22,7 +22,7 @@ public:
 		UI_DetailView* In_UI_FileDetail,
 		Model_WidgetEditor* In_Model_WidgetEditor);
 
-	void SetSelectedWidget(ImGuiWidget::ImWidget* SelectedWidget);
+	//void SetSelectedWidget(ImGuiWidget::ImWidget* SelectedWidget);
 	void RequestUndo();
 	void RequestRedo();
 	void UpdateUndoRedoState();

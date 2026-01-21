@@ -11,20 +11,20 @@ Controller_WidgetEditor::Controller_WidgetEditor(UI_WidgetTreeView* In_UI_Widget
 	m_UI_FileDetail(In_UI_FileDetail),
 	m_Model_WidgetEditor(In_Model_WidgetEditor)
 {
-	m_UI_WidgetEditor->OnWidgetSelected.Add([this](ImGuiWidget::ImWidget* SelectedWidget) 
-		{
-			SetSelectedWidget(SelectedWidget);
-		});
+	//m_UI_WidgetEditor->OnWidgetSelected.Add([this](ImGuiWidget::ImWidget* SelectedWidget) 
+	//	{
+	//		SetSelectedWidget(SelectedWidget);
+	//	});
 
-	m_UI_WidgetTreeView->OnWidgetSelectedButtonClicked.Add([this](ImGuiWidget::ImWidget* SelectedWidget)
-		{
-			SetSelectedWidget(SelectedWidget);
-		});
+	//m_UI_WidgetTreeView->OnWidgetSelectedButtonClicked.Add([this](ImGuiWidget::ImWidget* SelectedWidget)
+	//	{
+	//		SetSelectedWidget(SelectedWidget);
+	//	});
 
-	m_UI_WidgetTreeView->OnRequestWidgetDeleted.Add([this](ImGuiWidget::ImWidget* deletedwidget)
-		{
-			m_Model_WidgetEditor->RemoveChildWidget(deletedwidget);
-		});
+	//m_UI_WidgetTreeView->OnRequestWidgetDeleted.Add([this](ImGuiWidget::ImWidget* deletedwidget)
+	//	{
+	//		m_Model_WidgetEditor->RemoveChildWidget(deletedwidget);
+	//	});
 
 	m_UI_FileDetail->OnPropertyChanged.Add([this](const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::ImObject* Target)
 		{
@@ -56,19 +56,19 @@ Controller_WidgetEditor::Controller_WidgetEditor(UI_WidgetTreeView* In_UI_Widget
 			OnUndoRedoStateChanged.Broadcast(CanUndo, CanRedo);
 		});
 
-	m_UI_WidgetTreeView->OnRequestInsertWidget.Add([this](ImGuiWidget::ImWidget* Target, int InsertIndex, const std::string& WidgetRegisterName)
-		{
-			m_Model_WidgetEditor->InsertChildTo(WidgetRegisterName, Target, InsertIndex);
-		});
+	//m_UI_WidgetTreeView->OnRequestInsertWidget.Add([this](ImGuiWidget::ImWidget* Target, int InsertIndex, const std::string& WidgetRegisterName)
+	//	{
+	//		m_Model_WidgetEditor->InsertChildTo(WidgetRegisterName, Target, InsertIndex);
+	//	});
 
 }
 
-void Controller_WidgetEditor::SetSelectedWidget(ImGuiWidget::ImWidget* SelectedWidget)
-{
-	m_UI_WidgetTreeView->SetSelectedWidget(SelectedWidget);
-	m_UI_WidgetEditor->SetSelectedWidget(SelectedWidget);
-	m_UI_FileDetail->SetCurrentWidget(SelectedWidget);
-}
+//void Controller_WidgetEditor::SetSelectedWidget(ImGuiWidget::ImWidget* SelectedWidget)
+//{
+//	m_UI_WidgetTreeView->SetSelectedWidget(SelectedWidget);
+//	m_UI_WidgetEditor->SetSelectedWidget(SelectedWidget);
+//	m_UI_FileDetail->SetCurrentWidget(SelectedWidget);
+//}
 
 void Controller_WidgetEditor::RequestUndo()
 {

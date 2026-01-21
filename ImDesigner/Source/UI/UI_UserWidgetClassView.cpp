@@ -40,21 +40,21 @@ void UI_UserWidgetClassView::AddVarView(ImGuiWidget::ImUserWidgetClass::variable
 		UI_WidgetTreeView* NewWidgetTreeView = new UI_WidgetTreeView(var->varName + "_WidgetTreeView");
 		NewWidgetTreeView->SetTargetWidget(var->var.v_widget);
 
-		NewWidgetTreeView->OnRequestWidgetDeleted.Add
-		([this, varName = var->varName](ImGuiWidget::ImWidget* WidgetToDelete)
-		{
-			OnRequestWidgetDeleted.Broadcast(WidgetToDelete, varName);
-		});
-		NewWidgetTreeView->OnWidgetSelectedButtonClicked.Add
-		([this, varName = var->varName](ImGuiWidget::ImWidget* WidgetSelected)
-		{
-			OnWidgetSelectedButtonClicked.Broadcast(WidgetSelected, varName);
-		});
-		NewWidgetTreeView->OnRequestInsertWidget.Add
-		([this, varName = var->varName](ImGuiWidget::ImWidget* PanelWidget, int index, const std::string& InsertWidgetRegisterName)
-		{
-			OnRequestInsertWidget.Broadcast(PanelWidget, index, InsertWidgetRegisterName, varName);
-		});
+		//NewWidgetTreeView->OnRequestWidgetDeleted.Add
+		//([this, varName = var->varName](ImGuiWidget::ImWidget* WidgetToDelete)
+		//{
+		//	OnRequestWidgetDeleted.Broadcast(WidgetToDelete, varName);
+		//});
+		//NewWidgetTreeView->OnWidgetSelectedButtonClicked.Add
+		//([this, varName = var->varName](ImGuiWidget::ImWidget* WidgetSelected)
+		//{
+		//	OnWidgetSelectedButtonClicked.Broadcast(WidgetSelected, varName);
+		//});
+		//NewWidgetTreeView->OnRequestInsertWidget.Add
+		//([this, varName = var->varName](ImGuiWidget::ImWidget* PanelWidget, int index, const std::string& InsertWidgetRegisterName)
+		//{
+		//	OnRequestInsertWidget.Broadcast(PanelWidget, index, InsertWidgetRegisterName, varName);
+		//});
 
 
 		AllVarViews.insert(std::make_pair(var->varName, viewinfor{ var->varName,NewWidgetTreeView }));

@@ -4,7 +4,8 @@
 #include "ImWidget/ImBasicWidgetDeclaration.h"
 #include "ImTools/ImDelegate.h"
 #include "ImWidget/ImObject.h"
-class Model_WidgetEditor
+#include "EditorGlobalInterface.h"
+class Model_WidgetEditor:public EditorGlobalInterface
 {
 private:
 	ImGuiWidget::ImWidget* RootWidget;
@@ -17,6 +18,8 @@ public:
 	ImMulticastDelegate<bool, bool> OnUndoRedoStateChanged;
 
 	void CollectWidgetNames(ImGuiWidget::ImWidget* widget);
+private:
+	void ActionInit();
 public:
 	Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget);
 	ImGuiWidget::ImWidget* GetRootWidget() { return RootWidget; }

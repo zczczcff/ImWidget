@@ -1,8 +1,9 @@
 #pragma once
 #include "ImWidget/ImUserWidget.h"
 #include "ImTools/ImDelegate.h"
+#include "EditorGlobalInterface.h"
 
-class UI_WidgetEditor :public ImGuiWidget::ImUserWidget
+class UI_WidgetEditor :public ImGuiWidget::ImUserWidget,public EditorGlobalInterface
 {
 private:
 	ImGuiWidget::ImWidget* EditorRootWidget;
@@ -10,7 +11,7 @@ private:
 	float dashOffset = 0.0f;
     ImGuiWidget::ImWidgetRef SelectedWidgetRef;
 public:
-    ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetSelected;
+    //ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetSelected;
     ImMulticastDelegate<> OnRequestUndo;
 protected:
     // 动态虚线框绘制函数
@@ -42,7 +43,7 @@ protected:
     virtual void OnKeyDown(ImGuiWidget::ImKeyDownEvent& e) override;
     virtual void PostRender() override;
 
-
+    void ActionInit();
 public:
 	UI_WidgetEditor(const std::string& name, ImGuiWidget::ImWidget* EditorRootWidget);
     bool SetSelectedWidget(ImGuiWidget::ImWidget* widget);

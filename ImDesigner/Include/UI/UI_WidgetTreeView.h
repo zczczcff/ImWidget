@@ -5,6 +5,7 @@
 #include "ImTools/ImDelegate.h"
 #include <string>
 #include <map>
+#include "EditorGlobalInterface.h"
 
 namespace ImGuiWidget
 {
@@ -12,7 +13,7 @@ namespace ImGuiWidget
     class ButtonStateStyle;
 }
 
-class UI_WidgetTreeView :public ImGuiWidget::ImUserWidget
+class UI_WidgetTreeView :public ImGuiWidget::ImUserWidget,public EditorGlobalInterface
 {
 private:
     struct TreeViewStruct
@@ -46,10 +47,11 @@ private:
     ImGuiWidget::ImWindow* WidgetMenu_InsertNew = nullptr;//二级子菜单窗口
     ImGuiWidget::ImVerticalBox* ImVerticalBox_WidgetMenu_InsertNew = nullptr;//二级子菜单：插入控件
 public:
-    ImMulticastDelegate<ImGuiWidget::ImWidget*> OnRequestWidgetDeleted;
-    ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetSelectedButtonClicked;
-    ImMulticastDelegate<ImGuiWidget::ImWidget*, int, const std::string&> OnRequestInsertWidget;
+    //ImMulticastDelegate<ImGuiWidget::ImWidget*> OnRequestWidgetDeleted;
+    //ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetSelectedButtonClicked;
+    //ImMulticastDelegate<ImGuiWidget::ImWidget*, int, const std::string&> OnRequestInsertWidget;
 private:
+    void ActionInit();
     void InitPopUpMenu();
     void InitButtonStyle();
     ImGuiWidget::ImButton* CreateWidgetMenuButton(const std::string& Text,bool bHaveSubMenu=false);
@@ -68,6 +70,7 @@ public:
         SetAllowDragOn(true);
         InitPopUpMenu();
         InitButtonStyle();
+        ActionInit();
     }
 
     // 设置目标控件树
