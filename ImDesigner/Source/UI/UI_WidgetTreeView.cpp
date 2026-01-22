@@ -11,6 +11,14 @@ void UI_WidgetTreeView::ActionInit()
         {
             SetSelectedWidget(SelectedWidget);
         });
+
+    AddSequentialProcessor(Action::ProjectView::RENAME_FILE, [this](const std::string& OldFullPath, const std::string& NewFullPath)
+        {
+            if (EditedFileFullPath == OldFullPath)
+            {
+                EditedFileFullPath = NewFullPath;
+            }
+        });
 }
 
 void UI_WidgetTreeView::InitPopUpMenu()
@@ -337,7 +345,7 @@ ImGuiWidget::ImWidget* UI_WidgetTreeView::BuildRootNode(ImGuiWidget::ImWidget* w
 
 void UI_WidgetTreeView::On_WidgetDeleteButtonClicked(ImGuiWidget::ImWidget* widget)
 {
-    ExecuteAction(Action::UIFileView::REQUEST_DELETE_WIDGET, widget);
+    ExecuteAction(EditedFileFullPath + Action::UIFileView::REQUEST_DELETE_WIDGET, widget);
     //OnRequestWidgetDeleted.Broadcast(widget);
 }
 
@@ -352,7 +360,7 @@ void UI_WidgetTreeView::On_WidgetSelectedButtonClicked(ImGuiWidget::ImWidget* wi
     m_TreeView.SelectedWidget = widget;
     //nodeButton->GetNormalStyle().BackgroundColor = HIGHLIGHT_COLOR;
     nodeButton->SetNormalStyle(*Highlight_Style);
-    ExecuteAction(Action::WIDGET_SELECTED, widget);
+    ExecuteAction(EditedFileFullPath + Action::WIDGET_SELECTED, widget);
     //OnWidgetSelectedButtonClicked.Broadcast(widget);
 }
 

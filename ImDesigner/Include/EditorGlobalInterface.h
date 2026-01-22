@@ -32,6 +32,7 @@ protected:
 		return m_EditorEventbus->Publish(eventName, args...);
 	}
 
+	//添加Action顺序处理器
 	template<typename Callable>
 	ActionHandle<KeyStringType> AddSequentialProcessor(const KeyStringType& actionKey, Callable&& processor,
 		const std::string& description = "", int priority = 0)
@@ -41,6 +42,7 @@ protected:
 		return id;
 	}
 
+	//添加Action验证处理器
 	template<typename Callable>
 	ActionHandle<KeyStringType> AddValidator(const KeyStringType& actionKey, Callable&& validator,
 		const std::string& description = "", int priority = 0)
@@ -48,6 +50,14 @@ protected:
 		ActionID id = m_ActionSystem->AddValidator(actionKey, validator, description, priority);
 		AllActionProcessor.insert(id);
 		return id;
+	}
+
+	bool RemoveProcessor(const ActionID& ProcessorID)
+	{
+		bool success = true;
+		success &= AllActionProcessor.erase(ProcessorID);
+		success &= m_ActionSystem->RemoveHandler(ProcessorID);
+		return success;
 	}
 
 public:

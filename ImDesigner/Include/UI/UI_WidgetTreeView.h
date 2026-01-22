@@ -35,6 +35,7 @@ private:
 private:
     //const ImU32 HIGHLIGHT_COLOR = IM_COL32(20, 200, 20, 255); // 高亮颜色
     //ImU32 DEFAULT_COLOR = IM_COL32(250, 250, 250, 255);   // 默认颜色
+    std::string EditedFileFullPath;
     ImGuiWidget::ButtonStateStyle* Highlight_Style = nullptr;
     ImGuiWidget::ButtonStateStyle* Normal_Style = nullptr;
     TreeViewStruct m_TreeView;  // 单个树视图结构
@@ -64,8 +65,9 @@ private:
     void On_WidgetSelectedButtonRightClicked(ImGuiWidget::ImWidget* widget);
     void On_InsertWidgetButtonClicked(const std::string& InsertWidgetRegisterName);
 public:
-    UI_WidgetTreeView(const std::string& WidgetName)
-        : ImUserWidget(WidgetName)
+    UI_WidgetTreeView(const std::string& WidgetName, const std::string& EditedFileFullPath)
+        : ImUserWidget(WidgetName),
+        EditedFileFullPath(EditedFileFullPath)
     {
         SetAllowDragOn(true);
         InitPopUpMenu();

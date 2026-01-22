@@ -17,13 +17,16 @@ private:
 	std::map<ImGuiWidget::ImWidget*, ImGuiWidget::ImVerticalBox*> CachedDetails;
 	std::unordered_map<ImGuiWidget::ImObject*, PropertyInfor*> CachedPropertyInfors;
 	ImGuiWidget::ImWidget* CurrentWidget;
+	std::string EditedFileFullPath;
+	std::vector<ActionID> FileActions;
 public:
 	ImMulticastDelegate<const ImGuiWidget::PropertyInfo&, const void*, ImGuiWidget::ImObject*> OnPropertyChanged;
 	ImMulticastDelegate<> OnRequestUndo;
 public:
-	UI_DetailView(const std::string& widgetname):
+	UI_DetailView(const std::string& widgetname, const std::string& EditedFileFullPath):
 		ImGuiWidget::ImUserWidget(widgetname),
-		CurrentWidget(nullptr)
+		CurrentWidget(nullptr),
+		EditedFileFullPath(EditedFileFullPath)
 	{
 		SetFocusable(true);
 		ActionInit();
@@ -31,6 +34,7 @@ public:
 private:
 	virtual void OnKeyDown(ImGuiWidget::ImKeyDownEvent& e) override;
 	void ActionInit();
+	void ResetFileAction();
 public:
 
 	ImGuiWidget::ImHorizontalBox* HandleAddStringItem

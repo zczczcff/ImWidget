@@ -4,10 +4,12 @@
 
 namespace Events
 {
+
+
 	namespace MainUI
 	{
 		extern const KeyStringType SET_UNDOREDO_STATE;//设置UndoRedo状态
-		
+		extern const KeyStringType UI_FILE_OPENED;//UI文件被打开
 	}
 
 	namespace ProjectView

@@ -25,19 +25,39 @@ void Model_WidgetEditor::CollectWidgetNames(ImGuiWidget::ImWidget* widget)
 
 void Model_WidgetEditor::ActionInit()
 {
-	AddValidator(Action::UIFileView::REQUEST_DELETE_WIDGET, [this](ImGuiWidget::ImWidget* deletedwidget)
+	ResetFileAction();
+	AddSequentialProcessor(Action::ProjectView::RENAME_FILE, [this](const std::string& OldFullPath, const std::string& NewFullPath)
 		{
-			return RemoveChildWidget(deletedwidget);
-		});
-	AddValidator(Action::UIFileView::REQUEST_INSERT_WIDGET, [this](ImGuiWidget::ImWidget* Target, int InsertIndex, std::string WidgetRegisterName) 
-		{
-			return InsertChildTo(WidgetRegisterName, Target, InsertIndex);
+			if (OldFullPath == EditedFileFullPath)
+			{
+				EditedFileFullPath = NewFullPath;
+				ResetFileAction();
+			}
 		});
 }
 
-Model_WidgetEditor::Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget):
+void Model_WidgetEditor::ResetFileAction()
+{
+	for (auto& id : FileActions)
+	{
+		RemoveProcessor(id);
+	}
+	FileActions.clear();
+	FileActions.push_back(AddValidator(EditedFileFullPath + Action::UIFileView::REQUEST_DELETE_WIDGET, [this](ImGuiWidget::ImWidget* deletedwidget)
+		{
+			return RemoveChildWidget(deletedwidget);
+		}));
+
+	FileActions.push_back(AddValidator(EditedFileFullPath + Action::UIFileView::REQUEST_INSERT_WIDGET, [this](ImGuiWidget::ImWidget* Target, int InsertIndex, const std::string& WidgetRegisterName)
+		{
+			return InsertChildTo(WidgetRegisterName, Target, InsertIndex);
+		}));
+}
+
+Model_WidgetEditor::Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget, const std::string& EditedFileFullPath):
 	RootWidget(rootwidget),
-	m_EditCommandManager(new EditCommandManager())
+	m_EditCommandManager(new EditCommandManager()),
+	EditedFileFullPath(EditedFileFullPath)
 {
 	m_EditCommandManager->OnPropertyEditUnDoRedo.Add([this](ImGuiWidget::ImObject* target, const std::string& propertyname)
 		{

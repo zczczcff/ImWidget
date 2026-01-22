@@ -6,6 +6,7 @@
 class UI_WidgetEditor :public ImGuiWidget::ImUserWidget,public EditorGlobalInterface
 {
 private:
+    std::string EditFileFullPath;
 	ImGuiWidget::ImWidget* EditorRootWidget;
 	bool bAllowOperateChild = false;
 	float dashOffset = 0.0f;
@@ -45,6 +46,6 @@ protected:
 
     void ActionInit();
 public:
-	UI_WidgetEditor(const std::string& name, ImGuiWidget::ImWidget* EditorRootWidget);
+	UI_WidgetEditor(const std::string& name, ImGuiWidget::ImWidget* EditorRootWidget,const std::string& EditFileFullPath);
     bool SetSelectedWidget(ImGuiWidget::ImWidget* widget);
 };

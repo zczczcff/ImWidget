@@ -20,24 +20,24 @@
 		 });
 	 m_MainModel->Init();
 
-	 AddSequentialProcessor(Action::ProjectView::UI_FILE_SELECTED, [this](std::string FileName, std::string FileFullPath)
-		 {
-			 auto EditedFile = m_MainModel->BeginEditFile(FileFullPath);
-			 if (EditedFile)
-			 {
-				 //m_MainUI->CreateNewWidgetEditorPage(EditedFile->rootwidget, FileName, FileFullPath);
-				 Publish("MainUI_CreateNewWidgetEditorPage", EditedFile->rootwidget, FileName, FileFullPath);
-				 m_MainUI->CreateNewWidgetTreeView(FileFullPath, EditedFile->rootwidget);
-				 m_MainUI->CreateNewDetailView(FileFullPath);
+	 //AddSequentialProcessor(Action::ProjectView::UI_FILE_SELECTED, [this](const std::string& FileName, const std::string& FileFullPath)
+		// {
+		//	 auto EditedFile = m_MainModel->BeginEditFile(FileFullPath);
+		//	 if (EditedFile)
+		//	 {
+		//		 //m_MainUI->CreateNewWidgetEditorPage(EditedFile->rootwidget, FileName, FileFullPath);
+		//		 Publish("MainUI_CreateNewWidgetEditorPage", EditedFile->rootwidget, FileName, FileFullPath);
+		//		 m_MainUI->CreateNewWidgetTreeView(FileFullPath, EditedFile->rootwidget);
+		//		 m_MainUI->CreateNewDetailView(FileFullPath);
 
-				 UI_WidgetTreeView* WidgetTreeView = m_MainUI->GetWidgetTreeViewByName(FileFullPath);
-				 UI_DetailView* DetailView = m_MainUI->GetDetailViewByName(FileFullPath);
-				 UI_WidgetEditor* WidgetEditor = m_MainUI->GetWidgetEditorByName(FileFullPath);
-				 Controller_WidgetEditor* NewController_WidgetEditor = new Controller_WidgetEditor(WidgetTreeView, WidgetEditor, DetailView, EditedFile->model_editor);
-				 WidgetEidtorControllers.insert(std::make_pair(FileFullPath, NewController_WidgetEditor));
-				 SwitchEditPage(FileFullPath);
-			 }
-		 });
+		//		 UI_WidgetTreeView* WidgetTreeView = m_MainUI->GetWidgetTreeViewByName(FileFullPath);
+		//		 UI_DetailView* DetailView = m_MainUI->GetDetailViewByName(FileFullPath);
+		//		 UI_WidgetEditor* WidgetEditor = m_MainUI->GetWidgetEditorByName(FileFullPath);
+		//		 Controller_WidgetEditor* NewController_WidgetEditor = new Controller_WidgetEditor(WidgetTreeView, WidgetEditor, DetailView, EditedFile->model_editor);
+		//		 WidgetEidtorControllers.insert(std::make_pair(FileFullPath, NewController_WidgetEditor));
+		//		 //SwitchEditPage(FileFullPath);
+		//	 }
+		// });
 
 	 //m_MainUI->OnUIFileSelected.Add([this](const std::string& FileName, const std::string& FileFullPath)
 		// {
@@ -57,7 +57,7 @@
 		//		 SwitchEditPage(FileFullPath);
 		//	 }
 		// });
-	 AddSequentialProcessor(Action::MainUI::EDITOR_PAGE_CLOSED, [this](std::string FileFullPath)
+	 AddSequentialProcessor(Action::MainUI::EDITOR_PAGE_CLOSED, [this](const std::string& FileFullPath)
 		 {
 			 m_MainModel->FinishEditFile(FileFullPath);
 			 auto it = WidgetEidtorControllers.find(FileFullPath);
@@ -88,16 +88,16 @@
 		//	 }
 		// });
 
-	 AddSequentialProcessor(Action::MainUI::EDITOR_PAGE_SELECTED, [this](std::string NewPageID)
-		 {
-			 SwitchEditPage(NewPageID);
-		 });
+	 //AddSequentialProcessor(Action::MainUI::EDITOR_PAGE_SELECTED, [this](const std::string& NewPageID)
+		// {
+		//	 SwitchEditPage(NewPageID);
+		// });
 
 	 //m_MainUI->OnEditorPageSelected.Add([this](const std::string& NewPageID) 
 		// {
 		//	 SwitchEditPage(NewPageID);
 		// });
-	 AddSequentialProcessor(Action::ProjectView::CREATE_NEW_FILE, [this](std::string Dir)
+	 AddSequentialProcessor(Action::ProjectView::CREATE_NEW_FILE, [this](const std::string& Dir)
 		 {
 			 std::string NewFilePath = m_MainModel->CteateNewUIFileInDir(Dir);
 			 if (!NewFilePath.empty())
@@ -170,37 +170,37 @@
 	 m_MainModel->OnLogUpdate = [this](std::vector<std::string>&& Logs) { m_MainUI->UpdateLog(std::move(Logs)); };
 }
 
- void Controller_MainController::SwitchEditPage(const std::string& PageName)
- {
-	 auto it = WidgetEidtorControllers.find(CurrentFile);
-	 if (it != WidgetEidtorControllers.end())
-	 {
-		 it->second->OnUndoRedoStateChanged.Clear();
-		 //m_MainUI->OnRequestRedo.Clear();
-		 //m_MainUI->OnRequestUndo.Clear();
-	 }
+ //void Controller_MainController::SwitchEditPage(const std::string& PageName)
+ //{
+	// auto it = WidgetEidtorControllers.find(CurrentFile);
+	// if (it != WidgetEidtorControllers.end())
+	// {
+	//	 it->second->OnUndoRedoStateChanged.Clear();
+	//	 //m_MainUI->OnRequestRedo.Clear();
+	//	 //m_MainUI->OnRequestUndo.Clear();
+	// }
 
-	 auto newit = WidgetEidtorControllers.find(PageName);
-	 if (newit != WidgetEidtorControllers.end())
-	 {
-		 m_MainUI->ShowWidgetTreeViewByName(PageName);
-		 m_MainUI->ShowDetailViewByName(PageName);
-		 m_MainUI->ShowWidgetEditorByName(PageName);
-		 newit->second->OnUndoRedoStateChanged.Add([this](bool CanUndo, bool CanRedo)
-			 {
-				 m_MainUI->UpdateUndoRedoState(CanUndo, CanRedo);
-			 });
+	// auto newit = WidgetEidtorControllers.find(PageName);
+	// if (newit != WidgetEidtorControllers.end())
+	// {
+	//	 m_MainUI->ShowWidgetTreeViewByName(PageName);
+	//	 m_MainUI->ShowDetailViewByName(PageName);
+	//	 m_MainUI->ShowWidgetEditorByName(PageName);
+	//	 newit->second->OnUndoRedoStateChanged.Add([this](bool CanUndo, bool CanRedo)
+	//		 {
+	//			 m_MainUI->UpdateUndoRedoState(CanUndo, CanRedo);
+	//		 });
 
-		 //m_MainUI->OnRequestRedo.Add([this, WidgetEditor = newit->second]()
-		 //{
-			// WidgetEditor->RequestRedo();
-		 //});
+	//	 //m_MainUI->OnRequestRedo.Add([this, WidgetEditor = newit->second]()
+	//	 //{
+	//		// WidgetEditor->RequestRedo();
+	//	 //});
 
-		 //m_MainUI->OnRequestUndo.Add([this, WidgetEditor = newit->second]()
-		 //{
-			// WidgetEditor->RequestUndo();
-		 //});
-		 newit->second->UpdateUndoRedoState();
-		 CurrentFile = PageName;
-	 }	 
- }
+	//	 //m_MainUI->OnRequestUndo.Add([this, WidgetEditor = newit->second]()
+	//	 //{
+	//		// WidgetEditor->RequestUndo();
+	//	 //});
+	//	 newit->second->UpdateUndoRedoState();
+	//	 CurrentFile = PageName;
+	// }	 
+ //}

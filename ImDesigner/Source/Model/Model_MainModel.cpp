@@ -6,11 +6,25 @@
 #include "Tools/JAsyncLog.h"
 #include "Tools/JLog.h"
 #include "EditorAction.h"
+#include "EditorEvents.h"
 void Model_MainModel::InitAction()
 {
-	AddValidator(Action::ProjectView::RENAME_FILE, [this](std::string OldFullPath, std::string NewFullPath)
+	AddValidator(Action::ProjectView::RENAME_FILE, [this](const std::string& OldFullPath, const std::string& NewFullPath)
 		{
 			return RenameFile(OldFullPath, NewFullPath);
+		});
+
+	AddValidator(Action::ProjectView::UI_FILE_SELECTED, [this](const std::string& FileName, const std::string& FileFullPath) 
+		{
+			if (EditedUIFile* file = BeginEditFile(FileFullPath))
+			{
+				Publish(Events::MainUI::UI_FILE_OPENED, file->rootwidget, FileName, FileFullPath);
+				return true;
+			}
+			else
+			{
+				return false;
+			}
 		});
 }
 void Model_MainModel::Tick()
@@ -36,7 +50,7 @@ Model_MainModel::EditedUIFile* Model_MainModel::BeginEditFile(const std::string&
 	ImGuiWidget::ImWidget* NewEditedWidget = ImGuiWidget::LoadWidgetTreeFromFile(FileFullPath);
 	if (NewEditedWidget)
 	{
-		EditedUIFile* NewEditedFile = new EditedUIFile(FileFullPath, NewEditedWidget, new Model_WidgetEditor(NewEditedWidget));
+		EditedUIFile* NewEditedFile = new EditedUIFile(FileFullPath, NewEditedWidget, new Model_WidgetEditor(NewEditedWidget, FileFullPath));
 		EditedFiles.insert(std::make_pair(FileFullPath, NewEditedFile));
 		return NewEditedFile;
 	}

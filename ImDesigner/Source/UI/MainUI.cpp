@@ -15,7 +15,7 @@
 #include "Public/WidgetInfor.h"
 #include "UI/IconManager.h"
 #include "EditorAction.h"
-
+#include "EditorEvents.h"
 
 void MainUI::Init2()
 {
@@ -106,19 +106,26 @@ void MainUI::Init2()
 
 void MainUI::EventInit()
 {
-	Subscribe("MainUI_CreateNewWidgetEditorPage", [this](ImGuiWidget::ImWidget* FileRootWidget, std::string FileName, std::string FileFullPath)
+	Subscribe(Events::MainUI::UI_FILE_OPENED, [this](ImGuiWidget::ImWidget* FileRootWidget, std::string FileName, std::string FileFullPath)
 		{
 			CreateNewWidgetEditorPage(FileRootWidget, FileName, FileFullPath);
+			CreateNewWidgetTreeView(FileFullPath, FileRootWidget);
+			CreateNewDetailView(FileFullPath);
+			ShowWidgetTreeViewByName(FileFullPath);
+			ShowDetailViewByName(FileFullPath);
+			ShowWidgetEditorByName(FileFullPath);
 		});
 
 }
 
 void MainUI::ActionInit()
 {
-	AddSequentialProcessor(Action::ProjectView::RENAME_FILE, [this](std::string OldFullPath, std::string NewFullPath)
+	AddSequentialProcessor(Action::ProjectView::RENAME_FILE, [this](const std::string& OldFullPath, const std::string& NewFullPath)
 		{
 			HandleRenameFile(OldFullPath, NewFullPath);
 		});
+
+
 }
 
 //void MainUI::UpdateProjectView(ProjectFileManager* projectmananger)
@@ -133,7 +140,7 @@ void MainUI::CreateNewWidgetEditorPage(ImGuiWidget::ImWidget* FileRootWidget, co
 		ImPageManager_Main->SwitchToPage(FileFullPath);
 		return;
 	}
-	UI_WidgetEditor* NewWidget_UIEditor = new UI_WidgetEditor(FileName + "_Editor", FileRootWidget);
+	UI_WidgetEditor* NewWidget_UIEditor = new UI_WidgetEditor(FileName + "_Editor", FileRootWidget, FileFullPath);
 	ImPageManager_Main->AddPage(FileFullPath, NewWidget_UIEditor, IconManager::GetInstance()->GetIcon(ImDesignerIcon::UIFile), FileName);
 	ImPageManager_Main->SwitchToPage(FileFullPath);
 	ImPageManager_Main->SetPageToolTip(FileFullPath, FileFullPath);
@@ -175,13 +182,16 @@ void MainUI::On_EditorPageClosed(const std::string& FilePath)
 void MainUI::On_EditorPageSelected(const std::string& PageID)
 {
 	ExecuteAction(Action::MainUI::EDITOR_PAGE_SELECTED, PageID);
+	ShowWidgetTreeViewByName(PageID);
+	ShowDetailViewByName(PageID);
+	ShowWidgetEditorByName(PageID);
 	//OnEditorPageSelected.Broadcast(PageID);
 }
 
 bool MainUI::CreateNewWidgetTreeView(const std::string& Name, ImGuiWidget::ImWidget* TargetWidget)
 {
 	if (AllTreeViews.find(Name) != AllTreeViews.end()) return false;
-	UI_WidgetTreeView* New_UI_WidgetTreeView = new UI_WidgetTreeView("UI_WidgetTreeView");
+	UI_WidgetTreeView* New_UI_WidgetTreeView = new UI_WidgetTreeView("UI_WidgetTreeView", Name);
 	New_UI_WidgetTreeView->SetTargetWidget(TargetWidget);
 	AllTreeViews.insert(std::make_pair(Name, New_UI_WidgetTreeView));
 	return true;
@@ -252,7 +262,7 @@ bool MainUI::RenameWidgetTreeView(const std::string& OldName, const std::string&
 bool MainUI::CreateNewDetailView(const std::string& Name)
 {
 	if (AllFileDetails.find(Name) != AllFileDetails.end()) return false;
-	UI_DetailView* New_UI_DetailView = new UI_DetailView("UI_DetailView");
+	UI_DetailView* New_UI_DetailView = new UI_DetailView("UI_DetailView", Name);
 	AllFileDetails.insert(std::make_pair(Name, New_UI_DetailView));
 	return true;
 }

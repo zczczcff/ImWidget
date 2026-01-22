@@ -37,7 +37,7 @@ void UI_UserWidgetClassView::AddVarView(ImGuiWidget::ImUserWidgetClass::variable
 {
 	if (var->Vtype == ImGuiWidget::ImUserWidgetClass::variableType::widget)
 	{
-		UI_WidgetTreeView* NewWidgetTreeView = new UI_WidgetTreeView(var->varName + "_WidgetTreeView");
+		UI_WidgetTreeView* NewWidgetTreeView = new UI_WidgetTreeView(var->varName + "_WidgetTreeView", var->varName);
 		NewWidgetTreeView->SetTargetWidget(var->var.v_widget);
 
 		//NewWidgetTreeView->OnRequestWidgetDeleted.Add

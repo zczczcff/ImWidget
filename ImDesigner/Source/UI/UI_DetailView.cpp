@@ -13,10 +13,29 @@ void UI_DetailView::OnKeyDown(ImGuiWidget::ImKeyDownEvent& e)
 
 void UI_DetailView::ActionInit()
 {
-	AddSequentialProcessor(Action::WIDGET_SELECTED, [this](ImGuiWidget::ImWidget* SelectedWidget)
+	ResetFileAction();
+	AddSequentialProcessor(Action::ProjectView::RENAME_FILE, [this](const std::string& OldFileFullPath,const std::string& NewFileFullPath) 
+		{
+			if (EditedFileFullPath == OldFileFullPath)
+			{
+				EditedFileFullPath = NewFileFullPath;
+				ResetFileAction();
+			}
+		});
+}
+
+void UI_DetailView::ResetFileAction()
+{
+	for (auto& id : FileActions)
+	{
+		RemoveProcessor(id);
+	}
+	FileActions.clear();
+
+	FileActions.push_back(AddSequentialProcessor(EditedFileFullPath + Action::WIDGET_SELECTED, [this](ImGuiWidget::ImWidget* SelectedWidget)
 		{
 			SetCurrentWidget(SelectedWidget);
-		});
+		}));
 }
 
 ImGuiWidget::ImHorizontalBox* UI_DetailView::HandleAddStringItem(

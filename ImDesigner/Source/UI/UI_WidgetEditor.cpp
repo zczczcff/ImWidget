@@ -113,7 +113,7 @@ void UI_WidgetEditor::OnMouseDown(ImGuiWidget::ImMouseDownEvent& e)
 		ImGuiWidget::ImWidget* HitChild = EditorRootWidget->ChildHitTest(e.GetPosition());
 		if (HitChild && HitChild != SelectedWidgetRef.GetWidget())
 		{
-            ExecuteAction(Action::WIDGET_SELECTED, HitChild);
+            ExecuteAction(EditFileFullPath + Action::WIDGET_SELECTED, HitChild);
 			//OnWidgetSelected.Broadcast(HitChild);
             SelectedWidgetRef = HitChild->GetWidgetRef();
 		}
@@ -145,11 +145,20 @@ void UI_WidgetEditor::ActionInit()
         {
             SetSelectedWidget(SelectedWidget);
         });
+
+    AddSequentialProcessor(Action::ProjectView::RENAME_FILE, [this](const std::string& OldFullPath, const std::string& NewFullPath)
+        {
+            if (EditFileFullPath == OldFullPath)
+            {
+                EditFileFullPath = NewFullPath;
+            }
+        });
 }
 
-UI_WidgetEditor::UI_WidgetEditor(const std::string& name, ImGuiWidget::ImWidget* EditorRootWidget) :
+UI_WidgetEditor::UI_WidgetEditor(const std::string& name, ImGuiWidget::ImWidget* EditorRootWidget, const std::string& EditFileFullPath) :
 	ImUserWidget(name),
-	EditorRootWidget(EditorRootWidget)
+	EditorRootWidget(EditorRootWidget),
+    EditFileFullPath(EditFileFullPath)
 {
 	SetFocusable(true);
 	SetRootWidget(EditorRootWidget, false);

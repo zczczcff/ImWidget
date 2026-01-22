@@ -14,5 +14,5 @@ private:
 public:
 	Controller_MainController(class MainUI* m_MainUI, class Model_MainModel* m_MainModel);
 
-	void SwitchEditPage(const std::string& PageName);
+	//void SwitchEditPage(const std::string& PageName);
 };
