@@ -2,6 +2,7 @@
 #include "ImWidget/ImBasicWidgetList.h"
 #include "Tools/JLog.h"
 #include "EditorAction.h"
+#include "EditorEvents.h"
 
 void UI_DetailView::OnKeyDown(ImGuiWidget::ImKeyDownEvent& e) 
 {
@@ -20,8 +21,29 @@ void UI_DetailView::ActionInit()
 			{
 				EditedFileFullPath = NewFileFullPath;
 				ResetFileAction();
+				ResetEvent();
 			}
 		});
+}
+
+void UI_DetailView::EventInit()
+{
+	ResetEvent();
+}
+
+void UI_DetailView::ResetEvent()
+{
+	for (auto& id : FileEvents)
+	{
+		Unsubscribe(id);
+	}
+
+	FileEvents.clear();
+
+	FileEvents.push_back(Subscribe(EditedFileFullPath + Events::DetailView::UPDATE_PROPERTY_DISPLAY, [this](ImGuiWidget::ImObject* Target, const std::string& PropertyName)
+		{
+			UpdatePropertyDisplay(Target, PropertyName);
+		}));
 }
 
 void UI_DetailView::ResetFileAction()

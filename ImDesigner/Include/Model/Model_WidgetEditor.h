@@ -14,10 +14,10 @@ private:
 	class EditCommandManager* m_EditCommandManager;
 	std::vector<ActionID> FileActions;//和文件相关的Action
 public:
-	ImMulticastDelegate<> OnWidgetTreeChanged;
-	ImMulticastDelegate<ImGuiWidget::ImObject*, const std::string&> OnPropertyEditUnDoRedo;
-	ImMulticastDelegate<> OnChildEditUndoRedo;
-	ImMulticastDelegate<bool, bool> OnUndoRedoStateChanged;
+	//ImMulticastDelegate<> OnWidgetTreeChanged;
+	//ImMulticastDelegate<ImGuiWidget::ImObject*, const std::string&> OnPropertyEditUnDoRedo;
+	//ImMulticastDelegate<> OnChildEditUndoRedo;
+	//ImMulticastDelegate<bool, bool> OnUndoRedoStateChanged;
 
 	void CollectWidgetNames(ImGuiWidget::ImWidget* widget);
 private:

@@ -19,6 +19,7 @@ private:
 	ImGuiWidget::ImWidget* CurrentWidget;
 	std::string EditedFileFullPath;
 	std::vector<ActionID> FileActions;
+	std::vector<EventID> FileEvents;
 public:
 	ImMulticastDelegate<const ImGuiWidget::PropertyInfo&, const void*, ImGuiWidget::ImObject*> OnPropertyChanged;
 	ImMulticastDelegate<> OnRequestUndo;
@@ -30,10 +31,13 @@ public:
 	{
 		SetFocusable(true);
 		ActionInit();
+		EventInit();
 	}
 private:
 	virtual void OnKeyDown(ImGuiWidget::ImKeyDownEvent& e) override;
 	void ActionInit();
+	void EventInit();
+	void ResetEvent();
 	void ResetFileAction();
 public:
 

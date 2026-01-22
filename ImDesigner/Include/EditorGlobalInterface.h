@@ -32,6 +32,14 @@ protected:
 		return m_EditorEventbus->Publish(eventName, std::forward<Args>(args)...);
 	}
 
+	bool Unsubscribe(const EventID& id)
+	{
+		bool success = true;
+		success &= AllSubscribedEvents.erase(id);
+		success &= m_EditorEventbus->Unsubscribe(id);
+		return success;
+	}
+
 	//Ìí¼ÓActionË³Ğò´¦ÀíÆ÷
 	template<typename Callable>
 	ActionHandle<KeyStringType> AddSequentialProcessor(const KeyStringType& actionKey, Callable&& processor,

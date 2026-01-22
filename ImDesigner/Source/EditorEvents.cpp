@@ -17,4 +17,14 @@ namespace Events
 		const KeyStringType SCROLL_TO_FILE_WITH_DELAY = "ScrollToFileWithDelay";//将指定文件滚动至可见范围内
 		const KeyStringType UPDATE_PROJECT_VIEW = "UpdateProjectView";//更新项目视图
 	}
+	
+	namespace UIFileView
+	{
+		extern const KeyStringType UPDATE_WIDGETTREE_VIEW = "UpdateWidgetTreeView";//更新控件树
+	}
+
+	namespace DetailView
+	{
+		const KeyStringType UPDATE_PROPERTY_DISPLAY = "UpdatePropertyDisplay";//更新属性显示
+	}
 }

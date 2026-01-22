@@ -6,6 +6,7 @@
 #include "ImWidget/ImWidgetFactory.h"
 #include <queue>
 #include "EditorAction.h"
+#include "EditorEvents.h"
 
 void Model_WidgetEditor::CollectWidgetNames(ImGuiWidget::ImWidget* widget)
 {
@@ -54,19 +55,21 @@ void Model_WidgetEditor::ResetFileAction()
 		}));
 }
 
-Model_WidgetEditor::Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget, const std::string& EditedFileFullPath):
+Model_WidgetEditor::Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget, const std::string& SetEditedFileFullPath):
 	RootWidget(rootwidget),
 	m_EditCommandManager(new EditCommandManager()),
-	EditedFileFullPath(EditedFileFullPath)
+	EditedFileFullPath(SetEditedFileFullPath)
 {
 	m_EditCommandManager->OnPropertyEditUnDoRedo.Add([this](ImGuiWidget::ImObject* target, const std::string& propertyname)
 		{
-			OnPropertyEditUnDoRedo.Broadcast(target, propertyname);
+			Publish(EditedFileFullPath + Events::DetailView::UPDATE_PROPERTY_DISPLAY, target, propertyname);
+			//OnPropertyEditUnDoRedo.Broadcast(target, propertyname);
 		});
 
 	m_EditCommandManager->OnChildEditUndoRedo.Add([this]()
 		{
-			OnWidgetTreeChanged.Broadcast();
+			Publish(EditedFileFullPath + Events::UIFileView::UPDATE_WIDGETTREE_VIEW);
+			//OnWidgetTreeChanged.Broadcast();
 		});
 
 	CollectWidgetNames(rootwidget);
@@ -86,7 +89,8 @@ bool Model_WidgetEditor::RemoveChildWidget(ImGuiWidget::ImWidget* WidgetToRemove
 	//OnWidgetTreeChanged.Broadcast();
 	if (m_EditCommandManager->ExecuteChildRemove(WidgetToRemove->GetParents(), WidgetToRemove))
 	{
-		OnWidgetTreeChanged.Broadcast();
+		Publish(EditedFileFullPath + Events::UIFileView::UPDATE_WIDGETTREE_VIEW);
+		//OnWidgetTreeChanged.Broadcast();
 		UpdateUndoRedoState();
 	}
 	return true;
@@ -98,7 +102,8 @@ bool Model_WidgetEditor::InsertChildTo(ImGuiWidget::ImWidget* child, ImGuiWidget
 	if (m_EditCommandManager->ExecuteChildInsert(Target, child, InsertIndex))
 	{
 		CollectWidgetNames(child);
-		OnWidgetTreeChanged.Broadcast();
+		Publish(EditedFileFullPath + Events::UIFileView::UPDATE_WIDGETTREE_VIEW);
+		//OnWidgetTreeChanged.Broadcast();
 		UpdateUndoRedoState();
 	}
 	return true;
@@ -157,5 +162,6 @@ bool Model_WidgetEditor::CanRedo()
 
 void Model_WidgetEditor::UpdateUndoRedoState()
 {
-	OnUndoRedoStateChanged.Broadcast(CanUndo(), CanRedo());
+	//OnUndoRedoStateChanged.Broadcast(CanUndo(), CanRedo());
+	Publish(Events::MainUI::SET_UNDOREDO_STATE, CanUndo(), CanRedo());
 }

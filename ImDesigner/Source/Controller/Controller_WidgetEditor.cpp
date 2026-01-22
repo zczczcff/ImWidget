@@ -31,16 +31,16 @@ Controller_WidgetEditor::Controller_WidgetEditor(UI_WidgetTreeView* In_UI_Widget
 			m_Model_WidgetEditor->EditProperty(propInfo, newValue, Target);
 		});
 
-	m_Model_WidgetEditor->OnWidgetTreeChanged.Add([this]() 
-		{
-			m_UI_WidgetTreeView->Refresh();
-			UpdateUndoRedoState();
-		});
+	//m_Model_WidgetEditor->OnWidgetTreeChanged.Add([this]() 
+	//	{
+	//		m_UI_WidgetTreeView->Refresh();
+	//		UpdateUndoRedoState();
+	//	});
 
-	m_Model_WidgetEditor->OnPropertyEditUnDoRedo.Add([this](ImGuiWidget::ImObject* Target,const std::string& PropertyName)
-		{
-			m_UI_FileDetail->UpdatePropertyDisplay(Target, PropertyName);
-		});
+	//m_Model_WidgetEditor->OnPropertyEditUnDoRedo.Add([this](ImGuiWidget::ImObject* Target,const std::string& PropertyName)
+	//	{
+	//		m_UI_FileDetail->UpdatePropertyDisplay(Target, PropertyName);
+	//	});
 
 	m_UI_WidgetEditor->OnRequestUndo.Add([this]() 
 		{
@@ -51,10 +51,10 @@ Controller_WidgetEditor::Controller_WidgetEditor(UI_WidgetTreeView* In_UI_Widget
 		{
 			m_Model_WidgetEditor->Undo();
 		});
-	m_Model_WidgetEditor->OnUndoRedoStateChanged.Add([this](bool CanUndo,bool CanRedo) 
-		{
-			OnUndoRedoStateChanged.Broadcast(CanUndo, CanRedo);
-		});
+	//m_Model_WidgetEditor->OnUndoRedoStateChanged.Add([this](bool CanUndo,bool CanRedo) 
+	//	{
+	//		OnUndoRedoStateChanged.Broadcast(CanUndo, CanRedo);
+	//	});
 
 	//m_UI_WidgetTreeView->OnRequestInsertWidget.Add([this](ImGuiWidget::ImWidget* Target, int InsertIndex, const std::string& WidgetRegisterName)
 	//	{
