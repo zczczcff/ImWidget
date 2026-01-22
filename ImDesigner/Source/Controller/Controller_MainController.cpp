@@ -13,12 +13,12 @@
 	m_MainUI(MainUI),
 	m_MainModel(MainModel)
 {
-	 m_MainModel->OnProjectConfigChanged.Add([this](ProjectFileManager* projectmananger) 
-		 {
-			 Publish(Events::ProjectView::UPDATE_PROJECT_VIEW, projectmananger);
-			 //m_MainUI->UpdateProjectView(projectmananger);
-		 });
-	 m_MainModel->Init();
+	 //m_MainModel->OnProjectConfigChanged.Add([this](ProjectFileManager* projectmananger) 
+		// {
+		//	 Publish(Events::ProjectView::UPDATE_PROJECT_VIEW, projectmananger);
+		//	 //m_MainUI->UpdateProjectView(projectmananger);
+		// });
+	 //m_MainModel->Init();
 
 	 //AddSequentialProcessor(Action::ProjectView::UI_FILE_SELECTED, [this](const std::string& FileName, const std::string& FileFullPath)
 		// {
@@ -57,21 +57,21 @@
 		//		 SwitchEditPage(FileFullPath);
 		//	 }
 		// });
-	 AddSequentialProcessor(Action::MainUI::EDITOR_PAGE_CLOSED, [this](const std::string& FileFullPath)
-		 {
-			 m_MainModel->FinishEditFile(FileFullPath);
-			 auto it = WidgetEidtorControllers.find(FileFullPath);
-			 if (it == WidgetEidtorControllers.end())
-			 {
-				 //±¨´í
-			 }
-			 else
-			 {
-				 delete it->second;
-				 WidgetEidtorControllers.erase(it);
-				 m_MainUI->HandleCloseFile(FileFullPath);
-			 }
-		 });
+	 //AddSequentialProcessor(Action::MainUI::EDITOR_PAGE_CLOSED, [this](const std::string& FileFullPath)
+		// {
+		//	 m_MainModel->FinishEditFile(FileFullPath);
+		//	 auto it = WidgetEidtorControllers.find(FileFullPath);
+		//	 if (it == WidgetEidtorControllers.end())
+		//	 {
+		//		 //±¨´í
+		//	 }
+		//	 else
+		//	 {
+		//		 delete it->second;
+		//		 WidgetEidtorControllers.erase(it);
+		//		 m_MainUI->HandleCloseFile(FileFullPath);
+		//	 }
+		// });
 	 //m_MainUI->OnEditorPageClosed.Add([this](const std::string& FileFullPath)
 		// {
 		//	 m_MainModel->FinishEditFile(FileFullPath);
@@ -97,15 +97,15 @@
 		// {
 		//	 SwitchEditPage(NewPageID);
 		// });
-	 AddSequentialProcessor(Action::ProjectView::CREATE_NEW_FILE, [this](const std::string& Dir)
-		 {
-			 std::string NewFilePath = m_MainModel->CteateNewUIFileInDir(Dir);
-			 if (!NewFilePath.empty())
-			 {
-				 Publish(Events::ProjectView::ACTIVATE_FILE_RENAME, NewFilePath, true);
-				 //m_MainUI->GetProjectView()->ActivateFileRename(NewFilePath, true);
-			 }
-		 });
+	 //AddSequentialProcessor(Action::ProjectView::CREATE_NEW_FILE, [this](const std::string& Dir)
+		// {
+		//	 std::string NewFilePath = m_MainModel->CteateNewUIFileInDir(Dir);
+		//	 if (!NewFilePath.empty())
+		//	 {
+		//		 Publish(Events::ProjectView::ACTIVATE_FILE_RENAME, NewFilePath, true);
+		//		 //m_MainUI->GetProjectView()->ActivateFileRename(NewFilePath, true);
+		//	 }
+		// });
 	 //m_MainUI->GetProjectView()->OnRequestCreateFileInDir.Add([this](const std::string& Dir) 
 		// {
 		//	 std::string NewFilePath= m_MainModel->CteateNewUIFileInDir(Dir);
@@ -167,7 +167,7 @@
 		//	 }
 		// });
 
-	 m_MainModel->OnLogUpdate = [this](std::vector<std::string>&& Logs) { m_MainUI->UpdateLog(std::move(Logs)); };
+	 //m_MainModel->OnLogUpdate = [this](std::vector<std::string>&& Logs) { m_MainUI->UpdateLog(std::move(Logs)); };
 }
 
  //void Controller_MainController::SwitchEditPage(const std::string& PageName)

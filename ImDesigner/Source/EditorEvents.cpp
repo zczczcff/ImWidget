@@ -2,6 +2,8 @@
 
 namespace Events
 {
+	const KeyStringType REGISTER_LOG_UPDATE_FUN = "RegisterLogUpdateFun";//注册日志更新委托
+
 	namespace MainUI
 	{
 		const KeyStringType SET_UNDOREDO_STATE = "SetUndoRedoState";//设置UndoRedo状态

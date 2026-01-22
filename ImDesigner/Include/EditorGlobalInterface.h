@@ -12,9 +12,9 @@ protected:
 	std::unordered_set<EventID, EventID::Hash> AllSubscribedEvents;
 
 	template<typename... Args>
-	ActionResult ExecuteAction(const KeyStringType& actionKey, Args... args)
+	ActionResult ExecuteAction(const KeyStringType& actionKey, Args&&... args)
 	{
-		return m_ActionSystem->Execute(actionKey, args...);
+		return m_ActionSystem->Execute(actionKey, std::forward<Args>(args)...);
 	}
 
 	template <typename Callable>
@@ -27,9 +27,9 @@ protected:
 	}
 
 	template <typename... Args>
-	PublishResult Publish(const KeyStringType& eventName, Args... args)
+	PublishResult Publish(const KeyStringType& eventName, Args&&... args)
 	{
-		return m_EditorEventbus->Publish(eventName, args...);
+		return m_EditorEventbus->Publish(eventName, std::forward<Args>(args)...);
 	}
 
 	//Ìí¼ÓActionË³Ğò´¦ÀíÆ÷

@@ -4,7 +4,7 @@
 
 namespace Events
 {
-
+	extern const KeyStringType REGISTER_LOG_UPDATE_FUN;//注册日志更新委托
 
 	namespace MainUI
 	{

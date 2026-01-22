@@ -115,7 +115,11 @@ void MainUI::EventInit()
 			ShowDetailViewByName(FileFullPath);
 			ShowWidgetEditorByName(FileFullPath);
 		});
-
+	
+	Subscribe(Events::REGISTER_LOG_UPDATE_FUN, [this](std::function<void(std::vector<std::string>&&)>& OnLogUpdate)
+		{
+			OnLogUpdate = [this](std::vector<std::string>&& logs) { UpdateLog(std::move(logs)); };
+		}, "", true);
 }
 
 void MainUI::ActionInit()
@@ -124,7 +128,6 @@ void MainUI::ActionInit()
 		{
 			HandleRenameFile(OldFullPath, NewFullPath);
 		});
-
 
 }
 
@@ -175,7 +178,10 @@ bool MainUI::RenameWidgetEditorPage(const std::string& OldFullPath, const std::s
 
 void MainUI::On_EditorPageClosed(const std::string& FilePath)
 {
-	ExecuteAction(Action::MainUI::EDITOR_PAGE_CLOSED, FilePath);
+	if (ExecuteAction(Action::MainUI::EDITOR_PAGE_CLOSED, FilePath).success)
+	{
+		HandleCloseFile(FilePath);
+	}
 	//OnEditorPageClosed.Broadcast(FilePath);
 }
 

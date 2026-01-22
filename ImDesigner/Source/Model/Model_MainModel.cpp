@@ -26,13 +26,45 @@ void Model_MainModel::InitAction()
 				return false;
 			}
 		});
+
+	AddValidator(Action::MainUI::EDITOR_PAGE_CLOSED, [this](const std::string& FileFullPath) 
+		{
+			return FinishEditFile(FileFullPath);
+		});
+
+	AddValidator(Action::ProjectView::CREATE_NEW_FILE, [this](const std::string& Dir) 
+		{
+			std::string NewFilePath = CteateNewUIFileInDir(Dir);
+			if (NewFilePath.empty())
+			{
+				return false;
+			}
+			else
+			{
+				Publish(Events::ProjectView::ACTIVATE_FILE_RENAME, NewFilePath, true);
+				return true;
+			}
+		});
+
 }
 void Model_MainModel::Tick()
 {
 	std::vector<std::string> RecentLogs = m_Log->GetRecentLogs();
-	if (RecentLogs.size() > 0&&OnLogUpdate)
+	if (RecentLogs.size() > 0)
 	{
-		OnLogUpdate(std::move(RecentLogs));
+		if (OnLogUpdate)
+		{
+			OnLogUpdate(std::move(RecentLogs));
+		}
+		else
+		{
+			Publish(Events::REGISTER_LOG_UPDATE_FUN, OnLogUpdate);
+
+			if (OnLogUpdate)
+			{
+				OnLogUpdate(std::move(RecentLogs));
+			}
+		}
 	}
 }
 
@@ -57,14 +89,16 @@ Model_MainModel::EditedUIFile* Model_MainModel::BeginEditFile(const std::string&
 	return nullptr;
 }
 
-void Model_MainModel::FinishEditFile(const std::string& FileFullPath)
+bool Model_MainModel::FinishEditFile(const std::string& FileFullPath)
 {
 	auto it = EditedFiles.find(FileFullPath);
 	if (it != EditedFiles.end())
 	{
 		delete it->second;
 		EditedFiles.erase(it);
+		return true;
 	}
+	return false;
 }
 
 std::string Model_MainModel::CteateNewUIFileInDir(const std::string& Dir)
@@ -72,7 +106,8 @@ std::string Model_MainModel::CteateNewUIFileInDir(const std::string& Dir)
 	std::string NewFile = FileUtil::createUniqueFile(Dir, "NewUI", ".imui");
 	if (NewFile.empty()) return "";
 	m_ProjectFileManager.rescan();
-	OnProjectConfigChanged.Broadcast(&m_ProjectFileManager);
+	Publish(Events::ProjectView::UPDATE_PROJECT_VIEW, &m_ProjectFileManager);
+	//OnProjectConfigChanged.Broadcast(&m_ProjectFileManager);
 	return Dir + "/" + NewFile;
 }
 
@@ -81,7 +116,8 @@ bool Model_MainModel::RenameFile(const std::string& OldFullPath, const std::stri
 	if (FileUtil::renameFile(OldFullPath, NewFullPath))
 	{
 		m_ProjectFileManager.rescan();
-		OnProjectConfigChanged.Broadcast(&m_ProjectFileManager);
+		Publish(Events::ProjectView::UPDATE_PROJECT_VIEW, &m_ProjectFileManager);
+		//OnProjectConfigChanged.Broadcast(&m_ProjectFileManager);
 		return true;
 	}
 	return false;
@@ -104,5 +140,6 @@ void Model_MainModel::LoadConfig(const std::string& ConfigPath)
 		m_ProjectConfig = ProjectConfig(ConfigPath);
 	}
 	m_ProjectFileManager = ProjectFileManager(m_ProjectConfig.GetUIFolder(), { ".imui" });
-	OnProjectConfigChanged.Broadcast(&m_ProjectFileManager);
+	//OnProjectConfigChanged.Broadcast(&m_ProjectFileManager);
+	Publish(Events::ProjectView::UPDATE_PROJECT_VIEW, &m_ProjectFileManager);
 }
