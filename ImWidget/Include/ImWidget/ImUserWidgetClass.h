@@ -143,6 +143,8 @@ namespace ImGuiWidget
     {
     private:
         std::string m_ClassName;
+        std::string m_Namespace = "ImGuiWidget";          // 自定义命名空间
+        std::string m_BaseClass = "ImUserWidget";        // 自定义基类
 
         // 变量存储
         std::unordered_map<std::string, ImWidget*> m_WidgetVariables;      // 控件树变量
@@ -224,6 +226,14 @@ namespace ImGuiWidget
             for (auto& pair : m_ObjectVariables) delete pair.second;
             for (auto& pair : m_BasicVariables) delete pair.second;
         }
+
+        // 设置/获取命名空间
+        void SetNamespace(const std::string& ns) { m_Namespace = ns; }
+        std::string GetNamespace() const { return m_Namespace; }
+
+        // 设置/获取基类
+        void SetBaseClass(const std::string& baseClass) { m_BaseClass = baseClass; }
+        std::string GetBaseClass() const { return m_BaseClass; }
 
         // 1. 获取类名
         std::string GetClassName() const { return m_ClassName; }
@@ -620,8 +630,8 @@ namespace ImGuiWidget
             const std::string& sourceOutputPath) const;
 
         // 导出为单头文件
-        bool ExportToSingleHeader(const std::string& className,
-            const std::string& outputPath) const;
+        //bool ExportToSingleHeader(const std::string& className,
+        //    const std::string& outputPath) const;
 
 	};
 

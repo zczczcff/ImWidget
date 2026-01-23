@@ -11,8 +11,8 @@ bool ImGuiWidget::ImUserWidgetClass::ExportToCppFiles(const std::string& classNa
 
 // 导出为单头文件
 
-bool ImGuiWidget::ImUserWidgetClass::ExportToSingleHeader(const std::string& className, const std::string& outputPath) const
-{
-    return ImUserWidgetClassCodeGenerator::ExportUserWidgetClassToSingleHeader(
-        *this, className, outputPath);
-}
+//bool ImGuiWidget::ImUserWidgetClass::ExportToSingleHeader(const std::string& className, const std::string& outputPath) const
+//{
+//    return ImUserWidgetClassCodeGenerator::ExportUserWidgetClassToSingleHeader(
+//        *this, className, outputPath);
+//}
