@@ -568,58 +568,62 @@ namespace ImGuiWidget
                     CollectChildWidgetNames(child, names);
                 }
             }
-        }
+		}
+	public:
+		// 直接设置已创建的控件树变量
+		bool SetWidgetVariableDirect(const std::string& name, ImWidget* widget)
+		{
+			if (IsNameUsed(name) && name != widget->GetWidgetName())
+				return false;
 
+			widget->SetWidgetName(name);
+			m_WidgetVariables[name] = widget;
+			return true;
+		}
 
-        public:
-            // ... 原有代码 ...
+		// 直接设置已创建的对象变量
+		bool SetObjectVariableDirect(const std::string& name, ImObject* obj)
+		{
+			if (IsNameUsed(name))
+				return false;
 
-            // 直接设置已创建的控件树变量
-            bool SetWidgetVariableDirect(const std::string& name, ImWidget* widget)
-            {
-                if (IsNameUsed(name) && name != widget->GetWidgetName())
-                    return false;
+			m_ObjectVariables[name] = obj;
+			return true;
+		}
 
-                widget->SetWidgetName(name);
-                m_WidgetVariables[name] = widget;
-                return true;
-            }
+		// 直接设置已创建的基本变量
+		bool SetBasicVariableDirect(const std::string& name, ImBasicVariable* var)
+		{
+			if (IsNameUsed(name) && name != var->GetName())
+				return false;
 
-            // 直接设置已创建的对象变量
-            bool SetObjectVariableDirect(const std::string& name, ImObject* obj)
-            {
-                if (IsNameUsed(name))
-                    return false;
+			var->SetName(name);
+			m_BasicVariables[name] = var;
+			return true;
+		}
 
-                m_ObjectVariables[name] = obj;
-                return true;
-            }
+		// 清空所有变量（用于反序列化前清理）
+		void ClearAllVariables()
+		{
+			for (auto& pair : m_WidgetVariables) delete pair.second;
+			for (auto& pair : m_ObjectVariables) delete pair.second;
+			for (auto& pair : m_BasicVariables) delete pair.second;
 
-            // 直接设置已创建的基本变量
-            bool SetBasicVariableDirect(const std::string& name, ImBasicVariable* var)
-            {
-                if (IsNameUsed(name) && name != var->GetName())
-                    return false;
+			m_WidgetVariables.clear();
+			m_ObjectVariables.clear();
+			m_BasicVariables.clear();
+			m_DefaultRootVariableName.clear();
+		}
 
-                var->SetName(name);
-                m_BasicVariables[name] = var;
-                return true;
-            }
+        bool ExportToCppFiles(const std::string& className,
+            const std::string& headerOutputPath,
+            const std::string& sourceOutputPath) const;
 
-            // 清空所有变量（用于反序列化前清理）
-            void ClearAllVariables()
-            {
-                for (auto& pair : m_WidgetVariables) delete pair.second;
-                for (auto& pair : m_ObjectVariables) delete pair.second;
-                for (auto& pair : m_BasicVariables) delete pair.second;
+        // 导出为单头文件
+        bool ExportToSingleHeader(const std::string& className,
+            const std::string& outputPath) const;
 
-                m_WidgetVariables.clear();
-                m_ObjectVariables.clear();
-                m_BasicVariables.clear();
-                m_DefaultRootVariableName.clear();
-            }
-
-    };
+	};
 
 
 

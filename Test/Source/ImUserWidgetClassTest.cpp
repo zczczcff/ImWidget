@@ -233,6 +233,10 @@ void TestUserWidgetClassSerialization()
         std::cout << "  - 反序列化失败!" << std::endl;
     }
 
+    // 7. .h.cpp类文件输出测试
+
+    deserializedClass.ExportToCppFiles("test", "test.h", "test.cpp");
+
     std::cout << "\n=== 测试完成 ===" << std::endl;
 }
 
@@ -243,6 +247,7 @@ ImGuiWidget::ImWidget* ImInit()
     ImGuiWidget::RegisterBaseWidget();
     TestUserWidgetClassSerialization();
 
+    exit(1);
     while(1){}
 
     return nullptr;
