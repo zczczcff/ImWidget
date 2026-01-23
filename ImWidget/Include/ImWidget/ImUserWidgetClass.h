@@ -1,88 +1,626 @@
 #pragma once
+#include <string>
+#include <vector>
+#include <unordered_map>
+#include <unordered_set>
+#include <memory>
+#include "ImWidget.h"
+#include "ImObject.h"
+#include "ImObjectFactory.h"
+#include "ImWidgetFactory.h"
 #include "ImUserWidget.h"
-#include "ImWidgetSerializer.h"
-#include "ImWidgetCodeGenerator.h"
-//该类用于编辑器中编辑一个用户控件类
+
 namespace ImGuiWidget
 {
-	class ImUserWidgetClass
-	{
-	public:
-		enum class variableType
-		{
-			widget,
-			ImObject,
-			property
-		};
-		enum class variableQualifiers
-		{
-			q_Public,
-			q_Protected,
-			q_Private
-		};
+    // 基本属性变量类，用于包装基本类型的属性
+    class ImBasicVariable : public ImObject
+    {
+    public:
+        enum class BasicType
+        {
+            Int,
+            Float,
+            Bool,
+            String,
+            Color
+        };
 
-		union VarValue
-		{
-			void* v_Voidp;
-			ImWidget* v_widget;
-			ImObject* v_object;
-			int* v_int;
-			float* v_flt;
-			ImU32* v_color;
-			bool* v_bool;
-			std::string* v_str;
-			ImVec2* v_vec2;
-			std::vector<std::string>* v_strarray;
-		};
+    private:
+        BasicType m_Type;
+        std::string m_Name;
+        std::string m_Category;
 
-		struct variable
-		{
-			std::string varName;
-			variableType Vtype;
-			variableQualifiers Qtype;
-			PropertyType Ptype;
-			VarValue var;
-		};
-	private:
-		std::string ClassName;
-		std::string BaseClassName = "ImUserWidget";
-		std::vector<variable> m_vars;
-	private:
-		const variable* FindVariable(const std::string& varName) const;
-		void DeletePropertyValue(PropertyType propType, void* valuePtr);
-	public:
-		std::string GetClassName() { return ClassName; }
-		void SetClassName(const std::string& name) { ClassName = name; }
-		size_t GetVariableCount() const
-		{
-			return m_vars.size();
-		}
-		variable* GetVariableAt(int index)
-		{
-			if (index < 0 || index >= static_cast<int>(m_vars.size()))
-			{
-				return nullptr;
-			}
-			return &m_vars[index];
-		}
+        union
+        {
+            int m_IntValue;
+            float m_FloatValue;
+            bool m_BoolValue;
+        };
 
-		variable* AddWidgetVar(const std::string& varName, const std::string& RegisterName, variableQualifiers qualifier = variableQualifiers::q_Protected);
-		variable* AddStructVar(const std::string& varName, const std::string& RegisterName, variableQualifiers qualifier = variableQualifiers::q_Protected);
-		variable* AddIntVar(const std::string& varName, variableQualifiers qualifier = variableQualifiers::q_Protected);
-		variable* FindVarByName(const std::string& varName);
-		bool RenameVar(const std::string& OldName, const std::string& NewName);
+        std::string m_StringValue;
+        ImU32 m_ColorValue;
 
-		bool RemovePropertyByName(const std::string& varName);
+    public:
+        ImBasicVariable(const std::string& name, BasicType type, const std::string& category = "Default")
+            : m_Name(name), m_Type(type), m_Category(category)
+        {
+            // 初始化默认值
+            switch (type)
+            {
+            case BasicType::Int: m_IntValue = 0; break;
+            case BasicType::Float: m_FloatValue = 0.0f; break;
+            case BasicType::Bool: m_BoolValue = false; break;
+            case BasicType::String: m_StringValue = ""; break;
+            case BasicType::Color: m_ColorValue = IM_COL32(255, 255, 255, 255); break;
+            }
+        }
+
+        BasicType GetBasicType() const { return m_Type; }
+        std::string GetName() const { return m_Name; }
+        void SetName(const std::string& name) { m_Name = name; }
+
+        void* GetValuePtr()
+        {
+            switch (m_Type)
+            {
+            case BasicType::Int: return &m_IntValue;
+            case BasicType::Float: return &m_FloatValue;
+            case BasicType::Bool: return &m_BoolValue;
+            case BasicType::String: return &m_StringValue;
+            case BasicType::Color: return &m_ColorValue;
+            default: return nullptr;
+            }
+        }
+
+        std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
+        {
+            std::unordered_set<PropertyInfo, PropertyInfo::Hasher> props;
+
+            switch (m_Type)
+            {
+            case BasicType::Int:
+                props.insert({
+                    m_Name,
+                    PropertyType::Int,
+                    m_Category,
+                    [this](void* v) { m_IntValue = *static_cast<int*>(v); },
+                    [this]() -> void* { return &m_IntValue; }
+                    });
+                break;
+
+            case BasicType::Float:
+                props.insert({
+                    m_Name,
+                    PropertyType::Float,
+                    m_Category,
+                    [this](void* v) { m_FloatValue = *static_cast<float*>(v); },
+                    [this]() -> void* { return &m_FloatValue; }
+                    });
+                break;
+
+            case BasicType::Bool:
+                props.insert({
+                    m_Name,
+                    PropertyType::Bool,
+                    m_Category,
+                    [this](void* v) { m_BoolValue = *static_cast<bool*>(v); },
+                    [this]() -> void* { return &m_BoolValue; }
+                    });
+                break;
+
+            case BasicType::String:
+                props.insert({
+                    m_Name,
+                    PropertyType::String,
+                    m_Category,
+                    [this](void* v) { m_StringValue = *static_cast<std::string*>(v); },
+                    [this]() -> void* { return &m_StringValue; }
+                    });
+                break;
+
+            case BasicType::Color:
+                props.insert({
+                    m_Name,
+                    PropertyType::Color,
+                    m_Category,
+                    [this](void* v) { m_ColorValue = *static_cast<ImU32*>(v); },
+                    [this]() -> void* { return &m_ColorValue; }
+                    });
+                break;
+            }
+
+            return props;
+        }
+
+        std::string GetRegisterTypeName() override
+        {
+            return "BasicVariable_" + std::to_string(static_cast<int>(m_Type));
+        }
+    };
+
+    // 用户控件类管理器
+    class ImUserWidgetClass
+    {
+    private:
+        std::string m_ClassName;
+
+        // 变量存储
+        std::unordered_map<std::string, ImWidget*> m_WidgetVariables;      // 控件树变量
+        std::unordered_map<std::string, ImObject*> m_ObjectVariables;      // ImObject变量
+        std::unordered_map<std::string, ImBasicVariable*> m_BasicVariables; // 基本属性变量
+
+        std::string m_DefaultRootVariableName; // 默认根控件变量名
+
+        // 名称检查辅助函数
+        bool IsNameUsed(const std::string& name) const
+        {
+            return m_WidgetVariables.find(name) != m_WidgetVariables.end() ||
+                m_ObjectVariables.find(name) != m_ObjectVariables.end() ||
+                m_BasicVariables.find(name) != m_BasicVariables.end() ||
+                CheckAllChildWidgetNames(name);
+        }
+
+        // 递归检查所有控件树子项名称
+        bool CheckAllChildWidgetNames(const std::string& name) const
+        {
+            for (const auto& pair : m_WidgetVariables)
+            {
+                if (CheckWidgetTreeForName(pair.second, name))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // 递归检查单个控件树中的名称
+        bool CheckWidgetTreeForName(ImWidget* widget, const std::string& name) const
+        {
+            if (!widget) return false;
+
+            // 检查当前控件
+            if (widget->GetWidgetName() == name)
+                return true;
+
+            // 如果是容器控件，递归检查子项
+            if (widget->GetChildNum()>0)
+            {
+                for (int i = 0; i < widget->GetChildNum(); i++)
+                {
+                    ImWidget* child = widget->GetChildAt(i);
+                    if (CheckWidgetTreeForName(child, name))
+                        return true;
+                }
+            }
+
+            return false;
+        }
+
+        // 生成唯一名称
+        std::string GenerateUniqueName(const std::string& baseName) const
+        {
+            std::string name = baseName;
+            int counter = 1;
+
+            while (IsNameUsed(name))
+            {
+                name = baseName + std::to_string(counter);
+                counter++;
+            }
+
+            return name;
+        }
+
+    public:
+        ImUserWidgetClass(const std::string& className)
+            : m_ClassName(className)
+        {
+        }
+
+        ~ImUserWidgetClass()
+        {
+            // 清理所有变量
+            for (auto& pair : m_WidgetVariables) delete pair.second;
+            for (auto& pair : m_ObjectVariables) delete pair.second;
+            for (auto& pair : m_BasicVariables) delete pair.second;
+        }
+
+        // 1. 获取类名
+        std::string GetClassName() const { return m_ClassName; }
+        void SetClassName(const std::string& name) { m_ClassName = name; }
+
+        // 2. 设置/获取默认根控件
+        void SetDefaultRootVariable(const std::string& varName)
+        {
+            if (m_WidgetVariables.find(varName) != m_WidgetVariables.end())
+            {
+                m_DefaultRootVariableName = varName;
+            }
+        }
+
+        std::string GetDefaultRootVariableName() const { return m_DefaultRootVariableName; }
+
+        ImWidget* GetDefaultRootWidget() const
+        {
+            auto it = m_WidgetVariables.find(m_DefaultRootVariableName);
+            return it != m_WidgetVariables.end() ? it->second : nullptr;
+        }
+
+        // 3. 添加变量接口
+        bool AddWidgetVariable(const std::string& typeName, std::string& outVarName)
+        {
+            // 创建控件
+            ImWidget* widget = ImWidgetFactory::GetInstance().CreateWidget(typeName, "");
+            if (!widget) return false;
+
+            // 生成唯一名称
+            std::string baseName = typeName;
+            // 移除命名空间前缀
+            size_t pos = baseName.find_last_of("::");
+            if (pos != std::string::npos)
+                baseName = baseName.substr(pos + 1);
+
+            outVarName = GenerateUniqueName(baseName);
+            widget->SetWidgetName(outVarName);
+
+            m_WidgetVariables[outVarName] = widget;
+            return true;
+        }
+
+        bool AddObjectVariable(const std::string& typeName, std::string& outVarName)
+        {
+            // 创建对象
+            ImObject* obj = ImObjectFactory::GetInstance().CreateObject(typeName);
+            if (!obj) return false;
+
+            // 生成唯一名称
+            std::string baseName = typeName;
+            outVarName = GenerateUniqueName(baseName);
+
+            m_ObjectVariables[outVarName] = obj;
+            return true;
+        }
+
+        bool AddBasicVariable(ImBasicVariable::BasicType type, const std::string& category, std::string& outVarName)
+        {
+            // 生成唯一名称
+            std::string baseName;
+            switch (type)
+            {
+            case ImBasicVariable::BasicType::Int: baseName = "Int"; break;
+            case ImBasicVariable::BasicType::Float: baseName = "Float"; break;
+            case ImBasicVariable::BasicType::Bool: baseName = "Bool"; break;
+            case ImBasicVariable::BasicType::String: baseName = "String"; break;
+            case ImBasicVariable::BasicType::Color: baseName = "Color"; break;
+            }
+
+            outVarName = GenerateUniqueName(baseName);
+
+            // 创建基本变量
+            ImBasicVariable* var = new ImBasicVariable(outVarName, type, category);
+            m_BasicVariables[outVarName] = var;
+            return true;
+        }
+
+        // 4. 删除变量接口
+        bool RemoveVariable(const std::string& varName)
+        {
+            // 检查控件树变量
+            auto widgetIt = m_WidgetVariables.find(varName);
+            if (widgetIt != m_WidgetVariables.end())
+            {
+                delete widgetIt->second;
+                m_WidgetVariables.erase(widgetIt);
+
+                // 如果删除的是默认根控件，清空默认根
+                if (varName == m_DefaultRootVariableName)
+                {
+                    m_DefaultRootVariableName.clear();
+                }
+                return true;
+            }
+
+            // 检查对象变量
+            auto objectIt = m_ObjectVariables.find(varName);
+            if (objectIt != m_ObjectVariables.end())
+            {
+                delete objectIt->second;
+                m_ObjectVariables.erase(objectIt);
+                return true;
+            }
+
+            // 检查基本变量
+            auto basicIt = m_BasicVariables.find(varName);
+            if (basicIt != m_BasicVariables.end())
+            {
+                delete basicIt->second;
+                m_BasicVariables.erase(basicIt);
+                return true;
+            }
+
+            return false;
+        }
+
+        // 5. 修改变量接口
+        ImWidget* GetWidgetVariable(const std::string& varName) const
+        {
+            auto it = m_WidgetVariables.find(varName);
+            return it != m_WidgetVariables.end() ? it->second : nullptr;
+        }
+
+        ImObject* GetObjectVariable(const std::string& varName) const
+        {
+            auto it = m_ObjectVariables.find(varName);
+            return it != m_ObjectVariables.end() ? it->second : nullptr;
+        }
+
+        ImBasicVariable* GetBasicVariable(const std::string& varName) const
+        {
+            auto it = m_BasicVariables.find(varName);
+            return it != m_BasicVariables.end() ? it->second : nullptr;
+        }
+
+        // 6. 获取所有变量名称
+        std::vector<std::string> GetAllVariableNames() const
+        {
+            std::vector<std::string> names;
+
+            for (const auto& pair : m_WidgetVariables) names.push_back(pair.first);
+            for (const auto& pair : m_ObjectVariables) names.push_back(pair.first);
+            for (const auto& pair : m_BasicVariables) names.push_back(pair.first);
+
+            return names;
+        }
+
+        // 7. 在指定控件树中插入子项
+        bool InsertChildWidget(const std::string& parentVarName, const std::string& childTypeName,
+            int index, std::string& outChildName)
+        {
+            // 获取父控件
+            ImWidget* parent = GetWidgetVariable(parentVarName);
+            if (!parent) return false;
+
+            // 检查是否是容器控件
+            //ImPanelWidget* panel = dynamic_cast<ImPanelWidget*>(parent);
+            //if (!panel) return false;
+
+            // 检查子项数量限制
+            if (parent->GetChildNum() >= parent->GetAllowMaxChildNum())
+                return false;
+
+            // 创建子控件
+            ImWidget* child = ImWidgetFactory::GetInstance().CreateWidget(childTypeName, "");
+            if (!child) return false;
+
+            // 生成唯一名称
+            std::string baseName = childTypeName;
+            size_t pos = baseName.find_last_of("::");
+            if (pos != std::string::npos)
+                baseName = baseName.substr(pos + 1);
+
+            outChildName = GenerateUniqueName(baseName);
+            child->SetWidgetName(outChildName);
+
+            // 插入子控件
+            return parent->InsertChildAt(index, child) != nullptr;
+        }
+
+        // 8. 移除控件树子项
+        bool RemoveChildWidget(const std::string& parentVarName, ImWidget* childWidget, bool bDelete = true)
+        {
+            // 获取父控件
+            ImWidget* parent = GetWidgetVariable(parentVarName);
+            if (!parent) return false;
+
+            // 检查是否是容器控件
+            //ImPanelWidget* panel = dynamic_cast<ImPanelWidget*>(parent);
+            //if (!panel) return false;
+
+            // 验证子控件确实存在于父控件下
+            for (int i = 0; i < parent->GetChildNum(); i++)
+            {
+                if (parent->GetChildAt(i) == childWidget)
+                {
+                    return parent->RemoveChild(childWidget, bDelete);
+                }
+            }
+
+            return false;
+        }
+
+        // 9. 重命名变量
+        bool RenameVariable(const std::string& oldName, const std::string& newName)
+        {
+            // 检查新名称是否已使用
+            if (IsNameUsed(newName) && newName != oldName)
+                return false;
+
+            // 重命名控件树变量
+            auto widgetIt = m_WidgetVariables.find(oldName);
+            if (widgetIt != m_WidgetVariables.end())
+            {
+                widgetIt->second->SetWidgetName(newName);
+                ImWidget* widget = widgetIt->second;
+                m_WidgetVariables.erase(widgetIt);
+                m_WidgetVariables[newName] = widget;
+
+                // 如果重命名的是默认根控件，更新默认根名称
+                if (oldName == m_DefaultRootVariableName)
+                {
+                    m_DefaultRootVariableName = newName;
+                }
+                return true;
+            }
+
+            // 重命名对象变量
+            auto objectIt = m_ObjectVariables.find(oldName);
+            if (objectIt != m_ObjectVariables.end())
+            {
+                ImObject* obj = objectIt->second;
+                m_ObjectVariables.erase(objectIt);
+                m_ObjectVariables[newName] = obj;
+                return true;
+            }
+
+            // 重命名基本变量
+            auto basicIt = m_BasicVariables.find(oldName);
+            if (basicIt != m_BasicVariables.end())
+            {
+                ImBasicVariable* var = basicIt->second;
+                var->SetName(newName);
+                m_BasicVariables.erase(basicIt);
+                m_BasicVariables[newName] = var;
+                return true;
+            }
+
+            return false;
+        }
+
+        // 10. 重命名控件树子项
+        bool RenameChildWidget(const std::string& parentVarName, ImWidget* childWidget, const std::string& newName)
+        {
+            // 检查新名称是否已使用
+            if (IsNameUsed(newName))
+                return false;
+
+            // 获取父控件
+            ImWidget* parent = GetWidgetVariable(parentVarName);
+            if (!parent) return false;
+
+            // 检查是否是容器控件
+            //ImPanelWidget* panel = dynamic_cast<ImPanelWidget*>(parent);
+            //if (!panel) return false;
+
+            // 验证子控件确实存在于父控件下
+            bool childFound = false;
+            for (int i = 0; i < parent->GetChildNum(); i++)
+            {
+                if (parent->GetChildAt(i) == childWidget)
+                {
+                    childFound = true;
+                    break;
+                }
+            }
+
+            if (!childFound) return false;
+
+            // 重命名子控件
+            childWidget->SetWidgetName(newName);
+            return true;
+        }
+
+        // 11. 获取所有控件树变量的名称
+        std::vector<std::string> GetWidgetVariableNames() const
+        {
+            std::vector<std::string> names;
+            for (const auto& pair : m_WidgetVariables)
+                names.push_back(pair.first);
+            return names;
+        }
+
+        // 12. 获取所有对象变量的名称
+        std::vector<std::string> GetObjectVariableNames() const
+        {
+            std::vector<std::string> names;
+            for (const auto& pair : m_ObjectVariables)
+                names.push_back(pair.first);
+            return names;
+        }
+
+        // 13. 获取所有基本变量的名称
+        std::vector<std::string> GetBasicVariableNames() const
+        {
+            std::vector<std::string> names;
+            for (const auto& pair : m_BasicVariables)
+                names.push_back(pair.first);
+            return names;
+        }
+
+        // 14. 递归获取控件树下所有子项名称
+        std::vector<std::string> GetAllChildWidgetNames(const std::string& parentVarName) const
+        {
+            std::vector<std::string> names;
+            ImWidget* parent = GetWidgetVariable(parentVarName);
+
+            if (parent)
+            {
+                CollectChildWidgetNames(parent, names);
+            }
+
+            return names;
+        }
+
+    private:
+        // 递归收集控件树下所有子项名称
+        void CollectChildWidgetNames(ImWidget* widget, std::vector<std::string>& names) const
+        {
+            if (!widget) return;
+
+            // 添加当前控件名称
+            names.push_back(widget->GetWidgetName());
+
+            // 如果是容器控件，递归收集子项
+            if (widget->GetChildNum()>0)
+            {
+                for (int i = 0; i < widget->GetChildNum(); i++)
+                {
+                    ImWidget* child = widget->GetChildAt(i);
+                    CollectChildWidgetNames(child, names);
+                }
+            }
+        }
 
 
-		// 序列化/反序列化
-		nlohmann::ordered_json ToJson() const;
-		bool FromJson(const nlohmann::ordered_json& j);
+        public:
+            // ... 原有代码 ...
+
+            // 直接设置已创建的控件树变量
+            bool SetWidgetVariableDirect(const std::string& name, ImWidget* widget)
+            {
+                if (IsNameUsed(name) && name != widget->GetWidgetName())
+                    return false;
+
+                widget->SetWidgetName(name);
+                m_WidgetVariables[name] = widget;
+                return true;
+            }
+
+            // 直接设置已创建的对象变量
+            bool SetObjectVariableDirect(const std::string& name, ImObject* obj)
+            {
+                if (IsNameUsed(name))
+                    return false;
+
+                m_ObjectVariables[name] = obj;
+                return true;
+            }
+
+            // 直接设置已创建的基本变量
+            bool SetBasicVariableDirect(const std::string& name, ImBasicVariable* var)
+            {
+                if (IsNameUsed(name) && name != var->GetName())
+                    return false;
+
+                var->SetName(name);
+                m_BasicVariables[name] = var;
+                return true;
+            }
+
+            // 清空所有变量（用于反序列化前清理）
+            void ClearAllVariables()
+            {
+                for (auto& pair : m_WidgetVariables) delete pair.second;
+                for (auto& pair : m_ObjectVariables) delete pair.second;
+                for (auto& pair : m_BasicVariables) delete pair.second;
+
+                m_WidgetVariables.clear();
+                m_ObjectVariables.clear();
+                m_BasicVariables.clear();
+                m_DefaultRootVariableName.clear();
+            }
+
+    };
 
 
 
-		// 生成C++类代码
-		bool GenCppClassCode(const std::string& headerPath, const std::string& cppPath) const;
-
-	};
 }
