@@ -117,7 +117,6 @@ namespace ImGuiWidget
             if (basicVars.empty()) return;
 
             context.writeLine("//===Auto Gen Begin=== (Basic Variable Members)");
-            context.writeLine("// 基本变量");
 
             for (const auto& varName : basicVars)
             {
@@ -127,7 +126,7 @@ namespace ImGuiWidget
                 std::string typeStr = BasicTypeToCppType(var->GetBasicType());
                 std::string defaultValue = GetBasicVariableTypeDefault(var->GetBasicType());
 
-                context.writeLine(typeStr + " m_" + varName + " = " + defaultValue + ";");
+                context.writeLine(typeStr + " " + varName + " = " + defaultValue + ";");
             }
 
             context.writeLine("//===Auto Gen End=== (Basic Variable Members)");
@@ -142,7 +141,6 @@ namespace ImGuiWidget
             if (basicVars.empty()) return;
 
             context.writeLine("//===Auto Gen Begin=== (Basic Variables Init)");
-            context.writeLine("// 初始化基本变量");
 
             for (const auto& varName : basicVars)
             {
@@ -157,7 +155,7 @@ namespace ImGuiWidget
                 if (!valuePtr) continue;
 
                 std::string valueCode = ValueToCode(prop.type, valuePtr);
-                context.writeLine("m_" + varName + " = " + valueCode + ";");
+                context.writeLine(varName + " = " + valueCode + ";");
             }
 
             context.writeLine("//===Auto Gen End=== (Basic Variables Init)");
@@ -264,8 +262,8 @@ namespace ImGuiWidget
             // 生成头文件内容
             context.writeLine("#pragma once");
             context.writeEmptyLine();
-            context.writeLine("// 自动生成的自定义控件类 - " + context.className);
-            context.writeLine("// 注意：此文件为自动生成，请勿手动编辑");
+            context.writeLine(u8"// 自动生成的自定义控件类 - " + context.className);
+            context.writeLine(u8"// 注意：此文件为自动生成，请勿手动编辑");
             context.writeEmptyLine();
 
             // 包含必要头文件
@@ -346,7 +344,7 @@ namespace ImGuiWidget
             // 生成所有控件变量声明（包括子控件）
             if (!allWidgets.empty())
             {
-                context.writeLine("// 控件变量");
+                context.writeLine(u8"// 控件变量");
                 for (const auto& [varName, widget] : allWidgets)
                 {
                     std::string typeName = widget->GetRegisterTypeName();
@@ -356,7 +354,7 @@ namespace ImGuiWidget
                     {
                         typeName = typeName.substr(pos + 1);
                     }
-                    context.writeLine(typeName + "* m_" + varName + " = nullptr;");
+                    context.writeLine(typeName + "* " + varName + " = nullptr;");
                 }
                 context.writeEmptyLine();
             }
@@ -364,7 +362,7 @@ namespace ImGuiWidget
             // 生成ImObject变量声明
             if (!objectVars.empty())
             {
-                context.writeLine("// ImObject变量");
+                context.writeLine(u8"// ImObject变量");
                 for (const auto& varName : objectVars)
                 {
                     ImObject* obj = widgetClass.GetObjectVariable(varName);
@@ -376,7 +374,7 @@ namespace ImGuiWidget
                         {
                             typeName = typeName.substr(pos + 1);
                         }
-                        context.writeLine(typeName + "* m_" + varName + " = nullptr;");
+                        context.writeLine(typeName + "* " + varName + " = nullptr;");
                     }
                 }
                 context.writeEmptyLine();
@@ -385,14 +383,14 @@ namespace ImGuiWidget
             // 生成基本变量声明
             if (!basicVars.empty())
             {
-                context.writeLine("// 基本变量");
+                context.writeLine(u8"// 基本变量");
                 for (const auto& varName : basicVars)
                 {
                     ImBasicVariable* var = widgetClass.GetBasicVariable(varName);
                     if (var)
                     {
                         std::string typeStr = BasicTypeToCppType(var->GetBasicType());
-                        context.writeLine(typeStr + " m_" + varName + " = " +
+                        context.writeLine(typeStr + " " + varName + " = " +
                             GetBasicVariableTypeDefault(var->GetBasicType()) + ";");
                     }
                 }
@@ -485,8 +483,8 @@ namespace ImGuiWidget
             ClassGenContext context{ sourceFile, 0, className, widgetClass.GetNamespace() };
 
             // 生成源文件内容
-            context.writeLine("// 自动生成的自定义控件源文件 - " + context.className);
-            context.writeLine("// 注意：此文件为自动生成，请勿手动编辑");
+            context.writeLine(u8"// 自动生成的自定义控件源文件 - " + context.className);
+            context.writeLine(u8"// 注意：此文件为自动生成，请勿手动编辑");
             context.writeEmptyLine();
 
             // 包含头文件
@@ -527,7 +525,7 @@ namespace ImGuiWidget
             std::string defaultRoot = widgetClass.GetDefaultRootVariableName();
             if (!defaultRoot.empty())
             {
-                context.writeLine("SetRootWidget(m_" + defaultRoot + ");");
+                context.writeLine("SetRootWidget(" + defaultRoot + ");");
             }
 
             context.decreaseIndent();
@@ -591,17 +589,17 @@ namespace ImGuiWidget
             auto widgetVars = widgetClass.GetWidgetVariableNames();
             auto objectVars = widgetClass.GetObjectVariableNames();
 
-            context.writeLine("// 释放控件");
+            context.writeLine(u8"// 释放控件");
             for (const auto& varName : widgetVars)
             {
-                context.writeLine("if (m_" + varName + ") delete m_" + varName + ";");
+                context.writeLine("if (" + varName + ") delete " + varName + ";");
             }
 
             context.writeEmptyLine();
-            context.writeLine("// 释放对象");
+            context.writeLine(u8"// 释放对象");
             for (const auto& varName : objectVars)
             {
-                context.writeLine("if (m_" + varName + ") delete m_" + varName + ";");
+                context.writeLine("if (" + varName + ") delete " + varName + ";");
             }
         }
 
@@ -629,7 +627,7 @@ namespace ImGuiWidget
             // 生成基本变量初始化
             if (!basicVars.empty())
             {
-                context.writeLine("// 初始化基本变量");
+                context.writeLine(u8"// 初始化基本变量");
                 for (const auto& varName : basicVars)
                 {
                     ImBasicVariable* var = widgetClass.GetBasicVariable(varName);
@@ -643,7 +641,7 @@ namespace ImGuiWidget
                     if (!valuePtr) continue;
 
                     std::string valueCode = ValueToCode(prop.type, valuePtr);
-                    context.writeLine("m_" + varName + " = " + valueCode + ";");
+                    context.writeLine(varName + " = " + valueCode + ";");
                 }
                 context.writeEmptyLine();
             }
@@ -651,7 +649,7 @@ namespace ImGuiWidget
             // 生成ImObject变量初始化
             if (!objectVars.empty())
             {
-                context.writeLine("// 初始化ImObject变量");
+                context.writeLine(u8"// 初始化ImObject变量");
                 for (const auto& varName : objectVars)
                 {
                     ImObject* obj = widgetClass.GetObjectVariable(varName);
@@ -665,7 +663,7 @@ namespace ImGuiWidget
                     }
 
                     // 使用new直接创建对象
-                    context.writeLine("m_" + varName + " = new " + typeName + "();");
+                    context.writeLine(varName + " = new " + typeName + "();");
 
                     // 设置对象属性
                     auto props = obj->GetProperties();
@@ -680,7 +678,7 @@ namespace ImGuiWidget
                             ImObject* nestedStruct = static_cast<ImObject*>(valuePtr);
                             std::string nestedVarName = varName + "_" + prop.name;
 
-                            context.writeLine("ImObject* " + nestedVarName + " = m_" + varName +
+                            context.writeLine("ImObject* " + nestedVarName + " = " + varName +
                                 "->GetPropertyPtr<ImObject>(\"" + prop.name + "\");");
 
                             // 递归处理嵌套结构体的属性
@@ -689,7 +687,7 @@ namespace ImGuiWidget
                         else
                         {
                             std::string valueCode = ValueToCode(prop.type, valuePtr);
-                            context.writeLine("m_" + varName + "->SetPropertyValue<" +
+                            context.writeLine(varName + "->SetPropertyValue<" +
                                 PropertyTypeToCppTypeString(prop.type) + ">(\"" +
                                 prop.name + "\", " + valueCode + ");");
                         }
@@ -701,7 +699,7 @@ namespace ImGuiWidget
             // 生成控件变量初始化（包括子控件）
             if (!allWidgets.empty())
             {
-                context.writeLine("// 初始化控件变量");
+                context.writeLine(u8"// 初始化控件变量");
 
                 // 先创建所有控件
                 for (const auto& [varName, widget] : allWidgets)
@@ -720,7 +718,7 @@ namespace ImGuiWidget
                         widgetName = varName; // 如果控件没有名称，使用变量名
                     }
 
-                    context.writeLine("m_" + varName + " = new " + typeName + "(\"" + widgetName + "\");");
+                    context.writeLine(varName + " = new " + typeName + "(\"" + widgetName + "\");");
                 }
                 context.writeEmptyLine();
 
@@ -739,7 +737,7 @@ namespace ImGuiWidget
                             ImObject* nestedStruct = static_cast<ImObject*>(valuePtr);
                             std::string nestedVarName = varName + "_" + prop.name;
 
-                            context.writeLine("ImObject* " + nestedVarName + " = m_" + varName +
+                            context.writeLine("ImObject* " + nestedVarName + " = " + varName +
                                 "->GetPropertyPtr<ImObject>(\"" + prop.name + "\");");
 
                             // 递归处理嵌套结构体
@@ -748,7 +746,7 @@ namespace ImGuiWidget
                         else
                         {
                             std::string valueCode = ValueToCode(prop.type, valuePtr);
-                            context.writeLine("m_" + varName + "->SetPropertyValue<" +
+                            context.writeLine(varName + "->SetPropertyValue<" +
                                 PropertyTypeToCppTypeString(prop.type) + ">(\"" +
                                 prop.name + "\", " + valueCode + ");");
                         }
@@ -757,7 +755,7 @@ namespace ImGuiWidget
                 context.writeEmptyLine();
 
                 // 最后建立父子关系
-                context.writeLine("// 建立控件树父子关系");
+                context.writeLine(u8"// 建立控件树父子关系");
                 for (const auto& [varName, widget] : allWidgets)
                 {
                     ImPanelWidget* panelWidget = dynamic_cast<ImPanelWidget*>(widget);
@@ -774,7 +772,7 @@ namespace ImGuiWidget
                         if (childVarName.empty()) continue;
 
                         // 添加子控件到父控件
-                        context.writeLine("m_" + varName + "->AddChild(m_" + childVarName + ");");
+                        context.writeLine(varName + "->AddChild(" + childVarName + ");");
                     }
                 }
             }
@@ -838,7 +836,7 @@ namespace ImGuiWidget
             int childCount = panelWidget->GetChildNum();
             if (childCount == 0) return;
 
-            context.writeLine("// 设置 " + parentVarName + " 的子控件");
+            context.writeLine(u8"// 设置 " + parentVarName + u8" 的子控件");
 
             for (int i = 0; i < childCount; i++)
             {
@@ -916,27 +914,27 @@ namespace ImGuiWidget
         {
             if (className.empty())
             {
-                std::cerr << "错误: 类名为空\n";
+                std::cerr <<u8"错误: 类名为空\n";
                 return false;
             }
 
             // 生成头文件
             if (!GenerateHeaderFile(widgetClass, className, headerOutputPath))
             {
-                std::cerr << "生成头文件失败: " << headerOutputPath << "\n";
+                std::cerr << u8"生成头文件失败: " << headerOutputPath << "\n";
                 return false;
             }
 
             // 生成源文件
             if (!GenerateSourceFile(widgetClass, className, sourceOutputPath))
             {
-                std::cerr << "生成源文件失败: " << sourceOutputPath << "\n";
+                std::cerr << u8"生成源文件失败: " << sourceOutputPath << "\n";
                 return false;
             }
 
-            std::cout << "成功生成用户控件类: " << className << std::endl;
-            std::cout << "头文件: " << headerOutputPath << std::endl;
-            std::cout << "源文件: " << sourceOutputPath << std::endl;
+            std::cout << u8"成功生成用户控件类: " << className << std::endl;
+            std::cout << u8"头文件: " << headerOutputPath << std::endl;
+            std::cout << u8"源文件: " << sourceOutputPath << std::endl;
 
             return true;
         }
