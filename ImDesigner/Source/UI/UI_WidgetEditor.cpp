@@ -125,7 +125,8 @@ void UI_WidgetEditor::OnKeyDown(ImGuiWidget::ImKeyDownEvent& e)
 {
     if (bHasFocus && e.IsCtrl_Z())
     {
-        OnRequestUndo.Broadcast();
+        ExecuteAction(EditFileFullPath + Action::_REQUEST_UNDO);
+        //OnRequestUndo.Broadcast();
     }
 }
 
@@ -141,18 +142,30 @@ void UI_WidgetEditor::PostRender()
 
 void UI_WidgetEditor::ActionInit()
 {
-    AddSequentialProcessor(Action::WIDGET_SELECTED, [this](ImGuiWidget::ImWidget* SelectedWidget)
-        {
-            SetSelectedWidget(SelectedWidget);
-        });
 
+    ResetAction();
     AddSequentialProcessor(Action::ProjectView::RENAME_FILE, [this](const std::string& OldFullPath, const std::string& NewFullPath)
         {
             if (EditFileFullPath == OldFullPath)
             {
                 EditFileFullPath = NewFullPath;
+                ResetAction();
             }
         });
+}
+
+void UI_WidgetEditor::ResetAction()
+{
+    for (auto& id : FileActions)
+    {
+        RemoveProcessor(id);
+    }
+    FileActions.clear();
+
+    FileActions.push_back(AddSequentialProcessor(EditFileFullPath + Action::WIDGET_SELECTED, [this](ImGuiWidget::ImWidget* SelectedWidget)
+        {
+            SetSelectedWidget(SelectedWidget);
+        }));
 }
 
 UI_WidgetEditor::UI_WidgetEditor(const std::string& name, ImGuiWidget::ImWidget* EditorRootWidget, const std::string& EditFileFullPath) :

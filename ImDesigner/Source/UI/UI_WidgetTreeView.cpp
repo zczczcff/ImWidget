@@ -4,21 +4,55 @@
 #include "Public/WidgetInfor.h"
 #include "Tools/JLog.h"
 #include "EditorAction.h"
+#include "EditorEvents.h"
 
 void UI_WidgetTreeView::ActionInit()
 {
-    AddSequentialProcessor(Action::WIDGET_SELECTED, [this](ImGuiWidget::ImWidget* SelectedWidget) 
-        {
-            SetSelectedWidget(SelectedWidget);
-        });
-
+    ResetAction();
+    ResetEvent();
     AddSequentialProcessor(Action::ProjectView::RENAME_FILE, [this](const std::string& OldFullPath, const std::string& NewFullPath)
         {
             if (EditedFileFullPath == OldFullPath)
             {
                 EditedFileFullPath = NewFullPath;
+                ResetAction();
+                ResetEvent();
             }
         });
+}
+
+void UI_WidgetTreeView::ResetEvent()
+{
+    for (auto& id : FileEvents)
+    {
+        Unsubscribe(id);
+    }
+    FileEvents.clear();
+
+    FileEvents.push_back(Subscribe(EditedFileFullPath + Events::UIFileView::UPDATE_WIDGETTREE_VIEW, [this]()
+        {
+            Refresh();
+        }));
+}
+
+void UI_WidgetTreeView::ResetAction()
+{
+    for (auto& id : FileActions)
+    {
+        RemoveProcessor(id);
+    }
+    FileActions.clear();
+
+    FileActions.push_back(AddSequentialProcessor(EditedFileFullPath + Action::WIDGET_SELECTED, [this](ImGuiWidget::ImWidget* SelectedWidget)
+        {
+            SetSelectedWidget(SelectedWidget);
+        }));
+
+    //FileActions.push_back(AddSequentialProcessor(EditedFileFullPath + Events::UIFileView::UPDATE_WIDGETTREE_VIEW, [this]() 
+    //    {
+    //        Refresh();
+    //    }));
+
 }
 
 void UI_WidgetTreeView::InitPopUpMenu()
@@ -345,7 +379,10 @@ ImGuiWidget::ImWidget* UI_WidgetTreeView::BuildRootNode(ImGuiWidget::ImWidget* w
 
 void UI_WidgetTreeView::On_WidgetDeleteButtonClicked(ImGuiWidget::ImWidget* widget)
 {
-    ExecuteAction(EditedFileFullPath + Action::UIFileView::REQUEST_DELETE_WIDGET, widget);
+    if (ExecuteAction(EditedFileFullPath + Action::UIFileView::REQUEST_DELETE_WIDGET, widget).success)
+    {
+        Refresh();
+    }
     //OnRequestWidgetDeleted.Broadcast(widget);
 }
 

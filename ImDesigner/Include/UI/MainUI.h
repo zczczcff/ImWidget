@@ -77,6 +77,8 @@ protected:
     ImGuiWidget::ImVerticalBox* ImVerticalBox_FolderOperatorMenu;
     ImGuiWidget::ImWindow* m_FileOperatorMenuWindow;
     ImGuiWidget::ImVerticalBox* ImVerticalBox_FileOperatorMenu;
+
+    std::string CurrentEditedFile;
 public:
     //ImMulticastDelegate<const std::string&, const std::string&> OnUIFileSelected;
     //ImMulticastDelegate<const std::string&> OnEditorPageClosed;
@@ -124,6 +126,8 @@ public:
     bool HandleRenameFile(const std::string& OldFullPath, const std::string& NewFullPath);
     bool HandleCloseFile(const std::string& FileFullPath);
 
+private:
+    void SwitchCurrentEditFile(const std::string& FileFullPath);
     //log更新
 public:
     void UpdateLog(std::vector<std::string>&& Logs);

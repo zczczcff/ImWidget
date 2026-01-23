@@ -8,7 +8,8 @@ void UI_DetailView::OnKeyDown(ImGuiWidget::ImKeyDownEvent& e)
 {
 	if (bHasFocus && e.IsCtrl_Z())
 	{
-		OnRequestUndo.Broadcast();
+		ExecuteAction(EditedFileFullPath + Action::_REQUEST_UNDO);
+		//OnRequestUndo.Broadcast();
 	}
 }
 
@@ -86,7 +87,8 @@ ImGuiWidget::ImHorizontalBox* UI_DetailView::HandleAddStringItem(
 				}
 			}
 			//SingleProperty.setter(&stringvector);
-			OnPropertyChanged.Broadcast(SingleProperty, &stringvector, Target);
+			//OnPropertyChanged.Broadcast(SingleProperty, &stringvector, Target);
+			ExecutePropertyEditAction(SingleProperty, &stringvector, Target);
 		});
 	DeleteButton->SetOnPressed([this,SingleProperty, ItemBox, StringListBox, InputString, Target]()
 		{
@@ -105,7 +107,8 @@ ImGuiWidget::ImHorizontalBox* UI_DetailView::HandleAddStringItem(
 				}
 			}
 			//SingleProperty.setter(&stringvector);
-			OnPropertyChanged.Broadcast(SingleProperty, &stringvector, Target);
+			//OnPropertyChanged.Broadcast(SingleProperty, &stringvector, Target);
+			ExecutePropertyEditAction(SingleProperty, &stringvector, Target);
 			StringListBox->RemoveChild(ItemBox, true);
 		});
 
@@ -139,7 +142,8 @@ void UI_DetailView::HandleSingleProperty(
 		BoolSetBox->SetOnToggled([this,SingleProperty, Target](bool NewSetting)
 			{
 				//SingleProperty.setter(&NewSetting);
-				OnPropertyChanged.Broadcast(SingleProperty, &NewSetting,Target);
+				//OnPropertyChanged.Broadcast(SingleProperty, &NewSetting,Target);
+				ExecutePropertyEditAction(SingleProperty, &NewSetting, Target);
 			});
 		ItemBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
 		ItemBox->AddChildToHorizontalBox(BoolSetBox)->SetIfAutoSize(false);
@@ -157,7 +161,8 @@ void UI_DetailView::HandleSingleProperty(
 		ColorPalette->SetOnColorChanged([this,SingleProperty, Target](ImU32 NewColor)
 			{
 				//SingleProperty.setter(&NewColor); 
-				OnPropertyChanged.Broadcast(SingleProperty, &NewColor, Target);
+				//OnPropertyChanged.Broadcast(SingleProperty, &NewColor, Target);
+				ExecutePropertyEditAction(SingleProperty, &NewColor, Target);
 			});
 
 		StructBox->SetHead(PropertyName);
@@ -176,7 +181,8 @@ void UI_DetailView::HandleSingleProperty(
 		FloatInput->SetOnFloatValueChanged([this,SingleProperty, Target](float value)
 			{
 				//SingleProperty.setter(&value);
-				OnPropertyChanged.Broadcast(SingleProperty, &value, Target);
+				//OnPropertyChanged.Broadcast(SingleProperty, &value, Target);
+				ExecutePropertyEditAction(SingleProperty, &value, Target);
 			});
 
 		ItemBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
@@ -195,7 +201,8 @@ void UI_DetailView::HandleSingleProperty(
 		IntInput->SetOnIntValueChanged([this,SingleProperty, Target](int value)
 			{
 				//SingleProperty.setter(&value);
-				OnPropertyChanged.Broadcast(SingleProperty, &value, Target);
+				//OnPropertyChanged.Broadcast(SingleProperty, &value, Target);
+				ExecutePropertyEditAction(SingleProperty, &value, Target);
 			});
 
 		ItemBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
@@ -214,7 +221,8 @@ void UI_DetailView::HandleSingleProperty(
 		Input->SetOnTextChanged([this,SingleProperty, Target](const std::string& text)
 			{
 				//SingleProperty.setter((void*)&text);
-				OnPropertyChanged.Broadcast(SingleProperty, (void*)&text, Target);
+				//OnPropertyChanged.Broadcast(SingleProperty, (void*)&text, Target);
+				ExecutePropertyEditAction(SingleProperty, (void*)&text, Target);
 			});
 
 		ItemBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
@@ -266,15 +274,17 @@ void UI_DetailView::HandleSingleProperty(
 				ImVec2 v = *(ImVec2*)SingleProperty.getter();
 				v.x = NewX;
 				//SingleProperty.setter(&v);
-				OnPropertyChanged.Broadcast(SingleProperty, (void*)&v, Target);
+				//OnPropertyChanged.Broadcast(SingleProperty, (void*)&v, Target);
+				ExecutePropertyEditAction(SingleProperty, (void*)&v, Target);
 			});
 
 		Y_Input->SetOnFloatValueChanged([this,SingleProperty, Target](float NewY)
 			{
 				ImVec2 v = *(ImVec2*)SingleProperty.getter();
 				v.y = NewY;
-				SingleProperty.setter(&v);
-				OnPropertyChanged.Broadcast(SingleProperty, (void*)&v, Target);
+				//SingleProperty.setter(&v);
+				//OnPropertyChanged.Broadcast(SingleProperty, (void*)&v, Target);
+				ExecutePropertyEditAction(SingleProperty, (void*)&v, Target);
 			});
 		ItemBox->AddChildToHorizontalBox(Vec_X);
 		ItemBox->AddChildToHorizontalBox(X_Input);
@@ -312,7 +322,8 @@ void UI_DetailView::HandleSingleProperty(
 				std::string NewString = "NewString_" + std::to_string(stringvector.size());
 				stringvector.push_back(NewString);
 				//SingleProperty.setter(&stringvector);
-				OnPropertyChanged.Broadcast(SingleProperty, (void*)&stringvector, Target);
+				//OnPropertyChanged.Broadcast(SingleProperty, (void*)&stringvector, Target);
+				ExecutePropertyEditAction(SingleProperty, (void*)&stringvector, Target);
 				auto buttonptr = StringListBox->ExtractChildAt(StringListBox->GetChildNum() - 1);
 				StringListBox->AddChildToVerticalBox(HandleAddStringItem(SingleProperty, NewString, StringListBox, Target,WidgetOwner))->SetIfAutoSize(false);
 				StringListBox->AddChildToVerticalBox(buttonptr)->SetIfAutoSize(false);
@@ -349,7 +360,8 @@ void UI_DetailView::HandleSingleProperty(
 			{
 				std::string OptionSelect = AllOptionsCopy[NewIndex];
 				//SingleProperty.setter(&OptionSelect);
-				OnPropertyChanged.Broadcast(SingleProperty, (void*)&OptionSelect, Target);
+				//OnPropertyChanged.Broadcast(SingleProperty, (void*)&OptionSelect, Target);
+				ExecutePropertyEditAction(SingleProperty, (void*)&OptionSelect, Target);
 			});
 		StructBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
 		StructBox->AddChildToHorizontalBox(Options)->SetIfAutoSize(true);
@@ -433,6 +445,12 @@ void UI_DetailView::SetCurrentWidget(ImGuiWidget::ImWidget* widget)
 
 	//m_RootScrollBox->SetContent(VBox, false);
 	SetRootWidget(VBox, false);
+}
+
+void UI_DetailView::ExecutePropertyEditAction(const ImGuiWidget::PropertyInfo& SingleProperty, const void* NewValue, ImGuiWidget::ImObject* Target)
+{
+	ExecuteAction(EditedFileFullPath + Action::DetailView::_REQUEST_EDIT_PROPERTY, SingleProperty, NewValue, Target);
+	UpdatePropertyDisplay(Target, SingleProperty.name);
 }
 
 void UI_DetailView::UpdatePropertyDisplay(ImGuiWidget::ImObject* Target, const std::string& PropertyName)

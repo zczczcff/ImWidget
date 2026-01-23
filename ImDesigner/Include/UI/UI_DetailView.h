@@ -21,8 +21,8 @@ private:
 	std::vector<ActionID> FileActions;
 	std::vector<EventID> FileEvents;
 public:
-	ImMulticastDelegate<const ImGuiWidget::PropertyInfo&, const void*, ImGuiWidget::ImObject*> OnPropertyChanged;
-	ImMulticastDelegate<> OnRequestUndo;
+	//ImMulticastDelegate<const ImGuiWidget::PropertyInfo&, const void*, ImGuiWidget::ImObject*> OnPropertyChanged;
+	//ImMulticastDelegate<> OnRequestUndo;
 public:
 	UI_DetailView(const std::string& widgetname, const std::string& EditedFileFullPath):
 		ImGuiWidget::ImUserWidget(widgetname),
@@ -56,6 +56,8 @@ public:
 		std::unordered_map<std::string, std::function<void()>>& Updaters);
 
 	void SetCurrentWidget(ImGuiWidget::ImWidget* widget);
+
+	void ExecutePropertyEditAction(const ImGuiWidget::PropertyInfo&, const void*, ImGuiWidget::ImObject*);
 
 	void UpdatePropertyDisplay(ImGuiWidget::ImObject* Target, const std::string& PropertyName);
 };

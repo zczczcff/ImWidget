@@ -53,6 +53,19 @@ void Model_WidgetEditor::ResetFileAction()
 		{
 			return InsertChildTo(WidgetRegisterName, Target, InsertIndex);
 		}));
+
+	FileActions.push_back(AddValidator(EditedFileFullPath + Action::DetailView::_REQUEST_EDIT_PROPERTY, [this](const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::ImObject* Target) 
+		{
+			return EditProperty(propInfo, newValue, Target);
+		}));
+	FileActions.push_back(AddValidator(EditedFileFullPath + Action::_REQUEST_UNDO, [this]() 
+		{
+			return Undo();
+		}));
+	FileActions.push_back(AddValidator(EditedFileFullPath + Action::_REQUEST_REDO, [this]()
+		{
+			return Redo();
+		}));
 }
 
 Model_WidgetEditor::Model_WidgetEditor(ImGuiWidget::ImWidget* rootwidget, const std::string& SetEditedFileFullPath):
@@ -126,28 +139,39 @@ bool Model_WidgetEditor::InsertChildTo(const std::string& WidgetRegisterName, Im
 	return false;
 }
 
-void Model_WidgetEditor::EditProperty(const ImGuiWidget::PropertyInfo& propInfo, const void* NewValue, ImGuiWidget::ImObject* Target)
+bool Model_WidgetEditor::EditProperty(const ImGuiWidget::PropertyInfo& propInfo, const void* NewValue, ImGuiWidget::ImObject* Target)
 {
-	m_EditCommandManager->ExecutePropertyEdit(propInfo, NewValue, Target);
-	UpdateUndoRedoState();
+	if (m_EditCommandManager->ExecutePropertyEdit(propInfo, NewValue, Target))
+	{
+		UpdateUndoRedoState();
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
-void Model_WidgetEditor::Undo()
+bool Model_WidgetEditor::Undo()
 {
 	if (CanUndo())
 	{
 		m_EditCommandManager->Undo();
+		UpdateUndoRedoState();
+		return true;
 	}
-	UpdateUndoRedoState();
+	return false;
 }
 
-void Model_WidgetEditor::Redo()
+bool Model_WidgetEditor::Redo()
 {
 	if (CanRedo())
 	{
 		m_EditCommandManager->Redo();
+		UpdateUndoRedoState();
+		return true;
 	}
-	UpdateUndoRedoState();
+	return false;
 }
 
 bool Model_WidgetEditor::CanUndo()
@@ -163,5 +187,5 @@ bool Model_WidgetEditor::CanRedo()
 void Model_WidgetEditor::UpdateUndoRedoState()
 {
 	//OnUndoRedoStateChanged.Broadcast(CanUndo(), CanRedo());
-	Publish(Events::MainUI::SET_UNDOREDO_STATE, CanUndo(), CanRedo());
+	Publish(Events::MainUI::SET_UNDOREDO_STATE, EditedFileFullPath, CanUndo(), CanRedo());
 }

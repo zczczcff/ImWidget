@@ -86,14 +86,14 @@ void MainUI::Init2()
 
 	ImButton_Undo->OnLeftClicked.Add([this]() 
 		{
-			ExecuteAction(Action::MainUI::REQUEST_UNDO);
+			ExecuteAction(CurrentEditedFile + Action::_REQUEST_UNDO);
 			//OnRequestUndo.Broadcast(); 
 		});
 	ImButton_Undo->SetToolTipEnable(true);
 	ImButton_Undo->SetToolTip(u8"³·Ïú£¨Ctrl+Z£©");
 	ImButton_Redo->OnLeftClicked.Add([this]() 
 		{
-			ExecuteAction(Action::MainUI::REQUEST_REDO);
+			ExecuteAction(CurrentEditedFile + Action::_REQUEST_REDO);
 			//OnRequestRedo.Broadcast();
 		});
 	ImButton_Redo->SetToolTipEnable(true);
@@ -111,15 +111,19 @@ void MainUI::EventInit()
 			CreateNewWidgetEditorPage(FileRootWidget, FileName, FileFullPath);
 			CreateNewWidgetTreeView(FileFullPath, FileRootWidget);
 			CreateNewDetailView(FileFullPath);
-			ShowWidgetTreeViewByName(FileFullPath);
-			ShowDetailViewByName(FileFullPath);
-			ShowWidgetEditorByName(FileFullPath);
+			SwitchCurrentEditFile(FileFullPath);
 		});
 	
 	Subscribe(Events::REGISTER_LOG_UPDATE_FUN, [this](std::function<void(std::vector<std::string>&&)>& OnLogUpdate)
 		{
 			OnLogUpdate = [this](std::vector<std::string>&& logs) { UpdateLog(std::move(logs)); };
 		}, "", true);
+
+	Subscribe(Events::MainUI::SET_UNDOREDO_STATE, [this](const std::string& FileFullPath, bool CanUndo, bool CanRedo) 
+		{
+			if (FileFullPath != CurrentEditedFile) return;
+			UpdateUndoRedoState(CanUndo, CanRedo); 
+		});
 }
 
 void MainUI::ActionInit()
@@ -343,7 +347,10 @@ bool MainUI::HandleRenameFile(const std::string& OldFullPath, const std::string&
 	success &= RenameWidgetEditorPage(OldFullPath, NewFullPath);
 	success &= RenameWidgetTreeView(OldFullPath, NewFullPath);
 	success &= RenameDetailView(OldFullPath, NewFullPath);
-
+	if (CurrentEditedFile == OldFullPath)
+	{
+		CurrentEditedFile = NewFullPath;
+	}
 	if (!success)
 	{
 		//±¨´í
@@ -363,6 +370,15 @@ bool MainUI::HandleCloseFile(const std::string& FileFullPath)
 
 	}
 	return success;
+}
+
+void MainUI::SwitchCurrentEditFile(const std::string& FileFullPath)
+{
+	ShowWidgetTreeViewByName(FileFullPath);
+	ShowDetailViewByName(FileFullPath);
+	ShowWidgetEditorByName(FileFullPath);
+	CurrentEditedFile = FileFullPath;
+	ExecuteAction(FileFullPath + Action::MainUI::_REQUEST_UPDATE_UNDOREDO_STATE);
 }
 
 void MainUI::UpdateLog(std::vector<std::string>&& Logs)

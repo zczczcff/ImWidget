@@ -26,10 +26,10 @@ Controller_WidgetEditor::Controller_WidgetEditor(UI_WidgetTreeView* In_UI_Widget
 	//		m_Model_WidgetEditor->RemoveChildWidget(deletedwidget);
 	//	});
 
-	m_UI_FileDetail->OnPropertyChanged.Add([this](const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::ImObject* Target)
-		{
-			m_Model_WidgetEditor->EditProperty(propInfo, newValue, Target);
-		});
+	//m_UI_FileDetail->OnPropertyChanged.Add([this](const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::ImObject* Target)
+	//	{
+	//		m_Model_WidgetEditor->EditProperty(propInfo, newValue, Target);
+	//	});
 
 	//m_Model_WidgetEditor->OnWidgetTreeChanged.Add([this]() 
 	//	{
@@ -42,15 +42,15 @@ Controller_WidgetEditor::Controller_WidgetEditor(UI_WidgetTreeView* In_UI_Widget
 	//		m_UI_FileDetail->UpdatePropertyDisplay(Target, PropertyName);
 	//	});
 
-	m_UI_WidgetEditor->OnRequestUndo.Add([this]() 
-		{
-			m_Model_WidgetEditor->Undo();
-		});
+	//m_UI_WidgetEditor->OnRequestUndo.Add([this]() 
+	//	{
+	//		m_Model_WidgetEditor->Undo();
+	//	});
 
-	m_UI_FileDetail->OnRequestUndo.Add([this]() 
-		{
-			m_Model_WidgetEditor->Undo();
-		});
+	//m_UI_FileDetail->OnRequestUndo.Add([this]() 
+	//	{
+	//		m_Model_WidgetEditor->Undo();
+	//	});
 	//m_Model_WidgetEditor->OnUndoRedoStateChanged.Add([this](bool CanUndo,bool CanRedo) 
 	//	{
 	//		OnUndoRedoStateChanged.Broadcast(CanUndo, CanRedo);
@@ -70,17 +70,17 @@ Controller_WidgetEditor::Controller_WidgetEditor(UI_WidgetTreeView* In_UI_Widget
 //	m_UI_FileDetail->SetCurrentWidget(SelectedWidget);
 //}
 
-void Controller_WidgetEditor::RequestUndo()
-{
-	m_Model_WidgetEditor->Undo();
-}
+//void Controller_WidgetEditor::RequestUndo()
+//{
+//	m_Model_WidgetEditor->Undo();
+//}
+//
+//void Controller_WidgetEditor::RequestRedo()
+//{
+//	m_Model_WidgetEditor->Redo();
+//}
 
-void Controller_WidgetEditor::RequestRedo()
-{
-	m_Model_WidgetEditor->Redo();
-}
-
-void Controller_WidgetEditor::UpdateUndoRedoState()
-{
-	OnUndoRedoStateChanged.Broadcast(m_Model_WidgetEditor->CanUndo(), m_Model_WidgetEditor->CanRedo());
-}
+//void Controller_WidgetEditor::UpdateUndoRedoState()
+//{
+//	OnUndoRedoStateChanged.Broadcast(m_Model_WidgetEditor->CanUndo(), m_Model_WidgetEditor->CanRedo());
+//}

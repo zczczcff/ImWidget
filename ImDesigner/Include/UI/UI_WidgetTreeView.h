@@ -47,12 +47,17 @@ private:
 
     ImGuiWidget::ImWindow* WidgetMenu_InsertNew = nullptr;//二级子菜单窗口
     ImGuiWidget::ImVerticalBox* ImVerticalBox_WidgetMenu_InsertNew = nullptr;//二级子菜单：插入控件
+
+    std::vector<ActionID> FileActions;
+    std::vector<EventID> FileEvents;
 public:
     //ImMulticastDelegate<ImGuiWidget::ImWidget*> OnRequestWidgetDeleted;
     //ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetSelectedButtonClicked;
     //ImMulticastDelegate<ImGuiWidget::ImWidget*, int, const std::string&> OnRequestInsertWidget;
 private:
     void ActionInit();
+    void ResetAction();
+    void ResetEvent();
     void InitPopUpMenu();
     void InitButtonStyle();
     ImGuiWidget::ImButton* CreateWidgetMenuButton(const std::string& Text,bool bHaveSubMenu=false);

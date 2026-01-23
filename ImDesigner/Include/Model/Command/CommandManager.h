@@ -27,7 +27,7 @@ private:
         const void* newValue,
         ImGuiWidget::ImObject* target
     );
-    void ExecutePropertyEditImpl(const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::ImObject* target);
+    bool ExecutePropertyEditImpl(const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::ImObject* target);
     bool Execute(std::unique_ptr<EditCommand> command);
 public:
     //template<typename T>
@@ -35,9 +35,9 @@ public:
     //{
     //    ExecutePropertyEditImpl(propInfo, &NewValue);
     //}
-    void ExecutePropertyEdit(const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::ImObject* target)
+    bool ExecutePropertyEdit(const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::ImObject* target)
     {
-        ExecutePropertyEditImpl(propInfo, newValue, target);
+        return ExecutePropertyEditImpl(propInfo, newValue, target);
     }
     bool ExecuteChildRemove(ImGuiWidget::ImWidget* Target, int index);
     bool ExecuteChildRemove(ImGuiWidget::ImWidget* Target, ImGuiWidget::ImWidget* child);

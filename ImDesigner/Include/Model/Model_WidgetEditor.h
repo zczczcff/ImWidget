@@ -29,9 +29,9 @@ public:
 	bool RemoveChildWidget(ImGuiWidget::ImWidget* WidgetToRemove);
 	bool InsertChildTo(ImGuiWidget::ImWidget* child, ImGuiWidget::ImWidget* Target, int InsertIndex);
 	bool InsertChildTo(const std::string& WidgetRegisterName, ImGuiWidget::ImWidget* Target, int InsertIndex);
-	void EditProperty(const ImGuiWidget::PropertyInfo& propInfo, const void* NewValue, ImGuiWidget::ImObject* Target);
-	void Undo();
-	void Redo();
+	bool EditProperty(const ImGuiWidget::PropertyInfo& propInfo, const void* NewValue, ImGuiWidget::ImObject* Target);
+	bool Undo();
+	bool Redo();
 	bool CanUndo();
 	bool CanRedo();
 private:

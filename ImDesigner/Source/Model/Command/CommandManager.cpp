@@ -40,11 +40,11 @@ std::unique_ptr<EditCommand> EditCommandManager::CreatePropertyEditCommand(const
     }
 }
 
-void EditCommandManager::ExecutePropertyEditImpl(const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::ImObject* target)
+bool EditCommandManager::ExecutePropertyEditImpl(const ImGuiWidget::PropertyInfo& propInfo, const void* newValue, ImGuiWidget::ImObject* target)
 {
     auto command = CreatePropertyEditCommand(propInfo, newValue, target);
-    if (!command) return;
-    Execute(std::move(command));
+    if (!command) return false;
+    return Execute(std::move(command));
 }
 
 bool EditCommandManager::Execute(std::unique_ptr<EditCommand> command)
