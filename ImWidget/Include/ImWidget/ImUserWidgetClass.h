@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <memory>
+#include <queue>
 #include "ImWidget.h"
 #include "ImObject.h"
 #include "ImObjectFactory.h"
@@ -202,6 +203,7 @@ namespace ImGuiWidget
         // 生成唯一名称
         std::string GenerateUniqueName(const std::string& baseName) const
         {
+            if (!IsNameUsed(baseName))return baseName;
             std::string name = baseName;
             int counter = 1;
 
@@ -387,60 +389,80 @@ namespace ImGuiWidget
             return names;
         }
 
-        // 7. 在指定控件树中插入子项
-        bool InsertChildWidget(const std::string& parentVarName, const std::string& childTypeName,
-            int index, std::string& outChildName)
+        // 7. 在指定控件树中指定父节点中插入新建子项
+        ImWidget* InsertChildWidget(const std::string& WidgetTreeVarName, ImWidget* parent,const std::string& InsertWidgetRegisterName,
+            int index)
         {
-            // 获取父控件
-            ImWidget* parent = GetWidgetVariable(parentVarName);
-            if (!parent) return false;
-
-            // 检查是否是容器控件
-            //ImPanelWidget* panel = dynamic_cast<ImPanelWidget*>(parent);
-            //if (!panel) return false;
-
-            // 检查子项数量限制
-            if (parent->GetChildNum() >= parent->GetAllowMaxChildNum())
-                return false;
+            if (!parent) return nullptr;
+            ImWidget* WidgetTreeRoot = GetWidgetVariable(WidgetTreeVarName);
+            if (!WidgetTreeRoot) return nullptr;
+            if (!parent->IsInTree(WidgetTreeRoot)) return nullptr;
 
             // 创建子控件
-            ImWidget* child = ImWidgetFactory::GetInstance().CreateWidget(childTypeName, "");
-            if (!child) return false;
+            ImWidget* child = ImWidgetFactory::GetInstance().CreateWidget(InsertWidgetRegisterName, "");
+            if (!child) return nullptr;
 
             // 生成唯一名称
-            std::string baseName = childTypeName;
-            size_t pos = baseName.find_last_of("::");
-            if (pos != std::string::npos)
-                baseName = baseName.substr(pos + 1);
+            std::string baseName = InsertWidgetRegisterName;
 
-            outChildName = GenerateUniqueName(baseName);
-            child->SetWidgetName(outChildName);
+            std::string NewWidgetName = GenerateUniqueName(baseName);
+            child->SetWidgetName(NewWidgetName);
 
-            // 插入子控件
-            return parent->InsertChildAt(index, child) != nullptr;
+            if (parent->InsertChildAt(index, child))
+            {
+                return child;
+            }
+            else
+            {
+                delete child;
+                return false;
+            }
         }
 
-        // 8. 移除控件树子项
-        bool RemoveChildWidget(const std::string& parentVarName, ImWidget* childWidget, bool bDelete = true)
+        //在指定控件树中指定父节点插入给定子项
+        bool InsertChildWidget(const std::string& WidgetTreeVarName, ImWidget* parent, ImWidget* child, int index)
         {
-            // 获取父控件
-            ImWidget* parent = GetWidgetVariable(parentVarName);
             if (!parent) return false;
+            if (!child) return false;
+            ImWidget* WidgetTreeRoot = GetWidgetVariable(WidgetTreeVarName);
+            if (!WidgetTreeRoot) return false;
+            if (!parent->IsInTree(WidgetTreeRoot)) return false;
 
-            // 检查是否是容器控件
-            //ImPanelWidget* panel = dynamic_cast<ImPanelWidget*>(parent);
-            //if (!panel) return false;
-
-            // 验证子控件确实存在于父控件下
-            for (int i = 0; i < parent->GetChildNum(); i++)
+            if (!parent->InsertChildAt(index, child))
             {
-                if (parent->GetChildAt(i) == childWidget)
-                {
-                    return parent->RemoveChild(childWidget, bDelete);
-                }
+                return false;
             }
 
-            return false;
+            ImWidget* current = child;
+            std::queue<ImWidget*> children;
+            children.push(current);
+            while (!children.empty())
+            {
+                current = children.front();
+
+                std::string NewName = GenerateUniqueName(current->GetWidgetName());
+                current->SetWidgetName(NewName);
+
+                for (int i = 0; i < current->GetChildNum(); i++)
+                {
+                    children.push(current->GetChildAt(i));
+                }
+                children.pop();
+            }
+        }
+
+        // 8. 移除控件树子项(但不删除)
+        bool RemoveChildWidget(const std::string& parentVarName, ImWidget* childWidget)
+        {
+            if (!childWidget) return false;
+            ImWidget* WidgetTreeRoot = GetWidgetVariable(parentVarName);
+            if (!WidgetTreeRoot) return false;
+            ImWidget* parent = childWidget->GetParents();
+            if (!parent) return false;
+            if (!parent->IsInTree(WidgetTreeRoot))return false;
+            if (WidgetTreeRoot == childWidget) return false;
+
+            return parent->RemoveChild(childWidget);
         }
 
         // 9. 重命名变量
@@ -494,30 +516,22 @@ namespace ImGuiWidget
         // 10. 重命名控件树子项
         bool RenameChildWidget(const std::string& parentVarName, ImWidget* childWidget, const std::string& newName)
         {
+            if (!childWidget) return false;
+
             // 检查新名称是否已使用
             if (IsNameUsed(newName))
                 return false;
 
             // 获取父控件
-            ImWidget* parent = GetWidgetVariable(parentVarName);
-            if (!parent) return false;
+            ImWidget* WidgetTreeRoot = GetWidgetVariable(parentVarName);
+            if (!WidgetTreeRoot) return false;
+            
+            if (!childWidget->IsInTree(WidgetTreeRoot))return false;
 
-            // 检查是否是容器控件
-            //ImPanelWidget* panel = dynamic_cast<ImPanelWidget*>(parent);
-            //if (!panel) return false;
-
-            // 验证子控件确实存在于父控件下
-            bool childFound = false;
-            for (int i = 0; i < parent->GetChildNum(); i++)
+            if (childWidget == WidgetTreeRoot)
             {
-                if (parent->GetChildAt(i) == childWidget)
-                {
-                    childFound = true;
-                    break;
-                }
+                return RenameVariable(parentVarName, newName);
             }
-
-            if (!childFound) return false;
 
             // 重命名子控件
             childWidget->SetWidgetName(newName);
