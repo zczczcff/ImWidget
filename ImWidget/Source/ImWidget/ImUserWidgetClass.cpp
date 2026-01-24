@@ -2,6 +2,22 @@
 #include "ImWidget/ImWidgetFactory.h"
 #include "ImWidget/ImObjectFactory.h"
 #include "ImWidget/ImUserWidgetClassCodeGenerator.h"
+#include "ImWidget/ImUserWidgetSerializer.h"
+
+bool  ImGuiWidget::ImUserWidgetClass::InitFormJson(const nlohmann::json& FromJson)
+{
+    return ImUserWidgetClassSerializer::DeserializeUserWidgetClass(*this, FromJson);
+}
+
+bool ImGuiWidget::ImUserWidgetClass::InitFromFile(const std::string& FilePath)
+{
+    std::ifstream file(FilePath);
+    if (!file.is_open()) return false;
+
+    nlohmann::ordered_json j = nlohmann::ordered_json::parse(file);
+
+    return InitFormJson(j);
+}
 
 bool ImGuiWidget::ImUserWidgetClass::ExportToCppFiles(const std::string& className, const std::string& headerOutputPath, const std::string& sourceOutputPath) const
 {
@@ -9,10 +25,30 @@ bool ImGuiWidget::ImUserWidgetClass::ExportToCppFiles(const std::string& classNa
         *this, className, headerOutputPath, sourceOutputPath);
 }
 
-// 导出为单头文件
+bool ImGuiWidget::ImUserWidgetClass::ExportToJsonFile(const std::string& jsonFileOutputPath)
+{
+    nlohmann::json j = ToJson();
+    if (j.empty()) return false;
 
-//bool ImGuiWidget::ImUserWidgetClass::ExportToSingleHeader(const std::string& className, const std::string& outputPath) const
-//{
-//    return ImUserWidgetClassCodeGenerator::ExportUserWidgetClassToSingleHeader(
-//        *this, className, outputPath);
-//}
+    try
+    {
+        std::ofstream file(jsonFileOutputPath);
+        if (file.is_open())
+        {
+            file << j.dump(4); // 使用4空格缩进
+            return true;
+        }
+    }
+    catch (...)
+    {
+        // 异常处理
+    }
+    return false;
+}
+
+nlohmann::json ImGuiWidget::ImUserWidgetClass::ToJson()
+{
+    return ImUserWidgetClassSerializer::SerializeUserWidgetClass(*this);
+}
+
+// 导出为单头文件

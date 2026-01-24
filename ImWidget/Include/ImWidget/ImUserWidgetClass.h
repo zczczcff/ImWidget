@@ -9,6 +9,7 @@
 #include "ImObjectFactory.h"
 #include "ImWidgetFactory.h"
 #include "ImUserWidget.h"
+#include "nlohmann/json.hpp"
 
 namespace ImGuiWidget
 {
@@ -218,6 +219,10 @@ namespace ImGuiWidget
             : m_ClassName(className)
         {
         }
+
+        bool InitFormJson(const nlohmann::json& FromJson);
+
+        bool InitFromFile(const std::string& FilePath);
 
         ~ImUserWidgetClass()
         {
@@ -629,9 +634,9 @@ namespace ImGuiWidget
             const std::string& headerOutputPath,
             const std::string& sourceOutputPath) const;
 
-        // 导出为单头文件
-        //bool ExportToSingleHeader(const std::string& className,
-        //    const std::string& outputPath) const;
+        bool ExportToJsonFile(const std::string& jsonFileOutputPath);
+
+        nlohmann::json ToJson();
 
 	};
 

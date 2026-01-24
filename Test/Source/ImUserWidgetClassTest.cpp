@@ -174,7 +174,7 @@ void TestUserWidgetClassSerialization()
     // 4. 序列化
     std::cout << "\n4. 序列化ImUserWidgetClass:" << std::endl;
 
-    json serialized = SerializeUserWidgetClass(widgetClass);
+    json serialized = widgetClass.ToJson();
 
     // 打印序列化结果
     std::string serializedStr = serialized.dump(2); // 使用2个空格缩进
@@ -220,7 +220,7 @@ void TestUserWidgetClassSerialization()
     // 创建一个新的ImUserWidgetClass用于反序列化测试
     ImUserWidgetClass deserializedClass("DeserializedTest");
 
-    if (DeserializeUserWidgetClass(deserializedClass, serialized))
+    if (deserializedClass.InitFormJson(serialized))
     {
         std::cout << "  - 反序列化成功!" << std::endl;
         std::cout << "  - 类名: " << deserializedClass.GetClassName() << std::endl;
@@ -234,7 +234,7 @@ void TestUserWidgetClassSerialization()
     }
 
     // 7. .h.cpp类文件输出测试
-
+    deserializedClass.SetNamespace("");
     deserializedClass.ExportToCppFiles("test", "test.h", "test.cpp");
 
     std::cout << "\n=== 测试完成 ===" << std::endl;
