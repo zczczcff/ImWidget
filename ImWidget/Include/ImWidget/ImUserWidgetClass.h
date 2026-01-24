@@ -10,6 +10,7 @@
 #include "ImObjectFactory.h"
 #include "ImWidgetFactory.h"
 #include "ImUserWidget.h"
+#include "ImPanelWidget.h"
 #include "nlohmann/json.hpp"
 
 namespace ImGuiWidget
@@ -415,7 +416,7 @@ namespace ImGuiWidget
             else
             {
                 delete child;
-                return false;
+                return nullptr;
             }
         }
 
