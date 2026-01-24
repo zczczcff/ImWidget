@@ -13,7 +13,7 @@ namespace ImGuiWidget
 		ImU32 BgColor;
 		ImU32 BorderColor;
 		bool bHaveBorder = true;
-		bool bHaveBackGround = true;
+		bool bHaveBackGround = false;
 		float BorderThickness = 1.f;
 	private:
 		std::vector<ImSlot*> m_Slots;
@@ -88,7 +88,7 @@ namespace ImGuiWidget
 			BgColor(IM_COL32(255, 255, 255, 255)),
 			BorderColor(IM_COL32(0, 0, 0, 255)),
 			bHaveBorder(true),
-			bHaveBackGround(true)
+			bHaveBackGround(false)
 		{}
 		// 拷贝构造函数（深拷贝自身属性）
 		ImPanelWidget(const ImPanelWidget& other)

@@ -22,12 +22,14 @@ class MainUI : public ImGuiWidget::ImUserWidget,public EditorGlobalInterface
 public:
     void Init();
     void Init2();
+    void ViewTest();
     MainUI(const std::string& name): ImGuiWidget::ImUserWidget(name)
 {
     Init();
     Init2();
     EventInit();
     ActionInit();
+    ViewTest();
 }
 
 protected:
