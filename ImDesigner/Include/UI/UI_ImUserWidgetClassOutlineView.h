@@ -20,7 +20,7 @@ namespace ImGuiWidget
         bool IsChildWidget;           // 是否为控件的子控件
         void* DataPointer;            // 指向变量/ImObject对应的指针，如果是控件则为实际选中的目标控件实例指针
         std::string WidgetRegisterTypeName; // 控件注册类型名称
-
+        ImGuiWidget::ImButton* ItemButton;//item按钮
         OutlineViewSelectionInfo()
             : VariableName("")
             , VariableType("")
@@ -28,17 +28,19 @@ namespace ImGuiWidget
             , IsChildWidget(false)
             , DataPointer(nullptr)
             , WidgetRegisterTypeName("")
+            , ItemButton(nullptr)
         {
         }
 
         OutlineViewSelectionInfo(const std::string& varName, const std::string& varType,
-            bool isRoot, bool isChild, void* dataPtr, const std::string& widgetType = "")
+            bool isRoot, bool isChild, void* dataPtr, ImGuiWidget::ImButton* ItemButton,const std::string& widgetType = "")
             : VariableName(varName)
             , VariableType(varType)
             , IsRootWidget(isRoot)
             , IsChildWidget(isChild)
             , DataPointer(dataPtr)
             , WidgetRegisterTypeName(widgetType)
+            , ItemButton(ItemButton)
         {
         }
     };
@@ -70,11 +72,14 @@ namespace ImGuiWidget
         // 样式颜色
         ImU32 m_SelectedBgColor = IM_COL32(65, 105, 225, 255);   // 选中背景色（蓝色）
         ImU32 m_HoverBgColor = IM_COL32(70, 130, 180, 255);      // 悬停背景色（浅蓝）
-        ImU32 m_NormalBgColor = IM_COL32(50, 50, 50, 255);       // 正常背景色（深灰）
+        ImU32 m_NormalBgColor = IM_COL32(240, 240, 240, 255);       // 正常背景色（浅灰）
         ImU32 m_SectionHeaderColor = IM_COL32(80, 80, 80, 255);  // 分区标题色
         ImU32 m_TextColor = IM_COL32(0, 0, 0, 255);        // 文本颜色
         ImU32 m_TypeTextColor = IM_COL32(180, 180, 180, 255);     // 类型文本颜色
 
+        std::unordered_map<std::string, OutlineViewSelectionInfo> ItemName_To_SelectionInfo;
+        // 存储展开状态
+        std::unordered_map<std::string, bool> m_ExpandedStateMap;
     public:
         ImUserWidgetClassOutlineView(const std::string& widgetName, ImUserWidgetClass* targetClass)
             : ImUserWidget(widgetName)
@@ -219,6 +224,21 @@ namespace ImGuiWidget
             auto* basicVarsContainer = new ImVerticalBox("BasicVarsContainer");
             m_BasicVarsSection->SetBody(basicVarsContainer);
 
+            // 设置展开状态回调
+            m_BasicVarsSection->SetOnExpandedStateChanged([this](bool expanded)
+                {
+                    m_ExpandedStateMap["BasicVarsSection"] = expanded;
+                });
+
+            // 应用保存的展开状态
+            bool expanded = true; // 默认展开
+            auto it = m_ExpandedStateMap.find("BasicVarsSection");
+            if (it != m_ExpandedStateMap.end())
+            {
+                expanded = it->second;
+            }
+            m_BasicVarsSection->SetExpandedState(expanded);
+
             // 获取基本变量列表
             auto basicVarNames = m_TargetClass->GetBasicVariableNames();
 
@@ -248,6 +268,21 @@ namespace ImGuiWidget
             auto* objectVarsContainer = new ImVerticalBox("ObjectVarsContainer");
             m_ObjectVarsSection->SetBody(objectVarsContainer);
 
+            // 设置展开状态回调
+            m_ObjectVarsSection->SetOnExpandedStateChanged([this](bool expanded)
+                {
+                    m_ExpandedStateMap["ObjectVarsSection"] = expanded;
+                });
+
+            // 应用保存的展开状态
+            bool expanded = true;
+            auto it = m_ExpandedStateMap.find("ObjectVarsSection");
+            if (it != m_ExpandedStateMap.end())
+            {
+                expanded = it->second;
+            }
+            m_ObjectVarsSection->SetExpandedState(expanded);
+
             // 获取Object变量列表
             auto objectVarNames = m_TargetClass->GetObjectVariableNames();
 
@@ -276,6 +311,22 @@ namespace ImGuiWidget
 
             auto* widgetTreeContainer = new ImVerticalBox("WidgetTreeContainer");
             m_WidgetTreeSection->SetBody(widgetTreeContainer);
+
+
+            // 设置展开状态回调
+            m_WidgetTreeSection->SetOnExpandedStateChanged([this](bool expanded)
+                {
+                    m_ExpandedStateMap["WidgetTreeSection"] = expanded;
+                });
+
+            // 应用保存的展开状态
+            bool expanded = true;
+            auto it = m_ExpandedStateMap.find("WidgetTreeSection");
+            if (it != m_ExpandedStateMap.end())
+            {
+                expanded = it->second;
+            }
+            m_WidgetTreeSection->SetExpandedState(expanded);
 
             // 获取所有根控件
             auto widgetVarNames = m_TargetClass->GetWidgetVariableNames();
@@ -480,6 +531,21 @@ namespace ImGuiWidget
             auto* bodyContainer = new ImVerticalBox(widgetName + "BodyContainer");
             //bodyContainer->SetPadding(20, 0, 0, 0); // 子节点缩进
 
+                // 设置展开状态回调
+            expandableBox->SetOnExpandedStateChanged([this, widgetName](bool expanded)
+                {
+                    m_ExpandedStateMap[widgetName] = expanded;
+                });
+
+            // 应用保存的展开状态
+            bool expanded = false; // 默认收起
+            auto it = m_ExpandedStateMap.find(widgetName);
+            if (it != m_ExpandedStateMap.end())
+            {
+                expanded = it->second;
+            }
+            expandableBox->SetExpandedState(expanded);
+
             int childCount = widget->GetChildNum();
             for (int i = 0; i < childCount; i++)
             {
@@ -618,8 +684,8 @@ namespace ImGuiWidget
                 m_CurrentSelection.VariableName == itemName);
 
             // 设置样式
-            auto normalStyle = button->GetNormalStyle();
-            auto hoveredStyle = button->GetHoveredStyle();
+            auto& normalStyle = button->GetNormalStyle();
+            auto& hoveredStyle = button->GetHoveredStyle();
 
             if (isSelected)
             {
@@ -628,7 +694,7 @@ namespace ImGuiWidget
             }
             else
             {
-                normalStyle.BackgroundColor = IM_COL32(0, 0, 0, 0); // 透明背景
+                normalStyle.BackgroundColor = m_NormalBgColor;
                 hoveredStyle.BackgroundColor = m_HoverBgColor;
             }
 
@@ -649,40 +715,89 @@ namespace ImGuiWidget
             // 设置按钮大小策略
             button->SetOriginalMinSize(ImVec2(200, 28));
 
+            OutlineViewSelectionInfo selectionInfo;
+            selectionInfo.VariableName = itemName;
+            selectionInfo.VariableType = itemType;
+            selectionInfo.ItemButton = button;
+            if (itemType == "Widget")
+            {
+                ImWidget* widget = static_cast<ImWidget*>(dataPtr);
+                selectionInfo.IsRootWidget = IsRootWidget(itemName);
+                selectionInfo.IsChildWidget = !selectionInfo.IsRootWidget;
+                selectionInfo.DataPointer = widget;
+                selectionInfo.WidgetRegisterTypeName = widget->GetRegisterTypeName();
+            }
+            else if (itemType == "BasicVariable")
+            {
+                ImBasicVariable* var = static_cast<ImBasicVariable*>(dataPtr);
+                selectionInfo.IsRootWidget = false;
+                selectionInfo.IsChildWidget = false;
+                selectionInfo.DataPointer = var;
+                selectionInfo.WidgetRegisterTypeName = var->GetRegisterTypeName();
+            }
+            else if (itemType == "ObjectVariable")
+            {
+                ImObject* obj = static_cast<ImObject*>(dataPtr);
+                selectionInfo.IsRootWidget = false;
+                selectionInfo.IsChildWidget = false;
+                selectionInfo.DataPointer = obj;
+                selectionInfo.WidgetRegisterTypeName = obj->GetRegisterTypeName();
+            }
+
+            ItemName_To_SelectionInfo.insert(std::make_pair(itemName, selectionInfo));
+            
             // 设置回调
-            button->SetOnPressed([this, itemType, itemName, dataPtr]()
+            button->SetOnPressed([this,itemName]()
                 {
-                    OutlineViewSelectionInfo selectionInfo;
-                    selectionInfo.VariableName = itemName;
-                    selectionInfo.VariableType = itemType;
-
-                    if (itemType == "Widget")
-                    {
-                        ImWidget* widget = static_cast<ImWidget*>(dataPtr);
-                        selectionInfo.IsRootWidget = IsRootWidget(itemName);
-                        selectionInfo.IsChildWidget = !selectionInfo.IsRootWidget;
-                        selectionInfo.DataPointer = widget;
-                        selectionInfo.WidgetRegisterTypeName = widget->GetRegisterTypeName();
-                    }
-                    else if (itemType == "BasicVariable")
-                    {
-                        ImBasicVariable* var = static_cast<ImBasicVariable*>(dataPtr);
-                        selectionInfo.IsRootWidget = false;
-                        selectionInfo.IsChildWidget = false;
-                        selectionInfo.DataPointer = var;
-                        selectionInfo.WidgetRegisterTypeName = var->GetRegisterTypeName();
-                    }
-                    else if (itemType == "ObjectVariable")
-                    {
-                        ImObject* obj = static_cast<ImObject*>(dataPtr);
-                        selectionInfo.IsRootWidget = false;
-                        selectionInfo.IsChildWidget = false;
-                        selectionInfo.DataPointer = obj;
-                        selectionInfo.WidgetRegisterTypeName = obj->GetRegisterTypeName();
-                    }
-
-                    OnItemSelected(selectionInfo);
+                    SelectItemByName(itemName);
                 });
+        }
+
+        // 判断是否是分区根展开框
+        bool IsRootSectionExpandableBox(ImGuiWidget::ImWidget* expandableBox)
+        {
+            return (expandableBox == m_BasicVarsSection ||
+                expandableBox == m_ObjectVarsSection ||
+                expandableBox == m_WidgetTreeSection);
+        }
+
+        //外部设置选中item
+        void SelectItemByName(const std::string& ItemName,bool OutSideSet = false/*表示是否由外部设置*/)
+        {
+            auto it = ItemName_To_SelectionInfo.find(m_CurrentSelection.VariableName);
+            if (it != ItemName_To_SelectionInfo.end())
+            {
+                it->second.ItemButton->GetNormalStyle().BackgroundColor = m_NormalBgColor;
+            }
+            
+            it = ItemName_To_SelectionInfo.find(ItemName);
+            if (it != ItemName_To_SelectionInfo.end())
+			{
+				m_CurrentSelection = it->second;
+				it->second.ItemButton->GetNormalStyle().BackgroundColor = m_SelectedBgColor;
+				if (m_SelectionCallback && !OutSideSet)
+				{
+					m_SelectionCallback(m_CurrentSelection);
+				}
+
+                if (OutSideSet)//如果是外部选中，递归展开ExpandableBox
+                {
+                    ImGuiWidget::ImWidget* current = it->second.ItemButton;
+                    while (!IsRootSectionExpandableBox(current))
+                    {
+                        if (current->GetRegisterTypeName() == "ImExpandableBox")
+                        {
+                            if (ImGuiWidget::ImExpandableBox* eBox = dynamic_cast<ImGuiWidget::ImExpandableBox*>(current))
+                            {
+                                eBox->SetExpandedState(true);
+                                m_ExpandedStateMap[ItemName] = true;
+                            }
+                        }
+                        current = current->GetParents();
+                    }
+                }
+
+			}
         }
     };
 }
