@@ -167,7 +167,7 @@ namespace ImGuiWidget
             const std::string& marker,
             const std::string& newContent)
         {
-            // 首先读取整个文件内容
+            // 读取文件内容
             std::ifstream file(filePath);
             if (!file.is_open())
             {
@@ -180,18 +180,52 @@ namespace ImGuiWidget
             std::string content = buffer.str();
             file.close();
 
-            // 正则表达式匹配模式
+            // 构建正则表达式模式
             std::string beginPattern = "//===Auto Gen Begin=== \\(" + marker + "\\)";
             std::string endPattern = "//===Auto Gen End=== \\(" + marker + "\\)\n";
-
-            // 构建完整的匹配模式
+            std::string beginline = "//===Auto Gen Begin=== (" + marker + ")";
+            std::string endline = "//===Auto Gen End=== (" + marker + ")";
+            // 匹配完整模式
             std::string fullPattern = beginPattern + "[\\s\\S]*?" + endPattern;
 
             std::regex pattern(fullPattern);
 
-            // 构建替换内容
-            //std::string replacement = beginPattern + "\n" + newContent + "\n" + endPattern;
-            std::string replacement = newContent ;
+            // 查找标记区域的缩进
+            std::string indent = "";
+            std::smatch match;
+            if (std::regex_search(content, match, std::regex(beginPattern + "\\s*\\n(\\s*)")))
+            {
+                indent = match[1]; // 获取缩进字符串
+            }
+
+            // 对替换内容进行缩进处理
+            std::stringstream indentedContent;
+            std::stringstream originalContent(newContent);
+            std::string line;
+
+            while (std::getline(originalContent, line))
+            {
+                // 跳过空行
+                if (line.empty())
+                {
+                    indentedContent << "\n";
+                    continue;
+                }
+                if (line == beginline)
+                {
+                    indentedContent << line << "\n";
+                    continue;
+                }
+                if (line == endline)
+                {
+                    printf("test");
+                }
+                // 对非空行添加缩进
+                indentedContent << indent << line << "\n";
+            }
+
+            std::string replacement = indentedContent.str();
+
             // 执行替换
             std::string newFileContent;
             try
@@ -204,14 +238,7 @@ namespace ImGuiWidget
                 return false;
             }
 
-            // 如果替换没有发生（标记不存在），在文件末尾添加新内容
-            if (newFileContent == content)
-            {
-                std::cerr << "警告: 未找到标记区域 '" << marker << "'，将在文件末尾添加内容" << std::endl;
-                newFileContent = content + "\n" + replacement + "\n";
-            }
-
-            // 写回文件
+            // 写入文件
             std::ofstream outFile(filePath);
             if (!outFile.is_open())
             {
@@ -434,14 +461,14 @@ namespace ImGuiWidget
             const std::string& className,
             const std::string& filePath)
         {
-            // 生成新的成员变量内容
+            // 生成成员变量代码片段，缩进级别设为0，让标记区域自行处理缩进
             std::ostringstream memberStream;
-            ClassGenContext memberContext{ memberStream, 1, className, widgetClass.GetNamespace() };
+            ClassGenContext memberContext{ memberStream, 0, className, widgetClass.GetNamespace() }; // 缩进级别设为0
             GenerateHeaderMembers(widgetClass, memberContext);
 
             std::string memberVarsContent = memberStream.str();
 
-            // 替换标记区域
+            // 替换文件中的标记区域
             return ReplaceMarkedRegionInFile(filePath, "Member Variables", memberVarsContent);
         }
 
@@ -889,14 +916,14 @@ namespace ImGuiWidget
             const std::string& className,
             const std::string& filePath)
         {
-            // 生成新的InitializeVariables内容
+            // 生成InitializeVariables函数体内的代码片段，缩进级别设为0
             std::stringstream initStream;
-            ClassGenContext initContext{ initStream, 1, className, widgetClass.GetNamespace() };
+            ClassGenContext initContext{ initStream, 0, className, widgetClass.GetNamespace() }; // 缩进级别设为0
             GenerateInitializeVariablesCode(widgetClass, initContext);
 
             std::string newInitContent = initStream.str();
 
-            // 替换标记区域
+            // 替换文件中的标记区域
             return ReplaceMarkedRegionInFile(filePath, "InitializeVariables", newInitContent);
         }
 
