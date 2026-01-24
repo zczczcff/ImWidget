@@ -19,7 +19,7 @@ namespace ImGuiWidget
         // 代码生成上下文
         struct ClassGenContext
         {
-            std::ofstream& oss;          // 输出流
+            std::ostream& oss;          // 输出流
             int indentLevel = 0;              // 当前缩进级别
             std::string className;           // 生成的类名
             std::string namespaceName;       // 命名空间
@@ -182,7 +182,7 @@ namespace ImGuiWidget
 
             // 正则表达式匹配模式
             std::string beginPattern = "//===Auto Gen Begin=== \\(" + marker + "\\)";
-            std::string endPattern = "//===Auto Gen End=== \\(" + marker + "\\)";
+            std::string endPattern = "//===Auto Gen End=== \\(" + marker + "\\)\n";
 
             // 构建完整的匹配模式
             std::string fullPattern = beginPattern + "[\\s\\S]*?" + endPattern;
@@ -190,8 +190,8 @@ namespace ImGuiWidget
             std::regex pattern(fullPattern);
 
             // 构建替换内容
-            std::string replacement = beginPattern + "\n" + newContent + "\n" + endPattern;
-
+            //std::string replacement = beginPattern + "\n" + newContent + "\n" + endPattern;
+            std::string replacement = newContent ;
             // 执行替换
             std::string newFileContent;
             try
@@ -436,11 +436,8 @@ namespace ImGuiWidget
         {
             // 生成新的成员变量内容
             std::ostringstream memberStream;
-            std::ofstream oss;
-            ClassGenContext memberContext{ oss, 1, className, widgetClass.GetNamespace() };
+            ClassGenContext memberContext{ memberStream, 1, className, widgetClass.GetNamespace() };
             GenerateHeaderMembers(widgetClass, memberContext);
-
-            memberStream << oss.rdbuf();
 
             std::string memberVarsContent = memberStream.str();
 
@@ -893,13 +890,11 @@ namespace ImGuiWidget
             const std::string& filePath)
         {
             // 生成新的InitializeVariables内容
-            std::ofstream initStream;
+            std::stringstream initStream;
             ClassGenContext initContext{ initStream, 1, className, widgetClass.GetNamespace() };
             GenerateInitializeVariablesCode(widgetClass, initContext);
 
-            std::stringstream buffer;
-            buffer << initStream.rdbuf();
-            std::string newInitContent = buffer.str();
+            std::string newInitContent = initStream.str();
 
             // 替换标记区域
             return ReplaceMarkedRegionInFile(filePath, "InitializeVariables", newInitContent);
