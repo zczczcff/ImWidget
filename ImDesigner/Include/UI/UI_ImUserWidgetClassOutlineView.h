@@ -8,6 +8,7 @@
 #include "ImUserWidgetClass.h"
 #include "ImScrollBox.h"  // 添加滚动框支持
 #include "ImImage.h"      // 添加图标支持
+#include "ImGlobal.h"
 
 namespace ImGuiWidget
 {
@@ -80,6 +81,59 @@ namespace ImGuiWidget
         std::unordered_map<std::string, OutlineViewSelectionInfo> ItemName_To_SelectionInfo;
         // 存储展开状态
         std::unordered_map<std::string, bool> m_ExpandedStateMap;
+
+        // 新增：弹出菜单系统
+        struct PopupMenuSystem
+        {
+            // 主菜单窗口
+            ImWindow* BasicVarsSectionMenu = nullptr;
+            ImWindow* ObjectVarsSectionMenu = nullptr;
+            ImWindow* WidgetTreeSectionMenu = nullptr;
+            ImWindow* WidgetRootMenu = nullptr;
+            ImWindow* WidgetChildMenu = nullptr;
+
+            // 插入控件子菜单窗口（二级菜单）
+            ImWindow* InsertWidgetMenu = nullptr;
+
+            // 菜单内容容器
+            ImVerticalBox* BasicVarsMenuContent = nullptr;
+            ImVerticalBox* ObjectVarsMenuContent = nullptr;
+            ImVerticalBox* WidgetTreeMenuContent = nullptr;
+            ImVerticalBox* WidgetRootMenuContent = nullptr;
+            ImVerticalBox* WidgetChildMenuContent = nullptr;
+            ImVerticalBox* InsertWidgetMenuContent = nullptr;
+
+            // 当前激活的菜单模式
+            enum class MenuMode
+            {
+                None,
+                SectionRoot,      // 分区根菜单
+                WidgetRoot,       // 控件根菜单
+                WidgetChild       // 控件子菜单
+            };
+
+            MenuMode CurrentMode = MenuMode::None;
+            std::string TargetVarName;
+            ImWidget* TargetWidget = nullptr;
+
+            // 控件插入模式
+            enum class InsertChildMode
+            {
+                InsertToThis,
+                InsertPrevious,
+                InsertNext
+            };
+
+            InsertChildMode InsertMode = InsertChildMode::InsertToThis;
+        };
+
+        PopupMenuSystem m_PopupMenus;
+
+        // 回调函数
+        std::function<void(const std::string& parentVarName, int insertIndex, const std::string& widgetRegisterName)> m_InsertWidgetCallback;
+        std::function<void(const std::string& widgetVarName)> m_DeleteWidgetCallback;
+        std::function<void(const std::string& sectionType, const std::string& varType)> m_CreateVariableCallback;
+
     public:
         ImUserWidgetClassOutlineView(const std::string& widgetName, ImUserWidgetClass* targetClass)
             : ImUserWidget(widgetName)
@@ -87,6 +141,7 @@ namespace ImGuiWidget
         {
             BuildRootWidgetCache();
             BuildUI();
+            InitPopupMenus(); // 初始化所有弹出菜单
         }
 
         virtual ~ImUserWidgetClassOutlineView()
@@ -219,7 +274,7 @@ namespace ImGuiWidget
         void BuildBasicVariablesSection()
         {
             m_BasicVarsSection = new ImExpandableBox("BasicVarsSection");
-            m_BasicVarsSection->SetHead(CreateSectionHeader(u8"基本变量"));
+            m_BasicVarsSection->SetHead(CreateSectionHeader(u8"基本变量", "BasicVarsSection"));
 
             auto* basicVarsContainer = new ImVerticalBox("BasicVarsContainer");
             m_BasicVarsSection->SetBody(basicVarsContainer);
@@ -263,7 +318,7 @@ namespace ImGuiWidget
         void BuildObjectVariablesSection()
         {
             m_ObjectVarsSection = new ImExpandableBox("ObjectVarsSection");
-            m_ObjectVarsSection->SetHead(CreateSectionHeader(u8"ImObject变量"));
+            m_ObjectVarsSection->SetHead(CreateSectionHeader(u8"ImObject变量", "ObjectVarsSection"));
 
             auto* objectVarsContainer = new ImVerticalBox("ObjectVarsContainer");
             m_ObjectVarsSection->SetBody(objectVarsContainer);
@@ -307,7 +362,7 @@ namespace ImGuiWidget
         void BuildWidgetTreeSection()
         {
             m_WidgetTreeSection = new ImExpandableBox("WidgetTreeSection");
-            m_WidgetTreeSection->SetHead(CreateSectionHeader(u8"控件树"));
+            m_WidgetTreeSection->SetHead(CreateSectionHeader(u8"控件树", "WidgetTreeSection"));
 
             auto* widgetTreeContainer = new ImVerticalBox("WidgetTreeContainer");
             m_WidgetTreeSection->SetBody(widgetTreeContainer);
@@ -356,7 +411,7 @@ namespace ImGuiWidget
         }
 
         // 创建分区标题（改进版，带图标）
-        ImWidget* CreateSectionHeader(const std::string& title)
+        ImWidget* CreateSectionHeader(const std::string& title,const std::string& sectionType)
         {
             auto* headerContainer = new ImHorizontalBox(title + "HeaderContainer");
 
@@ -376,6 +431,12 @@ namespace ImGuiWidget
             auto* headerButton = new ImButton(title + "Button");
             headerButton->SetContent(headerContainer);
             //headerButton->SetBackGroundColor(m_SectionHeaderColor);
+
+			headerButton->OnRightClicked.Add([this, sectionType]()
+				{
+					ImVec2 mousePos = ImGuiWidget::GetMousePos();
+					ShowSectionRootMenu(sectionType, mousePos);
+				});
 
             return headerButton;
         }
@@ -751,6 +812,27 @@ namespace ImGuiWidget
                 {
                     SelectItemByName(itemName);
                 });
+
+            if (itemType == "Widget")
+            {
+                button->OnRightClicked.Add([this, itemType, itemName, dataPtr]()
+                    {
+                        ImVec2 mousePos = ImGuiWidget::GetMousePos();
+                        ImWidget* widget = static_cast<ImWidget*>(dataPtr);
+                        bool isRootWidget = IsRootWidget(itemName);
+
+                        if (isRootWidget)
+                        {
+                            // 根控件菜单
+                            ShowWidgetRootMenu(itemName, widget, mousePos);
+                        }
+                        else
+                        {
+                            // 子控件菜单
+                            ShowWidgetChildMenu(widget, mousePos);
+                        }
+                    });
+            }
         }
 
         // 判断是否是分区根展开框
@@ -799,5 +881,548 @@ namespace ImGuiWidget
 
 			}
         }
-    };
+   
+//-----------弹出菜单相关--------------
+	protected:
+		// 新增：初始化所有弹出菜单（一次性创建所有菜单内容）
+		void InitPopupMenus()
+		{
+			auto windowManager = ImGuiWidget::GetGlobalApp()->GetWindowManager();
+
+			// 1. 创建基本变量分区菜单
+			m_PopupMenus.BasicVarsMenuContent = BuildBasicVarsSectionMenuContent();
+			m_PopupMenus.BasicVarsSectionMenu = windowManager->CreatePopupWindow(
+				m_PopupMenus.BasicVarsMenuContent->GetMinSize(),
+				ImVec2(0, 0),
+				m_PopupMenus.BasicVarsMenuContent,
+				false
+			);
+			m_PopupMenus.BasicVarsSectionMenu->Close();
+
+			// 2. 创建Object变量分区菜单
+			m_PopupMenus.ObjectVarsMenuContent = BuildObjectVarsSectionMenuContent();
+			m_PopupMenus.ObjectVarsSectionMenu = windowManager->CreatePopupWindow(
+				m_PopupMenus.ObjectVarsMenuContent->GetMinSize(),
+				ImVec2(0, 0),
+				m_PopupMenus.ObjectVarsMenuContent,
+				false
+			);
+			m_PopupMenus.ObjectVarsSectionMenu->Close();
+
+			// 3. 创建控件树分区菜单
+			m_PopupMenus.WidgetTreeMenuContent = BuildWidgetTreeSectionMenuContent();
+			m_PopupMenus.WidgetTreeSectionMenu = windowManager->CreatePopupWindow(
+				m_PopupMenus.WidgetTreeMenuContent->GetMinSize(),
+				ImVec2(0, 0),
+				m_PopupMenus.WidgetTreeMenuContent,
+				false
+			);
+			m_PopupMenus.WidgetTreeSectionMenu->Close();
+
+			// 4. 创建控件根菜单
+			m_PopupMenus.WidgetRootMenuContent = BuildWidgetRootMenuContent();
+			m_PopupMenus.WidgetRootMenu = windowManager->CreatePopupWindow(
+				m_PopupMenus.WidgetRootMenuContent->GetMinSize(),
+				ImVec2(0, 0),
+				m_PopupMenus.WidgetRootMenuContent,
+				false
+			);
+			m_PopupMenus.WidgetRootMenu->Close();
+
+			// 5. 创建控件子菜单（与UI_WidgetTreeView相同）
+			m_PopupMenus.WidgetChildMenuContent = BuildWidgetChildMenuContent();
+			m_PopupMenus.WidgetChildMenu = windowManager->CreatePopupWindow(
+				m_PopupMenus.WidgetChildMenuContent->GetMinSize(),
+				ImVec2(0, 0),
+				m_PopupMenus.WidgetChildMenuContent,
+				false
+			);
+			m_PopupMenus.WidgetChildMenu->Close();
+
+			// 6. 创建插入控件子菜单（二级菜单）
+			m_PopupMenus.InsertWidgetMenuContent = BuildInsertWidgetMenuContent();
+			m_PopupMenus.InsertWidgetMenu = windowManager->CreatePopupWindow(
+				m_PopupMenus.InsertWidgetMenuContent->GetMinSize(),
+				ImVec2(0, 0),
+				m_PopupMenus.InsertWidgetMenuContent,
+				false,
+				nullptr // 父窗口将在需要时动态设置
+			);
+			m_PopupMenus.InsertWidgetMenu->Close();
+		}
+
+		// 新增：构建基本变量分区菜单内容
+		ImVerticalBox* BuildBasicVarsSectionMenuContent()
+		{
+			ImVerticalBox* content = new ImVerticalBox("BasicVarsMenuContent");
+
+			// 创建各种类型的新建变量按钮
+			std::vector<std::pair<std::string, std::string>> varTypes = {
+				{u8"新建整数", "int"},
+				{u8"新建浮点数", "float"},
+				{u8"新建布尔值", "bool"},
+				{u8"新建字符串", "string"},
+				{u8"新建颜色", "color"}
+			};
+
+			for (const auto& varType : varTypes)
+			{
+				ImButton* button = CreateMenuButton(varType.first);
+				button->OnLeftClicked.Add([this, varType]()
+					{
+						OnCreateVariableClicked("basic", varType.second);
+					});
+				content->AddChildToVerticalBox(button)->SetIfAutoSize(false);
+			}
+
+			return content;
+		}
+
+		// 新增：构建Object变量分区菜单内容
+		ImVerticalBox* BuildObjectVarsSectionMenuContent()
+		{
+			ImVerticalBox* content = new ImVerticalBox("ObjectVarsMenuContent");
+
+			ImButton* button = CreateMenuButton(u8"新建ImObject");
+			button->OnLeftClicked.Add([this]()
+				{
+					OnCreateVariableClicked("object", "object");
+				});
+			content->AddChildToVerticalBox(button)->SetIfAutoSize(false);
+
+			return content;
+		}
+
+		// 新增：构建控件树分区菜单内容
+		ImVerticalBox* BuildWidgetTreeSectionMenuContent()
+		{
+			ImVerticalBox* content = new ImVerticalBox("WidgetTreeMenuContent");
+
+			ImButton* newWidgetBtn = CreateMenuButton(u8"新建控件", true);
+
+			// 悬停时显示插入控件子菜单
+			newWidgetBtn->OnMouseHover.Add([this, newWidgetBtn]()
+				{
+					m_PopupMenus.InsertMode = PopupMenuSystem::InsertChildMode::InsertToThis;
+					m_PopupMenus.InsertWidgetMenu->SetParentWindow(m_PopupMenus.WidgetTreeSectionMenu);
+					ImVec2 popupPos = newWidgetBtn->GetPosition() + ImVec2(newWidgetBtn->GetSize().x, 0);
+					m_PopupMenus.InsertWidgetMenu->SetPopupRect(popupPos);
+					m_PopupMenus.InsertWidgetMenu->SetActive();
+				});
+
+			newWidgetBtn->OnLeftClicked.Add([this]()
+				{
+					m_PopupMenus.WidgetTreeSectionMenu->Close();
+				});
+
+			content->AddChildToVerticalBox(newWidgetBtn)->SetIfAutoSize(false);
+
+			return content;
+		}
+
+		// 新增：构建控件根菜单内容
+		ImVerticalBox* BuildWidgetRootMenuContent()
+		{
+			ImVerticalBox* content = new ImVerticalBox("WidgetRootMenuContent");
+
+			// 插入子项按钮
+			ImButton* insertChildBtn = CreateMenuButton(u8"插入子项", true);
+			insertChildBtn->OnMouseHover.Add([this, insertChildBtn]()
+				{
+					m_PopupMenus.InsertMode = PopupMenuSystem::InsertChildMode::InsertToThis;
+					m_PopupMenus.InsertWidgetMenu->SetParentWindow(m_PopupMenus.WidgetRootMenu);
+					ImVec2 popupPos = insertChildBtn->GetPosition() + ImVec2(insertChildBtn->GetSize().x, 0);
+					m_PopupMenus.InsertWidgetMenu->SetPopupRect(popupPos);
+					m_PopupMenus.InsertWidgetMenu->SetActive();
+				});
+
+			insertChildBtn->OnLeftClicked.Add([this]()
+				{
+					m_PopupMenus.WidgetRootMenu->Close();
+				});
+
+			// 删除控件树变量按钮
+			ImButton* deleteBtn = CreateMenuButton(u8"删除控件树变量");
+			deleteBtn->OnLeftClicked.Add([this]()
+				{
+					OnDeleteWidgetClicked();
+				});
+
+			content->AddChildToVerticalBox(insertChildBtn)->SetIfAutoSize(false);
+			content->AddChildToVerticalBox(deleteBtn)->SetIfAutoSize(false);
+
+			return content;
+		}
+
+		// 新增：构建控件子菜单内容（与UI_WidgetTreeView相同）
+		ImVerticalBox* BuildWidgetChildMenuContent()
+		{
+			ImVerticalBox* content = new ImVerticalBox("WidgetChildMenuContent");
+
+			// 复制按钮
+			ImButton* copyBtn = CreateMenuButton(u8"复制");
+			copyBtn->OnLeftClicked.Add([this]()
+				{
+					m_PopupMenus.WidgetChildMenu->Close();
+					// TODO: 实现复制功能
+				});
+
+			// 删除按钮
+			ImButton* deleteBtn = CreateMenuButton(u8"删除");
+			deleteBtn->OnLeftClicked.Add([this]()
+				{
+					OnDeleteWidgetClicked();
+				});
+
+			// 在前一个位置插入按钮
+			ImButton* insertPreviousBtn = CreateMenuButton(u8"在前一个位置插入", true);
+			insertPreviousBtn->OnMouseHover.Add([this, insertPreviousBtn]()
+				{
+					m_PopupMenus.InsertMode = PopupMenuSystem::InsertChildMode::InsertPrevious;
+					m_PopupMenus.InsertWidgetMenu->SetParentWindow(m_PopupMenus.WidgetChildMenu);
+					ImVec2 popupPos = insertPreviousBtn->GetPosition() + ImVec2(insertPreviousBtn->GetSize().x, 0);
+					m_PopupMenus.InsertWidgetMenu->SetPopupRect(popupPos);
+					m_PopupMenus.InsertWidgetMenu->SetActive();
+				});
+
+			insertPreviousBtn->OnLeftClicked.Add([this]()
+				{
+					m_PopupMenus.WidgetChildMenu->Close();
+				});
+
+			// 插入控件按钮
+			ImButton* insertToBtn = CreateMenuButton(u8"插入控件", true);
+			insertToBtn->OnMouseHover.Add([this, insertToBtn]()
+				{
+					m_PopupMenus.InsertMode = PopupMenuSystem::InsertChildMode::InsertToThis;
+					m_PopupMenus.InsertWidgetMenu->SetParentWindow(m_PopupMenus.WidgetChildMenu);
+					ImVec2 popupPos = insertToBtn->GetPosition() + ImVec2(insertToBtn->GetSize().x, 0);
+					m_PopupMenus.InsertWidgetMenu->SetPopupRect(popupPos);
+					m_PopupMenus.InsertWidgetMenu->SetActive();
+				});
+
+			insertToBtn->OnLeftClicked.Add([this]()
+				{
+					m_PopupMenus.WidgetChildMenu->Close();
+				});
+
+			// 在后一个位置插入按钮
+			ImButton* insertAfterBtn = CreateMenuButton(u8"在后一个位置插入", true);
+			insertAfterBtn->OnMouseHover.Add([this, insertAfterBtn]()
+				{
+					m_PopupMenus.InsertMode = PopupMenuSystem::InsertChildMode::InsertNext;
+					m_PopupMenus.InsertWidgetMenu->SetParentWindow(m_PopupMenus.WidgetChildMenu);
+					ImVec2 popupPos = insertAfterBtn->GetPosition() + ImVec2(insertAfterBtn->GetSize().x, 0);
+					m_PopupMenus.InsertWidgetMenu->SetPopupRect(popupPos);
+					m_PopupMenus.InsertWidgetMenu->SetActive();
+				});
+
+			insertAfterBtn->OnLeftClicked.Add([this]()
+				{
+					m_PopupMenus.WidgetChildMenu->Close();
+				});
+
+			content->AddChildToVerticalBox(copyBtn)->SetIfAutoSize(false);
+			content->AddChildToVerticalBox(deleteBtn)->SetIfAutoSize(false);
+			content->AddChildToVerticalBox(insertPreviousBtn)->SetIfAutoSize(false);
+			content->AddChildToVerticalBox(insertToBtn)->SetIfAutoSize(false);
+			content->AddChildToVerticalBox(insertAfterBtn)->SetIfAutoSize(false);
+
+			return content;
+		}
+
+		// 新增：构建插入控件子菜单内容
+		ImVerticalBox* BuildInsertWidgetMenuContent()
+		{
+			ImVerticalBox* content = new ImVerticalBox("InsertWidgetMenuContent");
+
+			for (auto& widgetInfo : BasicWidgetList::GetBasicWidgetList())
+			{
+				ImButton* button = CreateInsertWidgetButton(
+					widgetInfo.CN_DisplayName,
+					widgetInfo.RegisterName,
+					IconManager::GetInstance()->GetIcon(widgetInfo.IconID)
+				);
+				content->AddChildToVerticalBox(button)->SetIfAutoSize(false);
+			}
+
+			return content;
+		}
+
+		// 新增：创建菜单按钮
+		ImButton* CreateMenuButton(const std::string& text, bool hasSubMenu = false)
+		{
+			ImButton* button = new ImButton("MenuButton");
+			button->bHaveBorder = false;
+
+			ImHorizontalBox* hbox = new ImHorizontalBox("MenuHBox");
+			ImTextBlock* textBlock = new ImTextBlock("MenuText");
+			textBlock->SetText(text);
+			textBlock->SetHorizontalAlignment(ImTextBlock::TextAlignment_Horizontal::Left);
+
+			auto slot = hbox->AddChildToHorizontalBox(textBlock);
+			slot->PaddingLeft = 10;
+			slot->PaddingRight = 16;
+			slot->PaddingBottom = 2;
+			slot->PaddingTop = 2;
+
+			if (hasSubMenu)
+			{
+				ImTextBlock* arrow = new ImTextBlock("MenuArrow");
+				arrow->SetText(u8">");
+				hbox->AddChildToHorizontalBox(arrow)->SetIfAutoSize(false);
+			}
+
+			hbox->bHaveBackGround = false;
+			button->SetContent(hbox);
+
+			// 点击按钮关闭菜单（除了有特殊处理的按钮）
+			button->OnLeftClicked.Add([this, button]()
+				{
+					// 默认行为：关闭当前菜单
+					// 具体按钮的特殊行为在构建菜单时单独设置
+				});
+
+			return button;
+		}
+
+		// 新增：创建插入控件按钮
+		ImButton* CreateInsertWidgetButton(const std::string& cnName, const std::string& registerName, ImTextureID icon)
+		{
+			ImButton* button = new ImButton("InsertWidgetButton");
+			button->bHaveBorder = false;
+
+			ImHorizontalBox* hbox = new ImHorizontalBox("InsertWidgetHBox");
+			ImImage* iconImage = new ImImage("WidgetIcon", icon, 24, 24);
+			ImTextBlock* text = new ImTextBlock("WidgetText");
+			text->SetText(cnName);
+			text->SetHorizontalAlignment(ImTextBlock::TextAlignment_Horizontal::Left);
+
+			hbox->AddChildToHorizontalBox(iconImage)->SetIfAutoSize(false);
+			hbox->AddChildToHorizontalBox(text);
+			hbox->bHaveBackGround = false;
+
+			button->SetContent(hbox);
+			button->OnLeftClicked.Add([this, registerName]()
+				{
+					OnInsertWidgetButtonClicked(registerName);
+				});
+
+			return button;
+		}
+
+		// 新增：显示分区根菜单
+		void ShowSectionRootMenu(const std::string& sectionName, const ImVec2& position)
+		{
+			m_PopupMenus.CurrentMode = PopupMenuSystem::MenuMode::SectionRoot;
+			m_PopupMenus.TargetVarName = sectionName;
+
+			// 根据分区名称激活对应的菜单窗口
+			if (sectionName == "BasicVarsSection")
+			{
+				m_PopupMenus.BasicVarsSectionMenu->SetPopupRect(position);
+				m_PopupMenus.BasicVarsSectionMenu->SetActive();
+			}
+			else if (sectionName == "ObjectVarsSection")
+			{
+				m_PopupMenus.ObjectVarsSectionMenu->SetPopupRect(position);
+				m_PopupMenus.ObjectVarsSectionMenu->SetActive();
+			}
+			else if (sectionName == "WidgetTreeSection")
+			{
+				m_PopupMenus.WidgetTreeSectionMenu->SetPopupRect(position);
+				m_PopupMenus.WidgetTreeSectionMenu->SetActive();
+			}
+		}
+
+		// 新增：显示控件根菜单
+		void ShowWidgetRootMenu(const std::string& widgetVarName, ImWidget* widget, const ImVec2& position)
+		{
+			m_PopupMenus.CurrentMode = PopupMenuSystem::MenuMode::WidgetRoot;
+			m_PopupMenus.TargetVarName = widgetVarName;
+			m_PopupMenus.TargetWidget = widget;
+
+			m_PopupMenus.WidgetRootMenu->SetPopupRect(position);
+			m_PopupMenus.WidgetRootMenu->SetActive();
+		}
+
+		// 新增：显示控件子菜单
+		void ShowWidgetChildMenu(ImWidget* widget, const ImVec2& position)
+		{
+			m_PopupMenus.CurrentMode = PopupMenuSystem::MenuMode::WidgetChild;
+			m_PopupMenus.TargetWidget = widget;
+
+			// 找到目标控件的变量名
+			m_PopupMenus.TargetVarName = "";
+			auto widgetVarNames = m_TargetClass->GetWidgetVariableNames();
+			for (const auto& varName : widgetVarNames)
+			{
+				ImWidget* varWidget = m_TargetClass->GetWidgetVariable(varName);
+				if (IsWidgetInTree(varWidget, widget))
+				{
+					m_PopupMenus.TargetVarName = varName;
+					break;
+				}
+			}
+
+			m_PopupMenus.WidgetChildMenu->SetPopupRect(position);
+			m_PopupMenus.WidgetChildMenu->SetActive();
+		}
+
+		// 新增：检查控件是否在指定控件树中
+		bool IsWidgetInTree(ImWidget* root, ImWidget* target)
+		{
+			if (!root || !target) return false;
+			if (root == target) return true;
+
+			for (int i = 0; i < root->GetChildNum(); i++)
+			{
+				if (IsWidgetInTree(root->GetChildAt(i), target))
+					return true;
+			}
+
+			return false;
+		}
+
+		// 新增：处理创建变量点击
+		void OnCreateVariableClicked(const std::string& sectionType, const std::string& varType)
+		{
+			// 关闭当前激活的菜单
+			CloseActiveMenu();
+
+			if (m_CreateVariableCallback)
+				m_CreateVariableCallback(sectionType, varType);
+		}
+
+		// 新增：处理插入控件点击
+		void OnInsertWidgetButtonClicked(const std::string& registerName)
+		{
+			// 关闭所有菜单
+			m_PopupMenus.InsertWidgetMenu->Close();
+			CloseActiveMenu();
+
+			// 根据当前模式处理插入逻辑
+			switch (m_PopupMenus.CurrentMode)
+			{
+			case PopupMenuSystem::MenuMode::SectionRoot:
+				if (m_PopupMenus.TargetVarName == "WidgetTreeSection")
+				{
+					// 在控件树根目录新建控件
+					if (m_InsertWidgetCallback)
+						m_InsertWidgetCallback("", 0, registerName);
+				}
+				break;
+
+			case PopupMenuSystem::MenuMode::WidgetRoot:
+				// 在根控件下插入子项
+				if (m_InsertWidgetCallback && m_PopupMenus.TargetWidget)
+				{
+					m_InsertWidgetCallback(
+						m_PopupMenus.TargetVarName,
+						m_PopupMenus.TargetWidget->GetChildNum(),
+						registerName
+					);
+				}
+				break;
+
+			case PopupMenuSystem::MenuMode::WidgetChild:
+				// 在子控件位置插入
+				if (!m_PopupMenus.TargetWidget) break;
+
+				ImWidget* parent = m_PopupMenus.TargetWidget->GetParents();
+				if (!parent) break;
+
+				int insertIndex = -1;
+				for (int i = 0; i < parent->GetChildNum(); i++)
+				{
+					if (parent->GetChildAt(i) == m_PopupMenus.TargetWidget)
+					{
+						insertIndex = i;
+						break;
+					}
+				}
+
+				if (insertIndex < 0) break;
+
+				if (m_PopupMenus.InsertMode == PopupMenuSystem::InsertChildMode::InsertNext)
+				{
+					insertIndex++;
+				}
+				else if (m_PopupMenus.InsertMode == PopupMenuSystem::InsertChildMode::InsertToThis)
+				{
+					// 插入到该控件内部
+					if (m_InsertWidgetCallback)
+					{
+						m_InsertWidgetCallback(
+							m_PopupMenus.TargetVarName,
+							m_PopupMenus.TargetWidget->GetChildNum(),
+							registerName
+						);
+					}
+					return;
+				}
+
+				// 找到父控件的变量名
+				std::string parentVarName = "";
+				auto widgetVarNames = m_TargetClass->GetWidgetVariableNames();
+				for (const auto& varName : widgetVarNames)
+				{
+					ImWidget* varWidget = m_TargetClass->GetWidgetVariable(varName);
+					if (varWidget == parent)
+					{
+						parentVarName = varName;
+						break;
+					}
+				}
+
+				if (!parentVarName.empty() && m_InsertWidgetCallback)
+				{
+					m_InsertWidgetCallback(parentVarName, insertIndex, registerName);
+				}
+				break;
+			}
+		}
+
+		// 新增：处理删除控件点击
+		void OnDeleteWidgetClicked()
+		{
+			CloseActiveMenu();
+
+			if ((m_PopupMenus.CurrentMode == PopupMenuSystem::MenuMode::WidgetRoot ||
+				m_PopupMenus.CurrentMode == PopupMenuSystem::MenuMode::WidgetChild) &&
+				!m_PopupMenus.TargetVarName.empty() &&
+				m_DeleteWidgetCallback)
+			{
+				m_DeleteWidgetCallback(m_PopupMenus.TargetVarName);
+			}
+		}
+
+		// 新增：关闭当前激活的菜单
+		void CloseActiveMenu()
+		{
+			switch (m_PopupMenus.CurrentMode)
+			{
+			case PopupMenuSystem::MenuMode::SectionRoot:
+				if (m_PopupMenus.TargetVarName == "BasicVarsSection")
+					m_PopupMenus.BasicVarsSectionMenu->Close();
+				else if (m_PopupMenus.TargetVarName == "ObjectVarsSection")
+					m_PopupMenus.ObjectVarsSectionMenu->Close();
+				else if (m_PopupMenus.TargetVarName == "WidgetTreeSection")
+					m_PopupMenus.WidgetTreeSectionMenu->Close();
+				break;
+
+			case PopupMenuSystem::MenuMode::WidgetRoot:
+				m_PopupMenus.WidgetRootMenu->Close();
+				break;
+
+			case PopupMenuSystem::MenuMode::WidgetChild:
+				m_PopupMenus.WidgetChildMenu->Close();
+				break;
+			}
+
+			m_PopupMenus.InsertWidgetMenu->Close();
+		}
+
+
+	 };
 }
