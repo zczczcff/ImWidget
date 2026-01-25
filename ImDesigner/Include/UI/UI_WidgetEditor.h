@@ -11,7 +11,7 @@ private:
 	bool bAllowOperateChild = false;
 	float dashOffset = 0.0f;
     ImGuiWidget::ImWidgetRef SelectedWidgetRef;
-    std::vector<ActionID> FileActions;
+    std::vector<EditorActionID> FileActions;
 public:
     //ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetSelected;
     //ImMulticastDelegate<> OnRequestUndo;

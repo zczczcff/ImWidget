@@ -4,8 +4,8 @@
 #include <EditorKit/StaticString.h>
 
 using KeyStringType = StaticString;
-using ActionID = ActionHandle<KeyStringType>;
-
+using EditorActionID = ActionHandle<KeyStringType>;
+using EditorEventID = ActionHandle<KeyStringType>;
 class EditorGlobal
 {
 private:

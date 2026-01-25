@@ -48,8 +48,8 @@ private:
     ImGuiWidget::ImWindow* WidgetMenu_InsertNew = nullptr;//二级子菜单窗口
     ImGuiWidget::ImVerticalBox* ImVerticalBox_WidgetMenu_InsertNew = nullptr;//二级子菜单：插入控件
 
-    std::vector<ActionID> FileActions;
-    std::vector<EventID> FileEvents;
+    std::vector<EditorActionID> FileActions;
+    std::vector<EditorEventID> FileEvents;
 public:
     //ImMulticastDelegate<ImGuiWidget::ImWidget*> OnRequestWidgetDeleted;
     //ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetSelectedButtonClicked;

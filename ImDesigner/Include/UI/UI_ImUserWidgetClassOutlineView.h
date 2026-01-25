@@ -142,7 +142,7 @@ namespace ImGuiWidget
         std::string m_EditedFileFullPath;
 
         // 添加：Action和Event容器
-        std::vector<ActionID> m_FileActions;
+        std::vector<EditorActionID> m_FileActions;
         std::vector<EventID> m_FileEvents;
 
     public:

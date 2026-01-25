@@ -12,7 +12,7 @@ private:
 	ImGuiWidget::ImWidget* RootWidget;
 	std::unordered_set<std::string> ExistedWidgetName;
 	class EditCommandManager* m_EditCommandManager;
-	std::vector<ActionID> FileActions;//和文件相关的Action
+	std::vector<EditorActionID> FileActions;//和文件相关的Action
 public:
 	//ImMulticastDelegate<> OnWidgetTreeChanged;
 	//ImMulticastDelegate<ImGuiWidget::ImObject*, const std::string&> OnPropertyEditUnDoRedo;

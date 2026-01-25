@@ -18,8 +18,8 @@ private:
 	std::unordered_map<ImGuiWidget::ImObject*, PropertyInfor*> CachedPropertyInfors;
 	ImGuiWidget::ImWidget* CurrentWidget;
 	std::string EditedFileFullPath;
-	std::vector<ActionID> FileActions;
-	std::vector<EventID> FileEvents;
+	std::vector<EditorActionID> FileActions;
+	std::vector<EditorEventID> FileEvents;
 public:
 	//ImMulticastDelegate<const ImGuiWidget::PropertyInfo&, const void*, ImGuiWidget::ImObject*> OnPropertyChanged;
 	//ImMulticastDelegate<> OnRequestUndo;
