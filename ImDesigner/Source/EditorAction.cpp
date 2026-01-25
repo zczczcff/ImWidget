@@ -18,6 +18,16 @@ namespace Action
 		const KeyStringType RENAME_FILE = "RenameFile";//请求重命名文件
 	}
 
+	namespace OutlineView
+	{
+		const KeyStringType SELECT_VARIABLE = "OutlineViewSelectVariable";
+		const KeyStringType SELECT_WIDGET = "OutlineViewSelectWidget";
+		const KeyStringType CREATE_VARIABLE = "OutlineViewCreateVariable";
+		const KeyStringType DELETE_VARIABLE = "OutlineViewDeleteVariable";
+		const KeyStringType INSERT_WIDGET = "OutlineViewInsertWidget";
+		const KeyStringType DELETE_WIDGET = "OutlineViewDeleteWidget";
+	}
+
 	namespace UIFileView
 	{
 		const KeyStringType REQUEST_DELETE_WIDGET = "RequestDeleteWidget";//请求删除控件

@@ -264,7 +264,7 @@ void MainUI::ViewTest()
 		}
 	}
 
-	ImGuiWidget::ImUserWidgetClassOutlineView* outline = new ImGuiWidget::ImUserWidgetClassOutlineView("test", widgetClass);
+	ImGuiWidget::ImUserWidgetClassOutlineView* outline = new ImGuiWidget::ImUserWidgetClassOutlineView("test", widgetClass,"test.imui");
 
 	ImPageManager_LeftPart->AddPage(u8"´ó¸Ù", outline);
 }

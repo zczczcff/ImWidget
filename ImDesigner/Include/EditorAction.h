@@ -20,6 +20,16 @@ namespace Action
 		extern const KeyStringType RENAME_FILE;//请求重命名文件
 	}
 
+	namespace OutlineView
+	{
+		extern const KeyStringType SELECT_VARIABLE;          // 选中变量
+		extern const KeyStringType SELECT_WIDGET;            // 选中控件
+		extern const KeyStringType CREATE_VARIABLE;          // 创建变量
+		extern const KeyStringType DELETE_VARIABLE;          // 删除变量
+		extern const KeyStringType INSERT_WIDGET;            // 插入控件
+		extern const KeyStringType DELETE_WIDGET;            // 删除控件
+	}
+
 	namespace UIFileView
 	{
 		extern const KeyStringType REQUEST_DELETE_WIDGET;//请求删除控件

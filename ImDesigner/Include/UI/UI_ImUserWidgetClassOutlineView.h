@@ -9,6 +9,10 @@
 #include "ImScrollBox.h"  // 添加滚动框支持
 #include "ImImage.h"      // 添加图标支持
 #include "ImGlobal.h"
+#include "EditorAction.h"
+#include "EditorEvents.h"
+#include "Tools/JLog.h"
+
 
 namespace ImGuiWidget
 {
@@ -47,7 +51,7 @@ namespace ImGuiWidget
     };
 
     // 大纲视图控件（改进版）
-    class ImUserWidgetClassOutlineView : public ImUserWidget
+    class ImUserWidgetClassOutlineView : public ImUserWidget, public EditorGlobalInterface
     {
     public:
         // 选择回调
@@ -130,18 +134,28 @@ namespace ImGuiWidget
         PopupMenuSystem m_PopupMenus;
 
         // 回调函数
-        std::function<void(const std::string& parentVarName, int insertIndex, const std::string& widgetRegisterName)> m_InsertWidgetCallback;
-        std::function<void(const std::string& widgetVarName)> m_DeleteWidgetCallback;
-        std::function<void(const std::string& sectionType, const std::string& varType)> m_CreateVariableCallback;
+        //std::function<void(const std::string& parentVarName, int insertIndex, const std::string& widgetRegisterName)> m_InsertWidgetCallback;
+        //std::function<void(const std::string& widgetVarName)> m_DeleteWidgetCallback;
+        //std::function<void(const std::string& sectionType, const std::string& varType)> m_CreateVariableCallback;
+
+        // 添加：编辑文件路径
+        std::string m_EditedFileFullPath;
+
+        // 添加：Action和Event容器
+        std::vector<ActionID> m_FileActions;
+        std::vector<EventID> m_FileEvents;
 
     public:
-        ImUserWidgetClassOutlineView(const std::string& widgetName, ImUserWidgetClass* targetClass)
+        ImUserWidgetClassOutlineView(const std::string& widgetName, ImUserWidgetClass* targetClass, const std::string& editedFileFullPath)
             : ImUserWidget(widgetName)
+            , EditorGlobalInterface()  // 基类初始化
             , m_TargetClass(targetClass)
+            , m_EditedFileFullPath(editedFileFullPath)
         {
             BuildRootWidgetCache();
             BuildUI();
-            InitPopupMenus(); // 初始化所有弹出菜单
+            InitPopupMenus();
+            ActionInit();  // 初始化Action系统
         }
 
         virtual ~ImUserWidgetClassOutlineView()
@@ -878,7 +892,10 @@ namespace ImGuiWidget
                         current = current->GetParents();
                     }
                 }
-
+                else//非外部选中，执行动作
+                {
+                    Action_SelectVar(m_CurrentSelection);
+                }
 			}
         }
    
@@ -970,7 +987,7 @@ namespace ImGuiWidget
 				ImButton* button = CreateMenuButton(varType.first);
 				button->OnLeftClicked.Add([this, varType]()
 					{
-						OnCreateVariableClicked("basic", varType.second);
+                        OnCreateBasicVariableClicked(varType.second);
 					});
 				content->AddChildToVerticalBox(button)->SetIfAutoSize(false);
 			}
@@ -986,7 +1003,7 @@ namespace ImGuiWidget
 			ImButton* button = CreateMenuButton(u8"新建ImObject");
 			button->OnLeftClicked.Add([this]()
 				{
-					OnCreateVariableClicked("object", "object");
+                    OnCreateObjectVariableClicked("test");//ImObject暂未建立工厂模式
 				});
 			content->AddChildToVerticalBox(button)->SetIfAutoSize(false);
 
@@ -1284,14 +1301,21 @@ namespace ImGuiWidget
 			return false;
 		}
 
+        void OnCreateBasicVariableClicked(const std::string& typeName)
+        {
+            // 关闭当前激活的菜单
+            CloseActiveMenu();
+
+            Action_CreateBasicVariable(typeName);
+        }
+
 		// 新增：处理创建变量点击
-		void OnCreateVariableClicked(const std::string& sectionType, const std::string& varType)
+		void OnCreateObjectVariableClicked(const std::string& objectRegisterName)
 		{
 			// 关闭当前激活的菜单
 			CloseActiveMenu();
 
-			if (m_CreateVariableCallback)
-				m_CreateVariableCallback(sectionType, varType);
+            Action_CreateObjectVariable(objectRegisterName);
 		}
 
 		// 新增：处理插入控件点击
@@ -1308,20 +1332,19 @@ namespace ImGuiWidget
 				if (m_PopupMenus.TargetVarName == "WidgetTreeSection")
 				{
 					// 在控件树根目录新建控件
-					if (m_InsertWidgetCallback)
-						m_InsertWidgetCallback("", 0, registerName);
+                    Action_CreateWidgetVariable(registerName);
 				}
 				break;
 
 			case PopupMenuSystem::MenuMode::WidgetRoot:
 				// 在根控件下插入子项
-				if (m_InsertWidgetCallback && m_PopupMenus.TargetWidget)
+				if (m_PopupMenus.TargetWidget)
 				{
-					m_InsertWidgetCallback(
-						m_PopupMenus.TargetVarName,
-						m_PopupMenus.TargetWidget->GetChildNum(),
-						registerName
-					);
+                    Action_InsertWidget(
+                        m_PopupMenus.TargetWidget,
+                        m_PopupMenus.TargetWidget->GetChildNum(),
+                        registerName
+                    );
 				}
 				break;
 
@@ -1351,35 +1374,21 @@ namespace ImGuiWidget
 				else if (m_PopupMenus.InsertMode == PopupMenuSystem::InsertChildMode::InsertToThis)
 				{
 					// 插入到该控件内部
-					if (m_InsertWidgetCallback)
-					{
-						m_InsertWidgetCallback(
-							m_PopupMenus.TargetVarName,
-							m_PopupMenus.TargetWidget->GetChildNum(),
-							registerName
-						);
-					}
-					return;
+                    Action_InsertWidget(
+                        m_PopupMenus.TargetWidget,
+                        m_PopupMenus.TargetWidget->GetChildNum(),
+                        registerName
+                    );
+                    break;
 				}
+                //插入到该控件父控件的指定位置（与该控件平级）
+                Action_InsertWidget(
+                    parent,
+                    insertIndex,
+                    registerName
+                );
 
-				// 找到父控件的变量名
-				std::string parentVarName = "";
-				auto widgetVarNames = m_TargetClass->GetWidgetVariableNames();
-				for (const auto& varName : widgetVarNames)
-				{
-					ImWidget* varWidget = m_TargetClass->GetWidgetVariable(varName);
-					if (varWidget == parent)
-					{
-						parentVarName = varName;
-						break;
-					}
-				}
-
-				if (!parentVarName.empty() && m_InsertWidgetCallback)
-				{
-					m_InsertWidgetCallback(parentVarName, insertIndex, registerName);
-				}
-				break;
+                break;
 			}
 		}
 
@@ -1390,10 +1399,9 @@ namespace ImGuiWidget
 
 			if ((m_PopupMenus.CurrentMode == PopupMenuSystem::MenuMode::WidgetRoot ||
 				m_PopupMenus.CurrentMode == PopupMenuSystem::MenuMode::WidgetChild) &&
-				!m_PopupMenus.TargetVarName.empty() &&
-				m_DeleteWidgetCallback)
+				!m_PopupMenus.TargetVarName.empty())
 			{
-				m_DeleteWidgetCallback(m_PopupMenus.TargetVarName);
+                Action_DeleteWidget(m_PopupMenus.TargetVarName, m_PopupMenus.TargetWidget);
 			}
 		}
 
@@ -1423,6 +1431,56 @@ namespace ImGuiWidget
 			m_PopupMenus.InsertWidgetMenu->Close();
 		}
 
+//----------------动作----------------------
+
+        // Action系统初始化
+        void ActionInit()
+        {
+            ResetAction();
+            ResetEvent();
+
+            // 监听文件重命名事件（如果需要）
+            AddSequentialProcessor(Action::ProjectView::RENAME_FILE, [this](const std::string& OldFullPath, const std::string& NewFullPath)
+                {
+                    if (m_EditedFileFullPath == OldFullPath)
+                    {
+                        m_EditedFileFullPath = NewFullPath;
+                        ResetAction();
+                        ResetEvent();
+                    }
+                });
+        }
+        void ResetAction() {};
+        void ResetEvent() {};
+        // 内部Action处理函数
+        void Action_SelectVar(const OutlineViewSelectionInfo& selectionInfo)
+        {
+            AddLogLine("Action_SelectVar");
+        }
+
+        void Action_CreateBasicVariable(const std::string& typeName)
+        {
+            AddLogLine("Action_CreateBasicVariable");
+        }
+
+        void Action_CreateObjectVariable(const std::string& objectRegisterName)
+        {
+            AddLogLine("Action_CreateObjectVariable");
+        }
+
+        void Action_CreateWidgetVariable(const std::string& widgetRegisterName)
+        {
+            AddLogLine("Action_CreateWidgetVariable");
+        }
+
+        void Action_InsertWidget(ImGuiWidget::ImWidget* target, int insertIndex, const std::string& widgetRegisterName)
+        {
+            AddLogLine("Action_InsertWidget");
+        }
+        void Action_DeleteWidget(const std::string& widgetRootVarName, ImGuiWidget::ImWidget* target)
+        {
+            AddLogLine("Action_DeleteWidget");
+        }
 
 	 };
 }
