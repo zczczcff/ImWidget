@@ -185,6 +185,7 @@ namespace ImGuiWidget
     {
         if (m_activeWindow == window) return;
         
+        bool bNeedSetInactive = true;
         // 如果新窗口是某个弹出窗口的子窗口，确保父窗口保持打开状态
         if (window)
         {
@@ -195,6 +196,7 @@ namespace ImGuiWidget
                     std::vector<ImWindow*> Parents;
                     while (parent)
                     {
+                        if (parent == m_activeWindow) bNeedSetInactive = false;
                         Parents.push_back(parent);
                         //if (!parent->IsOpen())
                         //{
@@ -213,8 +215,8 @@ namespace ImGuiWidget
             BringWindowToFront(window);
         }
 
-        // 旧窗口失去焦点
-        if (m_activeWindow)
+        // 旧活跃窗口失去焦点（仅当活跃窗口为非父窗口）
+		if (m_activeWindow && bNeedSetInactive)
         {
             m_activeWindow->SetInactive();
         }
@@ -224,6 +226,10 @@ namespace ImGuiWidget
 
     void ImWindowManager::SetWindowInactive(ImWindow* window)
     {
+        if (window->bAutoCloseWhenLostFocus)
+        {
+            window->Close();
+        }
     }
 
     void ImWindowManager::SetPopupWindowRect(ImWindow* window, const ImVec2& Min, const ImVec2& Max)
@@ -457,7 +463,7 @@ namespace ImGuiWidget
         ImGuiIO& io = ImGui::GetIO();
 
         // 检查鼠标点击，更新活动窗口
-        if (io.MouseClicked[0]) // 左键点击
+        if (io.MouseClicked[0]||io.MouseClicked[1]) // 左键点击
         {
             ImVec2 mousePos = io.MousePos;
 
