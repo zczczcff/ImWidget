@@ -1,34 +1,39 @@
+// UI_WidgetEditor.h
 #pragma once
 #include "ImWidget/ImUserWidget.h"
 #include "ImTools/ImDelegate.h"
 #include "EditorGlobalInterface.h"
+#include "ImUserWidgetClass.h"  // 添加头文件
 
-class UI_WidgetEditor :public ImGuiWidget::ImUserWidget,public EditorGlobalInterface
+class UI_WidgetEditor :public ImGuiWidget::ImUserWidget, public EditorGlobalInterface
 {
 private:
     std::string EditFileFullPath;
-	ImGuiWidget::ImWidget* EditorRootWidget;
-	bool bAllowOperateChild = false;
-	float dashOffset = 0.0f;
+    ImGuiWidget::ImUserWidgetClass* m_TargetClass = nullptr;  // 替换 EditorRootWidget
+
+    std::string m_CurrentEditingWidgetVarName;  // 当前编辑的控件树变量名
+    bool bAllowOperateChild = false;
+    float dashOffset = 0.0f;
+
     ImGuiWidget::ImWidgetRef SelectedWidgetRef;
+    std::string SelectedWidgetVarName;  // 选中控件所属的控件树变量名
+
     std::vector<EditorActionID> FileActions;
-public:
-    //ImMulticastDelegate<ImGuiWidget::ImWidget*> OnWidgetSelected;
-    //ImMulticastDelegate<> OnRequestUndo;
+
 protected:
     // 动态虚线框绘制函数
     void DrawAnimatedDashedRect(
-        const ImVec2& min,              // 方框左上角
-        const ImVec2& max,              // 方框右下角
-        ImU32 color,                    // 虚线颜色
-        float thickness,               // 虚线粗细
-        float dashLen,                 // 每段虚线长度
-        float gapLen,                  // 每段间隔长度
-        float& offset,                 // 动画偏移量（需要外部维护）
-        float speed = 1.0f             // 移动速度
+        const ImVec2& min,
+        const ImVec2& max,
+        ImU32 color,
+        float thickness,
+        float dashLen,
+        float gapLen,
+        float& offset,
+        float speed = 1.0f
     );
 
-    // 绘制带偏移量的虚线
+    // 绘制虚线
     void DrawDashedLine(
         ImDrawList* drawList,
         const ImVec2& start,
@@ -40,14 +45,43 @@ protected:
         float offset
     );
 
-	virtual void HandleEventInternal(ImGuiWidget::ImEvent* event) override;
-	virtual void OnMouseDown(ImGuiWidget::ImMouseDownEvent& e)override;
+    virtual void HandleEventInternal(ImGuiWidget::ImEvent* event) override;
+    virtual void OnMouseDown(ImGuiWidget::ImMouseDownEvent& e)override;
     virtual void OnKeyDown(ImGuiWidget::ImKeyDownEvent& e) override;
     virtual void PostRender() override;
 
     void ActionInit();
     void ResetAction();
+
+    // 更新当前编辑的控件树
+    void SetCurrentEditingWidgetTree(const std::string& widgetVarName);
+
+    // 获取当前编辑的根控件
+    ImGuiWidget::ImWidget* GetCurrentRootWidget() const;
+
+    // 查找控件所属的控件树变量名
+    std::string FindWidgetVarName(ImGuiWidget::ImWidget* widget) const;
+
 public:
-	UI_WidgetEditor(const std::string& name, ImGuiWidget::ImWidget* EditorRootWidget,const std::string& EditFileFullPath);
+    UI_WidgetEditor(const std::string& name,
+        ImGuiWidget::ImUserWidgetClass* targetClass,
+        const std::string& EditFileFullPath);
+
+    // 设置选中的控件
     bool SetSelectedWidget(ImGuiWidget::ImWidget* widget);
+
+    // 设置选中的控件（指定所属的控件树变量名）
+    bool SetSelectedWidget(const std::string& widgetVarName, ImGuiWidget::ImWidget* widget);
+
+    // 设置当前编辑的控件树
+    void SetEditingWidgetTree(const std::string& widgetVarName);
+
+    // 获取当前编辑的控件树变量名
+    std::string GetCurrentEditingWidgetVarName() const { return m_CurrentEditingWidgetVarName; }
+
+    // 获取目标类
+    ImGuiWidget::ImUserWidgetClass* GetTargetClass() const { return m_TargetClass; }
+
+    // 设置目标类
+    void SetTargetClass(ImGuiWidget::ImUserWidgetClass* targetClass);
 };

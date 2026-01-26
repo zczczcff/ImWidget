@@ -17,6 +17,7 @@
 #include "EditorAction.h"
 #include "EditorEvents.h"
 #include "UI/UI_ImUserWidgetClassOutlineView.h"
+#include "ImWidget/ImUserWidgetClass.h"
 
 void MainUI::Init2()
 {
@@ -271,10 +272,10 @@ void MainUI::ViewTest()
 
 void MainUI::EventInit()
 {
-	Subscribe(Events::MainUI::UI_FILE_OPENED, [this](ImGuiWidget::ImWidget* FileRootWidget, std::string FileName, std::string FileFullPath)
+	Subscribe(Events::MainUI::UI_FILE_OPENED, [this](ImGuiWidget::ImUserWidgetClass* UerWidgetClassFile, std::string FileName, std::string FileFullPath)
 		{
-			CreateNewWidgetEditorPage(FileRootWidget, FileName, FileFullPath);
-			CreateNewWidgetTreeView(FileFullPath, FileRootWidget);
+			CreateNewWidgetEditorPage(UerWidgetClassFile, FileName, FileFullPath);
+			//CreateNewWidgetTreeView(FileFullPath, UerWidgetClassFile);
 			CreateNewDetailView(FileFullPath);
 			SwitchCurrentEditFile(FileFullPath);
 		});
@@ -305,14 +306,14 @@ void MainUI::ActionInit()
 //	ProjectView->UpdateProjectView(projectmananger);
 //}
 
-void MainUI::CreateNewWidgetEditorPage(ImGuiWidget::ImWidget* FileRootWidget, const std::string& FileName, const std::string& FileFullPath)
+void MainUI::CreateNewWidgetEditorPage(ImGuiWidget::ImUserWidgetClass* UserWidgetClassFile, const std::string& FileName, const std::string& FileFullPath)
 {
 	if (ImPageManager_Main->HasPage(FileFullPath))
 	{
 		ImPageManager_Main->SwitchToPage(FileFullPath);
 		return;
 	}
-	UI_WidgetEditor* NewWidget_UIEditor = new UI_WidgetEditor(FileName + "_Editor", FileRootWidget, FileFullPath);
+	UI_WidgetEditor* NewWidget_UIEditor = new UI_WidgetEditor(FileName + "_Editor", UserWidgetClassFile, FileFullPath);
 	ImPageManager_Main->AddPage(FileFullPath, NewWidget_UIEditor, IconManager::GetInstance()->GetIcon(ImDesignerIcon::UIFile), FileName);
 	ImPageManager_Main->SwitchToPage(FileFullPath);
 	ImPageManager_Main->SetPageToolTip(FileFullPath, FileFullPath);

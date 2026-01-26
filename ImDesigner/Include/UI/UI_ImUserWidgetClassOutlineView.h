@@ -81,12 +81,8 @@ namespace ImGuiWidget
     // 大纲视图控件（支持增量更新）
     class ImUserWidgetClassOutlineView : public ImUserWidget, public EditorGlobalInterface
     {
-    public:
-        using SelectionCallback = std::function<void(const OutlineViewSelectionInfo& selectionInfo)>;
-
     private:
         ImUserWidgetClass* m_TargetClass;
-        SelectionCallback m_SelectionCallback;
 
         // UI控件
         ImScrollBox* m_ScrollBox;
@@ -191,12 +187,6 @@ namespace ImGuiWidget
         virtual ~ImUserWidgetClassOutlineView()
         {
             // 注意：m_ScrollBox等控件会被ImUserWidget自动销毁
-        }
-
-        // 选择回调设置
-        void SetSelectionCallback(SelectionCallback callback)
-        {
-            m_SelectionCallback = callback;
         }
 
         // 获取当前选择信息
@@ -813,10 +803,6 @@ namespace ImGuiWidget
             {
                 m_CurrentSelection = it->second;
                 it->second.ItemButton->GetNormalStyle().BackgroundColor = m_SelectedBgColor;
-                if (m_SelectionCallback && !OutSideSet)
-                {
-                    m_SelectionCallback(m_CurrentSelection);
-                }
 
                 if (OutSideSet)
                 {
@@ -836,7 +822,7 @@ namespace ImGuiWidget
                 }
                 else
                 {
-                    Action_SelectVar(m_CurrentSelection);
+                    Action_SelectItem(m_CurrentSelection);
                 }
             }
         }
@@ -1644,9 +1630,21 @@ namespace ImGuiWidget
         };
         
         // 内部Action处理函数
-        void Action_SelectVar(const OutlineViewSelectionInfo& selectionInfo)
+        void Action_SelectItem(const OutlineViewSelectionInfo& selectionInfo)
         {
-            ExecuteAction(m_EditedFileFullPath + Action::OutlineView::SELECT_VARIABLE, selectionInfo.VariableName);
+            if (selectionInfo.VariableType == "Widget")
+            {
+                if (selectionInfo.IsRootWidget)
+                {
+                    ExecuteAction(m_EditedFileFullPath + Action::OutlineView::SELECT_VARIABLE, selectionInfo.VariableName);
+                }
+                ExecuteAction(m_EditedFileFullPath + Action::WIDGET_SELECTED, selectionInfo.VariableName, (ImGuiWidget::ImWidget*)selectionInfo.DataPointer);
+            }
+            else
+            {
+                ExecuteAction(m_EditedFileFullPath + Action::OutlineView::SELECT_VARIABLE, selectionInfo.VariableName);
+            }
+            
         }
 
         void Action_CreateBasicVariable(const ImGuiWidget::ImBasicVariable::BasicType& typeName)

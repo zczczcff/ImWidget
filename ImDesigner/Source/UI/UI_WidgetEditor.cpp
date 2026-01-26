@@ -1,3 +1,4 @@
+// UI_WidgetEditor.cpp
 #include "UI/UI_WidgetEditor.h"
 #include "EditorAction.h"
 
@@ -98,27 +99,38 @@ void UI_WidgetEditor::DrawDashedLine(ImDrawList* drawList, const ImVec2& start, 
 
 void UI_WidgetEditor::HandleEventInternal(ImGuiWidget::ImEvent* event)
 {
-	ImGuiWidget::ImUserWidget::HandleEventInternal(event);
-	if (!bAllowOperateChild && event->GetPhase() == ImGuiWidget::ImEventPhase::Capture)
-	{
-		event->StopPropagation();
-	}
+    ImGuiWidget::ImUserWidget::HandleEventInternal(event);
+    if (!bAllowOperateChild && event->GetPhase() == ImGuiWidget::ImEventPhase::Capture)
+    {
+        event->StopPropagation();
+    }
 }
 
 void UI_WidgetEditor::OnMouseDown(ImGuiWidget::ImMouseDownEvent& e)
 {
-	if (!(e.GetButton() == ImGuiWidget::ImMouseButton::Left || e.GetButton() == ImGuiWidget::ImMouseButton::Right))return;
-	if (EditorRootWidget)
-	{
-		ImGuiWidget::ImWidget* HitChild = EditorRootWidget->ChildHitTest(e.GetPosition());
-		if (HitChild && HitChild != SelectedWidgetRef.GetWidget())
-		{
-            ExecuteAction(EditFileFullPath + Action::WIDGET_SELECTED, HitChild);
-			//OnWidgetSelected.Broadcast(HitChild);
-            SelectedWidgetRef = HitChild->GetWidgetRef();
-		}
-	}
-	e.StopPropagation();
+    if (!(e.GetButton() == ImGuiWidget::ImMouseButton::Left || e.GetButton() == ImGuiWidget::ImMouseButton::Right))return;
+
+    if (!m_TargetClass) return;
+
+    // 如果没有指定当前编辑的控件树，则返回
+    if (m_CurrentEditingWidgetVarName.empty()) return;
+
+    ImGuiWidget::ImWidget* currentRoot = GetCurrentRootWidget();
+    if (!currentRoot) return;
+
+    ImGuiWidget::ImWidget* HitChild = currentRoot->ChildHitTest(e.GetPosition());
+    if (HitChild && HitChild != SelectedWidgetRef.GetWidget())
+    {
+        // 查找控件所属的控件树变量名
+        std::string widgetVarName = m_CurrentEditingWidgetVarName;
+
+        // 执行选中动作
+        ExecuteAction(EditFileFullPath + Action::WIDGET_SELECTED, widgetVarName, HitChild);
+
+        SelectedWidgetRef = HitChild->GetWidgetRef();
+        SelectedWidgetVarName = widgetVarName;
+    }
+    e.StopPropagation();
 }
 
 void UI_WidgetEditor::OnKeyDown(ImGuiWidget::ImKeyDownEvent& e)
@@ -126,7 +138,6 @@ void UI_WidgetEditor::OnKeyDown(ImGuiWidget::ImKeyDownEvent& e)
     if (bHasFocus && e.IsCtrl_Z())
     {
         ExecuteAction(EditFileFullPath + Action::_REQUEST_UNDO);
-        //OnRequestUndo.Broadcast();
     }
 }
 
@@ -134,16 +145,20 @@ void UI_WidgetEditor::PostRender()
 {
     if (SelectedWidgetRef)
     {
-        ImVec2 Pos1 = SelectedWidgetRef->GetPosition();
-        ImVec2 Pos2 = Pos1 + SelectedWidgetRef->GetSize();
-        DrawAnimatedDashedRect(Pos1, Pos2, IM_COL32(255, 0, 0, 255), 2, 10, 10, dashOffset,0);
+        // 只绘制属于当前编辑控件树的选中控件
+        if (!SelectedWidgetVarName.empty() && SelectedWidgetVarName == m_CurrentEditingWidgetVarName)
+        {
+            ImVec2 Pos1 = SelectedWidgetRef->GetPosition();
+            ImVec2 Pos2 = Pos1 + SelectedWidgetRef->GetSize();
+            DrawAnimatedDashedRect(Pos1, Pos2, IM_COL32(255, 0, 0, 255), 2, 10, 10, dashOffset, 0);
+        }
     }
 }
 
 void UI_WidgetEditor::ActionInit()
 {
-
     ResetAction();
+
     AddSequentialProcessor(Action::ProjectView::RENAME_FILE, [this](const std::string& OldFullPath, const std::string& NewFullPath)
         {
             if (EditFileFullPath == OldFullPath)
@@ -162,29 +177,174 @@ void UI_WidgetEditor::ResetAction()
     }
     FileActions.clear();
 
-    FileActions.push_back(AddSequentialProcessor(EditFileFullPath + Action::WIDGET_SELECTED, [this](ImGuiWidget::ImWidget* SelectedWidget)
+    // 监听控件选中事件（包含控件树变量名）
+    FileActions.push_back(AddSequentialProcessor(EditFileFullPath + Action::WIDGET_SELECTED,
+        [this](const std::string& widgetVarName, ImGuiWidget::ImWidget* SelectedWidget)
         {
-            SetSelectedWidget(SelectedWidget);
+            SetSelectedWidget(widgetVarName, SelectedWidget);
         }));
 }
 
-UI_WidgetEditor::UI_WidgetEditor(const std::string& name, ImGuiWidget::ImWidget* EditorRootWidget, const std::string& EditFileFullPath) :
-	ImUserWidget(name),
-	EditorRootWidget(EditorRootWidget),
+UI_WidgetEditor::UI_WidgetEditor(const std::string& name,
+    ImGuiWidget::ImUserWidgetClass* targetClass,
+    const std::string& EditFileFullPath) :
+    ImUserWidget(name),
+    m_TargetClass(targetClass),
     EditFileFullPath(EditFileFullPath)
 {
-	SetFocusable(true);
-	SetRootWidget(EditorRootWidget, false);
+    SetFocusable(true);
+
+    if (m_TargetClass)
+    {
+        // 获取所有控件树变量
+        auto widgetVarNames = m_TargetClass->GetWidgetVariableNames();
+
+        // 如果没有指定当前编辑的控件树，使用默认的或第一个
+        if (!widgetVarNames.empty())
+        {
+            // 优先使用默认根控件
+            std::string defaultRootVarName = m_TargetClass->GetDefaultRootVariableName();
+            if (!defaultRootVarName.empty() &&
+                std::find(widgetVarNames.begin(), widgetVarNames.end(), defaultRootVarName) != widgetVarNames.end())
+            {
+                SetCurrentEditingWidgetTree(defaultRootVarName);
+            }
+            else
+            {
+                SetCurrentEditingWidgetTree(widgetVarNames[0]);
+            }
+        }
+    }
+
     ActionInit();
 }
 
 bool UI_WidgetEditor::SetSelectedWidget(ImGuiWidget::ImWidget* widget)
 {
-    if (widget == SelectedWidgetRef.GetWidget())return true;
-    if (widget->IsInTree(EditorRootWidget))
+    if (!widget) return false;
+
+    // 查找控件所属的控件树变量名
+    std::string widgetVarName = FindWidgetVarName(widget);
+    if (widgetVarName.empty()) return false;
+
+    return SetSelectedWidget(widgetVarName, widget);
+}
+
+bool UI_WidgetEditor::SetSelectedWidget(const std::string& widgetVarName, ImGuiWidget::ImWidget* widget)
+{
+    if (!widget || !m_TargetClass) return false;
+
+    // 验证控件是否属于指定的控件树
+    ImGuiWidget::ImWidget* rootWidget = m_TargetClass->GetWidgetVariable(widgetVarName);
+    if (!rootWidget || !widget->IsInTree(rootWidget)) return false;
+
+    SelectedWidgetRef = widget->GetWidgetRef();
+    SelectedWidgetVarName = widgetVarName;
+
+    // 如果选中的控件不在当前编辑的控件树中，自动切换到该控件树
+    if (widgetVarName != m_CurrentEditingWidgetVarName)
     {
-        SelectedWidgetRef = widget->GetWidgetRef();
-        return true;
+        SetEditingWidgetTree(widgetVarName);
     }
-    return false;
+
+    return true;
+}
+
+void UI_WidgetEditor::SetEditingWidgetTree(const std::string& widgetVarName)
+{
+    if (widgetVarName == m_CurrentEditingWidgetVarName) return;
+
+    SetCurrentEditingWidgetTree(widgetVarName);
+
+    // 清空选中状态（如果选中的控件不属于当前编辑的控件树）
+    if (!SelectedWidgetVarName.empty() && SelectedWidgetVarName != m_CurrentEditingWidgetVarName)
+    {
+        SelectedWidgetRef.Reset();
+        SelectedWidgetVarName.clear();
+    }
+}
+
+void UI_WidgetEditor::SetCurrentEditingWidgetTree(const std::string& widgetVarName)
+{
+    if (!m_TargetClass) return;
+
+    ImGuiWidget::ImWidget* rootWidget = m_TargetClass->GetWidgetVariable(widgetVarName);
+    if (!rootWidget) return;
+
+    m_CurrentEditingWidgetVarName = widgetVarName;
+
+    // 设置根控件
+    SetRootWidget(rootWidget, false);
+}
+
+ImGuiWidget::ImWidget* UI_WidgetEditor::GetCurrentRootWidget() const
+{
+    if (!m_TargetClass) return nullptr;
+    return m_TargetClass->GetWidgetVariable(m_CurrentEditingWidgetVarName);
+}
+
+std::string UI_WidgetEditor::FindWidgetVarName(ImGuiWidget::ImWidget* widget) const
+{
+    if (!widget || !m_TargetClass) return "";
+
+    // 遍历所有控件树，查找控件所属的树
+    auto widgetVarNames = m_TargetClass->GetWidgetVariableNames();
+    for (const auto& varName : widgetVarNames)
+    {
+        ImGuiWidget::ImWidget* rootWidget = m_TargetClass->GetWidgetVariable(varName);
+        if (rootWidget && widget->IsInTree(rootWidget))
+        {
+            return varName;
+        }
+    }
+
+    return "";
+}
+
+void UI_WidgetEditor::SetTargetClass(ImGuiWidget::ImUserWidgetClass* targetClass)
+{
+    if (m_TargetClass == targetClass) return;
+
+    m_TargetClass = targetClass;
+
+    if (m_TargetClass)
+    {
+        auto widgetVarNames = m_TargetClass->GetWidgetVariableNames();
+
+        // 重置当前编辑的控件树
+        if (!widgetVarNames.empty())
+        {
+            // 优先保持原有的控件树
+            if (!m_CurrentEditingWidgetVarName.empty() &&
+                std::find(widgetVarNames.begin(), widgetVarNames.end(), m_CurrentEditingWidgetVarName) != widgetVarNames.end())
+            {
+                // 保持原有的控件树
+                SetCurrentEditingWidgetTree(m_CurrentEditingWidgetVarName);
+            }
+            else
+            {
+                // 优先使用默认根控件
+                std::string defaultRootVarName = m_TargetClass->GetDefaultRootVariableName();
+                if (!defaultRootVarName.empty() &&
+                    std::find(widgetVarNames.begin(), widgetVarNames.end(), defaultRootVarName) != widgetVarNames.end())
+                {
+                    SetCurrentEditingWidgetTree(defaultRootVarName);
+                }
+                else
+                {
+                    // 使用第一个控件树
+                    SetCurrentEditingWidgetTree(widgetVarNames[0]);
+                }
+            }
+        }
+        else
+        {
+            m_CurrentEditingWidgetVarName.clear();
+            SetRootWidget(nullptr, false);
+        }
+    }
+
+    // 清空选中状态
+    SelectedWidgetRef.Reset();
+    SelectedWidgetVarName.clear();
 }

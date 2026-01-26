@@ -11,6 +11,7 @@ namespace ImGuiWidget
 {
     class ImPageManager;
     class ImWindow;
+    class ImUserWidgetClass;
 }
 class UI_WidgetTreeView;
 class UI_WidgetEditor;
@@ -99,7 +100,7 @@ private:
     void On_EditorPageSelected(const std::string& PageID);
     //WidgetEditor相关操作
 
-    void CreateNewWidgetEditorPage(ImGuiWidget::ImWidget* FileRootWidget, const std::string& FileName, const std::string& FileFullPath);
+    void CreateNewWidgetEditorPage(ImGuiWidget::ImUserWidgetClass* FileRootWidget, const std::string& FileName, const std::string& FileFullPath);
 public:
     UI_WidgetEditor* GetWidgetEditorByName(const std::string& Name);
     bool ShowWidgetEditorByName(const std::string& Name);
