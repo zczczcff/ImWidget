@@ -8,6 +8,7 @@
 namespace ImGuiWidget
 {
 	class ImWidget;
+	class ImUserWidgetClass;
 }
 class Model_WidgetEditor;
 class JAsyncLog;
@@ -17,11 +18,11 @@ public:
 	struct EditedUIFile
 	{
 		std::string FileFullPath;
-		ImGuiWidget::ImWidget* rootwidget;
+		ImGuiWidget::ImUserWidgetClass* EditedFile;
 		Model_WidgetEditor* model_editor;
-		EditedUIFile(std::string FileFullPath,ImGuiWidget::ImWidget* rootwidget,Model_WidgetEditor* model_editor)
+		EditedUIFile(std::string FileFullPath, ImGuiWidget::ImUserWidgetClass* EditedFile,Model_WidgetEditor* model_editor)
 			:FileFullPath(FileFullPath),
-			rootwidget(rootwidget),
+			EditedFile(EditedFile),
 			model_editor(model_editor)
 		{ }
 	};

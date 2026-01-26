@@ -7,6 +7,8 @@
 #include "Tools/JLog.h"
 #include "EditorAction.h"
 #include "EditorEvents.h"
+#include "ImWidget/ImUserWidgetClass.h"
+
 void Model_MainModel::InitAction()
 {
 	AddValidator(Action::ProjectView::RENAME_FILE, [this](const std::string& OldFullPath, const std::string& NewFullPath)
@@ -18,7 +20,7 @@ void Model_MainModel::InitAction()
 		{
 			if (EditedUIFile* file = BeginEditFile(FileFullPath))
 			{
-				Publish(Events::MainUI::UI_FILE_OPENED, file->rootwidget, FileName, FileFullPath);
+				Publish(Events::MainUI::UI_FILE_OPENED, file->EditedFile, FileName, FileFullPath);
 				return true;
 			}
 			else
@@ -79,14 +81,19 @@ void Model_MainModel::Init()
 Model_MainModel::EditedUIFile* Model_MainModel::BeginEditFile(const std::string& FileFullPath)
 {
 	if (EditedFiles.find(FileFullPath) != EditedFiles.end()) return nullptr;
-	ImGuiWidget::ImWidget* NewEditedWidget = ImGuiWidget::LoadWidgetTreeFromFile(FileFullPath);
-	if (NewEditedWidget)
+	//ImGuiWidget::ImWidget* NewEditedWidget = ImGuiWidget::LoadWidgetTreeFromFile(FileFullPath);
+	ImGuiWidget::ImUserWidgetClass* NewEditedUserWidgetCLassFile = new ImGuiWidget::ImUserWidgetClass("");
+	if (NewEditedUserWidgetCLassFile->InitFromFile(FileFullPath))
 	{
-		EditedUIFile* NewEditedFile = new EditedUIFile(FileFullPath, NewEditedWidget, new Model_WidgetEditor(NewEditedWidget, FileFullPath));
+		EditedUIFile* NewEditedFile = new EditedUIFile(FileFullPath, NewEditedUserWidgetCLassFile, new Model_WidgetEditor(NewEditedUserWidgetCLassFile, FileFullPath));
 		EditedFiles.insert(std::make_pair(FileFullPath, NewEditedFile));
 		return NewEditedFile;
 	}
-	return nullptr;
+	else
+	{
+		delete NewEditedUserWidgetCLassFile;
+		return nullptr;
+	}
 }
 
 bool Model_MainModel::FinishEditFile(const std::string& FileFullPath)
