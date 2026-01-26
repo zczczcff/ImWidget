@@ -18,6 +18,18 @@ namespace Events
 		const KeyStringType UPDATE_PROJECT_VIEW = "UpdateProjectView";//更新项目视图
 	}
 	
+	namespace OutlineView
+	{
+		const KeyStringType UPDATE_BASIC_VARIABLE_SECTION = "UpdateBasicVariableSection";//刷新基本变量区
+		const KeyStringType UPDATE_OBJECT_VARIABLE_SECTION = "UpdateObjectVariableSection";//刷新基本变量区
+		const KeyStringType UPDATE_WIDGET_VARIABLE_SECTION = "UpdateWidgetVariableSection";//刷新基本变量区
+		const KeyStringType VARIABLE_RENAMED = "WidgetVariableRenamed";
+		const KeyStringType WIDGET_CHILD_ADDED = "WidgetChildAdded";
+		const KeyStringType WIDGET_CHILD_REMOVED = "WidgetChildRemoved";
+		const KeyStringType WIDGET_CHILD_RENAMED = "WidgetChildRenamed";
+	}
+
+
 	namespace UIFileView
 	{
 		extern const KeyStringType UPDATE_WIDGETTREE_VIEW = "UpdateWidgetTreeView";//更新控件树

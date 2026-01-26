@@ -22,7 +22,9 @@ namespace Action
 	{
 		const KeyStringType SELECT_VARIABLE = "OutlineViewSelectVariable";
 		const KeyStringType SELECT_WIDGET = "OutlineViewSelectWidget";
-		const KeyStringType CREATE_VARIABLE = "OutlineViewCreateVariable";
+		const KeyStringType CREATE_BASIC_VARIABLE = "OutlineViewCreateBasicVariable";
+		const KeyStringType CREATE_OBJECT_VARIABLE = "OutlineViewCreateObjectVariable";          // 创建Object变量
+		const KeyStringType CREATE_WIDGET_VARIABLE = "OutlineViewCreateWidgetVariable";          // 创建控件树变量
 		const KeyStringType DELETE_VARIABLE = "OutlineViewDeleteVariable";
 		const KeyStringType INSERT_WIDGET = "OutlineViewInsertWidget";
 		const KeyStringType DELETE_WIDGET = "OutlineViewDeleteWidget";

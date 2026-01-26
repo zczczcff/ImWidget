@@ -24,7 +24,9 @@ namespace Action
 	{
 		extern const KeyStringType SELECT_VARIABLE;          // 选中变量
 		extern const KeyStringType SELECT_WIDGET;            // 选中控件
-		extern const KeyStringType CREATE_VARIABLE;          // 创建变量
+		extern const KeyStringType CREATE_BASIC_VARIABLE;          // 创建基本变量
+		extern const KeyStringType CREATE_OBJECT_VARIABLE;          // 创建Object变量
+		extern const KeyStringType CREATE_WIDGET_VARIABLE;          // 创建控件树变量
 		extern const KeyStringType DELETE_VARIABLE;          // 删除变量
 		extern const KeyStringType INSERT_WIDGET;            // 插入控件
 		extern const KeyStringType DELETE_WIDGET;            // 删除控件

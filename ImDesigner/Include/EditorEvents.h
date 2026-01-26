@@ -20,6 +20,17 @@ namespace Events
 		extern const KeyStringType UPDATE_PROJECT_VIEW;//更新项目视图
 	}
 
+	namespace OutlineView
+	{
+		extern const KeyStringType UPDATE_BASIC_VARIABLE_SECTION;//刷新基本变量区
+		extern const KeyStringType UPDATE_OBJECT_VARIABLE_SECTION;//刷新基本变量区
+		extern const KeyStringType UPDATE_WIDGET_VARIABLE_SECTION;//刷新基本变量区
+		extern const KeyStringType VARIABLE_RENAMED;// 变量重命名
+		extern const KeyStringType WIDGET_CHILD_ADDED;// 子控件添加
+		extern const KeyStringType WIDGET_CHILD_REMOVED;// 子控件删除
+		extern const KeyStringType WIDGET_CHILD_RENAMED;// 子控件重命名
+	}
+
 	namespace UIFileView
 	{
 		extern const KeyStringType UPDATE_WIDGETTREE_VIEW;//更新控件树

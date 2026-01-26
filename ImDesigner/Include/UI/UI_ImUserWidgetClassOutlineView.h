@@ -16,16 +16,17 @@
 
 namespace ImGuiWidget
 {
-    // 选选择信息结构体（保持不变）
+    // 选择信息结构体
     struct OutlineViewSelectionInfo
     {
-        std::string VariableName;     // 选中的目标节点名称
-        std::string VariableType;     // 变量类型：BasicVariable/ObjectVariable/Widget
-        bool IsRootWidget;            // 是否为根控件（控件树根节点）
-        bool IsChildWidget;           // 是否为控件的子控件
-        void* DataPointer;            // 指向变量/ImObject对应的指针，如果是控件则为实际选中的目标控件实例指针
-        std::string WidgetRegisterTypeName; // 控件注册类型名称
-        ImGuiWidget::ImButton* ItemButton;//item按钮
+        std::string VariableName;
+        std::string VariableType;
+        bool IsRootWidget;
+        bool IsChildWidget;
+        void* DataPointer;
+        std::string WidgetRegisterTypeName;
+        ImGuiWidget::ImButton* ItemButton;
+
         OutlineViewSelectionInfo()
             : VariableName("")
             , VariableType("")
@@ -38,7 +39,7 @@ namespace ImGuiWidget
         }
 
         OutlineViewSelectionInfo(const std::string& varName, const std::string& varType,
-            bool isRoot, bool isChild, void* dataPtr, ImGuiWidget::ImButton* ItemButton,const std::string& widgetType = "")
+            bool isRoot, bool isChild, void* dataPtr, ImGuiWidget::ImButton* ItemButton, const std::string& widgetType = "")
             : VariableName(varName)
             , VariableType(varType)
             , IsRootWidget(isRoot)
@@ -50,56 +51,89 @@ namespace ImGuiWidget
         }
     };
 
-    // 大纲视图控件（改进版）
+    // 变更类型枚举
+    enum class OutlineViewChangeType
+    {
+        VariableAdded,      // 变量添加
+        VariableRemoved,    // 变量删除
+        VariableRenamed,    // 变量重命名
+        WidgetChildAdded,   // 子控件添加
+        WidgetChildRemoved, // 子控件删除
+        WidgetChildRenamed, // 子控件重命名
+        FullRefresh         // 完全刷新
+    };
+
+    // 变更信息结构
+    struct OutlineViewChangeInfo
+    {
+        OutlineViewChangeType ChangeType;
+        std::string VariableName;        // 变量名（对于变量操作）
+        std::string OldName;             // 旧名称（对于重命名）
+        std::string NewName;             // 新名称（对于重命名）
+        std::string VariableType;        // 变量类型：BasicVariable/ObjectVariable/Widget
+        std::string ParentVarName;       // 父变量名（对于子控件操作）
+        ImWidget* ParentWidget;          // 父控件指针（对于子控件操作）
+        ImWidget* ChangedWidget;         // 变更的控件（对于子控件操作）
+
+        OutlineViewChangeInfo(OutlineViewChangeType type) : ChangeType(type) {}
+    };
+
+    // 大纲视图控件（支持增量更新）
     class ImUserWidgetClassOutlineView : public ImUserWidget, public EditorGlobalInterface
     {
     public:
-        // 选择回调
         using SelectionCallback = std::function<void(const OutlineViewSelectionInfo& selectionInfo)>;
 
     private:
-        ImUserWidgetClass* m_TargetClass; // 目标类实例
-        SelectionCallback m_SelectionCallback; // 选择回调
+        ImUserWidgetClass* m_TargetClass;
+        SelectionCallback m_SelectionCallback;
 
         // UI控件
-        ImScrollBox* m_ScrollBox;           // 最外层滚动框
+        ImScrollBox* m_ScrollBox;
         ImExpandableBox* m_BasicVarsSection;
         ImExpandableBox* m_ObjectVarsSection;
         ImExpandableBox* m_WidgetTreeSection;
         ImVerticalBox* m_MainContainer;
 
+        // 分区内容容器
+        ImVerticalBox* m_BasicVarsContainer;
+        ImVerticalBox* m_ObjectVarsContainer;
+        ImVerticalBox* m_WidgetTreeContainer;
+
         // 当前选择
         OutlineViewSelectionInfo m_CurrentSelection;
 
-        // 控件树缓存：记录哪些控件为根控件
+        // 控件树缓存
         std::unordered_set<std::string> m_RootWidgetNames;
 
         // 样式颜色
-        ImU32 m_SelectedBgColor = IM_COL32(65, 105, 225, 255);   // 选中背景色（蓝色）
-        ImU32 m_HoverBgColor = IM_COL32(70, 130, 180, 255);      // 悬停背景色（浅蓝）
-        ImU32 m_NormalBgColor = IM_COL32(240, 240, 240, 255);       // 正常背景色（浅灰）
-        ImU32 m_SectionHeaderColor = IM_COL32(80, 80, 80, 255);  // 分区标题色
-        ImU32 m_TextColor = IM_COL32(0, 0, 0, 255);        // 文本颜色
-        ImU32 m_TypeTextColor = IM_COL32(180, 180, 180, 255);     // 类型文本颜色
+        ImU32 m_SelectedBgColor = IM_COL32(65, 105, 225, 255);
+        ImU32 m_HoverBgColor = IM_COL32(70, 130, 180, 255);
+        ImU32 m_NormalBgColor = IM_COL32(240, 240, 240, 255);
+        ImU32 m_SectionHeaderColor = IM_COL32(80, 80, 80, 255);
+        ImU32 m_TextColor = IM_COL32(0, 0, 0, 255);
+        ImU32 m_TypeTextColor = IM_COL32(180, 180, 180, 255);
 
+        // 缓存映射
         std::unordered_map<std::string, OutlineViewSelectionInfo> ItemName_To_SelectionInfo;
+        std::unordered_map<std::string, ImButton*> VariableName_To_Button;      // 变量名到按钮的映射
+        std::unordered_map<std::string, ImExpandableBox*> WidgetPath_To_Expander; // 控件路径到展开框的映射
+        std::unordered_map<ImExpandableBox*, std::string> Expander_To_WidgetPath; // 展开框到控件路径的映射
+        std::unordered_map<std::string, ImVerticalBox*> WidgetPath_To_Container; // 控件路径到容器的映射
+
         // 存储展开状态
         std::unordered_map<std::string, bool> m_ExpandedStateMap;
 
-        // 新增：弹出菜单系统
+        // 弹出菜单系统
         struct PopupMenuSystem
         {
-            // 主菜单窗口
             ImWindow* BasicVarsSectionMenu = nullptr;
             ImWindow* ObjectVarsSectionMenu = nullptr;
             ImWindow* WidgetTreeSectionMenu = nullptr;
             ImWindow* WidgetRootMenu = nullptr;
             ImWindow* WidgetChildMenu = nullptr;
-
-            // 插入控件子菜单窗口（二级菜单）
             ImWindow* InsertWidgetMenu = nullptr;
 
-            // 菜单内容容器
             ImVerticalBox* BasicVarsMenuContent = nullptr;
             ImVerticalBox* ObjectVarsMenuContent = nullptr;
             ImVerticalBox* WidgetTreeMenuContent = nullptr;
@@ -107,20 +141,18 @@ namespace ImGuiWidget
             ImVerticalBox* WidgetChildMenuContent = nullptr;
             ImVerticalBox* InsertWidgetMenuContent = nullptr;
 
-            // 当前激活的菜单模式
             enum class MenuMode
             {
                 None,
-                SectionRoot,      // 分区根菜单
-                WidgetRoot,       // 控件根菜单
-                WidgetChild       // 控件子菜单
+                SectionRoot,
+                WidgetRoot,
+                WidgetChild
             };
 
             MenuMode CurrentMode = MenuMode::None;
             std::string TargetVarName;
             ImWidget* TargetWidget = nullptr;
 
-            // 控件插入模式
             enum class InsertChildMode
             {
                 InsertToThis,
@@ -133,29 +165,27 @@ namespace ImGuiWidget
 
         PopupMenuSystem m_PopupMenus;
 
-        // 回调函数
-        //std::function<void(const std::string& parentVarName, int insertIndex, const std::string& widgetRegisterName)> m_InsertWidgetCallback;
-        //std::function<void(const std::string& widgetVarName)> m_DeleteWidgetCallback;
-        //std::function<void(const std::string& sectionType, const std::string& varType)> m_CreateVariableCallback;
-
         // 添加：编辑文件路径
         std::string m_EditedFileFullPath;
 
         // 添加：Action和Event容器
         std::vector<EditorActionID> m_FileActions;
-        std::vector<EventID> m_FileEvents;
+        std::vector<EditorEventID> m_FileEvents;
 
     public:
         ImUserWidgetClassOutlineView(const std::string& widgetName, ImUserWidgetClass* targetClass, const std::string& editedFileFullPath)
             : ImUserWidget(widgetName)
-            , EditorGlobalInterface()  // 基类初始化
+            , EditorGlobalInterface()
             , m_TargetClass(targetClass)
             , m_EditedFileFullPath(editedFileFullPath)
+            , m_BasicVarsContainer(nullptr)
+            , m_ObjectVarsContainer(nullptr)
+            , m_WidgetTreeContainer(nullptr)
         {
             BuildRootWidgetCache();
             BuildUI();
             InitPopupMenus();
-            ActionInit();  // 初始化Action系统
+            ActionInit();
         }
 
         virtual ~ImUserWidgetClassOutlineView()
@@ -172,10 +202,11 @@ namespace ImGuiWidget
         // 获取当前选择信息
         const OutlineViewSelectionInfo& GetCurrentSelection() const { return m_CurrentSelection; }
 
-        // 刷新视图
+        // 完全刷新视图
         void RefreshView()
         {
             BuildRootWidgetCache();
+            ClearAllCaches();
             if (m_MainContainer)
             {
                 m_MainContainer->RemoveAllChild(true);
@@ -183,11 +214,12 @@ namespace ImGuiWidget
             }
         }
 
-        // 设置目标类（显示其他类的结构）
+        // 设置目标类
         void SetTargetClass(ImUserWidgetClass* targetClass)
         {
             m_TargetClass = targetClass;
             BuildRootWidgetCache();
+            ClearAllCaches();
             RefreshView();
         }
 
@@ -214,15 +246,13 @@ namespace ImGuiWidget
             return m_RootWidgetNames.find(widgetName) != m_RootWidgetNames.end();
         }
 
-        // 构建UI（使用滚动框）
+        // 构建UI
         void BuildUI()
         {
-            // 创建滚动框作为最外层容器
             m_ScrollBox = new ImScrollBox("OutlineScrollBox");
             m_ScrollBox->EnableVerticalScroll(true);
             m_ScrollBox->ShowVerticalScrollbar(true);
 
-            // 主容器放在滚动框内
             m_MainContainer = new ImVerticalBox("MainContainer");
             m_ScrollBox->SetContent(m_MainContainer);
 
@@ -254,25 +284,21 @@ namespace ImGuiWidget
             auto* classInfoBox = new ImVerticalBox("ClassInfoBox");
             classInfoBox->SetBackGroundColor(IM_COL32(45, 45, 45, 255));
 
-            // 类名
             auto* classNameText = new ImTextBlock("ClassNameText");
             classNameText->SetText(u8"类名: " + m_TargetClass->GetClassName());
             classNameText->SetTextColor(m_TextColor);
             classInfoBox->AddChild(classNameText);
 
-            // 命名空间
             auto* namespaceText = new ImTextBlock("NamespaceText");
             namespaceText->SetText(u8"命名空间: " + m_TargetClass->GetNamespace());
             namespaceText->SetTextColor(m_TextColor);
             classInfoBox->AddChild(namespaceText);
 
-            // 基类
             auto* baseClassText = new ImTextBlock("BaseClassText");
             baseClassText->SetText(u8"基类: " + m_TargetClass->GetBaseClass());
             baseClassText->SetTextColor(m_TextColor);
             classInfoBox->AddChild(baseClassText);
 
-            // 统计信息
             auto* statsText = new ImTextBlock("StatsText");
             statsText->SetText(u8"统计: " +
                 std::to_string(m_TargetClass->GetBasicVariableNames().size()) + u8"个基本变量, " +
@@ -290,17 +316,15 @@ namespace ImGuiWidget
             m_BasicVarsSection = new ImExpandableBox("BasicVarsSection");
             m_BasicVarsSection->SetHead(CreateSectionHeader(u8"基本变量", "BasicVarsSection"));
 
-            auto* basicVarsContainer = new ImVerticalBox("BasicVarsContainer");
-            m_BasicVarsSection->SetBody(basicVarsContainer);
+            m_BasicVarsContainer = new ImVerticalBox("BasicVarsContainer");
+            m_BasicVarsSection->SetBody(m_BasicVarsContainer);
 
-            // 设置展开状态回调
             m_BasicVarsSection->SetOnExpandedStateChanged([this](bool expanded)
                 {
                     m_ExpandedStateMap["BasicVarsSection"] = expanded;
                 });
 
-            // 应用保存的展开状态
-            bool expanded = true; // 默认展开
+            bool expanded = true;
             auto it = m_ExpandedStateMap.find("BasicVarsSection");
             if (it != m_ExpandedStateMap.end())
             {
@@ -308,13 +332,27 @@ namespace ImGuiWidget
             }
             m_BasicVarsSection->SetExpandedState(expanded);
 
-            // 获取基本变量列表
-            auto basicVarNames = m_TargetClass->GetBasicVariableNames();
+            RefreshBasicVariablesContent();
 
+            m_MainContainer->AddChild(m_BasicVarsSection)->SetIfAutoSize(false);
+        }
+
+        // 刷新基本变量内容（可独立调用）
+        void RefreshBasicVariablesContent()
+        {
+            if (!m_BasicVarsContainer) return;
+
+            m_BasicVarsContainer->RemoveAllChild(true);
+            VariableName_To_Button.clear();
+
+            auto basicVarNames = m_TargetClass->GetBasicVariableNames();
             for (const auto& varName : basicVarNames)
             {
                 auto* varItem = CreateBasicVariableItem(varName);
-                basicVarsContainer->AddChild(varItem);
+                if (varItem)
+                {
+                    m_BasicVarsContainer->AddChild(varItem);
+                }
             }
 
             if (basicVarNames.empty())
@@ -322,10 +360,8 @@ namespace ImGuiWidget
                 auto* emptyText = new ImTextBlock("BasicVarsEmptyText");
                 emptyText->SetText(u8"无基本变量");
                 emptyText->SetTextColor(IM_COL32(128, 128, 128, 255));
-                basicVarsContainer->AddChild(emptyText);
+                m_BasicVarsContainer->AddChild(emptyText);
             }
-
-            m_MainContainer->AddChild(m_BasicVarsSection)->SetIfAutoSize(false);
         }
 
         // ImObject变量分区
@@ -334,16 +370,14 @@ namespace ImGuiWidget
             m_ObjectVarsSection = new ImExpandableBox("ObjectVarsSection");
             m_ObjectVarsSection->SetHead(CreateSectionHeader(u8"ImObject变量", "ObjectVarsSection"));
 
-            auto* objectVarsContainer = new ImVerticalBox("ObjectVarsContainer");
-            m_ObjectVarsSection->SetBody(objectVarsContainer);
+            m_ObjectVarsContainer = new ImVerticalBox("ObjectVarsContainer");
+            m_ObjectVarsSection->SetBody(m_ObjectVarsContainer);
 
-            // 设置展开状态回调
             m_ObjectVarsSection->SetOnExpandedStateChanged([this](bool expanded)
                 {
                     m_ExpandedStateMap["ObjectVarsSection"] = expanded;
                 });
 
-            // 应用保存的展开状态
             bool expanded = true;
             auto it = m_ExpandedStateMap.find("ObjectVarsSection");
             if (it != m_ExpandedStateMap.end())
@@ -352,13 +386,27 @@ namespace ImGuiWidget
             }
             m_ObjectVarsSection->SetExpandedState(expanded);
 
-            // 获取Object变量列表
-            auto objectVarNames = m_TargetClass->GetObjectVariableNames();
+            RefreshObjectVariablesContent();
 
+            m_MainContainer->AddChild(m_ObjectVarsSection)->SetIfAutoSize(false);
+        }
+
+        // 刷新对象变量内容
+        void RefreshObjectVariablesContent()
+        {
+            if (!m_ObjectVarsContainer) return;
+
+            m_ObjectVarsContainer->RemoveAllChild(true);
+            VariableName_To_Button.clear();
+
+            auto objectVarNames = m_TargetClass->GetObjectVariableNames();
             for (const auto& varName : objectVarNames)
             {
                 auto* varItem = CreateObjectVariableItem(varName);
-                objectVarsContainer->AddChild(varItem);
+                if (varItem)
+                {
+                    m_ObjectVarsContainer->AddChild(varItem);
+                }
             }
 
             if (objectVarNames.empty())
@@ -366,10 +414,8 @@ namespace ImGuiWidget
                 auto* emptyText = new ImTextBlock("ObjectVarsEmptyText");
                 emptyText->SetText(u8"无ImObject变量");
                 emptyText->SetTextColor(IM_COL32(128, 128, 128, 255));
-                objectVarsContainer->AddChild(emptyText);
+                m_ObjectVarsContainer->AddChild(emptyText);
             }
-
-            m_MainContainer->AddChild(m_ObjectVarsSection)->SetIfAutoSize(false);
         }
 
         // 控件树分区
@@ -378,17 +424,14 @@ namespace ImGuiWidget
             m_WidgetTreeSection = new ImExpandableBox("WidgetTreeSection");
             m_WidgetTreeSection->SetHead(CreateSectionHeader(u8"控件树", "WidgetTreeSection"));
 
-            auto* widgetTreeContainer = new ImVerticalBox("WidgetTreeContainer");
-            m_WidgetTreeSection->SetBody(widgetTreeContainer);
+            m_WidgetTreeContainer = new ImVerticalBox("WidgetTreeContainer");
+            m_WidgetTreeSection->SetBody(m_WidgetTreeContainer);
 
-
-            // 设置展开状态回调
             m_WidgetTreeSection->SetOnExpandedStateChanged([this](bool expanded)
                 {
                     m_ExpandedStateMap["WidgetTreeSection"] = expanded;
                 });
 
-            // 应用保存的展开状态
             bool expanded = true;
             auto it = m_ExpandedStateMap.find("WidgetTreeSection");
             if (it != m_ExpandedStateMap.end())
@@ -397,65 +440,77 @@ namespace ImGuiWidget
             }
             m_WidgetTreeSection->SetExpandedState(expanded);
 
-            // 获取所有根控件
-            auto widgetVarNames = m_TargetClass->GetWidgetVariableNames();
-
-            for (const auto& varName : widgetVarNames)
-            {
-                ImWidget* widget = m_TargetClass->GetWidgetVariable(varName);
-                if (widget)
-                {
-                    auto* widgetNode = CreateWidgetTreeNode(widget, varName, true);
-                    if (widgetNode)
-                    {
-                        widgetTreeContainer->AddChild(widgetNode);
-                    }
-                }
-            }
-
-            if (widgetVarNames.empty())
-            {
-                auto* emptyText = new ImTextBlock("WidgetTreeEmptyText");
-                emptyText->SetText(u8"无控件");
-                emptyText->SetTextColor(IM_COL32(128, 128, 128, 255));
-                widgetTreeContainer->AddChild(emptyText);
-            }
+            RefreshWidgetTreeContent();
 
             m_MainContainer->AddChild(m_WidgetTreeSection)->SetIfAutoSize(false);
         }
 
-        // 创建分区标题（改进版，带图标）
-        ImWidget* CreateSectionHeader(const std::string& title,const std::string& sectionType)
+        // 刷新控件树内容（可指定从某个控件开始刷新）
+        void RefreshWidgetTreeContent(ImWidget* startWidget = nullptr, const std::string& startWidgetPath = "")
+        {
+            if (!m_WidgetTreeContainer) return;
+
+            if (!startWidget)
+            {
+                // 完全刷新
+                m_WidgetTreeContainer->RemoveAllChild(true);
+                WidgetPath_To_Expander.clear();
+                Expander_To_WidgetPath.clear();
+                WidgetPath_To_Container.clear();
+                VariableName_To_Button.clear();
+
+                auto widgetVarNames = m_TargetClass->GetWidgetVariableNames();
+                for (const auto& varName : widgetVarNames)
+                {
+                    ImWidget* widget = m_TargetClass->GetWidgetVariable(varName);
+                    if (widget)
+                    {
+                        auto* widgetNode = CreateWidgetTreeNode(widget, varName, "", true);
+                        if (widgetNode)
+                        {
+                            m_WidgetTreeContainer->AddChild(widgetNode)->SetIfAutoSize(false);
+                        }
+                    }
+                }
+
+                if (widgetVarNames.empty())
+                {
+                    auto* emptyText = new ImTextBlock("WidgetTreeEmptyText");
+                    emptyText->SetText(u8"无控件");
+                    emptyText->SetTextColor(IM_COL32(128, 128, 128, 255));
+                    m_WidgetTreeContainer->AddChild(emptyText);
+                }
+            }
+            else
+            {
+                // 部分刷新：刷新指定控件节点
+                RefreshWidgetTreeNode(startWidget, startWidgetPath);
+            }
+        }
+
+        // 创建分区标题
+        ImWidget* CreateSectionHeader(const std::string& title, const std::string& sectionType)
         {
             auto* headerContainer = new ImHorizontalBox(title + "HeaderContainer");
-
-            // 图标
-            //auto* iconText = new ImTextBlock(title + "Icon");
-            //iconText->SetText(icon);
-            //iconText->SetTextColor(IM_COL32(100, 200, 255, 255));
-
-            // 标题文本
             auto* headerText = new ImTextBlock(title + "Header");
             headerText->SetText(title);
             headerText->SetTextColor(m_TextColor);
-
-            //headerContainer->AddChild(iconText);
             headerContainer->AddChild(headerText);
             headerContainer->bHaveBackGround = false;
+
             auto* headerButton = new ImButton(title + "Button");
             headerButton->SetContent(headerContainer);
-            //headerButton->SetBackGroundColor(m_SectionHeaderColor);
 
-			headerButton->OnRightClicked.Add([this, sectionType]()
-				{
-					ImVec2 mousePos = ImGuiWidget::GetMousePos();
-					ShowSectionRootMenu(sectionType, mousePos);
-				});
+            headerButton->OnRightClicked.Add([this, sectionType]()
+                {
+                    ImVec2 mousePos = ImGuiWidget::GetMousePos();
+                    ShowSectionRootMenu(sectionType, mousePos);
+                });
 
             return headerButton;
         }
 
-        // 创建基本变量项（细化风格）
+        // 创建基本变量项
         ImWidget* CreateBasicVariableItem(const std::string& varName)
         {
             ImBasicVariable* basicVar = m_TargetClass->GetBasicVariable(varName);
@@ -472,162 +527,105 @@ namespace ImGuiWidget
             ImObject* objectVar = m_TargetClass->GetObjectVariable(varName);
             if (!objectVar) return nullptr;
 
-            return CreateVariableItem(varName, "ObjectVariable", 
+            return CreateVariableItem(varName, "ObjectVariable",
                 objectVar->GetRegisterTypeName(),
                 objectVar, IM_COL32(200, 100, 255, 255));
         }
 
-        // 通用的变量项创建方法（统一风格）
+        // 通用的变量项创建方法
         ImWidget* CreateVariableItem(const std::string& varName, const std::string& varType,
-             const std::string& typeName,
+            const std::string& typeName,
             void* dataPtr, ImU32 iconColor)
         {
             auto* itemButton = new ImButton(varName + "Button");
-
-            // 水平布局容器
             auto* contentContainer = new ImHorizontalBox(varName + "Content");
 
-            // 图标//暂不使用
-            //auto* iconText = new ImTextBlock(varName + "Icon");
-            //iconText->SetText(icon);
-            //iconText->SetTextColor(iconColor);
-
-            // 变量名
             auto* nameText = new ImTextBlock(varName + "Name");
             nameText->SetText(varName);
             nameText->SetTextColor(m_TextColor);
             nameText->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Left);
-            // 类型信息
+
             auto* typeText = new ImTextBlock(varName + "Type");
             typeText->SetText(" [" + typeName + "]");
             typeText->SetTextColor(m_TypeTextColor);
             typeText->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Left);
-            //contentContainer->AddChild(iconText);
+
             contentContainer->AddChild(nameText)->SetIfAutoSize(false);
             contentContainer->AddChild(typeText)->SetIfAutoSize(false);
 
             itemButton->SetContent(contentContainer);
 
-            // 设置按钮样式
             ConfigureItemButton(itemButton, varType, varName, dataPtr);
+
+            // 缓存按钮引用
+            VariableName_To_Button[varName] = itemButton;
 
             return itemButton;
         }
 
-        // 控件树节点创建（递归函数，参考UI_WidgetTreeView的实现）
-        ImWidget* CreateWidgetTreeNode(ImWidget* widget, const std::string& widgetName, bool isRootLevel)
+        // 控件树节点创建
+        ImWidget* CreateWidgetTreeNode(ImWidget* widget, const std::string& widgetName,
+            const std::string& parentPath, bool isRootLevel)
         {
             if (!widget) return nullptr;
 
+            std::string widgetPath = parentPath.empty() ? widgetName : parentPath + "/" + widgetName;
             bool hasChildren = (widget->GetChildNum() > 0);
 
             if (hasChildren)
             {
                 // 有子控件：使用展开框
-                return CreateExpandableWidgetNode(widget, widgetName, isRootLevel);
+                return CreateExpandableWidgetNode(widget, widgetName, widgetPath, isRootLevel);
             }
             else
             {
                 // 无子控件：直接创建按钮项
-                return CreateWidgetItem(widget, widgetName, isRootLevel);
-            }
-        }
-
-        // 创建展开器标题
-        ImWidget* CreateExpanderHeader(int childCount)
-        {
-            auto* headerContainer = new ImHorizontalBox("ExpanderHeader");
-
-            auto* arrowIcon = new ImTextBlock("ExpanderArrow");
-            arrowIcon->SetText("▶");
-            arrowIcon->SetTextColor(IM_COL32(150, 150, 150, 255));
-
-            auto* countText = new ImTextBlock("ExpanderCount");
-            countText->SetText(u8"子控件 (" + std::to_string(childCount) + ")");
-            countText->SetTextColor(IM_COL32(180, 180, 180, 255));
-
-            headerContainer->AddChild(arrowIcon);
-            headerContainer->AddChild(countText);
-
-            return headerContainer;
-        }
-
-        // 选择项处理
-        void OnItemSelected(const OutlineViewSelectionInfo& selectionInfo)
-        {
-            m_CurrentSelection = selectionInfo;
-
-            if (m_SelectionCallback)
-            {
-                m_SelectionCallback(selectionInfo);
-            }
-
-            //RefreshView(); // 刷新以更新样式
-        }
-
-        // 基本变量类型图标
-        std::string GetBasicVariableTypeIcon(ImBasicVariable::BasicType type) const
-        {
-            switch (type)
-            {
-            case ImBasicVariable::BasicType::Int: return "🔢";
-            case ImBasicVariable::BasicType::Float: return "📐";
-            case ImBasicVariable::BasicType::Bool: return "✅";
-            case ImBasicVariable::BasicType::String: return "📝";
-            case ImBasicVariable::BasicType::Color: return "🎨";
-            default: return "❓";
-            }
-        }
-
-        // 基本变量类型名称
-        std::string GetBasicVariableTypeName(ImBasicVariable::BasicType type) const
-        {
-            switch (type)
-            {
-            case ImBasicVariable::BasicType::Int: return u8"整数";
-            case ImBasicVariable::BasicType::Float: return u8"浮点数";
-            case ImBasicVariable::BasicType::Bool: return u8"布尔值";
-            case ImBasicVariable::BasicType::String: return u8"字符串";
-            case ImBasicVariable::BasicType::Color: return u8"颜色";
-            default: return u8"未知";
+                return CreateWidgetItem(widget, widgetName, widgetPath, isRootLevel);
             }
         }
 
         // 创建可展开的控件节点
-        ImWidget* CreateExpandableWidgetNode(ImWidget* widget, const std::string& widgetName, bool isRootLevel)
+        ImWidget* CreateExpandableWidgetNode(ImWidget* widget, const std::string& widgetName,
+            const std::string& widgetPath, bool isRootLevel)
         {
             auto* expandableBox = new ImExpandableBox(widgetName + "ExpandableBox");
 
-            // 创建头部：包含控件信息和展开箭头
-            auto* headerWidget = CreateWidgetNodeHeader(widget, widgetName, isRootLevel, true);
+            // 创建头部
+            auto* headerWidget = CreateWidgetNodeHeader(widget, widgetName, widgetPath, isRootLevel, true);
             expandableBox->SetHead(headerWidget);
 
             // 创建身体：包含子控件
             auto* bodyContainer = new ImVerticalBox(widgetName + "BodyContainer");
-            //bodyContainer->SetPadding(20, 0, 0, 0); // 子节点缩进
 
-                // 设置展开状态回调
-            expandableBox->SetOnExpandedStateChanged([this, widgetName](bool expanded)
+            // 缓存映射
+            WidgetPath_To_Expander[widgetPath] = expandableBox;
+            Expander_To_WidgetPath[expandableBox] = widgetPath;
+            WidgetPath_To_Container[widgetPath] = bodyContainer;
+            VariableName_To_Button[widgetName] = dynamic_cast<ImButton*>(headerWidget->GetChildAt(0));
+
+            // 设置展开状态回调
+            expandableBox->SetOnExpandedStateChanged([this, widgetPath](bool expanded)
                 {
-                    m_ExpandedStateMap[widgetName] = expanded;
+                    m_ExpandedStateMap[widgetPath] = expanded;
                 });
 
             // 应用保存的展开状态
-            bool expanded = false; // 默认收起
-            auto it = m_ExpandedStateMap.find(widgetName);
+            bool expanded = false;
+            auto it = m_ExpandedStateMap.find(widgetPath);
             if (it != m_ExpandedStateMap.end())
             {
                 expanded = it->second;
             }
             expandableBox->SetExpandedState(expanded);
 
+            // 添加子控件
             int childCount = widget->GetChildNum();
             for (int i = 0; i < childCount; i++)
             {
                 ImWidget* child = widget->GetChildAt(i);
                 if (child)
                 {
-                    auto* childNode = CreateWidgetTreeNode(child, child->GetWidgetName(), false);
+                    auto* childNode = CreateWidgetTreeNode(child, child->GetWidgetName(), widgetPath, false);
                     if (childNode)
                     {
                         bodyContainer->AddChild(childNode);
@@ -636,73 +634,42 @@ namespace ImGuiWidget
             }
 
             expandableBox->SetBody(bodyContainer);
-
-            // 设置展开状态和回调
-            expandableBox->SetExpandedState(true); // 默认展开
-            expandableBox->SetOnExpandedStateChanged([this, widgetName](bool expanded)
-                {
-                    // 可以在这里保存/恢复展开状态
-                    OnWidgetNodeExpanded(widgetName, expanded);
-                });
+            expandableBox->SetExpandedState(true);
 
             return expandableBox;
         }
 
-        // 创建控件节点头部（包含选中按钮和展开箭头）
-        ImWidget* CreateWidgetNodeHeader(ImWidget* widget, const std::string& widgetName, bool isRootLevel, bool expandable)
+        // 创建控件节点头部
+        ImWidget* CreateWidgetNodeHeader(ImWidget* widget, const std::string& widgetName,
+            const std::string& widgetPath, bool isRootLevel, bool expandable)
         {
             auto* headerContainer = new ImHorizontalBox(widgetName + "HeaderContainer");
-
-            // 展开箭头（仅当有子控件时显示）
-            //if (expandable)
-            //{
-            //    auto* arrowIcon = new ImTextBlock(widgetName + "Arrow");
-            //    arrowIcon->SetText("▼"); // 默认展开状态显示向下箭头
-            //    arrowIcon->SetTextColor(IM_COL32(150, 150, 150, 255));
-            //    arrowIcon->SetSize(ImVec2(12, 12));
-            //    headerContainer->AddChild(arrowIcon);
-            //}
-            //else
-            //{
-            //    // 占位空间，保持对齐
-            //    auto* spacer = new ImTextBlock(widgetName + "Spacer");
-            //    spacer->SetText("  ");
-            //    spacer->SetSize(ImVec2(12, 12));
-            //    headerContainer->AddChild(spacer);
-            //}
-
-            // 控件信息按钮
-            auto* widgetButton = CreateWidgetItemButton(widget, widgetName, isRootLevel);
+            auto* widgetButton = CreateWidgetItemButton(widget, widgetName, widgetPath, isRootLevel);
             headerContainer->AddChild(widgetButton);
-
             return headerContainer;
         }
 
-        // 创建控件项按钮（纯粹的按钮，不包含布局）
-        ImButton* CreateWidgetItemButton(ImWidget* widget, const std::string& widgetName, bool isRootLevel)
+        // 创建控件项按钮
+        ImButton* CreateWidgetItemButton(ImWidget* widget, const std::string& widgetName,
+            const std::string& widgetPath, bool isRootLevel)
         {
             auto* itemButton = new ImButton(widgetName + "Button");
-
-            // 水平布局容器
             auto* contentContainer = new ImHorizontalBox(widgetName + "Content");
 
-            // 控件类型图标//暂不用
-            //auto* typeIcon = new ImTextBlock(widgetName + "Icon");
-            //typeIcon->SetText(isRootLevel ? "🖼️" : "📄"); // 根控件和子控件使用不同图标
-            //typeIcon->SetTextColor(isRootLevel ? IM_COL32(100, 255, 100, 255) : IM_COL32(255, 200, 100, 255));
-
-            // 控件名称
             auto* nameText = new ImTextBlock(widgetName + "Name");
             nameText->SetText(widgetName);
             nameText->SetTextColor(m_TextColor);
             nameText->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Left);
-            // 控件类型（在括号中）
+
             auto* typeText = new ImTextBlock(widgetName + "Type");
             typeText->SetText(" [" + widget->GetRegisterTypeName() + "]");
             typeText->SetTextColor(m_TypeTextColor);
             typeText->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Left);
 
-            // 子控件数量提示（如果有子控件）
+            contentContainer->AddChild(nameText)->SetIfAutoSize(false);
+            contentContainer->AddChild(typeText)->SetIfAutoSize(false);
+
+            // 子控件数量提示
             int childCount = widget->GetChildNum();
             if (childCount > 0)
             {
@@ -713,52 +680,32 @@ namespace ImGuiWidget
                 contentContainer->AddChild(countText)->SetIfAutoSize(false);
             }
 
-            //contentContainer->AddChild(typeIcon);
-            contentContainer->AddChild(nameText)->SetIfAutoSize(false);
-            contentContainer->AddChild(typeText)->SetIfAutoSize(false);
-
             itemButton->SetContent(contentContainer);
-
-            // 设置按钮样式和回调
             ConfigureItemButton(itemButton, "Widget", widgetName, widget);
+
+            // 缓存按钮引用
+            VariableName_To_Button[widgetName] = itemButton;
 
             return itemButton;
         }
 
         // 创建简单的控件项（无子控件的情况）
-        ImWidget* CreateWidgetItem(ImWidget* widget, const std::string& widgetName, bool isRootLevel)
+        ImWidget* CreateWidgetItem(ImWidget* widget, const std::string& widgetName,
+            const std::string& widgetPath, bool isRootLevel)
         {
             auto* itemContainer = new ImHorizontalBox(widgetName + "ItemContainer");
-
-            // 添加缩进占位（保持与有子控件的节点对齐）
-            //auto* spacer = new ImTextBlock(widgetName + "Spacer");
-            //spacer->SetText("  ");
-            //spacer->SetSize(ImVec2(12, 12));
-            //itemContainer->AddChild(spacer);
-
-            // 创建控件按钮
-            auto* widgetButton = CreateWidgetItemButton(widget, widgetName, isRootLevel);
+            auto* widgetButton = CreateWidgetItemButton(widget, widgetName, widgetPath, isRootLevel);
             itemContainer->AddChild(widgetButton);
-
             return itemContainer;
         }
 
-        // 控件节点展开状态变化处理
-        void OnWidgetNodeExpanded(const std::string& widgetName, bool expanded)
-        {
-            // 可以在这里保存展开状态，用于持久化
-            // 例如：m_ExpandedNodes[widgetName] = expanded;
-        }
-
-        // 配置项按钮样式和回调（保持原有逻辑，但针对控件类型做特殊处理）
+        // 配置项按钮样式和回调
         void ConfigureItemButton(ImButton* button, const std::string& itemType,
             const std::string& itemName, void* dataPtr)
         {
-            // 判断是否为当前选中项
             bool isSelected = (m_CurrentSelection.VariableType == itemType &&
                 m_CurrentSelection.VariableName == itemName);
 
-            // 设置样式
             auto& normalStyle = button->GetNormalStyle();
             auto& hoveredStyle = button->GetHoveredStyle();
 
@@ -776,7 +723,6 @@ namespace ImGuiWidget
             normalStyle.Rounding = 3.0f;
             hoveredStyle.Rounding = 3.0f;
 
-            // 控件按钮使用不同的边框样式
             if (itemType == "Widget")
             {
                 normalStyle.HasBorder = false;
@@ -786,14 +732,13 @@ namespace ImGuiWidget
 
             button->SetNormalStyle(normalStyle);
             button->SetHoveredStyle(hoveredStyle);
-
-            // 设置按钮大小策略
             button->SetOriginalMinSize(ImVec2(200, 28));
 
             OutlineViewSelectionInfo selectionInfo;
             selectionInfo.VariableName = itemName;
             selectionInfo.VariableType = itemType;
             selectionInfo.ItemButton = button;
+
             if (itemType == "Widget")
             {
                 ImWidget* widget = static_cast<ImWidget*>(dataPtr);
@@ -819,10 +764,9 @@ namespace ImGuiWidget
                 selectionInfo.WidgetRegisterTypeName = obj->GetRegisterTypeName();
             }
 
-            ItemName_To_SelectionInfo.insert(std::make_pair(itemName, selectionInfo));
-            
-            // 设置回调
-            button->SetOnPressed([this,itemName]()
+            ItemName_To_SelectionInfo[itemName] = selectionInfo;
+
+            button->SetOnPressed([this, itemName]()
                 {
                     SelectItemByName(itemName);
                 });
@@ -837,12 +781,10 @@ namespace ImGuiWidget
 
                         if (isRootWidget)
                         {
-                            // 根控件菜单
                             ShowWidgetRootMenu(itemName, widget, mousePos);
                         }
                         else
                         {
-                            // 子控件菜单
                             ShowWidgetChildMenu(widget, mousePos);
                         }
                     });
@@ -857,26 +799,26 @@ namespace ImGuiWidget
                 expandableBox == m_WidgetTreeSection);
         }
 
-        //外部设置选中item
-        void SelectItemByName(const std::string& ItemName,bool OutSideSet = false/*表示是否由外部设置*/)
+        // 外部设置选中item
+        void SelectItemByName(const std::string& ItemName, bool OutSideSet = false)
         {
             auto it = ItemName_To_SelectionInfo.find(m_CurrentSelection.VariableName);
             if (it != ItemName_To_SelectionInfo.end())
             {
                 it->second.ItemButton->GetNormalStyle().BackgroundColor = m_NormalBgColor;
             }
-            
+
             it = ItemName_To_SelectionInfo.find(ItemName);
             if (it != ItemName_To_SelectionInfo.end())
-			{
-				m_CurrentSelection = it->second;
-				it->second.ItemButton->GetNormalStyle().BackgroundColor = m_SelectedBgColor;
-				if (m_SelectionCallback && !OutSideSet)
-				{
-					m_SelectionCallback(m_CurrentSelection);
-				}
+            {
+                m_CurrentSelection = it->second;
+                it->second.ItemButton->GetNormalStyle().BackgroundColor = m_SelectedBgColor;
+                if (m_SelectionCallback && !OutSideSet)
+                {
+                    m_SelectionCallback(m_CurrentSelection);
+                }
 
-                if (OutSideSet)//如果是外部选中，递归展开ExpandableBox
+                if (OutSideSet)
                 {
                     ImGuiWidget::ImWidget* current = it->second.ItemButton;
                     while (!IsRootSectionExpandableBox(current))
@@ -892,13 +834,259 @@ namespace ImGuiWidget
                         current = current->GetParents();
                     }
                 }
-                else//非外部选中，执行动作
+                else
                 {
                     Action_SelectVar(m_CurrentSelection);
                 }
-			}
+            }
         }
-   
+
+        // 基本变量类型名称
+        std::string GetBasicVariableTypeName(ImBasicVariable::BasicType type) const
+        {
+            switch (type)
+            {
+            case ImBasicVariable::BasicType::Int: return u8"整数";
+            case ImBasicVariable::BasicType::Float: return u8"浮点数";
+            case ImBasicVariable::BasicType::Bool: return u8"布尔值";
+            case ImBasicVariable::BasicType::String: return u8"字符串";
+            case ImBasicVariable::BasicType::Color: return u8"颜色";
+            default: return u8"未知";
+            }
+        }
+
+        //-----------增量更新处理函数--------------
+
+    protected:
+        //处理基本变量列表刷新
+        bool HandelUpdateBasicVariableSection()
+        {
+            RefreshBasicVariablesContent();
+            return true;
+        }
+
+        //处理Obejct变量列表刷新
+        bool HandelUpdateObjectVariableSection()
+        {
+            RefreshObjectVariablesContent();
+            return true;
+        }
+
+        //处理控件树变量列表刷新
+        bool HandelUpdateWidgetVariableSection()
+        {
+            RefreshWidgetTreeContent();
+            return true;
+        }
+
+        // 处理变量重命名
+        bool HandleVariableRenamed(const OutlineViewChangeInfo& changeInfo)
+        {
+            // 更新缓存映射中的键
+            if (ItemName_To_SelectionInfo.find(changeInfo.OldName) != ItemName_To_SelectionInfo.end())
+            {
+                auto info = ItemName_To_SelectionInfo[changeInfo.OldName];
+                info.VariableName = changeInfo.NewName;
+                ItemName_To_SelectionInfo[changeInfo.NewName] = info;
+                ItemName_To_SelectionInfo.erase(changeInfo.OldName);
+            }
+
+            // 更新按钮文本
+            auto buttonIt = VariableName_To_Button.find(changeInfo.OldName);
+            if (buttonIt != VariableName_To_Button.end())
+            {
+                ImButton* button = buttonIt->second;
+                if (button && button->GetContent())
+                {
+                    ImHorizontalBox* contentContainer = dynamic_cast<ImHorizontalBox*>(button->GetContent());
+                    if (contentContainer)
+                    {
+                        // 查找名称文本块
+                        for (int i = 0; i < contentContainer->GetChildNum(); i++)
+                        {
+                            ImWidget* child = contentContainer->GetChildAt(i);
+                            if (child->GetWidgetName().find("Name") != std::string::npos)
+                            {
+                                ImTextBlock* nameText = dynamic_cast<ImTextBlock*>(child);
+                                if (nameText)
+                                {
+                                    nameText->SetText(changeInfo.NewName);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    // 更新缓存映射
+                    VariableName_To_Button[changeInfo.NewName] = button;
+                    VariableName_To_Button.erase(changeInfo.OldName);
+                }
+            }
+
+            // 如果是控件，还需要更新控件树缓存
+            if (changeInfo.VariableType == "Widget")
+            {
+                // 更新根控件缓存
+                if (m_RootWidgetNames.find(changeInfo.OldName) != m_RootWidgetNames.end())
+                {
+                    m_RootWidgetNames.erase(changeInfo.OldName);
+                    m_RootWidgetNames.insert(changeInfo.NewName);
+                }
+            }
+
+            return true;
+        }
+
+        // 处理子控件添加
+        bool HandleWidgetChildAdded(const OutlineViewChangeInfo& changeInfo)
+        {
+            if (!changeInfo.ParentWidget) return false;
+
+            // 查找父控件的路径
+            std::string parentPath = FindWidgetPath(changeInfo.ParentWidget);
+            if (parentPath.empty()) return false;
+
+            // 刷新父控件节点
+            RefreshWidgetTreeNode(changeInfo.ParentWidget, parentPath);
+            return true;
+        }
+
+        // 处理子控件删除
+        bool HandleWidgetChildRemoved(const OutlineViewChangeInfo& changeInfo)
+        {
+            if (!changeInfo.ParentWidget) return false;
+
+            // 查找父控件的路径
+            std::string parentPath = FindWidgetPath(changeInfo.ParentWidget);
+            if (parentPath.empty()) return false;
+
+            // 刷新父控件节点
+            RefreshWidgetTreeNode(changeInfo.ParentWidget, parentPath);
+            return true;
+        }
+
+        // 处理子控件重命名
+        bool HandleWidgetChildRenamed(const OutlineViewChangeInfo& changeInfo)
+        {
+            if (!changeInfo.ChangedWidget) return false;
+
+            // 更新按钮文本
+            std::string widgetName = changeInfo.ChangedWidget->GetWidgetName();
+            auto buttonIt = VariableName_To_Button.find(changeInfo.OldName);
+            if (buttonIt != VariableName_To_Button.end())
+            {
+                ImButton* button = buttonIt->second;
+                if (button && button->GetContent())
+                {
+                    ImHorizontalBox* contentContainer = dynamic_cast<ImHorizontalBox*>(button->GetContent());
+                    if (contentContainer)
+                    {
+                        // 查找名称文本块
+                        for (int i = 0; i < contentContainer->GetChildNum(); i++)
+                        {
+                            ImWidget* child = contentContainer->GetChildAt(i);
+                            if (child->GetWidgetName().find("Name") != std::string::npos)
+                            {
+                                ImTextBlock* nameText = dynamic_cast<ImTextBlock*>(child);
+                                if (nameText)
+                                {
+                                    nameText->SetText(changeInfo.NewName);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+
+                    // 更新缓存映射
+                    VariableName_To_Button[changeInfo.NewName] = button;
+                    VariableName_To_Button.erase(changeInfo.OldName);
+                }
+            }
+
+            // 更新选择信息
+            if (ItemName_To_SelectionInfo.find(changeInfo.OldName) != ItemName_To_SelectionInfo.end())
+            {
+                auto info = ItemName_To_SelectionInfo[changeInfo.OldName];
+                info.VariableName = changeInfo.NewName;
+                ItemName_To_SelectionInfo[changeInfo.NewName] = info;
+                ItemName_To_SelectionInfo.erase(changeInfo.OldName);
+            }
+
+            return true;
+        }
+
+        // 刷新指定控件树节点
+        void RefreshWidgetTreeNode(ImWidget* widget, const std::string& widgetPath)
+        {
+            // 查找对应的展开框
+            auto expanderIt = WidgetPath_To_Expander.find(widgetPath);
+            if (expanderIt != WidgetPath_To_Expander.end())
+            {
+                ImExpandableBox* expander = expanderIt->second;
+                auto containerIt = WidgetPath_To_Container.find(widgetPath);
+                if (containerIt != WidgetPath_To_Container.end())
+                {
+                    ImVerticalBox* container = containerIt->second;
+
+                    // 保存当前展开状态
+                    bool wasExpanded = expander->GetIfExpanded();
+
+                    // 清空容器
+                    container->RemoveAllChild(true);
+
+                    // 重新添加子控件
+                    int childCount = widget->GetChildNum();
+                    for (int i = 0; i < childCount; i++)
+                    {
+                        ImWidget* child = widget->GetChildAt(i);
+                        if (child)
+                        {
+                            auto* childNode = CreateWidgetTreeNode(child, child->GetWidgetName(), widgetPath, false);
+                            if (childNode)
+                            {
+                                container->AddChild(childNode);
+                            }
+                        }
+                    }
+
+                    // 恢复展开状态
+                    expander->SetExpandedState(wasExpanded);
+                }
+            }
+        }
+
+        // 查找控件的路径
+        std::string FindWidgetPath(ImWidget* widget)
+        {
+            if (!widget) return "";
+
+            // 先检查是否是根控件
+            std::string widgetName = widget->GetWidgetName();
+            if (IsRootWidget(widgetName))
+            {
+                return widgetName;
+            }
+
+            // 递归查找父控件路径
+            ImWidget* parent = widget->GetParents();
+            if (!parent) return "";
+
+            std::string parentPath = FindWidgetPath(parent);
+            if (parentPath.empty()) return "";
+
+            return parentPath + "/" + widgetName;
+        }
+
+        // 清空所有缓存
+        void ClearAllCaches()
+        {
+            ItemName_To_SelectionInfo.clear();
+            VariableName_To_Button.clear();
+            WidgetPath_To_Expander.clear();
+            Expander_To_WidgetPath.clear();
+            WidgetPath_To_Container.clear();
+        }
+
 //-----------弹出菜单相关--------------
 	protected:
 		// 新增：初始化所有弹出菜单（一次性创建所有菜单内容）
@@ -974,12 +1162,12 @@ namespace ImGuiWidget
 			ImVerticalBox* content = new ImVerticalBox("BasicVarsMenuContent");
 
 			// 创建各种类型的新建变量按钮
-			std::vector<std::pair<std::string, std::string>> varTypes = {
-				{u8"新建整数", "int"},
-				{u8"新建浮点数", "float"},
-				{u8"新建布尔值", "bool"},
-				{u8"新建字符串", "string"},
-				{u8"新建颜色", "color"}
+			std::vector<std::pair<std::string, ImGuiWidget::ImBasicVariable::BasicType>> varTypes = {
+				{u8"新建整数", ImGuiWidget::ImBasicVariable::BasicType::Int},
+				{u8"新建浮点数", ImGuiWidget::ImBasicVariable::BasicType::Float},
+				{u8"新建布尔值", ImGuiWidget::ImBasicVariable::BasicType::Bool},
+				{u8"新建字符串", ImGuiWidget::ImBasicVariable::BasicType::String},
+				{u8"新建颜色", ImGuiWidget::ImBasicVariable::BasicType::Color}
 			};
 
 			for (const auto& varType : varTypes)
@@ -1275,7 +1463,7 @@ namespace ImGuiWidget
 			for (const auto& varName : widgetVarNames)
 			{
 				ImWidget* varWidget = m_TargetClass->GetWidgetVariable(varName);
-				if (IsWidgetInTree(varWidget, widget))
+				if (widget->IsInTree(varWidget))
 				{
 					m_PopupMenus.TargetVarName = varName;
 					break;
@@ -1286,27 +1474,12 @@ namespace ImGuiWidget
 			m_PopupMenus.WidgetChildMenu->SetActive();
 		}
 
-		// 新增：检查控件是否在指定控件树中
-		bool IsWidgetInTree(ImWidget* root, ImWidget* target)
-		{
-			if (!root || !target) return false;
-			if (root == target) return true;
-
-			for (int i = 0; i < root->GetChildNum(); i++)
-			{
-				if (IsWidgetInTree(root->GetChildAt(i), target))
-					return true;
-			}
-
-			return false;
-		}
-
-        void OnCreateBasicVariableClicked(const std::string& typeName)
+        void OnCreateBasicVariableClicked(const ImGuiWidget::ImBasicVariable::BasicType& type)
         {
             // 关闭当前激活的菜单
             CloseActiveMenu();
 
-            Action_CreateBasicVariable(typeName);
+            Action_CreateBasicVariable(type);
         }
 
 		// 新增：处理创建变量点击
@@ -1341,6 +1514,7 @@ namespace ImGuiWidget
 				if (m_PopupMenus.TargetWidget)
 				{
                     Action_InsertWidget(
+                        m_PopupMenus.TargetVarName,
                         m_PopupMenus.TargetWidget,
                         m_PopupMenus.TargetWidget->GetChildNum(),
                         registerName
@@ -1375,6 +1549,7 @@ namespace ImGuiWidget
 				{
 					// 插入到该控件内部
                     Action_InsertWidget(
+                        m_PopupMenus.TargetVarName,
                         m_PopupMenus.TargetWidget,
                         m_PopupMenus.TargetWidget->GetChildNum(),
                         registerName
@@ -1383,6 +1558,7 @@ namespace ImGuiWidget
 				}
                 //插入到该控件父控件的指定位置（与该控件平级）
                 Action_InsertWidget(
+                    m_PopupMenus.TargetVarName,
                     parent,
                     insertIndex,
                     registerName
@@ -1431,7 +1607,7 @@ namespace ImGuiWidget
 			m_PopupMenus.InsertWidgetMenu->Close();
 		}
 
-//----------------动作----------------------
+//----------------动作及事件----------------------
 
         // Action系统初始化
         void ActionInit()
@@ -1439,7 +1615,7 @@ namespace ImGuiWidget
             ResetAction();
             ResetEvent();
 
-            // 监听文件重命名事件（如果需要）
+            // 监听文件重命名事件
             AddSequentialProcessor(Action::ProjectView::RENAME_FILE, [this](const std::string& OldFullPath, const std::string& NewFullPath)
                 {
                     if (m_EditedFileFullPath == OldFullPath)
@@ -1449,38 +1625,177 @@ namespace ImGuiWidget
                         ResetEvent();
                     }
                 });
+
+
         }
-        void ResetAction() {};
-        void ResetEvent() {};
+        void ResetAction() 
+        {
+            for (auto& id : m_FileActions)
+            {
+                RemoveProcessor(id);
+            }
+
+            m_FileActions.clear();
+
+            AddSequentialProcessor(m_EditedFileFullPath + Action::WIDGET_SELECTED, [this](const std::string& SelectedWidgetName) 
+                {
+                    SelectItemByName(SelectedWidgetName);
+                });
+        };
+        
         // 内部Action处理函数
         void Action_SelectVar(const OutlineViewSelectionInfo& selectionInfo)
         {
-            AddLogLine("Action_SelectVar");
+            ExecuteAction(m_EditedFileFullPath + Action::OutlineView::SELECT_VARIABLE, selectionInfo.VariableName);
         }
 
-        void Action_CreateBasicVariable(const std::string& typeName)
+        void Action_CreateBasicVariable(const ImGuiWidget::ImBasicVariable::BasicType& typeName)
         {
-            AddLogLine("Action_CreateBasicVariable");
+            ExecuteAction(m_EditedFileFullPath + Action::OutlineView::CREATE_BASIC_VARIABLE, typeName);
         }
 
         void Action_CreateObjectVariable(const std::string& objectRegisterName)
         {
-            AddLogLine("Action_CreateObjectVariable");
+            ExecuteAction(m_EditedFileFullPath + Action::OutlineView::CREATE_OBJECT_VARIABLE, objectRegisterName);
         }
 
         void Action_CreateWidgetVariable(const std::string& widgetRegisterName)
         {
-            AddLogLine("Action_CreateWidgetVariable");
+            ExecuteAction(m_EditedFileFullPath + Action::OutlineView::CREATE_WIDGET_VARIABLE, widgetRegisterName);
         }
 
-        void Action_InsertWidget(ImGuiWidget::ImWidget* target, int insertIndex, const std::string& widgetRegisterName)
+        void Action_InsertWidget(const std::string& OperatorVarName, ImGuiWidget::ImWidget* target, int insertIndex, const std::string& widgetRegisterName)
         {
-            AddLogLine("Action_InsertWidget");
+            ExecuteAction(m_EditedFileFullPath + Action::OutlineView::INSERT_WIDGET, OperatorVarName, target, widgetRegisterName, insertIndex);
         }
         void Action_DeleteWidget(const std::string& widgetRootVarName, ImGuiWidget::ImWidget* target)
         {
-            AddLogLine("Action_DeleteWidget");
+            ExecuteAction(m_EditedFileFullPath + Action::OutlineView::DELETE_WIDGET, widgetRootVarName, target);
         }
 
+        void ResetEvent() 
+        {
+            for (auto& id : m_FileEvents)
+            {
+                Unsubscribe(id);
+            }
+
+            m_FileEvents.clear();
+
+            m_FileEvents.push_back(Subscribe(m_EditedFileFullPath + Events::OutlineView::UPDATE_BASIC_VARIABLE_SECTION, [this]()
+                {
+                    HandelUpdateBasicVariableSection();
+                }));
+
+            m_FileEvents.push_back(Subscribe(m_EditedFileFullPath + Events::OutlineView::UPDATE_OBJECT_VARIABLE_SECTION, [this]()
+                {
+                    HandelUpdateObjectVariableSection();
+                }));
+
+            m_FileEvents.push_back(Subscribe(m_EditedFileFullPath + Events::OutlineView::UPDATE_WIDGET_VARIABLE_SECTION, [this]()
+                {
+                    HandelUpdateWidgetVariableSection();
+                }));
+
+            m_FileEvents.push_back(Subscribe(m_EditedFileFullPath + Events::OutlineView::VARIABLE_RENAMED,
+                [this](const std::string& oldName, const std::string& newName)
+                {
+                    OutlineViewChangeInfo changeInfo(OutlineViewChangeType::VariableRenamed);
+                    changeInfo.VariableName = newName;
+                    changeInfo.OldName = oldName;
+                    changeInfo.NewName = newName;
+                    if (m_TargetClass->GetWidgetVariable(newName))
+                    {
+                        changeInfo.VariableType = "Widget";
+                    }
+                    else if (m_TargetClass->GetBasicVariable(newName))
+                    {
+                        changeInfo.VariableType = "ObjectVariable";
+                    }
+                    else
+                    {
+                        changeInfo.VariableType = "BasicVariable";
+                    }
+                    
+                    HandleVariableRenamed(changeInfo);
+                }
+            ));
+
+            // 订阅子控件增量更新事件
+            m_FileEvents.push_back(Subscribe(m_EditedFileFullPath + Events::OutlineView::WIDGET_CHILD_ADDED,
+                [this](const std::string& parentVarName, const std::string& childWidgetName)
+                {
+                    // 获取父控件
+                    ImWidget* parentWidget = m_TargetClass->GetWidgetVariable(parentVarName);
+                    if (!parentWidget) return;
+
+                    // 找到添加的子控件
+                    ImWidget* childWidget = nullptr;
+                    int childCount = parentWidget->GetChildNum();
+                    for (int i = 0; i < childCount; i++)
+                    {
+                        ImWidget* child = parentWidget->GetChildAt(i);
+                        if (child && child->GetWidgetName() == childWidgetName)
+                        {
+                            childWidget = child;
+                            break;
+                        }
+                    }
+
+                    if (!childWidget) return;
+
+                    OutlineViewChangeInfo changeInfo(OutlineViewChangeType::WidgetChildAdded);
+                    changeInfo.ParentVarName = parentVarName;
+                    changeInfo.ParentWidget = parentWidget;
+                    changeInfo.ChangedWidget = childWidget;
+                    HandleWidgetChildAdded(changeInfo);
+                }
+            ));
+
+            m_FileEvents.push_back(Subscribe(m_EditedFileFullPath + Events::OutlineView::WIDGET_CHILD_REMOVED,
+                [this](const std::string& parentVarName, const std::string& childWidgetName)
+                {
+                    ImWidget* parentWidget = m_TargetClass->GetWidgetVariable(parentVarName);
+                    if (!parentWidget) return;
+
+                    OutlineViewChangeInfo changeInfo(OutlineViewChangeType::WidgetChildRemoved);
+                    changeInfo.ParentVarName = parentVarName;
+                    changeInfo.ParentWidget = parentWidget;
+                    // 注意：被删除的控件指针可能无效，这里我们只传递名称
+                    changeInfo.VariableName = childWidgetName;
+                    HandleWidgetChildRemoved(changeInfo);
+                }
+            ));
+
+            m_FileEvents.push_back(Subscribe(m_EditedFileFullPath + Events::OutlineView::WIDGET_CHILD_RENAMED,
+                [this](const std::string& parentVarName, const std::string& oldName, const std::string& newName)
+                {
+                    ImWidget* parentWidget = m_TargetClass->GetWidgetVariable(parentVarName);
+                    if (!parentWidget) return;
+
+                    // 找到重命名的子控件
+                    ImWidget* childWidget = nullptr;
+                    int childCount = parentWidget->GetChildNum();
+                    for (int i = 0; i < childCount; i++)
+                    {
+                        ImWidget* child = parentWidget->GetChildAt(i);
+                        if (child && child->GetWidgetName() == newName)
+                        {
+                            childWidget = child;
+                            break;
+                        }
+                    }
+
+                    OutlineViewChangeInfo changeInfo(OutlineViewChangeType::WidgetChildRenamed);
+                    changeInfo.ParentVarName = parentVarName;
+                    changeInfo.ParentWidget = parentWidget;
+                    changeInfo.ChangedWidget = childWidget;
+                    changeInfo.OldName = oldName;
+                    changeInfo.NewName = newName;
+                    HandleWidgetChildRenamed(changeInfo);
+                }
+            ));
+
+        };
 	 };
 }
