@@ -85,7 +85,8 @@ Model_MainModel::EditedUIFile* Model_MainModel::BeginEditFile(const std::string&
 	ImGuiWidget::ImUserWidgetClass* NewEditedUserWidgetCLassFile = new ImGuiWidget::ImUserWidgetClass("");
 	if (NewEditedUserWidgetCLassFile->InitFromFile(FileFullPath))
 	{
-		EditedUIFile* NewEditedFile = new EditedUIFile(FileFullPath, NewEditedUserWidgetCLassFile, new Model_WidgetEditor(NewEditedUserWidgetCLassFile, FileFullPath));
+		//EditedUIFile* NewEditedFile = new EditedUIFile(FileFullPath, NewEditedUserWidgetCLassFile, new Model_WidgetEditor(NewEditedUserWidgetCLassFile, FileFullPath));
+		EditedUIFile* NewEditedFile = new EditedUIFile(FileFullPath, NewEditedUserWidgetCLassFile, new Model_WidgetEditor(nullptr, FileFullPath));
 		EditedFiles.insert(std::make_pair(FileFullPath, NewEditedFile));
 		return NewEditedFile;
 	}

@@ -4,6 +4,7 @@
 #include <memory>
 #include <unordered_set> 
 #include <imgui.h>
+#include <ROP/RunTimeObjectProperty.h>
 namespace ImGuiWidget 
 {
     // 自定义颜色分量提取宏（替代缺失的IM_COL32_R等）

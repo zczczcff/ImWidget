@@ -100,13 +100,22 @@ endif()
 
 
 
-
 #-----------------------------------------------
 # 公共配置（所有平台）
 #-----------------------------------------------
 # 完整包含目录设置
 add_definitions(-DIMGUI_USER_CONFIG=<ImWidgetConfig.h>)
 
+#-----------------------------------------------
+# 添加 ROP 库作为子目录
+#-----------------------------------------------
+# 检查 ROP 库是否存在且包含 CMakeLists.txt
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Extern/ROP/CMakeLists.txt")
+    message(STATUS "Adding ROP library as subdirectory")
+    add_subdirectory(Extern/ROP)
+else()
+    message(WARNING "ROP library not found or missing CMakeLists.txt at ${CMAKE_CURRENT_SOURCE_DIR}/Extern/ROP/CMakeLists.txt")
+endif()
 
 file(GLOB_RECURSE LIB_HEADERS *.h)
 file(GLOB_RECURSE LIB_SOURCES ./Source/*cpp)
@@ -187,67 +196,12 @@ if(IMWIDGET_PLATFORM STREQUAL "pi")
     )
 endif()
 
-# 链接库
+# 链接库 - 添加 ROP 库（如果存在）
 target_link_libraries(ImWidget PUBLIC ${IMWIDGET_LIBS})
 
-#-----------------------------------------------
-# 安装和导出（修复版本）
-#-----------------------------------------------
-if(IMWIDGET_INSTALL)
-    # 安装头文件（所有必要目录）
-    set(INSTALL_INCLUDE_DIRS
-        ImWidget
-        ImWindows
-        Application
-        Extern/imgui-master
-        Extern/stb_image
-    )
-    
-    foreach(dir ${INSTALL_INCLUDE_DIRS})
-        install(DIRECTORY ${dir}/
-            DESTINATION include/${dir}
-            FILES_MATCHING 
-            PATTERN "*.h"
-            PATTERN "*.hpp"
-            PATTERN "*.inl"
-        )
-    endforeach()
-    
-    # 安装库文件
-    install(TARGETS ImWidget
-        EXPORT ImWidgetTargets
-        ARCHIVE DESTINATION lib
-        LIBRARY DESTINATION lib
-        RUNTIME DESTINATION bin
-        INCLUDES DESTINATION include
-    )
-    
-    # 导出配置
-    include(CMakePackageConfigHelpers)
-    write_basic_package_version_file(
-        ${CMAKE_CURRENT_BINARY_DIR}/ImWidgetConfigVersion.cmake
-        VERSION ${PROJECT_VERSION}
-        COMPATIBILITY SameMajorVersion
-    )
-    
-    # 创建配置文件
-    configure_package_config_file(
-        ${CMAKE_CURRENT_SOURCE_DIR}/cmake/ImWidgetConfig.cmake.in
-        ${CMAKE_CURRENT_BINARY_DIR}/ImWidgetConfig.cmake
-        INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ImWidget
-    )
-    
-    # 安装目标导出文件
-    install(EXPORT ImWidgetTargets
-        FILE ImWidgetTargets.cmake
-        NAMESPACE ImWidget::
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ImWidget
-    )
-    
-    # 安装配置文件
-    install(FILES
-        ${CMAKE_CURRENT_BINARY_DIR}/ImWidgetConfig.cmake
-        ${CMAKE_CURRENT_BINARY_DIR}/ImWidgetConfigVersion.cmake
-        DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/ImWidget
-    )
+# 如果 ROP 库存在，链接它
+if(TARGET ROP)
+    message(STATUS "Linking ImWidget with ROP library")
+    target_link_libraries(ImWidget PUBLIC ROP)
 endif()
+
