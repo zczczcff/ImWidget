@@ -37,6 +37,13 @@ namespace ImGuiWidget
 		{
 			return new ImCanvasPanelSlot(*this);
 		}
+		DECLARE_IMOBJECT(ImCanvasPanelSlot, ImSlot)
+		registrar
+			.RegisterProperty(PropertyType::Vec2, "RelativePosition",
+				&ImCanvasPanelSlot::RelativePosition, u8"相对位置")
+			.RegisterProperty(PropertyType::Vec2, "SlotSize",
+				&ImCanvasPanelSlot::SlotSize, u8"插槽大小");
+		END_DECLARE_IMOBJECT()
 	};
 
 	class ImCanvasPanel :public ImPanelWidget
@@ -93,6 +100,7 @@ namespace ImGuiWidget
 		{
 			return new ImCanvasPanel(*this);
 		}
-
+		DECLARE_IMOBJECT(ImCanvasPanel, ImPanelWidget)
+		END_DECLARE_IMOBJECT()
 	};
 }

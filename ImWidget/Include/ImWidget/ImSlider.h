@@ -1,11 +1,80 @@
 #pragma once
-#include "ImWidget.h"
+#include "ImObject.h"  // 假设ImObject.h中包含了ROP系统的声明
 #include "ImEvent/ImMouseEvent.h"
 #include "ImEvent/ImDragEvent.h"
 
 namespace ImGuiWidget
 {
-    class ImSlider :public ImWidget
+    // 滑块样式结构体 - 使用ROP系统
+    struct ImSliderStyle : public ImObject
+    {
+        ImU32 background = IM_COL32(100, 100, 100, 255);
+        ImU32 filled = IM_COL32(61, 133, 224, 255);
+        ImU32 handle = IM_COL32(255, 255, 255, 255);
+        ImU32 handle_border = IM_COL32(30, 30, 30, 255);
+        ImU32 text = IM_COL32(255, 255, 255, 255);
+        ImU32 handle_hovered = IM_COL32(220, 220, 220, 255);
+        ImU32 handle_active = IM_COL32(200, 200, 200, 255);
+
+        // 构造函数
+        ImSliderStyle() = default;
+
+        // 拷贝构造函数
+        ImSliderStyle(const ImSliderStyle& other) = default;
+
+        // 设置全部颜色的一键方法（可选）
+        void SetAllColors(const ImU32& bg, const ImU32& fill, const ImU32& hand,
+            const ImU32& border, const ImU32& txt,
+            const ImU32& hover, const ImU32& active)
+        {
+            background = bg;
+            filled = fill;
+            handle = hand;
+            handle_border = border;
+            text = txt;
+            handle_hovered = hover;
+            handle_active = active;
+        }
+
+        // 浅色主题设置
+        void SetLightTheme()
+        {
+            background = IM_COL32(220, 220, 220, 255);
+            filled = IM_COL32(100, 150, 255, 255);
+            handle = IM_COL32(255, 255, 255, 255);
+            handle_border = IM_COL32(180, 180, 180, 255);
+            text = IM_COL32(50, 50, 50, 255);
+            handle_hovered = IM_COL32(240, 240, 240, 255);
+            handle_active = IM_COL32(230, 230, 230, 255);
+        }
+
+        // 深色主题设置
+        void SetDarkTheme()
+        {
+            background = IM_COL32(60, 60, 60, 255);
+            filled = IM_COL32(80, 120, 200, 255);
+            handle = IM_COL32(200, 200, 200, 255);
+            handle_border = IM_COL32(40, 40, 40, 255);
+            text = IM_COL32(220, 220, 220, 255);
+            handle_hovered = IM_COL32(220, 220, 220, 255);
+            handle_active = IM_COL32(180, 180, 180, 255);
+        }
+
+        virtual std::string GetRegisterTypeName() override { return "ImSliderStyle"; }
+
+        DECLARE_IMOBJECT(ImSliderStyle, ImObject)
+        registrar
+            .RegisterProperty(PropertyType::Color, "BackgroundColor", &ImSliderStyle::background, u8"背景颜色")
+            .RegisterProperty(PropertyType::Color, "FilledColor", &ImSliderStyle::filled, u8"填充颜色")
+            .RegisterProperty(PropertyType::Color, "HandleColor", &ImSliderStyle::handle, u8"手柄颜色")
+            .RegisterProperty(PropertyType::Color, "HandleBorderColor", &ImSliderStyle::handle_border, u8"手柄边框颜色")
+            .RegisterProperty(PropertyType::Color, "TextColor", &ImSliderStyle::text, u8"文本颜色")
+            .RegisterProperty(PropertyType::Color, "HandleHoveredColor", &ImSliderStyle::handle_hovered, u8"手柄悬停颜色")
+            .RegisterProperty(PropertyType::Color, "HandleActiveColor", &ImSliderStyle::handle_active, u8"手柄激活颜色");
+        END_DECLARE_IMOBJECT()
+    };
+
+    class ImSlider : public ImWidget
     {
     public:
         // 手柄类型枚举
@@ -15,35 +84,12 @@ namespace ImGuiWidget
             SLIDER_HANDLE_RECT
         };
 
-        // 颜色配置结构
-        struct SliderColors
-        {
-            ImU32 background;
-            ImU32 filled;
-            ImU32 handle;
-            ImU32 handle_border;
-            ImU32 text;
-            ImU32 handle_hovered;  // 新增：悬停颜色
-            ImU32 handle_active;   // 新增：激活颜色
-
-            SliderColors() :
-                background(IM_COL32(100, 100, 100, 255)),
-                filled(IM_COL32(61, 133, 224, 255)),
-                handle(IM_COL32(255, 255, 255, 255)),
-                handle_border(IM_COL32(30, 30, 30, 255)),
-                text(IM_COL32(255, 255, 255, 255)),
-                handle_hovered(IM_COL32(220, 220, 220, 255)),
-                handle_active(IM_COL32(200, 200, 200, 255))
-            {
-            }
-        };
-
         // 成员变量
         float v;             // 当前值
         float v_Min;        // 最小值
         float v_Max;        // 最大值
         SliderHandleType handle_type; // 手柄类型
-        SliderColors colors;  // 颜色配置
+        ImSliderStyle m_Style;  // 样式配置
         std::string format;   // 值显示格式
         float power;          // 非线性参数
         bool show_value;      // 是否显示数值
@@ -72,6 +118,28 @@ namespace ImGuiWidget
             show_value(true)
         {
             SetFocusable(true);
+        }
+
+        // 拷贝构造函数
+        ImSlider(const ImSlider& other)
+            : ImWidget(other),
+            v(other.v),
+            v_Min(other.v_Min),
+            v_Max(other.v_Max),
+            handle_type(other.handle_type),
+            m_Style(other.m_Style),
+            format(other.format),
+            power(other.power),
+            show_value(other.show_value),
+            show_handle(other.show_handle),
+            draggable(other.draggable),
+            handle_ratio(other.handle_ratio),
+            handlewidth_ratio(other.handlewidth_ratio),
+            bReverse(other.bReverse),
+            m_IsMouseOver(false),  // 重置状态
+            m_IsHandleHovered(false),
+            m_IsDragging(false)
+        {
         }
 
         void SetValue(float NewValue)
@@ -143,18 +211,18 @@ namespace ImGuiWidget
             }
 
             // 渲染逻辑（移除交互逻辑）
-            const ImU32 frame_col = colors.background;
-            const ImU32 filled_col = colors.filled;
+            const ImU32 frame_col = m_Style.background;
+            const ImU32 filled_col = m_Style.filled;
 
             // 根据状态选择手柄颜色
-            ImU32 grab_col = colors.handle;
+            ImU32 grab_col = m_Style.handle;
             if (m_IsDragging)
-                grab_col = colors.handle_active;
+                grab_col = m_Style.handle_active;
             else if (m_IsHandleHovered)
-                grab_col = colors.handle_hovered;
+                grab_col = m_Style.handle_hovered;
 
-            const ImU32 grab_border_col = colors.handle_border;
-            const ImU32 text_col = colors.text;
+            const ImU32 grab_border_col = m_Style.handle_border;
+            const ImU32 text_col = m_Style.text;
 
             // 绘制背景
             window->DrawList->AddRectFilled(
@@ -531,141 +599,40 @@ namespace ImGuiWidget
         }
 
     public:
-        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
-        {
-            auto props = ImWidget::GetProperties();
-
-            // 值范围
-            props.insert({
-                "MinValue", PropertyType::Float, "Value",
-                [this](void* v) { this->v_Min = *static_cast<float*>(v); },
-                [this]() -> void* { return &this->v_Min; }
-                });
-
-            props.insert({
-                "MaxValue", PropertyType::Float, "Value",
-                [this](void* v) { this->v_Max = *static_cast<float*>(v); },
-                [this]() -> void* { return &this->v_Max; }
-                });
-
-            props.insert({
-                "CurrentValue", PropertyType::Float, "Value",
-                [this](void* v) { this->v = *static_cast<float*>(v); },
-                [this]() -> void* { return &this->v; }
-                });
-
-            // 手柄类型
-            props.insert({
-                "HandleType", PropertyType::Int, "Appearance",
-                [this](void* v) { this->handle_type = static_cast<SliderHandleType>(*static_cast<int*>(v)); },
-                [this]() -> void*
- {
-static int handle_type_int = static_cast<int>(this->handle_type);
-return &handle_type_int;
-}
-                });
-
-            // 显示选项
-            props.insert({
-                "ShowValue", PropertyType::Bool, "Appearance",
-                [this](void* v) { this->show_value = *static_cast<bool*>(v); },
-                [this]() -> void* { return &this->show_value; }
-                });
-
-            props.insert({
-                "ValueFormat", PropertyType::String, "Appearance",
-                [this](void* v) { this->format = *static_cast<std::string*>(v); },
-                [this]() -> void* { return &format; }
-                });
-
-            // 颜色设置（新增悬停和激活颜色）
-            props.insert({
-                "BackgroundColor", PropertyType::Color, "Colors",
-                [this](void* v) { this->colors.background = *static_cast<ImU32*>(v); },
-                [this]() -> void* { return &this->colors.background; }
-                });
-
-            props.insert({
-                "FilledColor", PropertyType::Color, "Colors",
-                [this](void* v) { this->colors.filled = *static_cast<ImU32*>(v); },
-                [this]() -> void* { return &this->colors.filled; }
-                });
-
-            props.insert({
-                "HandleColor", PropertyType::Color, "Colors",
-                [this](void* v) { this->colors.handle = *static_cast<ImU32*>(v); },
-                [this]() -> void* { return &this->colors.handle; }
-                });
-
-            props.insert({
-                "HandleHoveredColor", PropertyType::Color, "Colors",
-                [this](void* v) { this->colors.handle_hovered = *static_cast<ImU32*>(v); },
-                [this]() -> void* { return &this->colors.handle_hovered; }
-                });
-
-            props.insert({
-                "HandleActiveColor", PropertyType::Color, "Colors",
-                [this](void* v) { this->colors.handle_active = *static_cast<ImU32*>(v); },
-                [this]() -> void* { return &this->colors.handle_active; }
-                });
-
-            props.insert({
-                "HandleBorderColor", PropertyType::Color, "Colors",
-                [this](void* v) { this->colors.handle_border = *static_cast<ImU32*>(v); },
-                [this]() -> void* { return &this->colors.handle_border; }
-                });
-
-            props.insert({
-                "TextColor", PropertyType::Color, "Colors",
-                [this](void* v) { this->colors.text = *static_cast<ImU32*>(v); },
-                [this]() -> void* { return &this->colors.text; }
-                });
-
-            props.insert({
-                "ShowHandle", PropertyType::Bool, "Appearance",
-                [this](void* v) { this->show_handle = *static_cast<bool*>(v); },
-                [this]() -> void* { return &this->show_handle; }
-                });
-
-            props.insert({
-                "Draggable", PropertyType::Bool, "Behavior",
-                [this](void* v) { this->draggable = *static_cast<bool*>(v); },
-                [this]() -> void* { return &this->draggable; }
-                });
-
-            props.insert({
-                "HandleRatio", PropertyType::Float, "Appearance",
-                [this](void* v) { this->handle_ratio = *static_cast<float*>(v); },
-                [this]() -> void* { return &this->handle_ratio; }
-                });
-
-            props.insert({
-                "HandleWidthRatio", PropertyType::Float, "Appearance",
-                [this](void* v) { this->handlewidth_ratio = *static_cast<float*>(v); },
-                [this]() -> void* { return &this->handlewidth_ratio; }
-                });
-
-            props.insert({
-                "Reserve", PropertyType::Bool, "Appearance",
-                [this](void* v) { this->bReverse = *static_cast<bool*>(v); },
-                [this]() -> void* { return &this->bReverse; }
-                });
-
-            // 非线性参数
-            props.insert({
-                "Power", PropertyType::Float, "Behavior",
-                [this](void* v) { this->power = *static_cast<float*>(v); },
-                [this]() -> void* { return &this->power; }
-                });
-
-            return props;
-        }
-
         virtual std::string GetRegisterTypeName()override { return "ImSlider"; }
 
         virtual ImWidget* CopyWidget()
         {
             return new ImSlider(*this);
         }
+
+        DECLARE_IMOBJECT(ImSlider, ImWidget)
+        registrar
+            // 值范围
+            .RegisterProperty(PropertyType::Float, "MinValue", &ImSlider::v_Min, u8"最小值")
+            .RegisterProperty(PropertyType::Float, "MaxValue", &ImSlider::v_Max, u8"最大值")
+            .RegisterProperty(PropertyType::Float, "CurrentValue", &ImSlider::v, u8"当前值")
+
+            // 手柄类型
+            .RegisterOptionalProperty(
+                PropertyType::Enum, "HandleType", &ImSlider::handle_type,
+                { "SLIDER_HANDLE_CIRCLE", "SLIDER_HANDLE_RECT" },
+                u8"手柄类型")
+
+            // 样式配置（作为结构体属性）
+            .RegisterProperty(PropertyType::Struct, "Style", &ImSlider::m_Style, u8"滑块样式")
+
+            // 显示选项
+            .RegisterProperty(PropertyType::Bool, "ShowValue", &ImSlider::show_value, u8"是否显示数值")
+            .RegisterProperty(PropertyType::String, "ValueFormat", &ImSlider::format, u8"值显示格式")
+
+            // 行为设置
+            .RegisterProperty(PropertyType::Bool, "ShowHandle", &ImSlider::show_handle, u8"是否显示手柄")
+            .RegisterProperty(PropertyType::Bool, "Draggable", &ImSlider::draggable, u8"是否可拖动")
+            .RegisterProperty(PropertyType::Float, "HandleRatio", &ImSlider::handle_ratio, u8"手柄尺寸比例")
+            .RegisterProperty(PropertyType::Float, "HandleWidthRatio", &ImSlider::handlewidth_ratio, u8"手柄宽度比例")
+            .RegisterProperty(PropertyType::Bool, "Reverse", &ImSlider::bReverse, u8"是否反转滑动方向")
+            .RegisterProperty(PropertyType::Float, "Power", &ImSlider::power, u8"非线性参数");
+        END_DECLARE_IMOBJECT()
     };
 }

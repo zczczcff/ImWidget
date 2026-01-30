@@ -207,9 +207,13 @@ namespace ImGuiWidget
 
     };
 
+    using ImProperty = ROP::Property<PropertyType>;
+
     // 属性结构基类
-    class ImObject 
+    class ImObject :public ROP::PropertyObject<PropertyType>
     {
+		DECLARE_OBJECT(PropertyType, ImObject)
+		END_DECLARE_OBJECT()
     public:
         virtual ~ImObject() = default;
 
@@ -262,8 +266,18 @@ namespace ImGuiWidget
         template<typename T>
         bool SetPropertyValue(const std::string& name, const T& value)
         {
-            T copy = value;
-            return SetProperty(name, &copy);
+            ImProperty prop = ROP::PropertyObject<PropertyType>::GetProperty(name);
+            if (prop.IsValid())
+            {
+                prop.SetValue<T>(value);
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+            //T copy = value;
+            //return SetProperty(name, &copy);
         }
 
         // 序列化函数
@@ -279,6 +293,9 @@ namespace ImGuiWidget
 
 } // namespace ImGuiWidget
 
+
+#define DECLARE_IMOBJECT(classname,parentclassname) DECLARE_OBJECT_WITH_PARENT(ImGuiWidget::PropertyType,classname,parentclassname)
+#define END_DECLARE_IMOBJECT() END_DECLARE_OBJECT()
 
     //template<>
     //struct std::hash<ImGuiWidget::PropertyInfo>

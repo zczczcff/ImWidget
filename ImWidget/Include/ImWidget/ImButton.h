@@ -52,6 +52,16 @@ namespace ImGuiWidget
             BorderColor(BorderColor)
         {}
         //void operator=(const ButtonStateStyle& From) {};
+
+        DECLARE_IMOBJECT(ButtonStateStyle, ImObject)
+        registrar
+            .RegisterProperty(PropertyType::Color, "BackgroundColor", &ButtonStateStyle::BackgroundColor, u8"背景颜色")
+            .RegisterProperty(PropertyType::Float, "Rounding", &ButtonStateStyle::Rounding, u8"圆角半径")
+            .RegisterProperty(PropertyType::Bool, "HasBorder", &ButtonStateStyle::HasBorder, u8"是否有边框")
+            .RegisterProperty(PropertyType::Float, "BorderThickness", &ButtonStateStyle::BorderThickness, u8"边框粗细")
+            .RegisterProperty(PropertyType::Color, "BorderColor", &ButtonStateStyle::BorderColor, u8"边框颜色");
+        END_DECLARE_IMOBJECT()
+
     };
 
     class ImButton : public ImPanelWidget
@@ -454,5 +464,15 @@ namespace ImGuiWidget
         {
             return new ImButton(*this);
         }
+
+        DECLARE_IMOBJECT(ImButton, ImPanelWidget)
+        registrar
+            .RegisterProperty(PropertyType::String, "TooltipText", &ImButton::m_TooltipText, u8"工具提示文本")
+            .RegisterProperty(PropertyType::Vec2, "OriginalMinSize", &ImButton::OriginalMinSize, u8"原始最小尺寸")
+            .RegisterProperty(PropertyType::Struct, "NormalStyle", &ImButton::m_NormalStyle, u8"正常状态样式")
+            .RegisterProperty(PropertyType::Struct, "HoveredStyle", &ImButton::m_HoveredStyle, u8"悬停状态样式")
+            .RegisterProperty(PropertyType::Struct, "PressedStyle", &ImButton::m_PressedStyle, u8"按下状态样式")
+            .RegisterProperty(PropertyType::Struct, "FocusedStyle", &ImButton::m_FocusedStyle, u8"焦点状态样式");
+        END_DECLARE_IMOBJECT()
     };
 }

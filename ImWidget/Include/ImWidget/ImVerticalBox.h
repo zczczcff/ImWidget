@@ -30,6 +30,11 @@ namespace ImGuiWidget
         {
             return new ImVerticalBoxSlot(*this);
         }
+
+        DECLARE_IMOBJECT(ImVerticalBoxSlot, ImPaddingSlot)
+        registrar
+            .RegisterProperty(PropertyType::Float, "SizeRatio", &ImVerticalBoxSlot::SizeRatio, u8"³ß´ç±ÈÀý");
+        END_DECLARE_IMOBJECT()
 	};
 
 
@@ -199,5 +204,8 @@ namespace ImGuiWidget
         {
             return new ImVerticalBox(*this);
         }
+
+        DECLARE_IMOBJECT(ImVerticalBox, ImPanelWidget)
+        END_DECLARE_IMOBJECT()
 	};
 }

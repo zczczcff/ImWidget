@@ -27,6 +27,10 @@ namespace ImGuiWidget
         {
             return new ImHorizontalBoxSlot(*this);
         }
+        DECLARE_IMOBJECT(ImHorizontalBoxSlot, ImPaddingSlot)
+        registrar
+            .RegisterProperty(PropertyType::Float, "SizeRatio", &ImHorizontalBoxSlot::SizeRatio, u8"¿í¶È±ÈÀý");
+        END_DECLARE_IMOBJECT()
     };
 
     class ImHorizontalBox : public ImPanelWidget
@@ -154,5 +158,7 @@ namespace ImGuiWidget
         {
             return new ImHorizontalBox(*this);
         }
+        DECLARE_IMOBJECT(ImHorizontalBox, ImPanelWidget)
+        END_DECLARE_IMOBJECT()
     };
 }

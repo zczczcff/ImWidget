@@ -59,6 +59,14 @@ namespace ImGuiWidget
 
             return props;
         }
+        DECLARE_IMOBJECT(ImVerticalSplitterStyle, ImObject)
+        registrar
+            .RegisterProperty(PropertyType::Float, "BarHeight", &ImVerticalSplitterStyle::BarHeight, u8"分隔条高度")
+            .RegisterProperty(PropertyType::Color, "Color", &ImVerticalSplitterStyle::Color, u8"正常颜色")
+            .RegisterProperty(PropertyType::Color, "HoveredColor", &ImVerticalSplitterStyle::HoveredColor, u8"悬停颜色")
+            .RegisterProperty(PropertyType::Color, "ActiveColor", &ImVerticalSplitterStyle::ActiveColor, u8"激活颜色")
+            .RegisterProperty(PropertyType::Float, "Rounding", &ImVerticalSplitterStyle::Rounding, u8"圆角半径");
+        END_DECLARE_IMOBJECT()
     };
 
     class ImVerticalSplitterSlot : public ImPaddingSlot
@@ -71,7 +79,21 @@ namespace ImGuiWidget
             : ImPaddingSlot(Content,Owner)
         {
         }
+        void SetRatio(float& value)
+        {
+            Ratio = value;
+            if (Owner) Owner->MarkLayoutDirty();
+        }
 
+        float& GetRatio() { return Ratio; }
+
+        void SetMinSize(float& value)
+        {
+            MinSize = value;
+            if (Owner) Owner->MarkLayoutDirty();
+        }
+
+        float& GetMinSize() { return MinSize; }
         virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties()
         {
             auto props = ImPaddingSlot::GetProperties();
@@ -99,6 +121,16 @@ namespace ImGuiWidget
         {
             return new ImVerticalSplitterSlot(*this);
         }
+
+        DECLARE_IMOBJECT(ImVerticalSplitterSlot, ImPaddingSlot)
+        registrar
+            .RegisterProperty(PropertyType::Float, "Ratio",
+                &ImVerticalSplitterSlot::SetRatio, &ImVerticalSplitterSlot::GetRatio,
+                u8"高度比例")
+            .RegisterProperty(PropertyType::Float, "MinSize",
+                &ImVerticalSplitterSlot::SetMinSize, &ImVerticalSplitterSlot::GetMinSize,
+                u8"最小高度");
+        END_DECLARE_IMOBJECT()
     };
 
     class ImVerticalSplitter : public ImPanelWidget
@@ -749,5 +781,11 @@ namespace ImGuiWidget
         {
             return new ImVerticalSplitter(*this);
         }
+
+        DECLARE_IMOBJECT(ImVerticalSplitter, ImPanelWidget)
+        registrar
+            .RegisterProperty(PropertyType::Struct, "SplitterStyle",
+                &ImVerticalSplitter::m_Style, u8"分隔条样式");
+        END_DECLARE_IMOBJECT()
     };
 }

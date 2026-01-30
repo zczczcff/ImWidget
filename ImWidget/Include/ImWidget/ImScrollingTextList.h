@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "ImWidget.h"
 #include "ImEvent/ImMouseEvent.h"
 #include "ImEvent/ImKeyEvent.h"
@@ -967,5 +967,12 @@ this->m_RequireRebuild = true;
         {
             return new ImScrollingTextList(*this);
         }
+
+        DECLARE_IMOBJECT(ImScrollingTextList, ImWidget)
+        registrar
+            //.RegisterProperty(PropertyType::Color, "TextColor", &ImScrollingTextList::m_TextColor, u8"文本颜色")
+            .RegisterProperty(PropertyType::Float, "LineSpacing", &ImScrollingTextList::m_LineSpacing, u8"行间距")
+            .RegisterProperty(PropertyType::Float, "ScrollbarThickness", &ImScrollingTextList::m_ScrollbarThickness, u8"滚动条厚度");
+        END_DECLARE_IMOBJECT()
     };
 }

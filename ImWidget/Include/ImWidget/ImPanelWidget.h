@@ -412,5 +412,14 @@ namespace ImGuiWidget
 		virtual std::string GetRegisterTypeName()override { return "ImPanelWidget"; }
 
 		virtual ImWidget* CopyWidget() = 0;
+
+		DECLARE_IMOBJECT(ImPanelWidget, ImWidget)
+		registrar
+			.RegisterProperty(PropertyType::Color, "BackGroundColor", &ImPanelWidget::BgColor, u8"±³¾°ÑÕÉ«")
+			.RegisterProperty(PropertyType::Bool, "HaveBorder", &ImPanelWidget::bHaveBorder, u8"ÊÇ·ñÓÐ±ß¿ò")
+			.RegisterProperty(PropertyType::Color, "BorderColor", &ImPanelWidget::BorderColor, u8"±ß¿òÑÕÉ«")
+			.RegisterProperty(PropertyType::Bool, "HaveBackGround", &ImPanelWidget::bHaveBackGround, u8"ÊÇ·ñÓÐ±³¾°")
+			.RegisterProperty(PropertyType::Float, "BorderThickness", &ImPanelWidget::BorderThickness, u8"±ß¿ò´ÖÏ¸");
+		END_DECLARE_IMOBJECT()
 	};
 }

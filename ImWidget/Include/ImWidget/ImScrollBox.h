@@ -728,5 +728,23 @@ namespace ImGuiWidget
                 MarkLayoutDirty();
             }
         }
+
+        DECLARE_IMOBJECT(ImScrollBox, ImPanelWidget)
+        registrar
+            // 滚动条属性
+            .RegisterProperty(PropertyType::Float, "ScrollbarThickness", &ImScrollBox::m_ScrollbarThickness, u8"滚动条厚度")
+            .RegisterProperty(PropertyType::Color, "ScrollbarBgColor", &ImScrollBox::m_ScrollbarBgColor, u8"滚动条背景色")
+            .RegisterProperty(PropertyType::Color, "ScrollbarGrabColor", &ImScrollBox::m_ScrollbarGrabColor, u8"滚动条抓取颜色")
+            .RegisterProperty(PropertyType::Color, "ScrollbarGrabHoveredColor", &ImScrollBox::m_ScrollbarGrabHoveredColor, u8"滚动条悬停颜色")
+            .RegisterProperty(PropertyType::Color, "ScrollbarGrabActiveColor", &ImScrollBox::m_ScrollbarGrabActiveColor, u8"滚动条激活颜色")
+
+            // 滚动方向属性
+            .RegisterProperty(PropertyType::Bool, "HorizontalScrollEnabled", &ImScrollBox::m_HorizontalScrollEnabled, u8"水平滚动启用")
+            .RegisterProperty(PropertyType::Bool, "VerticalScrollEnabled", &ImScrollBox::m_VerticalScrollEnabled, u8"垂直滚动启用")
+
+            // 滚动条可见性
+            .RegisterProperty(PropertyType::Bool, "ShowHorizontalScrollbar", &ImScrollBox::m_ShowHorizontalScrollbar, u8"显示水平滚动条")
+            .RegisterProperty(PropertyType::Bool, "ShowVerticalScrollbar", &ImScrollBox::m_ShowVerticalScrollbar, u8"显示垂直滚动条");
+        END_DECLARE_IMOBJECT()
     };
 }

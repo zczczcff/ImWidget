@@ -59,6 +59,15 @@ namespace ImGuiWidget
 
             return props;
         }
+
+        DECLARE_IMOBJECT(ImHorizontalSplitterStyle, ImObject)
+        registrar
+            .RegisterProperty(PropertyType::Float, "BarWidth", &ImHorizontalSplitterStyle::BarWidth, u8"分隔条宽度")
+            .RegisterProperty(PropertyType::Color, "Color", &ImHorizontalSplitterStyle::Color, u8"正常颜色")
+            .RegisterProperty(PropertyType::Color, "HoveredColor", &ImHorizontalSplitterStyle::HoveredColor, u8"悬停颜色")
+            .RegisterProperty(PropertyType::Color, "ActiveColor", &ImHorizontalSplitterStyle::ActiveColor, u8"活动颜色")
+            .RegisterProperty(PropertyType::Float, "Rounding", &ImHorizontalSplitterStyle::Rounding, u8"圆角半径");
+        END_DECLARE_IMOBJECT()
     };
 
     class ImHorizontalSplitterSlot : public ImPaddingSlot
@@ -94,6 +103,12 @@ namespace ImGuiWidget
         {
             return new ImHorizontalSplitterSlot(*this);
         }
+
+        DECLARE_IMOBJECT(ImHorizontalSplitterSlot, ImPaddingSlot)
+        registrar
+            .RegisterProperty(PropertyType::Float, "Ratio", &ImHorizontalSplitterSlot::Ratio, u8"比例")
+            .RegisterProperty(PropertyType::Float, "MinSize", &ImHorizontalSplitterSlot::MinSize, u8"最小尺寸");
+        END_DECLARE_IMOBJECT()
     };
 
     class ImHorizontalSplitter : public ImPanelWidget
@@ -753,5 +768,10 @@ namespace ImGuiWidget
         {
             return new ImHorizontalSplitter(*this);
         }
+
+        DECLARE_IMOBJECT(ImHorizontalSplitter, ImPanelWidget)
+        registrar
+            .RegisterProperty(PropertyType::Struct, "SplitterStyle", &ImHorizontalSplitter::m_Style, u8"分隔条样式");
+        END_DECLARE_IMOBJECT()
     };
 }

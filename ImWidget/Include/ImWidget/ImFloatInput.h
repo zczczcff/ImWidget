@@ -210,5 +210,11 @@ SetDecimalPlaces(*static_cast<int*>(v));
         {
             OnFloatValueChanged = callback;
         }
+        DECLARE_IMOBJECT(ImFloatInput, ImInputText)
+        registrar
+            .RegisterProperty(PropertyType::Float, "MinValue", &ImFloatInput::m_MinValue, u8"最小值")
+            .RegisterProperty(PropertyType::Float, "MaxValue", &ImFloatInput::m_MaxValue, u8"最大值")
+            .RegisterProperty(PropertyType::Int, "DecimalPlaces", &ImFloatInput::m_DecimalPlaces, u8"小数位数");
+        END_DECLARE_IMOBJECT()
     };
 }

@@ -85,13 +85,21 @@ namespace ImGuiWidget
 
 			ImGui::PopFont();
 		}
+		void SetHorizontalAlignment(const TextAlignment_Horizontal& NewSetting)
+		{
+			halign = NewSetting;
+		}
 
-        void SetHorizontalAlignment(TextAlignment_Horizontal NewSetting)
+		void SetVerticalAlignment(const TextAlignment_Vertical& NewSetting)
+		{
+			valign = NewSetting;
+		}
+        void SetHorizontalAlignment(TextAlignment_Horizontal& NewSetting)
         {
             halign = NewSetting;
         }
 
-        void SetVerticalAlignment(TextAlignment_Vertical NewSetting)
+        void SetVerticalAlignment(TextAlignment_Vertical& NewSetting)
         {
             valign = NewSetting;
         }
@@ -185,5 +193,25 @@ namespace ImGuiWidget
 		{
 			return new ImTextBlock(*this);
 		}
+		TextAlignment_Horizontal& GetHorizontalAlignment()
+		{
+			return halign;
+		}
+		TextAlignment_Vertical& GetVerticalAlignment()
+		{
+			return valign;
+		}
+		DECLARE_IMOBJECT(ImTextBlock, ImWidget)
+		registrar
+			.RegisterProperty(PropertyType::String, "Text", &ImTextBlock::m_Text, "文本内容")
+			.RegisterProperty(PropertyType::Int, "TextFontSize", &ImTextBlock::TextSize, "字体大小")
+			.RegisterProperty(PropertyType::Color, "TextColor", &ImTextBlock::m_TextColor, "文本颜色")
+			.RegisterOptionalProperty(PropertyType::Enum, "HorizontalAlignment",
+				&ImTextBlock::SetHorizontalAlignment, &ImTextBlock::GetHorizontalAlignment,
+				{ "Left", "Center", "Right" }, "水平对齐方式")
+			.RegisterOptionalProperty(PropertyType::Enum, "VerticalAlignment",
+				&ImTextBlock::SetVerticalAlignment, &ImTextBlock::GetVerticalAlignment,
+				{ "Top", "Center", "Bottom" }, "垂直对齐方式");
+		END_DECLARE_IMOBJECT()
 	};
 }

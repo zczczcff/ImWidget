@@ -416,5 +416,17 @@ ReCaculateTriangle();
             copy->ReCaculateTriangle(); // 重新计算三角形位置
             return copy;
         }
+
+
+
+        DECLARE_IMOBJECT(ImExpandableBox, ImPanelWidget)
+        registrar
+            .RegisterProperty(PropertyType::Bool, "IsExpanded", &ImExpandableBox::bIsExpanded, u8"是否展开")
+            .RegisterProperty(PropertyType::Float, "TriangleSize", &ImExpandableBox::TriangleSize, u8"三角形大小")
+            .RegisterProperty(PropertyType::Float, "HeadPad", &ImExpandableBox::HeadPad, u8"头部内边距")
+            .RegisterProperty(PropertyType::Float, "BodyPad", &ImExpandableBox::BodyPad, u8"主体内边距")
+            .RegisterProperty(PropertyType::Color, "TriangleColor", &ImExpandableBox::TriangleColor, u8"三角形颜色")
+            .RegisterProperty(PropertyType::Color, "HoveredTriangleColor", &ImExpandableBox::HoveredTriangleColor, u8"悬停时三角形颜色");
+        END_DECLARE_IMOBJECT()
     };
 }

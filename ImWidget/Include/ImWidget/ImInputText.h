@@ -70,14 +70,19 @@ namespace ImGuiWidget
         ImMulticastDelegate<const std::string&> OnTextCommit;
     public:
         // 输入模式设置
-        void SetInputMode(ImInputTextMode mode)
+        void SetInputMode(const ImInputTextMode& mode)
         {
             m_InputMode = mode;
             // 切换模式时验证当前文本
             ValidateCurrentText();
         }
-
-        ImInputTextMode GetInputMode() const { return m_InputMode; }
+        void SetInputMode(ImInputTextMode& mode)
+        {
+            m_InputMode = mode;
+            // 切换模式时验证当前文本
+            ValidateCurrentText();
+        }
+        ImInputTextMode& GetInputMode() { return m_InputMode; }
 
         // 负数设置
         void SetAllowNegative(bool allow)
@@ -1571,5 +1576,24 @@ namespace ImGuiWidget
         {
             return new ImInputText(*this);
         }
-    };
+
+
+		DECLARE_IMOBJECT(ImInputText, ImWidget)
+		registrar
+			.RegisterProperty(PropertyType::String, "Text", &ImInputText::m_Text, u8"文本内容")
+			.RegisterProperty(PropertyType::Color, "TextColor", &ImInputText::m_TextColor, u8"文本颜色")
+			.RegisterProperty(PropertyType::Color, "BackgroundColor", &ImInputText::m_BackgroundColor, u8"背景颜色")
+			.RegisterProperty(PropertyType::Color, "BorderColor", &ImInputText::m_BorderColor, u8"边框颜色")
+			.RegisterProperty(PropertyType::Color, "SelectionColor", &ImInputText::m_SelectionColor, u8"选中背景色")
+			.RegisterProperty(PropertyType::Color, "SelectionTextColor", &ImInputText::m_SelectionTextColor, u8"选中文本颜色")
+			.RegisterProperty(PropertyType::Float, "BorderThickness", &ImInputText::m_BorderThickness, u8"边框粗细")
+			.RegisterProperty(PropertyType::Float, "Rounding", &ImInputText::m_Rounding, u8"圆角半径")
+			.RegisterOptionalProperty(PropertyType::Enum, "InputMode",
+				&ImInputText::SetInputMode, &ImInputText::GetInputMode,
+				{ u8"文本模式",u8"整数模式",u8"小数模式" }, u8"输入模式")
+			.RegisterProperty(PropertyType::Bool, "AllowNegative", &ImInputText::m_AllowNegative, u8"允许负数")
+			.RegisterProperty(PropertyType::Int, "MaxIntegerDigits", &ImInputText::m_MaxIntegerDigits, u8"最大整数位数")
+			.RegisterProperty(PropertyType::Int, "MaxDecimalDigits", &ImInputText::m_MaxDecimalDigits, u8"最大小数位数");
+		END_DECLARE_IMOBJECT()
+	};
 }

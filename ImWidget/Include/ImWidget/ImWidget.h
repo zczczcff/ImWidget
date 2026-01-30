@@ -280,5 +280,12 @@ namespace ImGuiWidget
 
 		void SetToolTip(const std::string& tooltiptext) { m_ToolTipText = tooltiptext; }
 
+
+		DECLARE_IMOBJECT(ImWidget, ImObject)
+		registrar
+			.RegisterProperty(PropertyType::String, "Name", &ImWidget::m_WidgetName, "控件名称")
+			.RegisterProperty(PropertyType::Bool, "EnableToolTip", &ImWidget::bEbableToolTip, "是否启用工具提示")
+			.RegisterProperty(PropertyType::String, "ToolTipText", &ImWidget::m_ToolTipText, "工具提示文本");
+		END_DECLARE_IMOBJECT()
 	};
 }

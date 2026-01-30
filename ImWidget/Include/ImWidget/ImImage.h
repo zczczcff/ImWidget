@@ -186,5 +186,11 @@ namespace ImGuiWidget
 
 			return result;
 		}
+
+		DECLARE_IMOBJECT(ImImage, ImWidget)
+		registrar
+			.RegisterProperty(PropertyType::Bool, "MaintainAspectRatio", &ImImage::m_MaintainAspectRatio, u8"保持长宽比")
+			.RegisterProperty(PropertyType::Color, "TintColor", &ImImage::TintColor, u8"着色颜色");
+		END_DECLARE_IMOBJECT()
 	};
 }

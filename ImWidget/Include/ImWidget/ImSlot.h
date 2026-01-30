@@ -49,8 +49,16 @@ namespace ImGuiWidget
 			Content->SetPosition(SlotPosition);
 			Content->SetSize(SlotSize);
 		}
-		bool GetIfAutoSize() { return bAutoSize; }
-		void SetIfAutoSize(bool Value) 
+		bool& GetIfAutoSize() { return bAutoSize; }
+		void SetIfAutoSize(bool& Value) 
+		{
+			if (bAutoSize != Value)
+			{
+				bAutoSize = Value;
+				Owner->MarkLayoutDirty();
+			}
+		}
+		void SetIfAutoSize(const bool& Value)
 		{
 			if (bAutoSize != Value)
 			{
@@ -101,6 +109,12 @@ namespace ImGuiWidget
 		{
 			return new ImSlot(*this);
 		}
+
+		DECLARE_IMOBJECT(ImSlot, ImObject)
+		registrar
+			.RegisterProperty(PropertyType::Bool, "bAutoSize",
+				&ImSlot::SetIfAutoSize, &ImSlot::GetIfAutoSize, u8"是否自动调整大小");
+		END_DECLARE_IMOBJECT()
 	};
 
 	class ImPaddingSlot :public ImSlot
@@ -132,6 +146,17 @@ namespace ImGuiWidget
 			PaddingLeft = SetPaddingLeft;
 			PaddingRight = SetPaddingRight;
 		}
+		void SetPaddingTop(float& value) { PaddingTop = value; if (Owner) Owner->MarkLayoutDirty(); }
+		float& GetPaddingTop() { return PaddingTop; }
+
+		void SetPaddingBottom(float& value) { PaddingBottom = value; if (Owner) Owner->MarkLayoutDirty(); }
+		float& GetPaddingBottom() { return PaddingBottom; }
+
+		void SetPaddingLeft(float& value) { PaddingLeft = value; if (Owner) Owner->MarkLayoutDirty(); }
+		float& GetPaddingLeft() { return PaddingLeft; }
+
+		void SetPaddingRight(float& value) { PaddingRight = value; if (Owner) Owner->MarkLayoutDirty(); }
+		float& GetPaddingRight() { return PaddingRight; }
 		virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override 
 		{
 			auto props = ImSlot::GetProperties();
@@ -175,6 +200,18 @@ namespace ImGuiWidget
 		{
 			return new ImPaddingSlot(*this);
 		}
+
+		DECLARE_IMOBJECT(ImPaddingSlot, ImSlot)
+		registrar
+			.RegisterProperty(PropertyType::Float, "PaddingTop",
+				&ImPaddingSlot::SetPaddingTop, &ImPaddingSlot::GetPaddingTop, u8"上边距")
+			.RegisterProperty(PropertyType::Float, "PaddingBottom",
+				&ImPaddingSlot::SetPaddingBottom, &ImPaddingSlot::GetPaddingBottom, u8"下边距")
+			.RegisterProperty(PropertyType::Float, "PaddingLeft",
+				&ImPaddingSlot::SetPaddingLeft, &ImPaddingSlot::GetPaddingLeft, u8"左边距")
+			.RegisterProperty(PropertyType::Float, "PaddingRight",
+				&ImPaddingSlot::SetPaddingRight, &ImPaddingSlot::GetPaddingRight, u8"右边距");
+		END_DECLARE_IMOBJECT()
 	};
 
 

@@ -57,5 +57,8 @@ namespace ImGuiWidget
 		{
 			return new ImBorder(*this);
 		}
+
+		DECLARE_IMOBJECT(ImBorder, ImPanelWidget)
+		END_DECLARE_IMOBJECT()
 	};
 }

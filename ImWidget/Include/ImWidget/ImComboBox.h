@@ -523,5 +523,22 @@ namespace ImGuiWidget
         {
             return new ImComboBox(*this);
         }
+
+        DECLARE_IMOBJECT(ImComboBox, ImWidget)
+        registrar
+            .RegisterProperty(PropertyType::StringArray, "Items", &ImComboBox::m_Items, u8"选项列表")
+            .RegisterProperty(PropertyType::Int, "SelectedIndex", &ImComboBox::m_SelectedIndex, u8"选中项索引")
+            .RegisterProperty(PropertyType::Float, "ArrowSize", &ImComboBox::m_ArrowSize, u8"下拉箭头大小")
+            .RegisterProperty(PropertyType::Float, "ItemHeight", &ImComboBox::m_ItemHeight, u8"选项高度")
+            .RegisterProperty(PropertyType::Float, "PopupRounding", &ImComboBox::m_PopupRounding, u8"弹出框圆角")
+            .RegisterProperty(PropertyType::Vec2, "PopupPadding", &ImComboBox::m_PopupPadding, u8"弹出框内边距")
+            .RegisterProperty(PropertyType::Color, "PopupBgColor", &ImComboBox::m_PopupBgColor, u8"弹出框背景色")
+            .RegisterProperty(PropertyType::Color, "HighlightColor", &ImComboBox::m_HighlightColor, u8"高亮颜色")
+            .RegisterProperty(PropertyType::Color, "TextColor", &ImComboBox::m_TextColor, u8"文本颜色")
+            .RegisterProperty(PropertyType::Struct, "NormalStyle", &ImComboBox::m_NormalStyle, u8"正常状态样式")
+            .RegisterProperty(PropertyType::Struct, "HoveredStyle", &ImComboBox::m_HoveredStyle, u8"悬停状态样式")
+            .RegisterProperty(PropertyType::Struct, "PressedStyle", &ImComboBox::m_PressedStyle, u8"按下状态样式")
+            .RegisterProperty(PropertyType::Struct, "DropdownStyle", &ImComboBox::m_DropdownStyle, u8"下拉状态样式");
+        END_DECLARE_IMOBJECT()
     };
 }

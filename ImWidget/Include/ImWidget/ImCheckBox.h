@@ -253,5 +253,17 @@ namespace ImGuiWidget
             copy->m_BorderThickness = m_BorderThickness;
             return copy;
         }
+
+        DECLARE_IMOBJECT(ImCheckBox, ImWidget)
+        registrar
+            .RegisterProperty(PropertyType::Bool, "Checked", &ImCheckBox::m_Checked, u8"是否选中")
+            .RegisterProperty(PropertyType::Color, "BoxColor", &ImCheckBox::m_BoxColor, u8"复选框颜色")
+            .RegisterProperty(PropertyType::Color, "CheckColor", &ImCheckBox::m_CheckColor, u8"勾选标记颜色")
+            .RegisterProperty(PropertyType::Color, "BackgroundColor", &ImCheckBox::m_BackgroundColor, u8"背景颜色")
+            .RegisterProperty(PropertyType::Color, "HoveredBoxColor", &ImCheckBox::m_HoveredBoxColor, u8"悬停时复选框颜色")
+            .RegisterProperty(PropertyType::Color, "PressedBoxColor", &ImCheckBox::m_PressedBoxColor, u8"按下时复选框颜色")
+            .RegisterProperty(PropertyType::Float, "BoxRounding", &ImCheckBox::m_BoxRounding, u8"边框圆角")
+            .RegisterProperty(PropertyType::Float, "BorderThickness", &ImCheckBox::m_BorderThickness, u8"边框厚度");
+        END_DECLARE_IMOBJECT()
     };
 }

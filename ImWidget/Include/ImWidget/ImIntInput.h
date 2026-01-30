@@ -171,5 +171,11 @@ ValidateAndFormat();
         {
             OnIntValueChanged = callback;
         }
+
+        DECLARE_IMOBJECT(ImIntInput, ImInputText)
+        registrar
+            .RegisterProperty(PropertyType::Int, "MinValue", &ImIntInput::m_MinValue, u8"最小值")
+            .RegisterProperty(PropertyType::Int, "MaxValue", &ImIntInput::m_MaxValue, u8"最大值");
+        END_DECLARE_IMOBJECT()
     };
 }

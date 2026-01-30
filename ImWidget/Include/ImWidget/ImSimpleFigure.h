@@ -200,5 +200,17 @@ namespace ImGuiWidget
         {
             return new ImSimpleFigure(*this);
         }
+
+        DECLARE_IMOBJECT(ImSimpleFigure, ImWidget)
+        registrar
+            .RegisterOptionalProperty(PropertyType::Enum, "Type", &ImSimpleFigure::m_Type,
+                { "Triangle", "Square", "Circle" }, u8"图形类型")
+            .RegisterProperty(PropertyType::Float, "SizeRatio", &ImSimpleFigure::m_SizeRatio, u8"尺寸系数 (0.0~1.0)")
+            .RegisterProperty(PropertyType::Float, "MinSize", &ImSimpleFigure::m_MinSize, u8"最小尺寸")
+            .RegisterProperty(PropertyType::Color, "FillColor", &ImSimpleFigure::m_FillColor, u8"填充颜色")
+            .RegisterProperty(PropertyType::Bool, "HasBorder", &ImSimpleFigure::m_HasBorder, u8"是否显示边框")
+            .RegisterProperty(PropertyType::Color, "BorderColor", &ImSimpleFigure::m_BorderColor, u8"边框颜色")
+            .RegisterProperty(PropertyType::Float, "BorderThickness", &ImSimpleFigure::m_BorderThickness, u8"边框粗细");    
+        END_DECLARE_IMOBJECT()
     };
 }
