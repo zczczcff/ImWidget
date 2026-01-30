@@ -252,15 +252,17 @@ namespace ImGuiWidget
         template<typename T>
         T* GetPropertyPtr(const std::string& name)
         {
-            auto properties = GetProperties();
-            PropertyInfo temp;
-            temp.name = name;
+            ImProperty prop = ROP::PropertyObject<PropertyType>::GetProperty(name);
+            return prop.GetPointer<T>();
+            //auto properties = GetProperties();
+            //PropertyInfo temp;
+            //temp.name = name;
 
-            auto it = properties.find(temp);
-            if (it != properties.end())
-            {
-                return ((T*)it->getter());
-            }
+            //auto it = properties.find(temp);
+            //if (it != properties.end())
+            //{
+            //    return ((T*)it->getter());
+            //}
         }
 
         template<typename T>
