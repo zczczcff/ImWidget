@@ -385,26 +385,26 @@ namespace ImGuiWidget
         ImWidget* GetRootWidget() { return m_RootWidget; }
 
         // ================ 属性系统 ================ //
-        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
-        {
-            auto props = ImWidget::GetProperties();
+        //virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
+        //{
+        //    auto props = ImWidget::GetProperties();
 
-            // 拖拽行为属性
-            props.insert({
-                "AllowDrag", PropertyType::Bool, "DragDrop",
-                [this](void* v) { bAllowDrag = *static_cast<bool*>(v); },
-                [this]() -> void* { return &bAllowDrag; }
-                });
+        //    // 拖拽行为属性
+        //    props.insert({
+        //        "AllowDrag", PropertyType::Bool, "DragDrop",
+        //        [this](void* v) { bAllowDrag = *static_cast<bool*>(v); },
+        //        [this]() -> void* { return &bAllowDrag; }
+        //        });
 
-            props.insert({
-                "AllowDragOn", PropertyType::Bool, "DragDrop",
-                [this](void* v) { bAllowDragOn = *static_cast<bool*>(v); },
-                [this]() -> void* { return &bAllowDragOn; }
-                });
+        //    props.insert({
+        //        "AllowDragOn", PropertyType::Bool, "DragDrop",
+        //        [this](void* v) { bAllowDragOn = *static_cast<bool*>(v); },
+        //        [this]() -> void* { return &bAllowDragOn; }
+        //        });
 
 
-            return props;
-        }
+        //    return props;
+        //}
 
         virtual std::string GetRegisterTypeName() override { return "ImUserWidget"; }
 

@@ -145,23 +145,6 @@ namespace ImGuiWidget
 			return m_MaintainAspectRatio;
 		}
 
-		// 新增：重写GetProperties以包含新属性
-		virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
-		{
-			auto props = ImWidget::GetProperties();
-			props.insert({
-				"MaintainAspectRatio", PropertyType::Bool, "Maintain Aspect Ratio",
-				[this](void* v) { m_MaintainAspectRatio = *(bool*)v; },
-				[this]() -> void* { return &m_MaintainAspectRatio; }
-				});
-			props.insert({
-				"TintColor", PropertyType::Color, "Tint Color",
-				[this](void* v) { TintColor = *(ImU32*)v; },
-				[this]() -> void* { return &TintColor; }
-				});
-			return props;
-		}
-
 		// 新增：计算保持长宽比后的尺寸
 		ImVec2 CalculateAspectRatioSize(const ImVec2& availableSize) const
 		{

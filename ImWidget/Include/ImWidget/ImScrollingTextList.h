@@ -931,35 +931,6 @@ namespace ImGuiWidget
         }
 
     public:
-        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
-        {
-            auto props = ImWidget::GetProperties();
-
-            props.insert({
-                "TextColor", PropertyType::Color, "Appearance",
-                [this](void* v) { this->m_TextColor = *static_cast<ImU32*>(v); },
-                [this]() -> void* { return &this->m_TextColor; }
-                });
-
-            props.insert({
-                "LineSpacing", PropertyType::Float, "Layout",
-                [this](void* v)
- {
-this->m_LineSpacing = *static_cast<float*>(v);
-this->m_RequireRebuild = true;
-},
-[this]() -> void* { return &this->m_LineSpacing; }
-                });
-
-            // 滚动条样式属性
-            props.insert({
-                "ScrollbarThickness", PropertyType::Float, "Scrollbar",
-                [this](void* v) { this->m_ScrollbarThickness = *static_cast<float*>(v); },
-                [this]() -> void* { return &this->m_ScrollbarThickness; }
-                });
-
-            return props;
-        }
 
         virtual std::string GetRegisterTypeName()override { return "ImScrollingTextList"; }
 

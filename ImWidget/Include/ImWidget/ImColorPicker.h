@@ -605,23 +605,23 @@ namespace ImGuiWidget
         }
 
         // 属性列表 (更新为使用输入控件)
-        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override {
-            return {
-                {"Color", PropertyType::Color, "Data",
-                    [this](void* v) {
-                        ImU32 col32 = *static_cast<ImU32*>(v);
-                        SetColor(col32);
-                    },
-                    [this]() -> void* {
-                        static ImU32 col32;
-                        col32 = ImGui::ColorConvertFloat4ToU32(m_Color);
-                        return &col32;
-                    }},
-                {"SVAreaSize", PropertyType::Float, "Layout",
-                    [this](void* v) { SetSVAreaSize(*static_cast<float*>(v)); },
-                    [this]() -> void* { return &m_SVAreaSize; }}
-            };
-        }
+        //virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override {
+        //    return {
+        //        {"Color", PropertyType::Color, "Data",
+        //            [this](void* v) {
+        //                ImU32 col32 = *static_cast<ImU32*>(v);
+        //                SetColor(col32);
+        //            },
+        //            [this]() -> void* {
+        //                static ImU32 col32;
+        //                col32 = ImGui::ColorConvertFloat4ToU32(m_Color);
+        //                return &col32;
+        //            }},
+        //        {"SVAreaSize", PropertyType::Float, "Layout",
+        //            [this](void* v) { SetSVAreaSize(*static_cast<float*>(v)); },
+        //            [this]() -> void* { return &m_SVAreaSize; }}
+        //    };
+        //}
         virtual std::string GetRegisterTypeName()override { return "ImColorPicker"; }
     };
 }

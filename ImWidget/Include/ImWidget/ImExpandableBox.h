@@ -354,53 +354,6 @@ namespace ImGuiWidget
         void SetHoveredTriangleColor(ImU32 color) { HoveredTriangleColor = color; }
         bool IsHovered() const { return m_IsHovered; }
 
-        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
-        {
-            auto baseProps = ImPanelWidget::GetProperties();
-
-            baseProps.insert(
-                { "IsExpanded", PropertyType::Bool, "State",
-                  [this](void* v) { bIsExpanded = *static_cast<bool*>(v); },
-                  [this]() -> void* { return &bIsExpanded; } }
-            );
-
-            baseProps.insert(
-                { "TriangleSize", PropertyType::Float, "Appearance",
-                  [this](void* v)
- {
-TriangleSize = *static_cast<float*>(v);
-ReCaculateTriangle();
-},
-[this]() -> void* { return &TriangleSize; } }
-            );
-
-            baseProps.insert(
-                { "HeadPad", PropertyType::Float, "Layout",
-                  [this](void* v) { HeadPad = *static_cast<float*>(v); },
-                  [this]() -> void* { return &HeadPad; } }
-            );
-
-            baseProps.insert(
-                { "BodyPad", PropertyType::Float, "Layout",
-                  [this](void* v) { BodyPad = *static_cast<float*>(v); },
-                  [this]() -> void* { return &BodyPad; } }
-            );
-
-            baseProps.insert(
-                { "TriangleColor", PropertyType::Color, "Appearance",
-                  [this](void* v) { TriangleColor = *static_cast<ImU32*>(v); },
-                  [this]() -> void* { return &TriangleColor; } }
-            );
-
-            baseProps.insert(
-                { "HoveredTriangleColor", PropertyType::Color, "Appearance",
-                  [this](void* v) { HoveredTriangleColor = *static_cast<ImU32*>(v); },
-                  [this]() -> void* { return &HoveredTriangleColor; } }
-            );
-
-            return baseProps;
-        }
-
         virtual std::string GetRegisterTypeName() override { return "ImExpandableBox"; }
 
         virtual ImWidget* CopyWidget() override

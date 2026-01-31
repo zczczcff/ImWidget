@@ -159,30 +159,6 @@ namespace ImGuiWidget
 		virtual ImVec2 GetMinSize() { return ImVec2(-1.f, -1.f); }
 		std::string GetWidgetName() { return m_WidgetName; }
 
-		virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
-		{
-			std::unordered_set<PropertyInfo, PropertyInfo::Hasher> Props;
-			Props.insert(
-				{
-					"Name",PropertyType::String,"Name",
-					[this](void* v) { m_WidgetName = *(std::string*)v; },
-					[this]()->void* { return &m_WidgetName; }
-				});
-			Props.insert(
-				{
-					"EnableToolTip",PropertyType::Bool,"ToolTip",
-					[this](void* v) { SetToolTipEnable(*(bool*)v); },
-					[this]()->void* { return &bEbableToolTip; }
-				});
-			Props.insert(
-				{
-					"ToolTipText",PropertyType::String,"ToolTip",
-					[this](void* v) { SetToolTip(*(std::string*)v); },
-					[this]()->void* { return &m_ToolTipText; }
-				});
-			return Props;
-		}
-
 		virtual std::string GetRegisterTypeName() override { return "ImWidget"; }
 
 		bool IsInTree(ImWidget* WidgetTree)

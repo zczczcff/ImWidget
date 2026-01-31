@@ -131,34 +131,6 @@ namespace ImGuiWidget
         }
 
     public:
-        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
-        {
-            auto props = ImInputText::GetProperties();
-
-            props.insert(
-                { "MinValue", PropertyType::Int, "Data",
-                    [this](void* v)
- {
-m_MinValue = *static_cast<int*>(v);
-ValidateAndFormat();
-},
-[this]() -> void* { return &m_MinValue; }
-                }
-            );
-
-            props.insert(
-                { "MaxValue", PropertyType::Int, "Data",
-                    [this](void* v)
- {
-m_MaxValue = *static_cast<int*>(v);
-ValidateAndFormat();
-},
-[this]() -> void* { return &m_MaxValue; }
-                }
-            );
-
-            return props;
-        }
 
         virtual std::string GetRegisterTypeName() override { return "ImIntInput"; }
 

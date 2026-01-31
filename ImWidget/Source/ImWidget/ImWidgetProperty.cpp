@@ -305,16 +305,16 @@ namespace ImGuiWidget
     std::vector<uint8_t> ImObject::Serialize()
     {
         Serializer serializer;
-        auto properties = GetProperties();
+        //auto properties = GetProperties();
 
-        // 写入属性数量
-        serializer.WriteUInt32(static_cast<uint32_t>(properties.size()));
+        //// 写入属性数量
+        //serializer.WriteUInt32(static_cast<uint32_t>(properties.size()));
 
-        // 序列化每个属性
-        for (const auto& prop : properties)
-        {
-            SerializeProperty(prop, serializer);
-        }
+        //// 序列化每个属性
+        //for (const auto& prop : properties)
+        //{
+        //    SerializeProperty(prop, serializer);
+        //}
 
         return serializer.GetData();
     }
@@ -322,53 +322,53 @@ namespace ImGuiWidget
     // ImObject 的反序列化实现 - 修改后只调用一次GetProperties()
     bool ImObject::Deserialize(const std::vector<uint8_t>& data)
     {
-        if (data.empty()) return false;
+        //if (data.empty()) return false;
 
-        Serializer serializer;
+        //Serializer serializer;
 
-        // 只调用一次GetProperties()，并创建属性名到PropertyInfo的映射
-        auto properties = GetProperties();
-        std::unordered_map<std::string, PropertyInfo> propertyMap;
-        for (const auto& prop : properties)
-        {
-            propertyMap[prop.name] = prop;
-        }
+        //// 只调用一次GetProperties()，并创建属性名到PropertyInfo的映射
+        //auto properties = GetProperties();
+        //std::unordered_map<std::string, PropertyInfo> propertyMap;
+        //for (const auto& prop : properties)
+        //{
+        //    propertyMap[prop.name] = prop;
+        //}
 
-        // 读取属性数量
-        uint32_t propertyCount = serializer.ReadUInt32(data);
+        //// 读取属性数量
+        //uint32_t propertyCount = serializer.ReadUInt32(data);
 
-        for (uint32_t i = 0; i < propertyCount; ++i)
-        {
-            // 读取属性名
-            std::string name = serializer.ReadString(data);
+        //for (uint32_t i = 0; i < propertyCount; ++i)
+        //{
+        //    // 读取属性名
+        //    std::string name = serializer.ReadString(data);
 
-            // 保存当前位置以便回退
-            size_t savedPos = serializer.GetReadPos();
+        //    // 保存当前位置以便回退
+        //    size_t savedPos = serializer.GetReadPos();
 
-            // 在映射中查找对应的属性
-            auto it = propertyMap.find(name);
+        //    // 在映射中查找对应的属性
+        //    auto it = propertyMap.find(name);
 
-            if (it != propertyMap.end())
-            {
-                // 重置到属性名之后的位置
-                serializer.SetReadPos(savedPos - sizeof(uint32_t) - name.length());
-                // 重新读取属性名（DeserializeProperty会期望先读取属性名）
-                std::string propName = serializer.ReadString(data);
+        //    if (it != propertyMap.end())
+        //    {
+        //        // 重置到属性名之后的位置
+        //        serializer.SetReadPos(savedPos - sizeof(uint32_t) - name.length());
+        //        // 重新读取属性名（DeserializeProperty会期望先读取属性名）
+        //        std::string propName = serializer.ReadString(data);
 
-                // 使用属性映射进行反序列化
-                if (!DeserializeProperty(this, propName, serializer, data, propertyMap))
-                {
-                    return false;
-                }
-            }
-            else
-            {
-                // 跳过未知属性
-                serializer.SetReadPos(savedPos);
-                uint32_t type = serializer.ReadUInt32(data);
-                SkipProperty(static_cast<PropertyType>(type), serializer, data);
-            }
-        }
+        //        // 使用属性映射进行反序列化
+        //        if (!DeserializeProperty(this, propName, serializer, data, propertyMap))
+        //        {
+        //            return false;
+        //        }
+        //    }
+        //    else
+        //    {
+        //        // 跳过未知属性
+        //        serializer.SetReadPos(savedPos);
+        //        uint32_t type = serializer.ReadUInt32(data);
+        //        SkipProperty(static_cast<PropertyType>(type), serializer, data);
+        //    }
+        //}
 
         return true;
     }

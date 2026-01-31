@@ -202,40 +202,6 @@ namespace ImGuiWidget
             }
         }
 
-        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
-        {
-            auto props = ImWidget::GetProperties();
-
-            props.insert({
-                {"Checked", PropertyType::Bool, "Data",
-                    [this](void* v) { m_Checked = *static_cast<bool*>(v); },
-                    [this]() -> void* { return &m_Checked; }},
-                {"BoxColor", PropertyType::Color, "Style",
-                    [this](void* v) { m_BoxColor = *static_cast<ImU32*>(v); },
-                    [this]() -> void* { return &m_BoxColor; }},
-                {"CheckColor", PropertyType::Color, "Style",
-                    [this](void* v) { m_CheckColor = *static_cast<ImU32*>(v); },
-                    [this]() -> void* { return &m_CheckColor; }},
-                {"BackgroundColor", PropertyType::Color, "Style",
-                    [this](void* v) { m_BackgroundColor = *static_cast<ImU32*>(v); },
-                    [this]() -> void* { return &m_BackgroundColor; }},
-                {"HoveredBoxColor", PropertyType::Color, "Style",
-                    [this](void* v) { m_HoveredBoxColor = *static_cast<ImU32*>(v); },
-                    [this]() -> void* { return &m_HoveredBoxColor; }},
-                {"PressedBoxColor", PropertyType::Color, "Style",
-                    [this](void* v) { m_PressedBoxColor = *static_cast<ImU32*>(v); },
-                    [this]() -> void* { return &m_PressedBoxColor; }},
-                {"BoxRounding", PropertyType::Float, "Style",
-                    [this](void* v) { m_BoxRounding = *static_cast<float*>(v); },
-                    [this]() -> void* { return &m_BoxRounding; }},
-                {"BorderThickness", PropertyType::Float, "Style",
-                    [this](void* v) { m_BorderThickness = *static_cast<float*>(v); },
-                    [this]() -> void* { return &m_BorderThickness; }}
-                });
-
-            return props;
-        }
-
         virtual std::string GetRegisterTypeName() override { return "ImCheckBox"; }
 
         virtual ImWidget* CopyWidget() override

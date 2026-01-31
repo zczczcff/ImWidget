@@ -18,31 +18,6 @@ namespace ImGuiWidget
         float BorderThickness = 1.0f;
         ImU32 BorderColor = IM_COL32(0, 0, 0, 0);
 
-        std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties()  override
-        {
-            return 
-            {
-                {"BackgroundColor", PropertyType::Color, "Style",
-                    [this](void* v) { BackgroundColor = *static_cast<ImU32*>(v); },
-                    [this]() -> void* { return &BackgroundColor; }},
-
-                {"Rounding", PropertyType::Float, "Style",
-                    [this](void* v) { Rounding = *static_cast<float*>(v); },
-                    [this]() -> void* { return &Rounding; }},
-
-                {"HasBorder", PropertyType::Bool, "Border",
-                    [this](void* v) { HasBorder = *static_cast<bool*>(v); },
-                    [this]() -> void* { return &HasBorder; }},
-
-                {"BorderThickness", PropertyType::Float, "Border",
-                    [this](void* v) { BorderThickness = *static_cast<float*>(v); },
-                    [this]() -> void* { return &BorderThickness; }},
-
-                {"BorderColor", PropertyType::Color, "Border",
-                    [this](void* v) { BorderColor = *static_cast<ImU32*>(v); },
-                    [this]() -> void* { return &BorderColor; }}
-            };
-        }
         ButtonStateStyle(){}
         ButtonStateStyle(ImU32 BackgroundColor, float Rounding, bool HasBorder, float BorderThickness, ImU32 BorderColor):
             BackgroundColor(BackgroundColor),
@@ -417,45 +392,6 @@ namespace ImGuiWidget
             RenderButton();        // 专注于渲染
             //RenderBackGround();
             RenderChild();
-        }
-
-        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
-        {
-            auto baseProps = ImPanelWidget::GetProperties();
-
-            // 添加按钮特有属性
-            baseProps.insert(
-                { "TooltipText", PropertyType::String, "Behavior",
-                 [this](void* v) { m_TooltipText = *static_cast<std::string*>(v); },
-                 [this]() -> void* { return &m_TooltipText; } }
-            );
-
-            // 添加样式结构体属性
-            baseProps.insert(
-                { "NormalStyle", PropertyType::Struct, "Style",
-                 [this](void* v) { m_NormalStyle = *(ButtonStateStyle*)v; },
-                 [this]() -> void* { return const_cast<ButtonStateStyle*>(&m_NormalStyle); } }
-            );
-
-            baseProps.insert(
-                { "HoveredStyle", PropertyType::Struct, "Style",
-                 [this](void* v) { m_HoveredStyle = *(ButtonStateStyle*)v; },
-                 [this]() -> void* { return const_cast<ButtonStateStyle*>(&m_HoveredStyle); } }
-            );
-
-            baseProps.insert(
-                { "PressedStyle", PropertyType::Struct, "Style",
-                 [this](void* v) { m_PressedStyle = *(ButtonStateStyle*)v; },
-                 [this]() -> void* { return const_cast<ButtonStateStyle*>(&m_PressedStyle); } }
-            );
-
-            baseProps.insert(
-                { "FocusedStyle", PropertyType::Struct, "Style",
-                 [this](void* v) { m_FocusedStyle = *(ButtonStateStyle*)v; },
-                 [this]() -> void* { return const_cast<ButtonStateStyle*>(&m_FocusedStyle); } }
-            );
-
-            return baseProps;
         }
 
         virtual std::string GetRegisterTypeName() override { return "ImButton"; }

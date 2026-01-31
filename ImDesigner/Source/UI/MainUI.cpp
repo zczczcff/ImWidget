@@ -124,15 +124,7 @@ void MainUI::ViewTest()
 		auto* intVar = widgetClass->GetBasicVariable(intVarName);
 		if (intVar)
 		{
-			auto props = intVar->GetProperties();
-			for (auto& prop : props)
-			{
-				if (prop.name == intVarName)
-				{
-					((ImGuiWidget::PropertyInfo)prop).SetIntValue(42);
-					std::cout << "    设置值为: " << prop.GetIntValue() << std::endl;
-				}
-			}
+			*(int*)intVar->GetValuePtr() = 42;
 		}
 	}
 
@@ -144,15 +136,7 @@ void MainUI::ViewTest()
 		auto* floatVar = widgetClass->GetBasicVariable(floatVarName);
 		if (floatVar)
 		{
-			auto props = floatVar->GetProperties();
-			for (auto& prop : props)
-			{
-				if (prop.name == floatVarName)
-				{
-					((ImGuiWidget::PropertyInfo)prop).SetFloatValue(3.14f);
-					std::cout << "    设置值为: " << prop.GetFloatValue() << std::endl;
-				}
-			}
+			*(float*)floatVar->GetValuePtr() = 3.14f;
 		}
 	}
 
@@ -164,15 +148,7 @@ void MainUI::ViewTest()
 		auto* boolVar = widgetClass->GetBasicVariable(boolVarName);
 		if (boolVar)
 		{
-			auto props = boolVar->GetProperties();
-			for (auto& prop : props)
-			{
-				if (prop.name == boolVarName)
-				{
-					((ImGuiWidget::PropertyInfo)prop).SetBoolValue(true);
-					std::cout << "    设置值为: " << (prop.GetBoolValue() ? "true" : "false") << std::endl;
-				}
-			}
+			*(bool*)boolVar->GetValuePtr() = true;
 		}
 	}
 
@@ -184,15 +160,7 @@ void MainUI::ViewTest()
 		auto* stringVar = widgetClass->GetBasicVariable(stringVarName);
 		if (stringVar)
 		{
-			auto props = stringVar->GetProperties();
-			for (auto& prop : props)
-			{
-				if (prop.name == stringVarName)
-				{
-					((ImGuiWidget::PropertyInfo)prop).SetStringValue("Hello, World!");
-					std::cout << "    设置值为: " << prop.GetStringValue() << std::endl;
-				}
-			}
+			*(std::string*)stringVar->GetValuePtr() = "hello world";
 		}
 	}
 
@@ -204,15 +172,7 @@ void MainUI::ViewTest()
 		auto* colorVar = widgetClass->GetBasicVariable(colorVarName);
 		if (colorVar)
 		{
-			auto props = colorVar->GetProperties();
-			for (auto& prop : props)
-			{
-				if (prop.name == colorVarName)
-				{
-					((ImGuiWidget::PropertyInfo)prop).SetColorValue(IM_COL32(255, 0, 0, 255)); // 红色
-					std::cout << "    设置值为: 红色 (ARGB: " << std::hex << prop.GetColorValue() << std::dec << ")" << std::endl;
-				}
-			}
+			*(ImU32*)colorVar->GetValuePtr() = IM_COL32(255, 0, 0, 255);
 		}
 	}
 
@@ -236,16 +196,7 @@ void MainUI::ViewTest()
 			ImWidget* textBlock = ImGuiWidget::ImWidgetFactory::GetInstance().CreateWidget("ImTextBlock", "ButtonText");
 			if (textBlock)
 			{
-				// 设置TextBlock文本
-				auto textProps = textBlock->GetProperties();
-				for (auto& prop : textProps)
-				{
-					if (prop.name == "Text")
-					{
-						((ImGuiWidget::PropertyInfo)prop).SetStringValue("Click Me");
-						break;
-					}
-				}
+				textBlock->SetPropertyValue<std::string>("Text", "Click Me");
 
 				// 将TextBlock添加到按钮中
 				if (buttonWidget->GetAllowMaxChildNum() > 0)

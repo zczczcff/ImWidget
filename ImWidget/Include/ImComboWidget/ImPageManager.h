@@ -854,90 +854,48 @@ namespace ImGuiWidget
         }
 
     public:
-        // 属性系统
-        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
-        {
-            auto props = ImUserWidget::GetProperties();
-
-            // Tab位置属性
-            props.insert({
-                "TabPosition", PropertyType::Enum, "Layout",
-                [this](void* v)
-                     {
-                    std::string str = *static_cast<std::string*>(v);
-                    if (str == "Top") SetTabPosition(TabPosition::Top);
-                    else if (str == "Bottom") SetTabPosition(TabPosition::Bottom);
-                    },
-                    [this]() -> void*
-                    {
-                    static std::vector<std::string> options;
-                    options = {"Top", "Bottom"};
-                    switch (m_tabPosition)
-                    {
-                    case TabPosition::Top: options.push_back("Top"); break;
-                    case TabPosition::Bottom: options.push_back("Bottom"); break;
-                    }
-                    return static_cast<void*>(&options);
-                    }
-                });
-
-            // 关闭按钮相关属性
-            props.insert({
-                "ShowCloseButton", PropertyType::Bool, "Close Button",
-                [this](void* v) { SetShowCloseButton(*static_cast<bool*>(v)); },
-                [this]() -> void* { return &m_showCloseButton; }
-                });
-
-            props.insert({
-                "CloseButtonSize", PropertyType::Float, "Close Button",
-                [this](void* v) { SetCloseButtonSize(*static_cast<float*>(v)); },
-                [this]() -> void* { return &m_closeButtonSize; }
-                });
-
-            props.insert({
-                "CloseButtonPadding", PropertyType::Float, "Close Button",
-                [this](void* v) { SetCloseButtonPadding(*static_cast<float*>(v)); },
-                [this]() -> void* { return &m_closeButtonPadding; }
-                });
-
-            // 新增：图标相关属性
-            props.insert({
-                "DefaultIconWidth", PropertyType::Int, "Icon",
-                [this](void* v) { m_defaultIconWidth = *static_cast<int*>(v); RecreateAllTabs(); },
-                [this]() -> void* { return &m_defaultIconWidth; }
-                });
-
-            props.insert({
-                "DefaultIconHeight", PropertyType::Int, "Icon",
-                [this](void* v) { m_defaultIconHeight = *static_cast<int*>(v); RecreateAllTabs(); },
-                [this]() -> void* { return &m_defaultIconHeight; }
-                });
-
-            props.insert({
-                "IconTextSpacing", PropertyType::Float, "Icon",
-                [this](void* v) { SetIconTextSpacing(*static_cast<float*>(v)); },
-                [this]() -> void* { return &m_iconTextSpacing; }
-                });
-            // 添加选项卡颜色属性
-            props.insert({
-                "SelectedTabColor", PropertyType::Color, "Tab Style",
-                [this](void* v) { SetSelectedTabColor(*static_cast<ImU32*>(v)); },
-                [this]() -> void* { return &m_selectedTabColor; }
-                });
-
-            props.insert({
-                "NormalTabColor", PropertyType::Color, "Tab Style",
-                [this](void* v) { SetNormalTabColor(*static_cast<ImU32*>(v)); },
-                [this]() -> void* { return &m_normalTabColor; }
-                });
-            return props;
-        }
-
         virtual std::string GetRegisterTypeName() override { return "ImPageManager"; }
 
         //virtual ImWidget* CopyWidget() override
         //{
         //    return new ImPageManager(*this);
         //}
+        DECLARE_IMOBJECT(ImPageManager, ImUserWidget)
+        registrar
+            // Tab位置属性 - 枚举类型
+            .RegisterOptionalProperty(
+                PropertyType::Enum, "TabPosition", &ImPageManager::m_tabPosition,
+                { "Top", "Bottom" }, "Tab位置")
+
+            // 关闭按钮属性
+            .RegisterProperty(
+                PropertyType::Bool, "ShowCloseButton", &ImPageManager::m_showCloseButton,
+                "是否显示关闭按钮")
+            .RegisterProperty(
+                PropertyType::Float, "CloseButtonSize", &ImPageManager::m_closeButtonSize,
+                "关闭按钮大小")
+            .RegisterProperty(
+                PropertyType::Float, "CloseButtonPadding", &ImPageManager::m_closeButtonPadding,
+                "关闭按钮内边距")
+
+            // 图标属性
+            .RegisterProperty(
+                PropertyType::Int, "DefaultIconWidth", &ImPageManager::m_defaultIconWidth,
+                "默认图标宽度")
+            .RegisterProperty(
+                PropertyType::Int, "DefaultIconHeight", &ImPageManager::m_defaultIconHeight,
+                "默认图标高度")
+            .RegisterProperty(
+                PropertyType::Float, "IconTextSpacing", &ImPageManager::m_iconTextSpacing,
+                "图标与文字间距")
+
+            // 标签样式属性
+            .RegisterProperty(
+                PropertyType::Color, "SelectedTabColor", &ImPageManager::m_selectedTabColor,
+                "选中标签颜色")
+            .RegisterProperty(
+                PropertyType::Color, "NormalTabColor", &ImPageManager::m_normalTabColor,
+                "普通标签颜色");
+        END_DECLARE_IMOBJECT()
     };
 }

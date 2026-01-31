@@ -571,140 +571,140 @@ namespace ImGuiWidget
         }
 
         // 属性系统
-        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
-        {
-            auto props = ImWidget::GetProperties();
+   //     virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
+   //     {
+   //         auto props = ImWidget::GetProperties();
 
-            // 添加坐标轴范围
-            props.insert({
-                "XMin", PropertyType::Float, "Axis",
-                [this](void* val) { SetAxisRange(*static_cast<float*>(val), m_XMax, m_YMin, m_YMax); },
-                [this]() { return static_cast<void*>(&m_XMin); }
-                });
+   //         // 添加坐标轴范围
+   //         props.insert({
+   //             "XMin", PropertyType::Float, "Axis",
+   //             [this](void* val) { SetAxisRange(*static_cast<float*>(val), m_XMax, m_YMin, m_YMax); },
+   //             [this]() { return static_cast<void*>(&m_XMin); }
+   //             });
 
-            props.insert({
-                "XMax", PropertyType::Float, "Axis",
-                [this](void* val) { SetAxisRange(m_XMin, *static_cast<float*>(val), m_YMin, m_YMax); },
-                [this]() { return static_cast<void*>(&m_XMax); }
-                });
+   //         props.insert({
+   //             "XMax", PropertyType::Float, "Axis",
+   //             [this](void* val) { SetAxisRange(m_XMin, *static_cast<float*>(val), m_YMin, m_YMax); },
+   //             [this]() { return static_cast<void*>(&m_XMax); }
+   //             });
 
-            props.insert({
-                "YMin", PropertyType::Float, "Axis",
-                [this](void* val) { SetAxisRange(m_XMin, m_XMax, *static_cast<float*>(val), m_YMax); },
-                [this]() { return static_cast<void*>(&m_YMin); }
-                });
+   //         props.insert({
+   //             "YMin", PropertyType::Float, "Axis",
+   //             [this](void* val) { SetAxisRange(m_XMin, m_XMax, *static_cast<float*>(val), m_YMax); },
+   //             [this]() { return static_cast<void*>(&m_YMin); }
+   //             });
 
-            props.insert({
-                "YMax", PropertyType::Float, "Axis",
-                [this](void* val) { SetAxisRange(m_XMin, m_XMax, m_YMin, *static_cast<float*>(val)); },
-                [this]() { return static_cast<void*>(&m_YMax); }
-                });
+   //         props.insert({
+   //             "YMax", PropertyType::Float, "Axis",
+   //             [this](void* val) { SetAxisRange(m_XMin, m_XMax, m_YMin, *static_cast<float*>(val)); },
+   //             [this]() { return static_cast<void*>(&m_YMax); }
+   //             });
 
-            // 原点位置
-            props.insert({
-                "OriginX", PropertyType::Float, "Axis",
-                [this](void* val) { SetOrigin(*static_cast<float*>(val), m_OriginY); },
-                [this]() { return static_cast<void*>(&m_OriginX); }
-                });
+   //         // 原点位置
+   //         props.insert({
+   //             "OriginX", PropertyType::Float, "Axis",
+   //             [this](void* val) { SetOrigin(*static_cast<float*>(val), m_OriginY); },
+   //             [this]() { return static_cast<void*>(&m_OriginX); }
+   //             });
 
-            props.insert({
-                "OriginY", PropertyType::Float, "Axis",
-                [this](void* val) { SetOrigin(m_OriginX, *static_cast<float*>(val)); },
-                [this]() { return static_cast<void*>(&m_OriginY); }
-                });
+   //         props.insert({
+   //             "OriginY", PropertyType::Float, "Axis",
+   //             [this](void* val) { SetOrigin(m_OriginX, *static_cast<float*>(val)); },
+   //             [this]() { return static_cast<void*>(&m_OriginY); }
+   //             });
 
-            // 坐标轴名称
-            props.insert({
-                "XAxisName", PropertyType::String, "Axis Labels",
-                [this](void* val) { m_XAxisName = *static_cast<std::string*>(val); },
-                [this]() { return static_cast<void*>(&m_XAxisName); }
-                });
+   //         // 坐标轴名称
+   //         props.insert({
+   //             "XAxisName", PropertyType::String, "Axis Labels",
+   //             [this](void* val) { m_XAxisName = *static_cast<std::string*>(val); },
+   //             [this]() { return static_cast<void*>(&m_XAxisName); }
+   //             });
 
-            props.insert({
-                "YAxisName", PropertyType::String, "Axis Labels",
-                [this](void* val) { m_YAxisName = *static_cast<std::string*>(val); },
-                [this]() { return static_cast<void*>(&m_YAxisName); }
-                });
+   //         props.insert({
+   //             "YAxisName", PropertyType::String, "Axis Labels",
+   //             [this](void* val) { m_YAxisName = *static_cast<std::string*>(val); },
+   //             [this]() { return static_cast<void*>(&m_YAxisName); }
+   //             });
 
-            // 坐标轴名称颜色
-            props.insert({
-                "XAxisNameColor", PropertyType::Color, "Axis Labels",
-                [this](void* val) { m_XAxisNameColor = *static_cast<ImU32*>(val); },
-                [this]() { return static_cast<void*>(&m_XAxisNameColor); }
-                });
+   //         // 坐标轴名称颜色
+   //         props.insert({
+   //             "XAxisNameColor", PropertyType::Color, "Axis Labels",
+   //             [this](void* val) { m_XAxisNameColor = *static_cast<ImU32*>(val); },
+   //             [this]() { return static_cast<void*>(&m_XAxisNameColor); }
+   //             });
 
-            props.insert({
-                "YAxisNameColor", PropertyType::Color, "Axis Labels",
-                [this](void* val) { m_YAxisNameColor = *static_cast<ImU32*>(val); },
-                [this]() { return static_cast<void*>(&m_YAxisNameColor); }
-                });
+   //         props.insert({
+   //             "YAxisNameColor", PropertyType::Color, "Axis Labels",
+   //             [this](void* val) { m_YAxisNameColor = *static_cast<ImU32*>(val); },
+   //             [this]() { return static_cast<void*>(&m_YAxisNameColor); }
+   //             });
 
-            // 坐标轴名称偏移
-            props.insert({
-                "XAxisNameOffset", PropertyType::Vec2, "Axis Labels",
-                [this](void* val) { m_XAxisNameOffset = *static_cast<ImVec2*>(val); },
-                [this]() { return static_cast<void*>(&m_XAxisNameOffset); }
-                });
+   //         // 坐标轴名称偏移
+   //         props.insert({
+   //             "XAxisNameOffset", PropertyType::Vec2, "Axis Labels",
+   //             [this](void* val) { m_XAxisNameOffset = *static_cast<ImVec2*>(val); },
+   //             [this]() { return static_cast<void*>(&m_XAxisNameOffset); }
+   //             });
 
-            props.insert({
-                "YAxisNameOffset", PropertyType::Vec2, "Axis Labels",
-                [this](void* val) { m_YAxisNameOffset = *static_cast<ImVec2*>(val); },
-                [this]() { return static_cast<void*>(&m_YAxisNameOffset); }
-				});
-			props.insert({
-				"LegendOffset",
-				PropertyType::Vec2,
-				"Legend",
-				[this](void* val) { m_LegendOffset = *static_cast<ImVec2*>(val); },
-				[this]() { return static_cast<void*>(&m_LegendOffset); }
-				});
-			// 刻度间隔
-			props.insert({
-                "XTickInterval", PropertyType::Float, "Axis",
-                [this](void* val) { m_XTickInterval = *static_cast<float*>(val); },
-                [this]() { return static_cast<void*>(&m_XTickInterval); }
-                });
+   //         props.insert({
+   //             "YAxisNameOffset", PropertyType::Vec2, "Axis Labels",
+   //             [this](void* val) { m_YAxisNameOffset = *static_cast<ImVec2*>(val); },
+   //             [this]() { return static_cast<void*>(&m_YAxisNameOffset); }
+			//	});
+			//props.insert({
+			//	"LegendOffset",
+			//	PropertyType::Vec2,
+			//	"Legend",
+			//	[this](void* val) { m_LegendOffset = *static_cast<ImVec2*>(val); },
+			//	[this]() { return static_cast<void*>(&m_LegendOffset); }
+			//	});
+			//// 刻度间隔
+			//props.insert({
+   //             "XTickInterval", PropertyType::Float, "Axis",
+   //             [this](void* val) { m_XTickInterval = *static_cast<float*>(val); },
+   //             [this]() { return static_cast<void*>(&m_XTickInterval); }
+   //             });
 
-            props.insert({
-                "YTickInterval", PropertyType::Float, "Axis",
-                [this](void* val) { m_YTickInterval = *static_cast<float*>(val); },
-                [this]() { return static_cast<void*>(&m_YTickInterval); }
-                });
+   //         props.insert({
+   //             "YTickInterval", PropertyType::Float, "Axis",
+   //             [this](void* val) { m_YTickInterval = *static_cast<float*>(val); },
+   //             [this]() { return static_cast<void*>(&m_YTickInterval); }
+   //             });
 
-            // 显示选项
-            props.insert({
-                "ShowGrid", PropertyType::Bool, "Display",
-                [this](void* val) { m_ShowGrid = *static_cast<bool*>(val); },
-                [this]() { return static_cast<void*>(&m_ShowGrid); }
-                });
+   //         // 显示选项
+   //         props.insert({
+   //             "ShowGrid", PropertyType::Bool, "Display",
+   //             [this](void* val) { m_ShowGrid = *static_cast<bool*>(val); },
+   //             [this]() { return static_cast<void*>(&m_ShowGrid); }
+   //             });
 
-            props.insert({
-                "ShowLabels", PropertyType::Bool, "Display",
-                [this](void* val) { m_ShowLabels = *static_cast<bool*>(val); },
-                [this]() { return static_cast<void*>(&m_ShowLabels); }
-                });
+   //         props.insert({
+   //             "ShowLabels", PropertyType::Bool, "Display",
+   //             [this](void* val) { m_ShowLabels = *static_cast<bool*>(val); },
+   //             [this]() { return static_cast<void*>(&m_ShowLabels); }
+   //             });
 
-            // 颜色
-            props.insert({
-                "AxisColor", PropertyType::Color, "Color",
-                [this](void* val) { m_AxisColor = *static_cast<ImU32*>(val); },
-                [this]() { return static_cast<void*>(&m_AxisColor); }
-                });
+   //         // 颜色
+   //         props.insert({
+   //             "AxisColor", PropertyType::Color, "Color",
+   //             [this](void* val) { m_AxisColor = *static_cast<ImU32*>(val); },
+   //             [this]() { return static_cast<void*>(&m_AxisColor); }
+   //             });
 
-            props.insert({
-                "GridColor", PropertyType::Color, "Color",
-                [this](void* val) { m_GridColor = *static_cast<ImU32*>(val); },
-                [this]() { return static_cast<void*>(&m_GridColor); }
-                });
+   //         props.insert({
+   //             "GridColor", PropertyType::Color, "Color",
+   //             [this](void* val) { m_GridColor = *static_cast<ImU32*>(val); },
+   //             [this]() { return static_cast<void*>(&m_GridColor); }
+   //             });
 
-            props.insert({
-                "BackgroundColor", PropertyType::Color, "Color",
-                [this](void* val) { m_BackgroundColor = *static_cast<ImU32*>(val); },
-                [this]() { return static_cast<void*>(&m_BackgroundColor); }
-                });
+   //         props.insert({
+   //             "BackgroundColor", PropertyType::Color, "Color",
+   //             [this](void* val) { m_BackgroundColor = *static_cast<ImU32*>(val); },
+   //             [this]() { return static_cast<void*>(&m_BackgroundColor); }
+   //             });
 
-            return props;
-        }
+   //         return props;
+   //     }
 
         virtual std::string GetRegisterTypeName() override { return "ImCurve"; }
 

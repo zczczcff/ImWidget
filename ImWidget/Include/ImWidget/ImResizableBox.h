@@ -326,42 +326,42 @@ namespace ImGuiWidget
             }
         }
 
-        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
-        {
-            auto baseProps = ImPanelWidget::GetProperties();
+        //virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
+        //{
+        //    auto baseProps = ImPanelWidget::GetProperties();
 
-            baseProps.insert(
-                { "MinSize", PropertyType::Vec2, "Constraints",
-                  [this](void* v) { min_size = *static_cast<ImVec2*>(v); },
-                  [this]() -> void* { return &min_size; } }
-            );
+        //    baseProps.insert(
+        //        { "MinSize", PropertyType::Vec2, "Constraints",
+        //          [this](void* v) { min_size = *static_cast<ImVec2*>(v); },
+        //          [this]() -> void* { return &min_size; } }
+        //    );
 
-            baseProps.insert(
-                { "ControlPointRadius", PropertyType::Float, "Appearance",
-                  [this](void* v) { m_ControlPointRadius = *static_cast<float*>(v); },
-                  [this]() -> void* { return &m_ControlPointRadius; } }
-            );
+        //    baseProps.insert(
+        //        { "ControlPointRadius", PropertyType::Float, "Appearance",
+        //          [this](void* v) { m_ControlPointRadius = *static_cast<float*>(v); },
+        //          [this]() -> void* { return &m_ControlPointRadius; } }
+        //    );
 
-            baseProps.insert(
-                { "ControlPointColor", PropertyType::Color, "Appearance",
-                  [this](void* v) { m_ControlPointColor = *static_cast<ImU32*>(v); },
-                  [this]() -> void* { return &m_ControlPointColor; } }
-            );
+        //    baseProps.insert(
+        //        { "ControlPointColor", PropertyType::Color, "Appearance",
+        //          [this](void* v) { m_ControlPointColor = *static_cast<ImU32*>(v); },
+        //          [this]() -> void* { return &m_ControlPointColor; } }
+        //    );
 
-            baseProps.insert(
-                { "BoxBorderColor", PropertyType::Color, "Appearance",
-                  [this](void* v) { m_BoxBorderColor = *static_cast<ImU32*>(v); },
-                  [this]() -> void* { return &m_BoxBorderColor; } }
-            );
+        //    baseProps.insert(
+        //        { "BoxBorderColor", PropertyType::Color, "Appearance",
+        //          [this](void* v) { m_BoxBorderColor = *static_cast<ImU32*>(v); },
+        //          [this]() -> void* { return &m_BoxBorderColor; } }
+        //    );
 
-            baseProps.insert(
-                { "BoxBorderThickness", PropertyType::Float, "Appearance",
-                  [this](void* v) { m_BoxBorderThickness = *static_cast<float*>(v); },
-                  [this]() -> void* { return &m_BoxBorderThickness; } }
-            );
+        //    baseProps.insert(
+        //        { "BoxBorderThickness", PropertyType::Float, "Appearance",
+        //          [this](void* v) { m_BoxBorderThickness = *static_cast<float*>(v); },
+        //          [this]() -> void* { return &m_BoxBorderThickness; } }
+        //    );
 
-            return baseProps;
-        }
+        //    return baseProps;
+        //}
 
         virtual std::string GetRegisterTypeName()override { return "ImResizableBox"; }
 

@@ -372,43 +372,6 @@ namespace ImGuiWidget
 			MarkLayoutDirty();
 		}
 
-		virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
-		{
-			auto baseProps = ImWidget::GetProperties();
-
-			baseProps.insert(
-				{
-					"BackGroundColor",
-					PropertyType::Color,
-					"Style",
-					[this](void* v) { BgColor = *static_cast<ImU32*>(v); },
-					[this]() -> void* { return &BgColor; }
-				}
-			);
-
-			baseProps.insert(
-				{
-					"HaveBorder",
-					PropertyType::Bool,
-					"Style",
-					[this](void* v){bHaveBorder= *static_cast<bool*>(v); },
-					[this]()->void* {return &bHaveBorder; }
-				}
-			);
-
-			baseProps.insert(
-				{
-					"BorderColor",
-					PropertyType::Color,
-					"Style",
-					[this](void* v) { BorderColor = *static_cast<ImU32*>(v); },
-					[this]() -> void* { return &BorderColor; }
-				}
-			);
-
-			return baseProps;
-		}
-
 		virtual std::string GetRegisterTypeName()override { return "ImPanelWidget"; }
 
 		virtual ImWidget* CopyWidget() = 0;

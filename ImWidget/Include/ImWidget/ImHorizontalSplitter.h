@@ -13,53 +13,6 @@ namespace ImGuiWidget
         ImU32 ActiveColor = IM_COL32(150, 150, 150, 255);
         float Rounding = 0.0f;
 
-        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
-        {
-            std::unordered_set<PropertyInfo, PropertyInfo::Hasher> props;
-
-            props.insert({
-                "BarWidth",
-                PropertyType::Float,
-                "Appearance",
-                [this](void* val) { this->BarWidth = *static_cast<float*>(val); },
-                [this]() { return static_cast<void*>(&this->BarWidth); }
-                });
-
-            props.insert({
-                "Color",
-                PropertyType::Color,
-                "Appearance",
-                [this](void* val) { this->Color = *static_cast<ImU32*>(val); },
-                [this]() { return static_cast<void*>(&this->Color); }
-                });
-
-            props.insert({
-                "HoveredColor",
-                PropertyType::Color,
-                "Appearance",
-                [this](void* val) { this->HoveredColor = *static_cast<ImU32*>(val); },
-                [this]() { return static_cast<void*>(&this->HoveredColor); }
-                });
-
-            props.insert({
-                "ActiveColor",
-                PropertyType::Color,
-                "Appearance",
-                [this](void* val) { this->ActiveColor = *static_cast<ImU32*>(val); },
-                [this]() { return static_cast<void*>(&this->ActiveColor); }
-                });
-
-            props.insert({
-                "Rounding",
-                PropertyType::Float,
-                "Appearance",
-                [this](void* val) { this->Rounding = *static_cast<float*>(val); },
-                [this]() { return static_cast<void*>(&this->Rounding); }
-                });
-
-            return props;
-        }
-
         DECLARE_IMOBJECT(ImHorizontalSplitterStyle, ImObject)
         registrar
             .RegisterProperty(PropertyType::Float, "BarWidth", &ImHorizontalSplitterStyle::BarWidth, u8"分隔条宽度")
@@ -744,22 +697,6 @@ namespace ImGuiWidget
 
             // 如果不是分隔条，调用基类的HitTest
             return ImPanelWidget::ChildHitTest(Pos);
-        }
-
-        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
-        {
-            auto props = ImPanelWidget::GetProperties();
-
-            // 分隔条样式
-            props.insert({
-                "SplitterStyle",
-                PropertyType::Struct,
-                "Appearance",
-                [this](void* val) { this->m_Style = *static_cast<ImHorizontalSplitterStyle*>(val); },
-                [this]() { return static_cast<void*>(&this->m_Style); }
-                });
-
-            return props;
         }
 
         virtual std::string GetRegisterTypeName()override { return "ImHorizontalSplitter"; }

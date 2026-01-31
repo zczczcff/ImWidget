@@ -75,66 +75,6 @@ namespace ImGuiWidget
             }
         }
 
-        std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() override
-        {
-            std::unordered_set<PropertyInfo, PropertyInfo::Hasher> props;
-
-            switch (m_Type)
-            {
-            case BasicType::Int:
-                props.insert({
-                    m_Name,
-                    PropertyType::Int,
-                    m_Category,
-                    [this](void* v) { m_IntValue = *static_cast<int*>(v); },
-                    [this]() -> void* { return &m_IntValue; }
-                    });
-                break;
-
-            case BasicType::Float:
-                props.insert({
-                    m_Name,
-                    PropertyType::Float,
-                    m_Category,
-                    [this](void* v) { m_FloatValue = *static_cast<float*>(v); },
-                    [this]() -> void* { return &m_FloatValue; }
-                    });
-                break;
-
-            case BasicType::Bool:
-                props.insert({
-                    m_Name,
-                    PropertyType::Bool,
-                    m_Category,
-                    [this](void* v) { m_BoolValue = *static_cast<bool*>(v); },
-                    [this]() -> void* { return &m_BoolValue; }
-                    });
-                break;
-
-            case BasicType::String:
-                props.insert({
-                    m_Name,
-                    PropertyType::String,
-                    m_Category,
-                    [this](void* v) { m_StringValue = *static_cast<std::string*>(v); },
-                    [this]() -> void* { return &m_StringValue; }
-                    });
-                break;
-
-            case BasicType::Color:
-                props.insert({
-                    m_Name,
-                    PropertyType::Color,
-                    m_Category,
-                    [this](void* v) { m_ColorValue = *static_cast<ImU32*>(v); },
-                    [this]() -> void* { return &m_ColorValue; }
-                    });
-                break;
-            }
-
-            return props;
-        }
-
         std::string GetRegisterTypeName() override
         {
             return "BasicVariable_" + std::to_string(static_cast<int>(m_Type));

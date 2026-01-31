@@ -218,23 +218,23 @@ namespace ImGuiWidget
         virtual ~ImObject() = default;
 
         // 获取所有可编辑属性
-        virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() { return std::unordered_set<PropertyInfo, PropertyInfo::Hasher>(); }
+        //virtual std::unordered_set<PropertyInfo, PropertyInfo::Hasher> GetProperties() { return std::unordered_set<PropertyInfo, PropertyInfo::Hasher>(); }
 
         // 类型安全的属性访问
-        bool SetProperty(const std::string& name, void* value)
-        {
-            auto properties = GetProperties();
-            PropertyInfo temp;
-            temp.name = name;
+        //bool SetProperty(const std::string& name, void* value)
+        //{
+        //    auto properties = GetProperties();
+        //    PropertyInfo temp;
+        //    temp.name = name;
 
-            auto it = properties.find(temp);
-            if (it != properties.end())
-            {
-                it->setter(value);
-                return true;
-            }
-            return false;
-        }
+        //    auto it = properties.find(temp);
+        //    if (it != properties.end())
+        //    {
+        //        it->setter(value);
+        //        return true;
+        //    }
+        //    return false;
+        //}
 
         //template<typename T>
         //T GetProperty(const std::string& name)

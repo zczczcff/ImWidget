@@ -4,469 +4,720 @@
 #include "EditorAction.h"
 #include "EditorEvents.h"
 
-void UI_DetailView::OnKeyDown(ImGuiWidget::ImKeyDownEvent& e) 
+void UI_DetailView::OnKeyDown(ImGuiWidget::ImKeyDownEvent& e)
 {
-	if (bHasFocus && e.IsCtrl_Z())
-	{
-		ExecuteAction(EditedFileFullPath + Action::_REQUEST_UNDO);
-		//OnRequestUndo.Broadcast();
-	}
+    if (bHasFocus && e.IsCtrl_Z())
+    {
+        ExecuteAction(EditedFileFullPath + Action::_REQUEST_UNDO);
+    }
 }
 
 void UI_DetailView::ActionInit()
 {
-	ResetFileAction();
-	AddSequentialProcessor(Action::ProjectView::RENAME_FILE, [this](const std::string& OldFileFullPath,const std::string& NewFileFullPath) 
-		{
-			if (EditedFileFullPath == OldFileFullPath)
-			{
-				EditedFileFullPath = NewFileFullPath;
-				ResetFileAction();
-				ResetEvent();
-			}
-		});
+    ResetFileAction();
+    AddSequentialProcessor(Action::ProjectView::RENAME_FILE, [this](const std::string& OldFileFullPath, const std::string& NewFileFullPath)
+        {
+            if (EditedFileFullPath == OldFileFullPath)
+            {
+                EditedFileFullPath = NewFileFullPath;
+                ResetFileAction();
+                ResetEvent();
+            }
+        });
 }
 
 void UI_DetailView::EventInit()
 {
-	ResetEvent();
+    ResetEvent();
 }
 
 void UI_DetailView::ResetEvent()
 {
-	for (auto& id : FileEvents)
-	{
-		Unsubscribe(id);
-	}
+    for (auto& id : FileEvents)
+    {
+        Unsubscribe(id);
+    }
+    FileEvents.clear();
 
-	FileEvents.clear();
-
-	FileEvents.push_back(Subscribe(EditedFileFullPath + Events::DetailView::UPDATE_PROPERTY_DISPLAY, [this](ImGuiWidget::ImObject* Target, const std::string& PropertyName)
-		{
-			UpdatePropertyDisplay(Target, PropertyName);
-		}));
+    FileEvents.push_back(Subscribe(EditedFileFullPath + Events::DetailView::UPDATE_PROPERTY_DISPLAY,
+        [this](ImGuiWidget::ImObject* Target, const std::string& PropertyName)
+        {
+            UpdatePropertyDisplay(Target, PropertyName);
+        }));
 }
 
 void UI_DetailView::ResetFileAction()
 {
-	for (auto& id : FileActions)
-	{
-		RemoveProcessor(id);
-	}
-	FileActions.clear();
+    for (auto& id : FileActions)
+    {
+        RemoveProcessor(id);
+    }
+    FileActions.clear();
 
-	FileActions.push_back(AddSequentialProcessor(EditedFileFullPath + Action::WIDGET_SELECTED, [this](ImGuiWidget::ImWidget* SelectedWidget)
-		{
-			SetCurrentWidget(SelectedWidget);
-		}));
+    FileActions.push_back(AddSequentialProcessor(EditedFileFullPath + Action::WIDGET_SELECTED,
+        [this](ImGuiWidget::ImWidget* SelectedWidget)
+        {
+            SetCurrentWidget(SelectedWidget);
+        }));
 }
 
 ImGuiWidget::ImHorizontalBox* UI_DetailView::HandleAddStringItem(
-	const ImGuiWidget::PropertyInfo& SingleProperty,
-	std::string& SingleString,
-	ImGuiWidget::ImVerticalBox* StringListBox,
-	ImGuiWidget::ImObject* Target,
-	ImGuiWidget::ImWidget* WidgetOwner)
+    const ROP::Property<ImGuiWidget::PropertyType>& prop,
+    std::string& SingleString,
+    ImGuiWidget::ImVerticalBox* StringListBox,
+    ImGuiWidget::ImObject* Target,
+    ImGuiWidget::ImWidget* WidgetOwner)
 {
-	ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
-	ImGuiWidget::ImInputText* InputString = new ImGuiWidget::ImInputText(m_WidgetID + "_InputString");
-	ImGuiWidget::ImButton* DeleteButton = new ImGuiWidget::ImButton(m_WidgetID + "_DeleteButton");
-	ImGuiWidget::ImTextBlock* DeleteButtonText = new ImGuiWidget::ImTextBlock(m_WidgetID + "_DeleteButtonText");
-	DeleteButtonText->SetText("X");
-	DeleteButton->SetContent(DeleteButtonText);
-	InputString->SetText(SingleString);
-	InputString->SetOnTextChanged([this,SingleProperty, OldString = SingleString, Target](const std::string& newstring) mutable
-		{
-			std::vector<std::string> stringvector = *(std::vector<std::string>*)SingleProperty.getter();
-			for (auto& s : stringvector)
-			{
-				if (s == OldString)
-				{
-					s = newstring;
-					OldString = newstring;
-				}
-			}
-			//SingleProperty.setter(&stringvector);
-			//OnPropertyChanged.Broadcast(SingleProperty, &stringvector, Target);
-			ExecutePropertyEditAction(SingleProperty, &stringvector, Target);
-		});
-	DeleteButton->SetOnPressed([this,SingleProperty, ItemBox, StringListBox, InputString, Target]()
-		{
-			auto text = InputString->GetText();
-			std::vector<std::string> stringvector = *(std::vector<std::string>*)SingleProperty.getter();
-			for (auto it = stringvector.begin(); it != stringvector.end();)
-			{
-				if (*it == text)
-				{
-					it = stringvector.erase(it);
-					break;
-				}
-				else
-				{
-					++it;
-				}
-			}
-			//SingleProperty.setter(&stringvector);
-			//OnPropertyChanged.Broadcast(SingleProperty, &stringvector, Target);
-			ExecutePropertyEditAction(SingleProperty, &stringvector, Target);
-			StringListBox->RemoveChild(ItemBox, true);
-		});
+    ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
+    ImGuiWidget::ImInputText* InputString = new ImGuiWidget::ImInputText(m_WidgetID + "_InputString");
+    ImGuiWidget::ImButton* DeleteButton = new ImGuiWidget::ImButton(m_WidgetID + "_DeleteButton");
+    ImGuiWidget::ImTextBlock* DeleteButtonText = new ImGuiWidget::ImTextBlock(m_WidgetID + "_DeleteButtonText");
 
-	ItemBox->AddChildToHorizontalBox(InputString)->SetIfAutoSize(true);
-	ItemBox->AddChildToHorizontalBox(DeleteButton)->SetIfAutoSize(false);
-	return ItemBox;
+    DeleteButtonText->SetText("X");
+    DeleteButton->SetContent(DeleteButtonText);
+    InputString->SetText(SingleString);
+
+    InputString->SetOnTextChanged([this, prop, OldString = SingleString, Target](const std::string& newstring) mutable
+        {
+            std::vector<std::string> stringvector = prop.GetValue<std::vector<std::string>>();
+            for (auto& s : stringvector)
+            {
+                if (s == OldString)
+                {
+                    s = newstring;
+                    OldString = newstring;
+                    break;
+                }
+            }
+            ExecutePropertyEditAction(prop, &stringvector, Target);
+        });
+
+    DeleteButton->SetOnPressed([this, prop, ItemBox, StringListBox, InputString, Target]()
+        {
+            auto text = InputString->GetText();
+            std::vector<std::string> stringvector = prop.GetValue<std::vector<std::string>>();
+            for (auto it = stringvector.begin(); it != stringvector.end();)
+            {
+                if (*it == text)
+                {
+                    it = stringvector.erase(it);
+                    break;
+                }
+                else
+                {
+                    ++it;
+                }
+            }
+            ExecutePropertyEditAction(prop, &stringvector, Target);
+            StringListBox->RemoveChild(ItemBox, true);
+        });
+
+    ItemBox->AddChildToHorizontalBox(InputString)->SetIfAutoSize(true);
+    ItemBox->AddChildToHorizontalBox(DeleteButton)->SetIfAutoSize(false);
+    return ItemBox;
+}
+
+std::string UI_DetailView::GetPropertyDisplayName(const ROP::Property<ImGuiWidget::PropertyType>& prop)
+{
+    std::string displayName = prop.GetName();
+    std::string description = prop.GetDescription();
+
+    if (!description.empty())
+    {
+        // 可以根据需要格式化显示名称，例如添加描述
+        // displayName += " - " + description;
+    }
+
+    return displayName;
+}
+
+bool UI_DetailView::IsOptionalProperty(const ROP::Property<ImGuiWidget::PropertyType>& prop)
+{
+    try
+    {
+        // 尝试转换为OptionalProperty来检查是否为选项属性
+        auto optionalProp = prop.GetObject()->ToOptionalProperty(prop);
+        return optionalProp.IsValid() && optionalProp.IsOptional();
+    }
+    catch (...)
+    {
+        return false;
+    }
+}
+
+std::vector<std::string> UI_DetailView::GetOptionalPropertyOptions(const ROP::Property<ImGuiWidget::PropertyType>& prop)
+{
+    std::vector<std::string> options;
+
+    try
+    {
+        auto optionalProp = prop.GetObject()->ToOptionalProperty(prop);
+        if (optionalProp.IsValid() && optionalProp.IsOptional())
+        {
+            options = optionalProp.GetOptionList();
+        }
+    }
+    catch (...)
+    {
+        // 处理异常
+    }
+
+    return options;
 }
 
 void UI_DetailView::HandleSingleProperty(
-	const ImGuiWidget::PropertyInfo& SingleProperty, 
-	ImGuiWidget::ImVerticalBox* CurrentVerticalBox,
-	ImGuiWidget::ImObject* Target,
-	ImGuiWidget::ImWidget* WidgetOwner,
-	std::unordered_map<std::string, std::function<void()>>& Updaters)
+    const ROP::Property<ImGuiWidget::PropertyType>& prop,
+    ImGuiWidget::ImVerticalBox* CurrentVerticalBox,
+    ImGuiWidget::ImObject* Target,
+    ImGuiWidget::ImWidget* WidgetOwner,
+    std::unordered_map<std::string, std::function<void()>>& Updaters)
 {
-	if (Updaters.find(SingleProperty.name) != Updaters.end())
-	{
-		AddLogLineEx(u8"警告：属性[", SingleProperty.name, u8"]已被添加");
-		return;
-	}
-	std::function<void()> Updater;
-	switch (SingleProperty.type)
-	{
-	case ImGuiWidget::PropertyType::Bool:
-	{
-		ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
-		ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
-		PropertyName->SetText(SingleProperty.name);
-		ImGuiWidget::ImCheckBox* BoolSetBox = new ImGuiWidget::ImCheckBox(m_WidgetID + "_BoolSetBox");
-		BoolSetBox->SetChecked(*(bool*)SingleProperty.getter());
-		BoolSetBox->SetOnToggled([this,SingleProperty, Target](bool NewSetting)
-			{
-				//SingleProperty.setter(&NewSetting);
-				//OnPropertyChanged.Broadcast(SingleProperty, &NewSetting,Target);
-				ExecutePropertyEditAction(SingleProperty, &NewSetting, Target);
-			});
-		ItemBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
-		ItemBox->AddChildToHorizontalBox(BoolSetBox)->SetIfAutoSize(false);
-		CurrentVerticalBox->AddChildToVerticalBox(ItemBox)->SetIfAutoSize(false);
-		Updater = [BoolSetBox, SingleProperty]() { BoolSetBox->SetChecked(*(bool*)SingleProperty.getter()); };
-		break;
-	}
-	case ImGuiWidget::PropertyType::Color:
-	{
-		ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetID + "_StructBox");
-		ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
-		PropertyName->SetText(SingleProperty.name);
-		ImGuiWidget::ImColorPicker* ColorPalette = new ImGuiWidget::ImColorPicker(m_WidgetID + "_ColorPalette");
-		ColorPalette->SetColor(*(ImU32*)SingleProperty.getter());
-		ColorPalette->SetOnColorChanged([this,SingleProperty, Target](ImU32 NewColor)
-			{
-				//SingleProperty.setter(&NewColor); 
-				//OnPropertyChanged.Broadcast(SingleProperty, &NewColor, Target);
-				ExecutePropertyEditAction(SingleProperty, &NewColor, Target);
-			});
+    std::string propName = prop.GetName();
 
-		StructBox->SetHead(PropertyName);
-		StructBox->SetBody(ColorPalette);
-		Updater = [ColorPalette, SingleProperty]() { ColorPalette->SetColor(*(ImU32*)SingleProperty.getter()); };
-		CurrentVerticalBox->AddChildToVerticalBox(StructBox)->SetIfAutoSize(false);
-		break;
-	}
-	case ImGuiWidget::PropertyType::Float:
-	{
-		ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
-		ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
-		PropertyName->SetText(SingleProperty.name);
-		ImGuiWidget::ImFloatInput* FloatInput = new ImGuiWidget::ImFloatInput(m_WidgetID + "_FloatInput");
-		FloatInput->SetValue(*(float*)SingleProperty.getter());
-		FloatInput->SetOnFloatValueChanged([this,SingleProperty, Target](float value)
-			{
-				//SingleProperty.setter(&value);
-				//OnPropertyChanged.Broadcast(SingleProperty, &value, Target);
-				ExecutePropertyEditAction(SingleProperty, &value, Target);
-			});
+    if (Updaters.find(propName) != Updaters.end())
+    {
+        AddLogLineEx(u8"重复属性[", propName, u8"]已被添加");
+        return;
+    }
 
-		ItemBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
-		ItemBox->AddChildToHorizontalBox(FloatInput)->SetIfAutoSize(true);
-		Updater = [FloatInput, SingleProperty]() { FloatInput->SetValue(*(float*)SingleProperty.getter()); };
-		CurrentVerticalBox->AddChildToVerticalBox(ItemBox)->SetIfAutoSize(false);
-		break;
-	}
-	case ImGuiWidget::PropertyType::Int:
-	{
-		ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
-		ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
-		PropertyName->SetText(SingleProperty.name);
-		ImGuiWidget::ImIntInput* IntInput = new ImGuiWidget::ImIntInput(m_WidgetID + "_IntInput");
-		IntInput->SetValue(*(int*)SingleProperty.getter());
-		IntInput->SetOnIntValueChanged([this,SingleProperty, Target](int value)
-			{
-				//SingleProperty.setter(&value);
-				//OnPropertyChanged.Broadcast(SingleProperty, &value, Target);
-				ExecutePropertyEditAction(SingleProperty, &value, Target);
-			});
+    std::function<void()> Updater;
+    ImGuiWidget::PropertyType propType = prop.GetType();
 
-		ItemBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
-		ItemBox->AddChildToHorizontalBox(IntInput)->SetIfAutoSize(true);
-		Updater = [IntInput, SingleProperty]() { IntInput->SetValue(*(int*)SingleProperty.getter()); };
-		CurrentVerticalBox->AddChildToVerticalBox(ItemBox)->SetIfAutoSize(false);
-		break;
-	}
-	case ImGuiWidget::PropertyType::String:
-	{
-		ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
-		ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
-		PropertyName->SetText(SingleProperty.name);
-		ImGuiWidget::ImInputText* Input = new ImGuiWidget::ImInputText(m_WidgetID + "_Input");
-		Input->SetText(*(std::string*)SingleProperty.getter());
-		Input->SetOnTextChanged([this,SingleProperty, Target](const std::string& text)
-			{
-				//SingleProperty.setter((void*)&text);
-				//OnPropertyChanged.Broadcast(SingleProperty, (void*)&text, Target);
-				ExecutePropertyEditAction(SingleProperty, (void*)&text, Target);
-			});
+    switch (propType)
+    {
+    case ImGuiWidget::PropertyType::Bool:
+    {
+        ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
+        ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
+        PropertyName->SetText(GetPropertyDisplayName(prop));
 
-		ItemBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
-		ItemBox->AddChildToHorizontalBox(Input)->SetIfAutoSize(true);
-		Updater = [Input, SingleProperty]() { Input->SetText(*(std::string*)SingleProperty.getter()); };
-		CurrentVerticalBox->AddChildToVerticalBox(ItemBox)->SetIfAutoSize(false);
-		break;
-	}
-	case ImGuiWidget::PropertyType::Struct:
-	{
-		ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetID + "_StructBox");
-		ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
-		PropertyName->SetText(SingleProperty.name);
-		ImGuiWidget::ImVerticalBox* StructPropertyBox = new ImGuiWidget::ImVerticalBox(m_WidgetID + "_StructPropertyBox");
-		StructBox->SetHead(PropertyName);
-		StructBox->SetBody(StructPropertyBox);
-		ImGuiWidget::ImObject* SubTarget = (ImGuiWidget::ImObject*)(SingleProperty.getter());
+        ImGuiWidget::ImCheckBox* BoolSetBox = new ImGuiWidget::ImCheckBox(m_WidgetID + "_BoolSetBox");
+        BoolSetBox->SetChecked(prop.GetValue<bool>());
 
-		std::unordered_map<std::string, std::function<void()>> SubUpdaters;
-		for (auto& SubSingleProperty : SubTarget->GetProperties())
-		{
-			HandleSingleProperty(SubSingleProperty, StructPropertyBox, SubTarget,WidgetOwner, SubUpdaters);
-		}
-		PropertyInfor* NewPropertyInfor = new PropertyInfor{ WidgetOwner,std::move(SubUpdaters) };
-		CachedPropertyInfors.insert(std::make_pair(SubTarget, NewPropertyInfor));
+        BoolSetBox->SetOnToggled([this, prop, Target](bool NewSetting)
+            {
+                ExecutePropertyEditAction(prop, &NewSetting, Target);
+            });
 
-		Updater = []() {};//暂时应该不会直接更新整个结构
-		CurrentVerticalBox->AddChildToVerticalBox(StructBox)->SetIfAutoSize(false);
-		break;
-	}
-	case ImGuiWidget::PropertyType::Vec2:
-	{
-		ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetID + "_StructBox");
-		ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
-		PropertyName->SetText(SingleProperty.name);
-		ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
-		ImGuiWidget::ImTextBlock* Vec_X = new ImGuiWidget::ImTextBlock(m_WidgetID + "_Vec_X");
-		Vec_X->SetText("X:");
-		ImGuiWidget::ImTextBlock* Vec_Y = new ImGuiWidget::ImTextBlock(m_WidgetID + "_Vec_Y");
-		Vec_Y->SetText("Y:");
-		ImGuiWidget::ImFloatInput* X_Input = new ImGuiWidget::ImFloatInput(m_WidgetID + "_X_Imput");
-		ImGuiWidget::ImFloatInput* Y_Input = new ImGuiWidget::ImFloatInput(m_WidgetID + "_Y_Imput");
+        ItemBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
+        ItemBox->AddChildToHorizontalBox(BoolSetBox)->SetIfAutoSize(false);
+        CurrentVerticalBox->AddChildToVerticalBox(ItemBox)->SetIfAutoSize(false);
 
-		ImVec2 currentv = *(ImVec2*)SingleProperty.getter();
-		X_Input->SetValue(currentv.x);
-		Y_Input->SetValue(currentv.y);
-		X_Input->SetOnFloatValueChanged([this,SingleProperty, Target](float NewX)
-			{
-				ImVec2 v = *(ImVec2*)SingleProperty.getter();
-				v.x = NewX;
-				//SingleProperty.setter(&v);
-				//OnPropertyChanged.Broadcast(SingleProperty, (void*)&v, Target);
-				ExecutePropertyEditAction(SingleProperty, (void*)&v, Target);
-			});
+        Updater = [BoolSetBox, prop]()
+        {
+            try
+            {
+                BoolSetBox->SetChecked(prop.GetValue<bool>());
+            }
+            catch (...)
+            {
+                // 处理异常
+            }
+        };
+        break;
+    }
+    case ImGuiWidget::PropertyType::Color:
+    {
+        ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetID + "_StructBox");
+        ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
+        PropertyName->SetText(GetPropertyDisplayName(prop));
 
-		Y_Input->SetOnFloatValueChanged([this,SingleProperty, Target](float NewY)
-			{
-				ImVec2 v = *(ImVec2*)SingleProperty.getter();
-				v.y = NewY;
-				//SingleProperty.setter(&v);
-				//OnPropertyChanged.Broadcast(SingleProperty, (void*)&v, Target);
-				ExecutePropertyEditAction(SingleProperty, (void*)&v, Target);
-			});
-		ItemBox->AddChildToHorizontalBox(Vec_X);
-		ItemBox->AddChildToHorizontalBox(X_Input);
-		ItemBox->AddChildToHorizontalBox(Vec_Y);
-		ItemBox->AddChildToHorizontalBox(Y_Input);
+        ImGuiWidget::ImColorPicker* ColorPalette = new ImGuiWidget::ImColorPicker(m_WidgetID + "_ColorPalette");
+        ColorPalette->SetColor(prop.GetValue<ImU32>());
 
-		StructBox->SetHead(PropertyName);
-		StructBox->SetBody(ItemBox);
-		Updater = [SingleProperty, X_Input, Y_Input]() {
-			ImVec2 currentv = *(ImVec2*)SingleProperty.getter();
-			X_Input->SetValue(currentv.x);
-			Y_Input->SetValue(currentv.y);
-		};
-		CurrentVerticalBox->AddChildToVerticalBox(StructBox)->SetIfAutoSize(false);
-		break;
-	}
-	case ImGuiWidget::PropertyType::StringArray:
-	{
-		ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetID + "_StructBox");
-		ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
-		PropertyName->SetText(SingleProperty.name);
-		ImGuiWidget::ImVerticalBox* StringListBox = new ImGuiWidget::ImVerticalBox(m_WidgetID + "_StringListBox");
+        ColorPalette->SetOnColorChanged([this, prop, Target](ImU32 NewColor)
+            {
+                ExecutePropertyEditAction(prop, &NewColor, Target);
+            });
 
-		for (auto& SingleString : *(std::vector<std::string>*)SingleProperty.getter())
-		{
-			StringListBox->AddChildToVerticalBox(HandleAddStringItem(SingleProperty, SingleString, StringListBox, Target,WidgetOwner))->SetIfAutoSize(false);
-		}
-		ImGuiWidget::ImButton* AddItemButton = new ImGuiWidget::ImButton(m_WidgetID + "_AddItemButton");
-		ImGuiWidget::ImTextBlock* AddButtonText = new ImGuiWidget::ImTextBlock(m_WidgetID + "_AddButtonText");
-		AddButtonText->SetText("+");
-		AddItemButton->SetContent(AddButtonText);
-		AddItemButton->SetOnPressed([SingleProperty, StringListBox, this, Target, WidgetOwner]()
-			{
-				std::vector<std::string> stringvector = *(std::vector<std::string>*)SingleProperty.getter();
-				std::string NewString = "NewString_" + std::to_string(stringvector.size());
-				stringvector.push_back(NewString);
-				//SingleProperty.setter(&stringvector);
-				//OnPropertyChanged.Broadcast(SingleProperty, (void*)&stringvector, Target);
-				ExecutePropertyEditAction(SingleProperty, (void*)&stringvector, Target);
-				auto buttonptr = StringListBox->ExtractChildAt(StringListBox->GetChildNum() - 1);
-				StringListBox->AddChildToVerticalBox(HandleAddStringItem(SingleProperty, NewString, StringListBox, Target,WidgetOwner))->SetIfAutoSize(false);
-				StringListBox->AddChildToVerticalBox(buttonptr)->SetIfAutoSize(false);
-			});
-		StringListBox->AddChildToVerticalBox(AddItemButton)->SetIfAutoSize(false);
+        StructBox->SetHead(PropertyName);
+        StructBox->SetBody(ColorPalette);
 
-		StructBox->SetHead(PropertyName);
-		StructBox->SetBody(StringListBox);
-		Updater = [SingleProperty, StringListBox,this, Target, WidgetOwner]()
-		{
-			StringListBox->RemoveAllChild(true);
-			for (auto& SingleString : *(std::vector<std::string>*)SingleProperty.getter())
-			{
-				StringListBox->AddChildToVerticalBox(HandleAddStringItem(SingleProperty, SingleString, StringListBox, Target, WidgetOwner))->SetIfAutoSize(false);
-			}
-		};
-		CurrentVerticalBox->AddChildToVerticalBox(StructBox)->SetIfAutoSize(false);
-		break;
-	}
-	case ImGuiWidget::PropertyType::Enum:
-	{
-		ImGuiWidget::ImHorizontalBox* StructBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_StructBox");
-		ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
-		PropertyName->SetText(SingleProperty.name);
-		ImGuiWidget::ImComboBox* Options = new ImGuiWidget::ImComboBox(m_WidgetID + "_ComboBox");
+        Updater = [ColorPalette, prop]()
+        {
+            try
+            {
+                ColorPalette->SetColor(prop.GetValue<ImU32>());
+            }
+            catch (...)
+            {
+                // 处理异常
+            }
+        };
 
-		std::vector<std::string> AllOptionsCopy = *(std::vector<std::string>*)SingleProperty.getter();
-		std::string SelectedOption = AllOptionsCopy.back();
-		AllOptionsCopy.pop_back();
-		Options->SetItems(AllOptionsCopy);
-		Options->SetSelectedItem(SelectedOption);
+        CurrentVerticalBox->AddChildToVerticalBox(StructBox)->SetIfAutoSize(false);
+        break;
+    }
+    case ImGuiWidget::PropertyType::Float:
+    {
+        ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
+        ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
+        PropertyName->SetText(GetPropertyDisplayName(prop));
 
-		Options->SetOnSelectionChanged([this,SingleProperty, AllOptionsCopy, Target](int NewIndex)
-			{
-				std::string OptionSelect = AllOptionsCopy[NewIndex];
-				//SingleProperty.setter(&OptionSelect);
-				//OnPropertyChanged.Broadcast(SingleProperty, (void*)&OptionSelect, Target);
-				ExecutePropertyEditAction(SingleProperty, (void*)&OptionSelect, Target);
-			});
-		StructBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
-		StructBox->AddChildToHorizontalBox(Options)->SetIfAutoSize(true);
-		Updater = [SingleProperty, Options]()
-		{
-			std::vector<std::string> AllOptionsCopy = *(std::vector<std::string>*)SingleProperty.getter();
-			std::string SelectedOption = AllOptionsCopy.back();
-			AllOptionsCopy.pop_back();
-			Options->SetItems(AllOptionsCopy);
-			Options->SetSelectedItem(SelectedOption);
-		};
-		CurrentVerticalBox->AddChildToVerticalBox(StructBox)->SetIfAutoSize(false);
-		break;
-	}
-	default:
-	{
-		AddLogLineEx(u8"警告：未知属性类型:widget:",WidgetOwner->GetWidgetName());
-		break;
-	}
-		
-	}
+        ImGuiWidget::ImFloatInput* FloatInput = new ImGuiWidget::ImFloatInput(m_WidgetID + "_FloatInput");
+        FloatInput->SetValue(prop.GetValue<float>());
 
-	Updaters.insert(std::make_pair(SingleProperty.name, Updater));
+        FloatInput->SetOnFloatValueChanged([this, prop, Target](float value)
+            {
+                ExecutePropertyEditAction(prop, &value, Target);
+            });
+
+        ItemBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
+        ItemBox->AddChildToHorizontalBox(FloatInput)->SetIfAutoSize(true);
+
+        Updater = [FloatInput, prop]()
+        {
+            try
+            {
+                FloatInput->SetValue(prop.GetValue<float>());
+            }
+            catch (...)
+            {
+                // 处理异常
+            }
+        };
+
+        CurrentVerticalBox->AddChildToVerticalBox(ItemBox)->SetIfAutoSize(false);
+        break;
+    }
+    case ImGuiWidget::PropertyType::Int:
+    {
+        ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
+        ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
+        PropertyName->SetText(GetPropertyDisplayName(prop));
+
+        ImGuiWidget::ImIntInput* IntInput = new ImGuiWidget::ImIntInput(m_WidgetID + "_IntInput");
+        IntInput->SetValue(prop.GetValue<int>());
+
+        IntInput->SetOnIntValueChanged([this, prop, Target](int value)
+            {
+                ExecutePropertyEditAction(prop, &value, Target);
+            });
+
+        ItemBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
+        ItemBox->AddChildToHorizontalBox(IntInput)->SetIfAutoSize(true);
+
+        Updater = [IntInput, prop]()
+        {
+            try
+            {
+                IntInput->SetValue(prop.GetValue<int>());
+            }
+            catch (...)
+            {
+                // 处理异常
+            }
+        };
+
+        CurrentVerticalBox->AddChildToVerticalBox(ItemBox)->SetIfAutoSize(false);
+        break;
+    }
+    case ImGuiWidget::PropertyType::String:
+    {
+        ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
+        ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
+        PropertyName->SetText(GetPropertyDisplayName(prop));
+
+        ImGuiWidget::ImInputText* Input = new ImGuiWidget::ImInputText(m_WidgetID + "_Input");
+        Input->SetText(prop.GetValue<std::string>());
+
+        Input->SetOnTextChanged([this, prop, Target](const std::string& text)
+            {
+                ExecutePropertyEditAction(prop, (void*)&text, Target);
+            });
+
+        ItemBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
+        ItemBox->AddChildToHorizontalBox(Input)->SetIfAutoSize(true);
+
+        Updater = [Input, prop]()
+        {
+            try
+            {
+                Input->SetText(prop.GetValue<std::string>());
+            }
+            catch (...)
+            {
+                // 处理异常
+            }
+        };
+
+        CurrentVerticalBox->AddChildToVerticalBox(ItemBox)->SetIfAutoSize(false);
+        break;
+    }
+    case ImGuiWidget::PropertyType::Vec2:
+    {
+        ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetID + "_StructBox");
+        ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
+        PropertyName->SetText(GetPropertyDisplayName(prop));
+
+        ImGuiWidget::ImHorizontalBox* ItemBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_ItemBox");
+        ImGuiWidget::ImTextBlock* Vec_X = new ImGuiWidget::ImTextBlock(m_WidgetID + "_Vec_X");
+        Vec_X->SetText("X:");
+        ImGuiWidget::ImTextBlock* Vec_Y = new ImGuiWidget::ImTextBlock(m_WidgetID + "_Vec_Y");
+        Vec_Y->SetText("Y:");
+
+        ImGuiWidget::ImFloatInput* X_Input = new ImGuiWidget::ImFloatInput(m_WidgetID + "_X_Imput");
+        ImGuiWidget::ImFloatInput* Y_Input = new ImGuiWidget::ImFloatInput(m_WidgetID + "_Y_Imput");
+
+        ImVec2 currentv = prop.GetValue<ImVec2>();
+        X_Input->SetValue(currentv.x);
+        Y_Input->SetValue(currentv.y);
+
+        X_Input->SetOnFloatValueChanged([this, prop, Target](float NewX)
+            {
+                ImVec2 v = prop.GetValue<ImVec2>();
+                v.x = NewX;
+                ExecutePropertyEditAction(prop, (void*)&v, Target);
+            });
+
+        Y_Input->SetOnFloatValueChanged([this, prop, Target](float NewY)
+            {
+                ImVec2 v = prop.GetValue<ImVec2>();
+                v.y = NewY;
+                ExecutePropertyEditAction(prop, (void*)&v, Target);
+            });
+
+        ItemBox->AddChildToHorizontalBox(Vec_X);
+        ItemBox->AddChildToHorizontalBox(X_Input);
+        ItemBox->AddChildToHorizontalBox(Vec_Y);
+        ItemBox->AddChildToHorizontalBox(Y_Input);
+
+        StructBox->SetHead(PropertyName);
+        StructBox->SetBody(ItemBox);
+
+        Updater = [prop, X_Input, Y_Input]()
+        {
+            try
+            {
+                ImVec2 currentv = prop.GetValue<ImVec2>();
+                X_Input->SetValue(currentv.x);
+                Y_Input->SetValue(currentv.y);
+            }
+            catch (...)
+            {
+                // 处理异常
+            }
+        };
+
+        CurrentVerticalBox->AddChildToVerticalBox(StructBox)->SetIfAutoSize(false);
+        break;
+    }
+    case ImGuiWidget::PropertyType::Struct:
+    {
+        ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetID + "_StructBox");
+        ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
+        PropertyName->SetText(GetPropertyDisplayName(prop));
+
+        ImGuiWidget::ImVerticalBox* StructPropertyBox = new ImGuiWidget::ImVerticalBox(m_WidgetID + "_StructPropertyBox");
+        StructBox->SetHead(PropertyName);
+        StructBox->SetBody(StructPropertyBox);
+
+        ImGuiWidget::ImObject* SubTarget = prop.GetValue<ImGuiWidget::ImObject*>();
+        if (SubTarget)
+        {
+            std::unordered_map<std::string, std::function<void()>> SubUpdaters;
+            auto allProps = SubTarget->GetAllPropertiesOrdered();
+
+            for (const auto& subProp : allProps)
+            {
+                HandleSingleProperty(subProp, StructPropertyBox, SubTarget, WidgetOwner, SubUpdaters);
+            }
+
+            PropertyInfor* NewPropertyInfor = new PropertyInfor{ WidgetOwner, std::move(SubUpdaters) };
+            CachedPropertyInfors.insert(std::make_pair(SubTarget, NewPropertyInfor));
+        }
+
+        Updater = []() {}; // 结构类型暂时不直接更新
+        CurrentVerticalBox->AddChildToVerticalBox(StructBox)->SetIfAutoSize(false);
+        break;
+    }
+    case ImGuiWidget::PropertyType::StringArray:
+    {
+        ImGuiWidget::ImExpandableBox* StructBox = new ImGuiWidget::ImExpandableBox(m_WidgetID + "_StructBox");
+        ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
+        PropertyName->SetText(GetPropertyDisplayName(prop));
+
+        ImGuiWidget::ImVerticalBox* StringListBox = new ImGuiWidget::ImVerticalBox(m_WidgetID + "_StringListBox");
+
+        std::vector<std::string> stringArray;
+        try
+        {
+            stringArray = prop.GetValue<std::vector<std::string>>();
+        }
+        catch (...)
+        {
+            stringArray = {};
+        }
+
+        for (auto& SingleString : stringArray)
+        {
+            StringListBox->AddChildToVerticalBox(
+                HandleAddStringItem(prop, SingleString, StringListBox, Target, WidgetOwner)
+            )->SetIfAutoSize(false);
+        }
+
+        ImGuiWidget::ImButton* AddItemButton = new ImGuiWidget::ImButton(m_WidgetID + "_AddItemButton");
+        ImGuiWidget::ImTextBlock* AddButtonText = new ImGuiWidget::ImTextBlock(m_WidgetID + "_AddButtonText");
+        AddButtonText->SetText("+");
+        AddItemButton->SetContent(AddButtonText);
+
+        AddItemButton->SetOnPressed([prop, StringListBox, this, Target, WidgetOwner]()
+            {
+                std::vector<std::string> stringvector;
+                try
+                {
+                    stringvector = prop.GetValue<std::vector<std::string>>();
+                }
+                catch (...)
+                {
+                    stringvector = {};
+                }
+
+                std::string NewString = "NewString_" + std::to_string(stringvector.size());
+                stringvector.push_back(NewString);
+                ExecutePropertyEditAction(prop, (void*)&stringvector, Target);
+
+                auto buttonptr = StringListBox->ExtractChildAt(StringListBox->GetChildNum() - 1);
+                StringListBox->AddChildToVerticalBox(
+                    HandleAddStringItem(prop, NewString, StringListBox, Target, WidgetOwner)
+                )->SetIfAutoSize(false);
+                StringListBox->AddChildToVerticalBox(buttonptr)->SetIfAutoSize(false);
+            });
+
+        StringListBox->AddChildToVerticalBox(AddItemButton)->SetIfAutoSize(false);
+
+        StructBox->SetHead(PropertyName);
+        StructBox->SetBody(StringListBox);
+
+        Updater = [prop, StringListBox, this, Target, WidgetOwner]()
+        {
+            StringListBox->RemoveAllChild(true);
+            std::vector<std::string> stringArray;
+            try
+            {
+                stringArray = prop.GetValue<std::vector<std::string>>();
+            }
+            catch (...)
+            {
+                stringArray = {};
+            }
+
+            for (auto& SingleString : stringArray)
+            {
+                StringListBox->AddChildToVerticalBox(
+                    HandleAddStringItem(prop, SingleString, StringListBox, Target, WidgetOwner)
+                )->SetIfAutoSize(false);
+            }
+        };
+
+        CurrentVerticalBox->AddChildToVerticalBox(StructBox)->SetIfAutoSize(false);
+        break;
+    }
+    case ImGuiWidget::PropertyType::Enum:
+    {
+        ImGuiWidget::ImHorizontalBox* StructBox = new ImGuiWidget::ImHorizontalBox(m_WidgetID + "_StructBox");
+        ImGuiWidget::ImTextBlock* PropertyName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_PropertyName");
+        PropertyName->SetText(GetPropertyDisplayName(prop));
+
+        ImGuiWidget::ImComboBox* Options = new ImGuiWidget::ImComboBox(m_WidgetID + "_ComboBox");
+
+        std::vector<std::string> allOptions;
+        std::string selectedOption;
+
+        try
+        {
+            auto optionalProp = Target->ToOptionalProperty(prop);
+            if (optionalProp.IsValid() && optionalProp.IsOptional())
+            {
+                allOptions = optionalProp.GetOptionList();
+                selectedOption = optionalProp.GetOptionString();
+            }
+        }
+        catch (...)
+        {
+            // 如果无法转换为OptionalProperty，尝试其他方式
+            allOptions = GetOptionalPropertyOptions(prop);
+            if (!allOptions.empty())
+            {
+                try
+                {
+                    int currentIndex = prop.GetValue<int>();
+                    if (currentIndex >= 0 && currentIndex < allOptions.size())
+                    {
+                        selectedOption = allOptions[currentIndex];
+                    }
+                }
+                catch (...)
+                {
+                    // 处理异常
+                }
+            }
+        }
+
+        Options->SetItems(allOptions);
+        Options->SetSelectedItem(selectedOption);
+
+        Options->SetOnSelectionChanged([this, prop, allOptions, Target](int NewIndex)
+            {
+                if (NewIndex >= 0 && NewIndex < allOptions.size())
+                {
+                    try
+                    {
+                        auto optionalProp = Target->ToOptionalProperty(prop);
+                        if (optionalProp.IsValid() && optionalProp.IsOptional())
+                        {
+                            optionalProp.SetOptionByIndex(NewIndex);
+                        }
+                        else
+                        {
+                            // 直接设置整数值
+                            // 应该通过action发送，先不处理
+                            //prop.SetValue<int>(NewIndex);
+                        }
+                        ExecutePropertyEditAction(prop, &NewIndex, Target);
+                    }
+                    catch (...)
+                    {
+                        // 处理异常
+                    }
+                }
+            });
+
+        StructBox->AddChildToHorizontalBox(PropertyName)->SetIfAutoSize(true);
+        StructBox->AddChildToHorizontalBox(Options)->SetIfAutoSize(true);
+
+        Updater = [prop, Options, this, Target]()
+        {
+            try
+            {
+                auto optionalProp = Target->ToOptionalProperty(prop);
+                if (optionalProp.IsValid() && optionalProp.IsOptional())
+                {
+                    std::vector<std::string> allOptions = optionalProp.GetOptionList();
+                    std::string selectedOption = optionalProp.GetOptionString();
+                    Options->SetItems(allOptions);
+                    Options->SetSelectedItem(selectedOption);
+                }
+            }
+            catch (...)
+            {
+                // 处理异常
+            }
+        };
+
+        CurrentVerticalBox->AddChildToVerticalBox(StructBox)->SetIfAutoSize(false);
+        break;
+    }
+    default:
+    {
+        AddLogLineEx(u8"未知属性类型:widget:", WidgetOwner->GetWidgetName(), u8", 属性:", prop.GetName());
+        break;
+    }
+    }
+
+    if (Updater)
+    {
+        Updaters.insert(std::make_pair(propName, Updater));
+    }
 }
 
 void UI_DetailView::SetCurrentWidget(ImGuiWidget::ImWidget* widget)
 {
-	CurrentWidget = widget;
-	if (!widget)
-	{
-		SetRootWidget(nullptr, false);
-		//m_RootScrollBox->SetContent(nullptr, false);
-		return;
-	}
-	auto it = CachedDetails.find(widget);
-	if (it != CachedDetails.end())
-	{
-		SetRootWidget(it->second, false);
-		//m_RootScrollBox->SetContent(it->second, false);
-		return;
-	}
-	//if (!VBox)return;
+    CurrentWidget = widget;
+    if (!widget)
+    {
+        SetRootWidget(nullptr, false);
+        return;
+    }
 
-	//VBox->RemoveAllChild();
-	
-	//控件名称
-	ImGuiWidget::ImVerticalBox* VBox = new ImGuiWidget::ImVerticalBox(widget->GetWidgetName() + "detaailvbox");
-	ImGuiWidget::ImTextBlock* WidgetName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_WidgetName");
-	WidgetName->SetText(widget->GetRegisterTypeName());
-	VBox->AddChildToVerticalBox(WidgetName)->SetIfAutoSize(false);
+    auto it = CachedDetails.find(widget);
+    if (it != CachedDetails.end())
+    {
+        SetRootWidget(it->second, false);
+        return;
+    }
 
-	//控件父项槽属性
-	if (auto Slot = widget->GetSlotAt())
-	{
-		ImGuiWidget::ImExpandableBox* SlotBox = new ImGuiWidget::ImExpandableBox(m_WidgetID + "_SlotBox");
-		ImGuiWidget::ImTextBlock* SlotName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_SlotName");
-		SlotName->SetText("SlotProperty");
-		ImGuiWidget::ImVerticalBox* SlotPropertyBox = new ImGuiWidget::ImVerticalBox(m_WidgetID + "_StructPropertyBox");
-		SlotBox->SetHead(SlotName);
-		SlotBox->SetBody(SlotPropertyBox);
-		std::unordered_map<std::string, std::function<void()>> Updaters;
-		for (auto& SubSingleProperty : Slot->GetProperties())
-		{
-			HandleSingleProperty(SubSingleProperty, SlotPropertyBox, Slot, widget, Updaters);
-		}
-		PropertyInfor* NewPropertyInfor = new PropertyInfor{ widget,std::move(Updaters) };
-		CachedPropertyInfors.insert(std::make_pair(Slot, NewPropertyInfor));
-		VBox->AddChildToVerticalBox(SlotBox)->SetIfAutoSize(false);
-	}
+    // 创建新的详情视图
+    ImGuiWidget::ImVerticalBox* VBox = new ImGuiWidget::ImVerticalBox(widget->GetWidgetName() + "detaailvbox");
+    ImGuiWidget::ImTextBlock* WidgetName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_WidgetName");
+    WidgetName->SetText(widget->GetRegisterTypeName());
+    VBox->AddChildToVerticalBox(WidgetName)->SetIfAutoSize(false);
 
-	//控件自身属性
-	std::unordered_map<std::string, std::function<void()>> Updaters;
-	auto properties = widget->GetProperties();
-	for (auto& SingleProperty : properties)
-	{
-		HandleSingleProperty(SingleProperty, VBox, widget, widget, Updaters);
-	}
-	PropertyInfor* NewPropertyInfor = new PropertyInfor{ widget,std::move(Updaters) };
-	CachedPropertyInfors.insert(std::make_pair(widget, NewPropertyInfor));
-	CachedDetails.insert(std::make_pair(widget, VBox));
+    // 处理插槽属性
+    if (auto Slot = widget->GetSlotAt())
+    {
+        ImGuiWidget::ImExpandableBox* SlotBox = new ImGuiWidget::ImExpandableBox(m_WidgetID + "_SlotBox");
+        ImGuiWidget::ImTextBlock* SlotName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_SlotName");
+        SlotName->SetText("SlotProperty");
+        ImGuiWidget::ImVerticalBox* SlotPropertyBox = new ImGuiWidget::ImVerticalBox(m_WidgetID + "_StructPropertyBox");
+        SlotBox->SetHead(SlotName);
+        SlotBox->SetBody(SlotPropertyBox);
 
-	//m_RootScrollBox->SetContent(VBox, false);
-	SetRootWidget(VBox, false);
+        std::unordered_map<std::string, std::function<void()>> Updaters;
+        auto slotProps = Slot->GetAllPropertiesOrdered();
+
+        for (const auto& prop : slotProps)
+        {
+            HandleSingleProperty(prop, SlotPropertyBox, Slot, widget, Updaters);
+        }
+
+        PropertyInfor* NewPropertyInfor = new PropertyInfor{ widget, std::move(Updaters) };
+        CachedPropertyInfors.insert(std::make_pair(Slot, NewPropertyInfor));
+        VBox->AddChildToVerticalBox(SlotBox)->SetIfAutoSize(false);
+    }
+
+    // 处理控件自身属性
+    std::unordered_map<std::string, std::function<void()>> Updaters;
+    auto properties = widget->GetAllPropertiesOrdered();
+
+    for (const auto& prop : properties)
+    {
+        HandleSingleProperty(prop, VBox, widget, widget, Updaters);
+    }
+
+    PropertyInfor* NewPropertyInfor = new PropertyInfor{ widget, std::move(Updaters) };
+    CachedPropertyInfors.insert(std::make_pair(widget, NewPropertyInfor));
+    CachedDetails.insert(std::make_pair(widget, VBox));
+
+    SetRootWidget(VBox, false);
 }
 
-void UI_DetailView::ExecutePropertyEditAction(const ImGuiWidget::PropertyInfo& SingleProperty, const void* NewValue, ImGuiWidget::ImObject* Target)
+void UI_DetailView::ExecutePropertyEditAction(const ROP::Property<ImGuiWidget::PropertyType>& prop,
+    const void* NewValue, ImGuiWidget::ImObject* Target)
 {
-	ExecuteAction(EditedFileFullPath + Action::DetailView::_REQUEST_EDIT_PROPERTY, SingleProperty, NewValue, Target);
-	UpdatePropertyDisplay(Target, SingleProperty.name);
+    // 注意：这里需要将ROP::Property转换为可以序列化的形式
+    // 由于ROP::Property包含了所有必要信息，我们可以传递它的关键数据
+    ExecuteAction(EditedFileFullPath + Action::DetailView::_REQUEST_EDIT_PROPERTY,
+        prop.GetName(), prop.GetClassName(), NewValue, Target);
+
+    // 立即更新显示
+    UpdatePropertyDisplay(Target, prop.GetName());
 }
 
 void UI_DetailView::UpdatePropertyDisplay(ImGuiWidget::ImObject* Target, const std::string& PropertyName)
 {
-	auto it = CachedPropertyInfors.find(Target);
-	if (it == CachedPropertyInfors.end())
-	{
-		AddLogLineEx(u8"更新属性显示失败：Target[", Target, "],Name[", PropertyName, "]");
-		return;
-	}
+    auto it = CachedPropertyInfors.find(Target);
+    if (it == CachedPropertyInfors.end())
+    {
+        AddLogLineEx(u8"更新属性显示失败：Target[", Target, "], Name[", PropertyName, "]");
+        return;
+    }
 
-	auto UpdaterIt = it->second->Updaters.find(PropertyName);
-	if (UpdaterIt == it->second->Updaters.end())
-	{
-		AddLogLineEx(u8"更新属性显示失败：Widget[",it->second->WidgetOwner->GetWidgetName(),"]Target[", Target, "],Name[", PropertyName, "]");
-		return;
-	}
-	UpdaterIt->second();
+    auto UpdaterIt = it->second->Updaters.find(PropertyName);
+    if (UpdaterIt == it->second->Updaters.end())
+    {
+        // 可能是嵌套属性，尝试查找父对象
+        AddLogLineEx(u8"更新属性显示失败：Widget[", it->second->WidgetOwner->GetWidgetName(),
+            "] Target[", Target, "], Name[", PropertyName, "]");
+        return;
+    }
+
+    try
+    {
+        UpdaterIt->second();
+    }
+    catch (...)
+    {
+        AddLogLineEx(u8"更新属性时发生异常：", PropertyName);
+    }
 }
