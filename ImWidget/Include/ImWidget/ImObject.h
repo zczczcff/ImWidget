@@ -236,18 +236,18 @@ namespace ImGuiWidget
             return false;
         }
 
-        template<typename T>
-        T GetProperty(const std::string& name)
-        {
-            for (auto& prop : GetProperties()) 
-            {
-                if (prop.name == name) 
-                {
-                    return *static_cast<T*>(prop.getter());
-                }
-            }
-            return T{};
-        }
+        //template<typename T>
+        //T GetProperty(const std::string& name)
+        //{
+        //    for (auto& prop : GetProperties()) 
+        //    {
+        //        if (prop.name == name) 
+        //        {
+        //            return *static_cast<T*>(prop.getter());
+        //        }
+        //    }
+        //    return T{};
+        //}
 
         template<typename T>
         T* GetPropertyPtr(const std::string& name)

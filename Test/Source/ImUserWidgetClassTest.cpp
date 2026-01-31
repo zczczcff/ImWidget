@@ -132,6 +132,9 @@ void TestUserWidgetClassSerialization()
 
         // 获取按钮控件
         ImWidget* buttonWidget = widgetClass.GetWidgetVariable(buttonVarName);
+        //auto properties=buttonWidget->GetAllPropertiesOrdered();
+        //ImObject* obj = properties[2].GetPointer<ImObject>();
+        //auto properties2 = obj->GetAllPropertiesOrdered();
         if (buttonWidget)
         {
             // 设置按钮位置和大小
