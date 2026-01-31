@@ -249,20 +249,24 @@ namespace ImGuiWidget
         //    return T{};
         //}
 
+ // 通过路径获取属性指针
         template<typename T>
         T* GetPropertyPtr(const std::string& name)
         {
             ImProperty prop = ROP::PropertyObject<PropertyType>::GetProperty(name);
             return prop.GetPointer<T>();
-            //auto properties = GetProperties();
-            //PropertyInfo temp;
-            //temp.name = name;
+        }
 
-            //auto it = properties.find(temp);
-            //if (it != properties.end())
-            //{
-            //    return ((T*)it->getter());
-            //}
+        // 通过路径获取属性指针（嵌套路径）
+        template<typename T>
+        T* GetPathPropertyPtr(const std::string& path)
+        {
+            ImProperty prop = GetPathProperty(path);
+            if (prop.IsValid())
+            {
+                return prop.GetPointer<T>();
+            }
+            return nullptr;
         }
 
         template<typename T>
@@ -278,10 +282,91 @@ namespace ImGuiWidget
             {
                 return false;
             }
-            //T copy = value;
-            //return SetProperty(name, &copy);
         }
 
+        // 通过路径设置属性值（嵌套路径）
+        template<typename T>
+        bool SetPathProperty(const std::string& path, const T& value)
+        {
+            ImProperty prop = GetPathProperty(path);
+            if (prop.IsValid())
+            {
+                prop.SetValue<T>(value);
+                return true;
+            }
+            return false;
+        }
+
+        // 通过路径获取属性（支持嵌套路径）
+        ImProperty GetPathProperty(const std::string& path)
+        {
+            // 分割路径
+            std::vector<std::string> pathParts;
+            std::stringstream ss(path);
+            std::string part;
+            while (std::getline(ss, part, '/'))
+            {
+                if (!part.empty())
+                {
+                    pathParts.push_back(part);
+                }
+            }
+
+            if (pathParts.empty())
+            {
+                return ImProperty(); // 无效属性
+            }
+
+            // 从当前对象开始
+            ImObject* currentObject = this;
+            ImProperty currentProp;
+
+            // 遍历除最后一部分外的所有路径部分
+            for (size_t i = 0; i < pathParts.size() - 1; ++i)
+            {
+                const std::string& partName = pathParts[i];
+
+                // 获取当前对象的属性
+                currentProp = currentObject->ROP::PropertyObject<PropertyType>::GetProperty(partName);
+
+                if (!currentProp.IsValid())
+                {
+                    return ImProperty(); // 无效属性
+                }
+
+                // 检查属性类型是否为Struct
+                if (currentProp.GetType() != PropertyType::Struct)
+                {
+                    return ImProperty(); // 不是Struct类型，无法继续导航
+                }
+
+                // 获取结构对象
+                ImObject* structObj = currentProp.GetPointer<ImObject>();
+                if (!structObj)
+                {
+                    return ImProperty(); // 结构对象为空
+                }
+
+                // 更新当前对象
+                currentObject = structObj;
+            }
+
+            // 获取最后一个属性
+            const std::string& lastPartName = pathParts.back();
+            return currentObject->ROP::PropertyObject<PropertyType>::GetProperty(lastPartName);
+        }
+
+        // 通过路径获取属性值（模板特化）
+        template<typename T>
+        T GetPathPropertyValue(const std::string& path)
+        {
+            ImProperty prop = GetPathProperty(path);
+            if (prop.IsValid())
+            {
+                return prop.GetValue<T>();
+            }
+            return T{};
+        }
         // 序列化函数
         std::vector<uint8_t> Serialize();
 

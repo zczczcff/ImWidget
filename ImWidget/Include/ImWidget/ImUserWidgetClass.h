@@ -157,6 +157,61 @@ namespace ImGuiWidget
             return name;
         }
 
+        // 辅助方法：根据路径查找控件
+        ImWidget* FindWidgetByPath(ImWidget* root, const std::string& path) const
+        {
+            if (!root) return nullptr;
+
+            // 如果路径为空或为"."，返回根控件
+            if (path.empty() || path == ".")
+                return root;
+
+            // 分割路径
+            std::vector<std::string> pathParts;
+            std::stringstream ss(path);
+            std::string part;
+            while (std::getline(ss, part, '/'))
+            {
+                if (!part.empty() && part != ".")
+                {
+                    pathParts.push_back(part);
+                }
+            }
+
+            // 遍历路径查找控件
+            ImWidget* current = root;
+            for (const auto& partName : pathParts)
+            {
+                bool found = false;
+
+                // 如果是特殊路径".."，表示父控件
+                if (partName == "..")
+                {
+                    current = current->GetParents();
+                    if (!current) return nullptr;
+                    found = true;
+                }
+                else
+                {
+                    // 在当前控件的子控件中查找
+                    for (int i = 0; i < current->GetChildNum(); i++)
+                    {
+                        ImWidget* child = current->GetChildAt(i);
+                        if (child && child->GetWidgetName() == partName)
+                        {
+                            current = child;
+                            found = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!found) return nullptr;
+            }
+
+            return current;
+        }
+
     public:
         ImUserWidgetClass(const std::string& className)
             : m_ClassName(className)
@@ -392,6 +447,40 @@ namespace ImGuiWidget
             }
         }
 
+        // 8.1 纯路径字符串版本的插入子控件（通过类型名创建）
+        ImWidget* InsertChildWidgetByPath(const std::string& WidgetTreeVarName,
+            const std::string& parentPath,
+            const std::string& InsertWidgetRegisterName,
+            int index)
+        {
+            ImWidget* WidgetTreeRoot = GetWidgetVariable(WidgetTreeVarName);
+            if (!WidgetTreeRoot) return nullptr;
+
+            // 找到父控件
+            ImWidget* parent = FindWidgetByPath(WidgetTreeRoot, parentPath);
+            if (!parent) return nullptr;
+
+            // 创建新控件
+            ImWidget* child = ImWidgetFactory::GetInstance().CreateWidget(InsertWidgetRegisterName, "");
+            if (!child) return nullptr;
+
+            // 生成唯一名称
+            std::string baseName = InsertWidgetRegisterName;
+            std::string NewWidgetName = GenerateUniqueName(baseName);
+            child->SetWidgetName(NewWidgetName);
+
+            if (parent->InsertChildAt(index, child))
+            {
+                return child;
+            }
+            else
+            {
+                delete child;
+                return nullptr;
+            }
+        }
+
+
         // 8. 移除控件树子项(但不删除)
         bool RemoveChildWidget(const std::string& parentVarName, ImWidget* childWidget)
         {
@@ -404,6 +493,31 @@ namespace ImGuiWidget
             if (WidgetTreeRoot == childWidget) return false;
 
             return parent->RemoveChild(childWidget);
+        }
+
+        // 8.3 纯路径字符串版本的移除子控件
+        bool RemoveChildWidgetByPath(const std::string& WidgetTreeVarName,
+            const std::string& parentPath,
+            const std::string& childName)
+        {
+            ImWidget* WidgetTreeRoot = GetWidgetVariable(WidgetTreeVarName);
+            if (!WidgetTreeRoot) return false;
+
+            // 找到父控件
+            ImWidget* parent = FindWidgetByPath(WidgetTreeRoot, parentPath);
+            if (!parent) return false;
+
+            // 找到子控件
+            for (int i = 0; i < parent->GetChildNum(); i++)
+            {
+                ImWidget* child = parent->GetChildAt(i);
+                if (child && child->GetWidgetName() == childName)
+                {
+                    return parent->RemoveChild(child, true);
+                }
+            }
+
+            return false;
         }
 
         // 9. 重命名变量
@@ -479,6 +593,27 @@ namespace ImGuiWidget
             return true;
         }
 
+        // 9.1 纯路径字符串版本的重命名控件
+        bool RenameWidgetByPath(const std::string& WidgetTreeVarName,
+            const std::string& widgetPath,
+            const std::string& newName)
+        {
+            ImWidget* WidgetTreeRoot = GetWidgetVariable(WidgetTreeVarName);
+            if (!WidgetTreeRoot) return false;
+
+            // 找到目标控件
+            ImWidget* targetWidget = FindWidgetByPath(WidgetTreeRoot, widgetPath);
+            if (!targetWidget) return false;
+
+            // 检查新名称是否可用
+            if (IsNameUsed(newName))
+                return false;
+
+            // 重命名控件
+            targetWidget->SetWidgetName(newName);
+            return true;
+        }
+
         // 11. 获取所有控件树变量的名称
         std::vector<std::string> GetWidgetVariableNames() const
         {
@@ -518,6 +653,122 @@ namespace ImGuiWidget
             }
 
             return names;
+        }
+
+        // 15. ImObject变量路径属性编辑接口
+        // 通过变量名和属性路径编辑ImObject变量的属性
+        template<typename T>
+        bool SetObjectPropertyByPath(const std::string& objectVarName,
+            const std::string& propertyPath,
+            const T& value)
+        {
+            ImObject* obj = GetObjectVariable(objectVarName);
+            if (!obj) return false;
+
+            return obj->SetPathProperty<T>(propertyPath, value);
+        }
+
+        // 16. 控件变量控件树节点路径&属性路径编辑接口
+        // 通过控件变量名、控件树路径和属性路径编辑控件属性
+        template<typename T>
+        bool SetWidgetPropertyByPath(const std::string& widgetVarName,
+            const std::string& widgetPath,
+            const std::string& propertyPath,
+            const T& value)
+        {
+            ImWidget* rootWidget = GetWidgetVariable(widgetVarName);
+            if (!rootWidget) return false;
+
+            // 如果widgetPath为空，表示编辑根控件
+            if (widgetPath.empty())
+            {
+                return rootWidget->SetPathProperty<T>(propertyPath, value);
+            }
+
+            // 分割控件路径
+            std::vector<std::string> pathParts;
+            std::stringstream ss(widgetPath);
+            std::string part;
+            while (std::getline(ss, part, '/'))
+            {
+                if (!part.empty())
+                {
+                    pathParts.push_back(part);
+                }
+            }
+
+            // 在控件树中导航到目标控件
+            ImWidget* currentWidget = rootWidget;
+            for (const auto& widgetName : pathParts)
+            {
+                bool found = false;
+                // 在子控件中查找
+                for (int i = 0; i < currentWidget->GetChildNum(); ++i)
+                {
+                    ImWidget* child = currentWidget->GetChildAt(i);
+                    if (child && child->GetWidgetName() == widgetName)
+                    {
+                        currentWidget = child;
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) return false;
+            }
+
+            // 编辑目标控件的属性
+            return currentWidget->SetPathProperty<T>(propertyPath, value);
+        }
+
+        // 17. 控件变量控件树节点slot属性路径编辑接口
+        // 编辑控件树中指定控件的Slot属性
+        template<typename T>
+        bool SetWidgetSlotPropertyByPath(const std::string& widgetVarName,
+            const std::string& widgetPath,
+            const std::string& propertyPath,
+            const T& value)
+        {
+            ImWidget* rootWidget = GetWidgetVariable(widgetVarName);
+            if (!rootWidget) return false;
+
+            // 导航到目标控件
+            ImWidget* targetWidget = rootWidget;
+            if (!widgetPath.empty())
+            {
+                std::vector<std::string> pathParts;
+                std::stringstream ss(widgetPath);
+                std::string part;
+                while (std::getline(ss, part, '/'))
+                {
+                    if (!part.empty())
+                    {
+                        pathParts.push_back(part);
+                    }
+                }
+
+                for (const auto& widgetName : pathParts)
+                {
+                    bool found = false;
+                    for (int i = 0; i < targetWidget->GetChildNum(); ++i)
+                    {
+                        ImWidget* child = targetWidget->GetChildAt(i);
+                        if (child && child->GetWidgetName() == widgetName)
+                        {
+                            targetWidget = child;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) return false;
+                }
+            }
+
+            // 获取控件的Slot
+            ImSlot* slot = targetWidget->GetSlotAt();
+            if (!slot) return false;
+
+            // 编辑Slot属性
+            return slot->SetPathProperty<T>(propertyPath, value);
         }
 
     private:
