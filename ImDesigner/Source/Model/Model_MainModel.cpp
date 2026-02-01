@@ -1,5 +1,4 @@
 #include "Model/Model_MainModel.h"
-#include "Model/Model_WidgetEditor.h"
 #include "Model/FileUtil.h"
 #include "Tools/JAsyncLog.h"
 #include "Tools/JLog.h"
@@ -84,9 +83,9 @@ Model_MainModel::EditedUIFile* Model_MainModel::BeginEditFile(const std::string&
 	if (NewEditedUserWidgetCLassFile->InitFromFile(FileFullPath))
 	{
 		//EditedUIFile* NewEditedFile = new EditedUIFile(FileFullPath, NewEditedUserWidgetCLassFile, new Model_WidgetEditor(NewEditedUserWidgetCLassFile, FileFullPath));
-		EditedUIFile* NewEditedFile = new EditedUIFile(FileFullPath, NewEditedUserWidgetCLassFile, new Model_WidgetEditor(nullptr, FileFullPath));
-		EditedFiles.insert(std::make_pair(FileFullPath, NewEditedFile));
-		return NewEditedFile;
+		//EditedUIFile* NewEditedFile = new EditedUIFile(FileFullPath, NewEditedUserWidgetCLassFile, new Model_WidgetEditor(nullptr, FileFullPath));
+		//EditedFiles.insert(std::make_pair(FileFullPath, NewEditedFile));
+		//return NewEditedFile;
 	}
 	else
 	{

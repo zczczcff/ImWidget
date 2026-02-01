@@ -3,6 +3,8 @@
 #include <functional>
 #include <memory>
 #include <unordered_set> 
+#include <sstream>
+
 #include <imgui.h>
 #include <ROP/RunTimeObjectProperty.h>
 namespace ImGuiWidget 
