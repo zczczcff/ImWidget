@@ -1,6 +1,7 @@
 #pragma once
 
 #include "ImDesignerCommandBase.h"
+#include <boost/type_index/ctti_type_index.hpp>
 
 // =========================== 3. Object Ù–‘±‡º≠√¸¡Óª˘¿‡ ===========================
 template<typename T>
@@ -20,7 +21,8 @@ public:
         const T& newValue)
         : ImUserWidgetClassCommandBase(target,
             CommandDataType(CommandCategory::ObjectPropertyEdit,
-                static_cast<int>(ObjectPropertyEditSubType::SetObjectProperty))),
+                static_cast<int>(ObjectPropertyEditSubType::SetObjectProperty),
+                boost::typeindex::ctti_type_index::type_id<T>().pretty_name())),
         m_ObjectVarName(objectVarName),
         m_PropertyPath(propertyPath),
         m_OldValue(oldValue),
@@ -50,14 +52,11 @@ public:
         if (!ImUserWidgetClassCommandBase::IsWithinMergeWindow(other))
             return false;
 
-        if (!other->GetData() == GetData())return false;
-
-        const auto* otherCmd = dynamic_cast<const ObjectPropertyEditCommandBase<T>*>(other);
-        if (!otherCmd) return false;
-
         return (m_TargetClass == otherCmd->m_TargetClass) &&
             (m_ObjectVarName == otherCmd->m_ObjectVarName) &&
-            (m_PropertyPath == otherCmd->m_PropertyPath);
+            (m_PropertyPath == otherCmd->m_PropertyPath)&&
+            (m_Data==other->m_Data)
+            ;
     }
 
     virtual bool MergeWith(std::unique_ptr<CommandBase<CommandDataType>> other) override

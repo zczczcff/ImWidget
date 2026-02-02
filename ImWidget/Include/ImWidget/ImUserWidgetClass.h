@@ -211,7 +211,6 @@ namespace ImGuiWidget
 
             return current;
         }
-
     public:
         ImUserWidgetClass(const std::string& className)
             : m_ClassName(className)
@@ -385,7 +384,7 @@ namespace ImGuiWidget
             return names;
         }
 
-        // 7. 在指定控件树中指定父节点中插入新建子项
+        // 7.1 在指定控件树中指定父节点中插入新建子项(通过控件类型注册名、父控件指针、插入位置)
         ImWidget* InsertChildWidget(const std::string& WidgetTreeVarName, ImWidget* parent,const std::string& InsertWidgetRegisterName,
             int index)
         {
@@ -414,8 +413,38 @@ namespace ImGuiWidget
                 return nullptr;
             }
         }
+        
+        //7.2 在指定路径控件节点插入新建子项（通过控件类型注册名、父控件节点路径、插入位置）
+        ImWidget* InsertChildWidgetByPath(const std::string& WidgetTreeVarName, const std::string& parentWidgetPath, const std::string& InsertWidgetRegisterName, int index)
+        {
+            ImWidget* WidgetTreeRoot = GetWidgetVariable(WidgetTreeVarName);
+            if (!WidgetTreeRoot) return nullptr;
 
-        //在指定控件树中指定父节点插入给定子项
+            // 找到父控件
+            ImWidget* parent = FindWidgetByPath(WidgetTreeRoot, parentWidgetPath);
+            if (!parent) return nullptr;
+
+            // 创建新控件
+            ImWidget* child = ImWidgetFactory::GetInstance().CreateWidget(InsertWidgetRegisterName, "");
+            if (!child) return nullptr;
+
+            // 生成唯一名称
+            std::string baseName = InsertWidgetRegisterName;
+            std::string NewWidgetName = GenerateUniqueName(baseName);
+            child->SetWidgetName(NewWidgetName);
+
+            if (parent->InsertChildAt(index, child))
+            {
+                return child;
+            }
+            else
+            {
+                delete child;
+                return nullptr;
+            }
+        }
+
+        //7.3 在指定控件树中指定父节点插入给定子项（通过控件指针（转移所有权）、父控件节点路径、插入位置）
         bool InsertChildWidget(const std::string& WidgetTreeVarName, ImWidget* parent, ImWidget* child, int index)
         {
             if (!parent) return false;
@@ -447,42 +476,11 @@ namespace ImGuiWidget
             }
         }
 
-        // 8.1 纯路径字符串版本的插入子控件（通过类型名创建）
-        ImWidget* InsertChildWidgetByPath(const std::string& WidgetTreeVarName,
-            const std::string& parentPath,
-            const std::string& InsertWidgetRegisterName,
-            int index)
-        {
-            ImWidget* WidgetTreeRoot = GetWidgetVariable(WidgetTreeVarName);
-            if (!WidgetTreeRoot) return nullptr;
+        //7.4 在指定控件树中指定父节点插入给定子项（通过控件Json对象、父控件节点路径、插入位置）
+        ImWidget* InsertChildWidget(const std::string& widgetVarName, const std::string& widgetPath, const nlohmann::json& WidgetJson, int index);
 
-            // 找到父控件
-            ImWidget* parent = FindWidgetByPath(WidgetTreeRoot, parentPath);
-            if (!parent) return nullptr;
-
-            // 创建新控件
-            ImWidget* child = ImWidgetFactory::GetInstance().CreateWidget(InsertWidgetRegisterName, "");
-            if (!child) return nullptr;
-
-            // 生成唯一名称
-            std::string baseName = InsertWidgetRegisterName;
-            std::string NewWidgetName = GenerateUniqueName(baseName);
-            child->SetWidgetName(NewWidgetName);
-
-            if (parent->InsertChildAt(index, child))
-            {
-                return child;
-            }
-            else
-            {
-                delete child;
-                return nullptr;
-            }
-        }
-
-
-        // 8. 移除控件树子项(但不删除)
-        bool RemoveChildWidget(const std::string& parentVarName, ImWidget* childWidget)
+        // 8.1 移除控件树子项(但不删除)
+        bool RemoveChildWidget(const std::string& parentVarName, ImWidget* childWidget,bool bDelete = false)
         {
             if (!childWidget) return false;
             ImWidget* WidgetTreeRoot = GetWidgetVariable(parentVarName);
@@ -495,29 +493,18 @@ namespace ImGuiWidget
             return parent->RemoveChild(childWidget);
         }
 
-        // 8.3 纯路径字符串版本的移除子控件
+        // 8.2 纯路径字符串版本的移除子控件
         bool RemoveChildWidgetByPath(const std::string& WidgetTreeVarName,
-            const std::string& parentPath,
-            const std::string& childName)
+            const std::string& WidgetPath)
         {
             ImWidget* WidgetTreeRoot = GetWidgetVariable(WidgetTreeVarName);
             if (!WidgetTreeRoot) return false;
 
-            // 找到父控件
-            ImWidget* parent = FindWidgetByPath(WidgetTreeRoot, parentPath);
-            if (!parent) return false;
+            // 找到控件
+            ImWidget* widgetToRemove = FindWidgetByPath(WidgetTreeRoot, WidgetPath);
+            if (!widgetToRemove) return false;
 
-            // 找到子控件
-            for (int i = 0; i < parent->GetChildNum(); i++)
-            {
-                ImWidget* child = parent->GetChildAt(i);
-                if (child && child->GetWidgetName() == childName)
-                {
-                    return parent->RemoveChild(child, true);
-                }
-            }
-
-            return false;
+            return RemoveChildWidget(WidgetTreeVarName, widgetToRemove, true);
         }
 
         // 9. 重命名变量
@@ -568,7 +555,7 @@ namespace ImGuiWidget
             return false;
         }
 
-        // 10. 重命名控件树子项
+        // 10.1 重命名控件树子项
         bool RenameChildWidget(const std::string& parentVarName, ImWidget* childWidget, const std::string& newName)
         {
             if (!childWidget) return false;
@@ -593,7 +580,7 @@ namespace ImGuiWidget
             return true;
         }
 
-        // 9.1 纯路径字符串版本的重命名控件
+        // 10.2 纯路径字符串版本的重命名控件
         bool RenameWidgetByPath(const std::string& WidgetTreeVarName,
             const std::string& widgetPath,
             const std::string& newName)

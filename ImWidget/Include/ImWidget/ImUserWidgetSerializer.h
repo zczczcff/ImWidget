@@ -466,7 +466,7 @@ namespace ImGuiWidget
 
             return var;
         }
-
+    public:
         // ================ 控件树序列化辅助函数 ================
 
         // 序列化控件树（使用ROP属性系统）
@@ -535,7 +535,7 @@ namespace ImGuiWidget
             }
 
             // 检查是否为容器控件
-            if (auto panel = dynamic_cast<ImPanelWidget*>(widget))
+            if (auto panel = dynamic_cast<ImPanelWidget*>(widget))//-----------待改进----------
             {
                 if (j.contains("Children"))
                 {
@@ -621,7 +621,6 @@ namespace ImGuiWidget
             return obj;
         }
 
-    public:
         // ================ 主要序列化/反序列化接口 ================
 
         // 序列化ImUserWidgetClass

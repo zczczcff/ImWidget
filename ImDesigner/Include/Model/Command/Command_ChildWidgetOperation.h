@@ -1,0 +1,383 @@
+#pragma once
+#include "ImDesignerCommandBase.h"
+#include "ImWidget/ImUserWidgetClass.h"
+#include "ImWidget/ImUserWidgetSerializer.h"
+
+// 控件子项增删操作子类型
+enum class ChildWidgetOperationSubType
+{
+    InsertChildByPath = 0,    // 7.2: 通过路径插入子项
+    InsertChildByJson = 1,    // 7.4: 通过Json插入子项
+    RemoveChildByPath = 2,    // 8.2: 通过路径移除子项
+};
+
+class InsertChildByPathCommand : public ImUserWidgetClassCommandBase
+{
+private:
+    std::string m_WidgetTreeVarName;
+    std::string m_ParentWidgetPath;
+    std::string m_InsertWidgetRegisterName;
+    int m_InsertIndex;
+
+    // 执行后实际生成的子控件信息
+    std::string m_ActualChildName;    // 实际生成的名字（可能被重命名）
+    std::string m_ActualChildPath;    // 实际生成的完整路径
+    nlohmann::json m_ActualWidgetJson; // 实际生成的控件JSON
+
+public:
+    InsertChildByPathCommand(ImGuiWidget::ImUserWidgetClass* target,
+        const std::string& widgetTreeVarName,
+        const std::string& parentWidgetPath,
+        const std::string& insertWidgetRegisterName,
+        int insertIndex)
+        : ImUserWidgetClassCommandBase(target,
+            CommandDataType(CommandCategory::ChildWidgetOperation,
+                static_cast<int>(ChildWidgetOperationSubType::InsertChildByPath),
+                "InsertChildByPath")),
+        m_WidgetTreeVarName(widgetTreeVarName),
+        m_ParentWidgetPath(parentWidgetPath),
+        m_InsertWidgetRegisterName(insertWidgetRegisterName),
+        m_InsertIndex(insertIndex)
+    {
+    }
+
+    virtual ~InsertChildByPathCommand() = default;
+
+    virtual bool Execute() override
+    {
+        // 执行插入操作（父路径为空时表示根控件）
+        std::string actualParentPath = m_ParentWidgetPath.empty() ? "." : m_ParentWidgetPath;
+
+        auto insertedWidget = m_TargetClass->InsertChildWidgetByPath(
+            m_WidgetTreeVarName,
+            actualParentPath,
+            m_InsertWidgetRegisterName,
+            m_InsertIndex);
+
+        if (!insertedWidget) return false;
+
+        // 记录实际生成的控件信息
+        m_ActualChildName = insertedWidget->GetWidgetName();
+
+        if (m_ParentWidgetPath.empty())
+        {
+            m_ActualChildPath = m_ActualChildName;
+        }
+        else
+        {
+            m_ActualChildPath = m_ParentWidgetPath + "/" + m_ActualChildName;
+        }
+
+        // 序列化实际生成的控件（用于撤销）
+        m_ActualWidgetJson = ImGuiWidget::ImUserWidgetClassSerializer::SerializeWidgetTree(insertedWidget);
+        return true;
+    }
+
+    virtual bool Undo() override
+    {
+        if (m_ActualChildPath.empty()) return false;
+
+        // 移除插入的子控件（使用实际路径）
+        return m_TargetClass->RemoveChildWidgetByPath(
+            m_WidgetTreeVarName,
+            m_ActualChildPath);
+    }
+
+    virtual std::string GetDescription() const override
+    {
+        std::string expectedName = m_InsertWidgetRegisterName;
+        // 移除命名空间前缀
+        size_t pos = expectedName.find_last_of("::");
+        if (pos != std::string::npos)
+            expectedName = expectedName.substr(pos + 1);
+
+        std::string actualNameInfo = m_ActualChildName.empty() ?
+            expectedName :
+            expectedName + " (renamed to " + m_ActualChildName + ")";
+
+        return "Insert Child: " + actualNameInfo + " in " +
+            m_WidgetTreeVarName + "/" +
+            (m_ParentWidgetPath.empty() ? "[Root]" : m_ParentWidgetPath) +
+            " at index " + std::to_string(m_InsertIndex);
+    }
+
+    virtual bool CanMergeWith(const CommandBase<CommandDataType>* other) const override
+    {
+        return false; // 插入操作通常不可合并
+    }
+
+    virtual bool MergeWith(std::unique_ptr<CommandBase<CommandDataType>> other) override
+    {
+        return false;
+    }
+};
+
+// 5.2 通过Json插入子项命令-一般用于复制粘贴
+class InsertChildByJsonCommand : public ImUserWidgetClassCommandBase
+{
+private:
+    std::string m_WidgetTreeVarName;
+    std::string m_ParentWidgetPath;
+    nlohmann::json m_WidgetJson;
+    int m_InsertIndex;
+
+    // 执行后实际生成的子控件信息
+    std::string m_ExpectedName;      // JSON中期望的名字
+    std::string m_ActualChildName;   // 实际生成的名字（可能被重命名）
+    std::string m_ActualChildPath;   // 实际生成的完整路径
+
+public:
+    InsertChildByJsonCommand(ImGuiWidget::ImUserWidgetClass* target,
+        const std::string& widgetTreeVarName,
+        const std::string& parentWidgetPath,
+        const nlohmann::json& widgetJson,
+        int insertIndex)
+        : ImUserWidgetClassCommandBase(target,
+            CommandDataType(CommandCategory::ChildWidgetOperation,
+                static_cast<int>(ChildWidgetOperationSubType::InsertChildByJson),
+                "InsertChildByJson")),
+        m_WidgetTreeVarName(widgetTreeVarName),
+        m_ParentWidgetPath(parentWidgetPath),
+        m_WidgetJson(widgetJson),
+        m_InsertIndex(insertIndex)
+    {
+        // 从JSON中提取期望的名称
+        if (m_WidgetJson.contains("Name"))
+        {
+            m_ExpectedName = m_WidgetJson["Name"].get<std::string>();
+        }
+        else if (m_WidgetJson.contains("Type"))
+        {
+            // 如果没有名称，使用类型作为期望名称
+            m_ExpectedName = m_WidgetJson["Type"].get<std::string>();
+        }
+    }
+
+    virtual ~InsertChildByJsonCommand() = default;
+
+    virtual bool Execute() override
+    {
+        // 执行插入操作
+        auto insertedWidget = m_TargetClass->InsertChildWidget(
+            m_WidgetTreeVarName,
+            m_ParentWidgetPath,
+            m_WidgetJson,
+            m_InsertIndex);
+
+        if (!insertedWidget) return false;
+
+        // 记录实际生成的控件信息
+        m_ActualChildName = insertedWidget->GetWidgetName();
+        m_ActualChildPath = BuildWidgetPath(m_ParentWidgetPath, m_ActualChildName);
+        return true;
+    }
+
+    virtual bool Undo() override
+    {
+        if (m_ActualChildPath.empty()) return false;
+
+        // 移除插入的子控件（使用实际路径）
+        return m_TargetClass->RemoveChildWidgetByPath(
+            m_WidgetTreeVarName,
+            m_ActualChildPath);
+    }
+
+    virtual std::string GetDescription() const override
+    {
+        std::string nameInfo = m_ActualChildName.empty() ?
+            m_ExpectedName :
+            (m_ExpectedName == m_ActualChildName ? m_ExpectedName :
+                m_ExpectedName + " (renamed to " + m_ActualChildName + ")");
+
+        return "Insert Child from JSON: " + nameInfo + " in " +
+            m_WidgetTreeVarName + "/" +
+            (m_ParentWidgetPath.empty() ? "[Root]" : m_ParentWidgetPath) +
+            " at index " + std::to_string(m_InsertIndex);
+    }
+
+    virtual bool CanMergeWith(const CommandBase<CommandDataType>* other) const override
+    {
+        return false; // 插入操作通常不可合并
+    }
+
+    virtual bool MergeWith(std::unique_ptr<CommandBase<CommandDataType>> other) override
+    {
+        return false;
+    }
+
+private:
+    std::string BuildWidgetPath(const std::string& parentPath, const std::string& widgetName)
+    {
+        if (parentPath.empty() || parentPath == ".")
+            return widgetName;
+        return parentPath + "/" + widgetName;
+    }
+};
+
+// 5.3 通过路径移除子项命令
+class RemoveChildByPathCommand : public ImUserWidgetClassCommandBase
+{
+private:
+    std::string m_WidgetTreeVarName;
+    std::string m_ChildWidgetPath;
+
+    // 移除前的信息
+    std::string m_ParentWidgetPath;
+    std::string m_ChildWidgetName;
+    int m_ChildIndex;
+
+    // 移除的控件JSON数据
+    nlohmann::json m_RemovedWidgetJson;
+
+public:
+    RemoveChildByPathCommand(ImGuiWidget::ImUserWidgetClass* target,
+        const std::string& widgetTreeVarName,
+        const std::string& childWidgetPath)
+        : ImUserWidgetClassCommandBase(target,
+            CommandDataType(CommandCategory::ChildWidgetOperation,
+                static_cast<int>(ChildWidgetOperationSubType::RemoveChildByPath),
+                "RemoveChildByPath")),
+        m_WidgetTreeVarName(widgetTreeVarName),
+        m_ChildWidgetPath(childWidgetPath),
+        m_ChildIndex(-1)
+    {
+        // 解析路径
+        ParseWidgetPath(childWidgetPath, m_ParentWidgetPath, m_ChildWidgetName);
+    }
+
+    virtual ~RemoveChildByPathCommand() = default;
+
+    virtual bool Execute() override
+    {
+        // 获取要移除的控件
+        auto rootWidget = m_TargetClass->GetWidgetVariable(m_WidgetTreeVarName);
+        if (!rootWidget) return false;
+
+        ImGuiWidget::ImWidget* targetWidget = nullptr;
+        ImGuiWidget::ImWidget* parentWidget = nullptr;
+
+        // 查找父控件和目标控件
+        if (m_ParentWidgetPath.empty())
+        {
+            parentWidget = rootWidget;
+            targetWidget = FindChildByName(parentWidget, m_ChildWidgetName, m_ChildIndex);
+        }
+        else
+        {
+            parentWidget = FindWidgetByPath(rootWidget, m_ParentWidgetPath);
+            if (!parentWidget) return false;
+            targetWidget = FindChildByName(parentWidget, m_ChildWidgetName, m_ChildIndex);
+        }
+
+        if (!targetWidget) return false;
+
+        // 序列化要移除的控件
+        m_RemovedWidgetJson = ImGuiWidget::ImUserWidgetClassSerializer::SerializeWidgetTree(targetWidget);
+
+        // 执行移除操作
+        return m_TargetClass->RemoveChildWidgetByPath(
+            m_WidgetTreeVarName,
+            m_ChildWidgetPath);
+    }
+
+    virtual bool Undo() override
+    {
+        if (m_ChildIndex < 0 || m_RemovedWidgetJson.empty()) return false;
+
+        // 修改JSON中的名称为实际名称（因为插入时可能会被重命名）
+        // 这里我们保持原始名称，让InsertChildWidget自动处理重命名
+        auto insertedWidget = m_TargetClass->InsertChildWidget(
+            m_WidgetTreeVarName,
+            m_ParentWidgetPath,
+            m_RemovedWidgetJson,
+            m_ChildIndex);
+
+        return insertedWidget != nullptr;
+    }
+
+    virtual std::string GetDescription() const override
+    {
+        return "Remove Child Widget: " + m_WidgetTreeVarName + "/" + m_ChildWidgetPath;
+    }
+
+    virtual bool CanMergeWith(const CommandBase<CommandDataType>* other) const override
+    {
+        return false; // 移除操作通常不可合并
+    }
+
+    virtual bool MergeWith(std::unique_ptr<CommandBase<CommandDataType>> other) override
+    {
+        return false;
+    }
+
+private:
+    void ParseWidgetPath(const std::string& path, std::string& parentPath, std::string& widgetName)
+    {
+        size_t lastSlash = path.find_last_of('/');
+        if (lastSlash == std::string::npos)
+        {
+            parentPath = "";
+            widgetName = path;
+        }
+        else
+        {
+            parentPath = path.substr(0, lastSlash);
+            widgetName = path.substr(lastSlash + 1);
+        }
+    }
+
+    ImGuiWidget::ImWidget* FindWidgetByPath(ImGuiWidget::ImWidget* root, const std::string& path)
+    {
+        if (!root) return nullptr;
+
+        if (path.empty() || path == ".") return root;
+
+        std::vector<std::string> pathParts;
+        std::stringstream ss(path);
+        std::string part;
+        while (std::getline(ss, part, '/'))
+        {
+            if (!part.empty() && part != ".")
+                pathParts.push_back(part);
+        }
+
+        ImGuiWidget::ImWidget* current = root;
+        for (const auto& partName : pathParts)
+        {
+            bool found = false;
+            for (int i = 0; i < current->GetChildNum(); i++)
+            {
+                auto child = current->GetChildAt(i);
+                if (child && child->GetWidgetName() == partName)
+                {
+                    current = child;
+                    found = true;
+                    break;
+                }
+            }
+
+            if (!found) return nullptr;
+        }
+
+        return current;
+    }
+
+    ImGuiWidget::ImWidget* FindChildByName(ImGuiWidget::ImWidget* parent,
+        const std::string& name,
+        int& outIndex)
+    {
+        if (!parent) return nullptr;
+
+        for (int i = 0; i < parent->GetChildNum(); i++)
+        {
+            auto child = parent->GetChildAt(i);
+            if (child && child->GetWidgetName() == name)
+            {
+                outIndex = i;
+                return child;
+            }
+        }
+
+        return nullptr;
+    }
+};

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "ImDesignerCommandBase.h"
-
+#include <boost/type_index/ctti_type_index.hpp>
 // =========================== 4. Widget Ù–‘±‡º≠√¸¡Óª˘¿‡ ===========================
 template<typename T>
 class WidgetPropertyEditCommandBase : public ImUserWidgetClassCommandBase
@@ -22,7 +22,9 @@ public:
         const T& newValue)
         : ImUserWidgetClassCommandBase(target,
             CommandDataType(CommandCategory::WidgetPropertyEdit,
-                static_cast<int>(WidgetPropertyEditSubType::SetWidgetProperty))),
+                static_cast<int>(WidgetPropertyEditSubType::SetWidgetProperty),
+                boost::typeindex::ctti_type_index::type_id<T>().pretty_name()
+                )),
         m_WidgetVarName(widgetVarName),
         m_WidgetPath(widgetPath),
         m_PropertyPath(propertyPath),
@@ -53,13 +55,12 @@ public:
         if (!ImUserWidgetClassCommandBase::IsWithinMergeWindow(other))
             return false;
 
-        const auto* otherCmd = dynamic_cast<const WidgetPropertyEditCommandBase<T>*>(other);
-        if (!otherCmd) return false;
-
         return (m_TargetClass == otherCmd->m_TargetClass) &&
             (m_WidgetVarName == otherCmd->m_WidgetVarName) &&
             (m_WidgetPath == otherCmd->m_WidgetPath) &&
-            (m_PropertyPath == otherCmd->m_PropertyPath);
+            (m_PropertyPath == otherCmd->m_PropertyPath)&&
+            (m_Data==other->m_Data)
+            ;
     }
 
     virtual bool MergeWith(std::unique_ptr<CommandBase<CommandDataType>> other) override

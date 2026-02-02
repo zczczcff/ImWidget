@@ -19,6 +19,30 @@ bool ImGuiWidget::ImUserWidgetClass::InitFromFile(const std::string& FilePath)
     return InitFormJson(j);
 }
 
+ImGuiWidget::ImWidget* ImGuiWidget::ImUserWidgetClass::InsertChildWidget(const std::string& widgetVarName, const std::string& parentWidgetPath, const nlohmann::json& WidgetJson, int index)
+{
+    if (ImGuiWidget::ImWidget* NewWidget = ImUserWidgetClassSerializer::CreateWidgetFromJson(WidgetJson))
+    {
+        if (ImGuiWidget::ImWidget* root = GetWidgetVariable(widgetVarName))
+        {
+            if (ImGuiWidget::ImWidget* Parent = FindWidgetByPath(root, parentWidgetPath))
+            {
+                if (InsertChildWidget(widgetVarName, Parent, NewWidget, index))
+                {
+                    return NewWidget;
+                }
+            }
+        }
+
+        delete NewWidget;
+        return nullptr;
+    }
+    else
+    {
+        return nullptr;
+    }
+}
+
 bool ImGuiWidget::ImUserWidgetClass::ExportToCppFiles(const std::string& className, const std::string& headerOutputPath, const std::string& sourceOutputPath) const
 {
     return ImUserWidgetClassCodeGenerator::ExportUserWidgetClassToFiles(
