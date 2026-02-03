@@ -69,7 +69,7 @@ public:
         }
 
         // 序列化实际生成的控件（用于撤销）
-        m_ActualWidgetJson = ImGuiWidget::ImUserWidgetClassSerializer::SerializeWidgetTree(insertedWidget);
+        m_ActualWidgetJson = ImGuiWidget::ImUserWidgetClassSerializer::SerializeImWidget(insertedWidget);
         return true;
     }
 
@@ -272,7 +272,7 @@ public:
         if (!targetWidget) return false;
 
         // 序列化要移除的控件
-        m_RemovedWidgetJson = ImGuiWidget::ImUserWidgetClassSerializer::SerializeWidgetTree(targetWidget);
+        m_RemovedWidgetJson = ImGuiWidget::ImUserWidgetClassSerializer::SerializeImWidget(targetWidget);
 
         // 执行移除操作
         return m_TargetClass->RemoveChildWidgetByPath(

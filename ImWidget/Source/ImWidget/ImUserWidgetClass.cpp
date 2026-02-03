@@ -21,7 +21,7 @@ bool ImGuiWidget::ImUserWidgetClass::InitFromFile(const std::string& FilePath)
 
 ImGuiWidget::ImWidget* ImGuiWidget::ImUserWidgetClass::InsertChildWidget(const std::string& widgetVarName, const std::string& parentWidgetPath, const nlohmann::json& WidgetJson, int index)
 {
-    if (ImGuiWidget::ImWidget* NewWidget = ImUserWidgetClassSerializer::CreateWidgetFromJson(WidgetJson))
+    if (ImGuiWidget::ImWidget* NewWidget = ImUserWidgetClassSerializer::CreateImWidgetFromJson(WidgetJson))
     {
         if (ImGuiWidget::ImWidget* root = GetWidgetVariable(widgetVarName))
         {

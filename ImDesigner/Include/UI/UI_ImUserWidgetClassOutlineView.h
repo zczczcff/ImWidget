@@ -503,7 +503,7 @@ namespace ImGuiWidget
         // 创建基本变量项
         ImWidget* CreateBasicVariableItem(const std::string& varName)
         {
-            ImBasicVariable* basicVar = m_TargetClass->GetBasicVariable(varName);
+            ImGuiWidget::ImWidgetClassVariable_Basic* basicVar = m_TargetClass->GetBasicVariable(varName);
             if (!basicVar) return nullptr;
 
             return CreateVariableItem(varName, "BasicVariable",
@@ -739,7 +739,7 @@ namespace ImGuiWidget
             }
             else if (itemType == "BasicVariable")
             {
-                ImBasicVariable* var = static_cast<ImBasicVariable*>(dataPtr);
+                ImGuiWidget::ImWidgetClassVariable_Basic* var = static_cast<ImGuiWidget::ImWidgetClassVariable_Basic*>(dataPtr);
                 selectionInfo.IsRootWidget = false;
                 selectionInfo.IsChildWidget = false;
                 selectionInfo.DataPointer = var;
@@ -827,15 +827,15 @@ namespace ImGuiWidget
         }
 
         // 基本变量类型名称
-        std::string GetBasicVariableTypeName(ImBasicVariable::BasicType type) const
+        std::string GetBasicVariableTypeName(ImGuiWidget::PropertyType type) const
         {
             switch (type)
             {
-            case ImBasicVariable::BasicType::Int: return u8"整数";
-            case ImBasicVariable::BasicType::Float: return u8"浮点数";
-            case ImBasicVariable::BasicType::Bool: return u8"布尔值";
-            case ImBasicVariable::BasicType::String: return u8"字符串";
-            case ImBasicVariable::BasicType::Color: return u8"颜色";
+            case ImGuiWidget::PropertyType::Int: return u8"整数";
+            case ImGuiWidget::PropertyType::Float: return u8"浮点数";
+            case ImGuiWidget::PropertyType::Bool: return u8"布尔值";
+            case ImGuiWidget::PropertyType::String: return u8"字符串";
+            case ImGuiWidget::PropertyType::Color: return u8"颜色";
             default: return u8"未知";
             }
         }
@@ -1147,12 +1147,12 @@ namespace ImGuiWidget
 			ImVerticalBox* content = new ImVerticalBox("BasicVarsMenuContent");
 
 			// 创建各种类型的新建变量按钮
-			std::vector<std::pair<std::string, ImGuiWidget::ImBasicVariable::BasicType>> varTypes = {
-				{u8"新建整数", ImGuiWidget::ImBasicVariable::BasicType::Int},
-				{u8"新建浮点数", ImGuiWidget::ImBasicVariable::BasicType::Float},
-				{u8"新建布尔值", ImGuiWidget::ImBasicVariable::BasicType::Bool},
-				{u8"新建字符串", ImGuiWidget::ImBasicVariable::BasicType::String},
-				{u8"新建颜色", ImGuiWidget::ImBasicVariable::BasicType::Color}
+			std::vector<std::pair<std::string, ImGuiWidget::ImGuiWidget::PropertyType>> varTypes = {
+				{u8"新建整数", ImGuiWidget::ImGuiWidget::PropertyType::Int},
+				{u8"新建浮点数", ImGuiWidget::ImGuiWidget::PropertyType::Float},
+				{u8"新建布尔值", ImGuiWidget::ImGuiWidget::PropertyType::Bool},
+				{u8"新建字符串", ImGuiWidget::ImGuiWidget::PropertyType::String},
+				{u8"新建颜色", ImGuiWidget::ImGuiWidget::PropertyType::Color}
 			};
 
 			for (const auto& varType : varTypes)
@@ -1459,7 +1459,7 @@ namespace ImGuiWidget
 			m_PopupMenus.WidgetChildMenu->SetActive();
 		}
 
-        void OnCreateBasicVariableClicked(const ImGuiWidget::ImBasicVariable::BasicType& type)
+        void OnCreateBasicVariableClicked(const ImGuiWidget::ImGuiWidget::PropertyType& type)
         {
             // 关闭当前激活的菜单
             CloseActiveMenu();
@@ -1646,7 +1646,7 @@ namespace ImGuiWidget
             
         }
 
-        void Action_CreateBasicVariable(const ImGuiWidget::ImBasicVariable::BasicType& typeName)
+        void Action_CreateBasicVariable(const ImGuiWidget::ImGuiWidget::PropertyType& typeName)
         {
             ExecuteAction(m_EditedFileFullPath + Action::OutlineView::CREATE_BASIC_VARIABLE, typeName);
         }
