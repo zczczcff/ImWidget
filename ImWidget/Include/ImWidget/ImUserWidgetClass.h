@@ -5,6 +5,7 @@
 #include <unordered_set>
 #include <memory>
 #include <queue>
+#include <variant>
 #include "ImWidget.h"
 #include "ImObject.h"
 #include "ImObjectFactory.h"
@@ -16,69 +17,139 @@
 namespace ImGuiWidget
 {
     // 基本属性变量类，用于包装基本类型的属性
-    class ImBasicVariable : public ImObject
+    class ImBasicVariable
     {
     public:
-        enum class BasicType
-        {
-            Int,
-            Float,
-            Bool,
-            String,
-            Color
-        };
+        // 使用PropertyType替代原有的BasicType
+        using BasicType = PropertyType;  // 兼容别名
 
     private:
-        BasicType m_Type;
+        PropertyType m_Type;
         std::string m_Name;
-        std::string m_Category;
 
-        union
-        {
-            int m_IntValue;
-            float m_FloatValue;
-            bool m_BoolValue;
-        };
-
-        std::string m_StringValue;
-        ImU32 m_ColorValue;
+        // 使用std::variant存储不同类型的值
+        std::variant<
+            int,            // Int
+            float,          // Float
+            bool,           // Bool
+            std::string,    // String
+            ImU32,          // Color
+            ImVec2          // Vec2
+        > m_Value;
 
     public:
-        ImBasicVariable(const std::string& name, BasicType type, const std::string& category = "Default")
-            : m_Name(name), m_Type(type), m_Category(category)
+        ImBasicVariable(const std::string& name, PropertyType type)
+            : m_Name(name), m_Type(type)
         {
-            // 初始化默认值
+            // 根据类型初始化默认值
             switch (type)
             {
-            case BasicType::Int: m_IntValue = 0; break;
-            case BasicType::Float: m_FloatValue = 0.0f; break;
-            case BasicType::Bool: m_BoolValue = false; break;
-            case BasicType::String: m_StringValue = ""; break;
-            case BasicType::Color: m_ColorValue = IM_COL32(255, 255, 255, 255); break;
+            case PropertyType::Int:
+                m_Value = 0;
+                break;
+            case PropertyType::Float:
+                m_Value = 0.0f;
+                break;
+            case PropertyType::Bool:
+                m_Value = false;
+                break;
+            case PropertyType::String:
+                m_Value = std::string("");
+                break;
+            case PropertyType::Color:
+                m_Value = IM_COL32(255, 255, 255, 255);
+                break;
+            case PropertyType::Vec2:
+                m_Value = ImVec2(0.0f, 0.0f);
+                break;
+            default:
+                // 对于不支持的类型，默认为Int
+                m_Type = PropertyType::Int;
+                m_Value = 0;
+                break;
             }
         }
 
-        BasicType GetBasicType() const { return m_Type; }
+        PropertyType GetBasicType() const { return m_Type; }
         std::string GetName() const { return m_Name; }
         void SetName(const std::string& name) { m_Name = name; }
 
+        // 获取值的指针
         void* GetValuePtr()
         {
-            switch (m_Type)
+            return std::visit([](auto& value) -> void*
+                {
+                    return &value;
+                }, m_Value);
+        }
+
+        // 类型安全的获取值
+        template<typename T>
+        T GetValue() const
+        {
+            try
             {
-            case BasicType::Int: return &m_IntValue;
-            case BasicType::Float: return &m_FloatValue;
-            case BasicType::Bool: return &m_BoolValue;
-            case BasicType::String: return &m_StringValue;
-            case BasicType::Color: return &m_ColorValue;
-            default: return nullptr;
+                return std::get<T>(m_Value);
+            }
+            catch (const std::bad_variant_access&)
+            {
+                return T{};
             }
         }
 
-        std::string GetRegisterTypeName() override
+        // 类型安全的设置值
+        template<typename T>
+        bool SetValue(const T& value)
         {
-            return "BasicVariable_" + std::to_string(static_cast<int>(m_Type));
+            try
+            {
+                m_Value = value;
+                return true;
+            }
+            catch (const std::bad_variant_access&)
+            {
+                return false;
+            }
         }
+
+        // 根据PropertyType设置值（通用接口）
+        bool SetValueByType(PropertyType type, void* valuePtr)
+        {
+            if (!valuePtr) return false;
+
+            switch (type)
+            {
+            case PropertyType::Int:
+                m_Value = *static_cast<int*>(valuePtr);
+                return true;
+            case PropertyType::Float:
+                m_Value = *static_cast<float*>(valuePtr);
+                return true;
+            case PropertyType::Bool:
+                m_Value = *static_cast<bool*>(valuePtr);
+                return true;
+            case PropertyType::String:
+                m_Value = *static_cast<std::string*>(valuePtr);
+                return true;
+            case PropertyType::Color:
+                m_Value = *static_cast<ImU32*>(valuePtr);
+                return true;
+            case PropertyType::Vec2:
+                m_Value = *static_cast<ImVec2*>(valuePtr);
+                return true;
+            default:
+                return false;
+            }
+        }
+
+        // 获取类型对应的字符串表示
+        std::string GetTypeString() const
+        {
+            return PropertyTypeToString(m_Type);
+        }
+
+        // 支持旧代码的兼容性函数
+        BasicType GetBasicTypeOld() const { return static_cast<BasicType>(m_Type); }
     };
 
     // 用户控件类管理器
@@ -128,7 +199,7 @@ namespace ImGuiWidget
                 return true;
 
             // 如果是容器控件，递归检查子项
-            if (widget->GetChildNum()>0)
+            if (widget->GetChildNum() > 0)
             {
                 for (int i = 0; i < widget->GetChildNum(); i++)
                 {
@@ -293,23 +364,28 @@ namespace ImGuiWidget
             return true;
         }
 
-        bool AddBasicVariable(ImBasicVariable::BasicType type, const std::string& category, std::string& outVarName)
+        // 修改：使用PropertyType代替BasicType
+        bool AddBasicVariable(PropertyType type, std::string& outVarName)
         {
             // 生成唯一名称
             std::string baseName;
             switch (type)
             {
-            case ImBasicVariable::BasicType::Int: baseName = "Int"; break;
-            case ImBasicVariable::BasicType::Float: baseName = "Float"; break;
-            case ImBasicVariable::BasicType::Bool: baseName = "Bool"; break;
-            case ImBasicVariable::BasicType::String: baseName = "String"; break;
-            case ImBasicVariable::BasicType::Color: baseName = "Color"; break;
+            case PropertyType::Int: baseName = "Int"; break;
+            case PropertyType::Float: baseName = "Float"; break;
+            case PropertyType::Bool: baseName = "Bool"; break;
+            case PropertyType::String: baseName = "String"; break;
+            case PropertyType::Color: baseName = "Color"; break;
+            case PropertyType::Vec2: baseName = "Vec2"; break;
+            default:
+                baseName = "Unknown";
+                break;
             }
 
             outVarName = GenerateUniqueName(baseName);
 
             // 创建基本变量
-            ImBasicVariable* var = new ImBasicVariable(outVarName, type, category);
+            ImBasicVariable* var = new ImBasicVariable(outVarName, type);
             m_BasicVariables[outVarName] = var;
             return true;
         }
@@ -353,7 +429,7 @@ namespace ImGuiWidget
             return false;
         }
 
-        // 5. 修改变量接口
+        // 5. 获取变量接口
         ImWidget* GetWidgetVariable(const std::string& varName) const
         {
             auto it = m_WidgetVariables.find(varName);
@@ -385,7 +461,7 @@ namespace ImGuiWidget
         }
 
         // 7.1 在指定控件树中指定父节点中插入新建子项(通过控件类型注册名、父控件指针、插入位置)
-        ImWidget* InsertChildWidget(const std::string& WidgetTreeVarName, ImWidget* parent,const std::string& InsertWidgetRegisterName,
+        ImWidget* InsertChildWidget(const std::string& WidgetTreeVarName, ImWidget* parent, const std::string& InsertWidgetRegisterName,
             int index)
         {
             if (!parent) return nullptr;
@@ -413,7 +489,7 @@ namespace ImGuiWidget
                 return nullptr;
             }
         }
-        
+
         //7.2 在指定路径控件节点插入新建子项（通过控件类型注册名、父控件节点路径、插入位置）
         ImWidget* InsertChildWidgetByPath(const std::string& WidgetTreeVarName, const std::string& parentWidgetPath, const std::string& InsertWidgetRegisterName, int index)
         {
@@ -474,13 +550,15 @@ namespace ImGuiWidget
                 }
                 children.pop();
             }
+
+            return true; // 添加缺失的返回值
         }
 
         //7.4 在指定控件树中指定父节点插入给定子项（通过控件Json对象、父控件节点路径、插入位置）
         ImWidget* InsertChildWidget(const std::string& widgetVarName, const std::string& widgetPath, const nlohmann::json& WidgetJson, int index);
 
         // 8.1 移除控件树子项(但不删除)
-        bool RemoveChildWidget(const std::string& parentVarName, ImWidget* childWidget,bool bDelete = false)
+        bool RemoveChildWidget(const std::string& parentVarName, ImWidget* childWidget, bool bDelete = false)
         {
             if (!childWidget) return false;
             ImWidget* WidgetTreeRoot = GetWidgetVariable(parentVarName);
@@ -567,7 +645,7 @@ namespace ImGuiWidget
             // 获取父控件
             ImWidget* WidgetTreeRoot = GetWidgetVariable(parentVarName);
             if (!WidgetTreeRoot) return false;
-            
+
             if (!childWidget->IsInTree(WidgetTreeRoot))return false;
 
             if (childWidget == WidgetTreeRoot)
@@ -768,7 +846,7 @@ namespace ImGuiWidget
             names.push_back(widget->GetWidgetName());
 
             // 如果是容器控件，递归收集子项
-            if (widget->GetChildNum()>0)
+            if (widget->GetChildNum() > 0)
             {
                 for (int i = 0; i < widget->GetChildNum(); i++)
                 {
@@ -776,52 +854,54 @@ namespace ImGuiWidget
                     CollectChildWidgetNames(child, names);
                 }
             }
-		}
-	public:
-		// 直接设置已创建的控件树变量
-		bool SetWidgetVariableDirect(const std::string& name, ImWidget* widget)
-		{
-			if (IsNameUsed(name) && name != widget->GetWidgetName())
-				return false;
+        }
 
-			widget->SetWidgetName(name);
-			m_WidgetVariables[name] = widget;
-			return true;
-		}
+    public:
+        // 直接设置已创建的控件树变量-仅供ImUserWidgetClassSerializer使用
+        bool SetWidgetVariableDirect(const std::string& name, ImWidget* widget)
+        {
+            if (IsNameUsed(name) && name != widget->GetWidgetName())
+                return false;
 
-		// 直接设置已创建的对象变量
-		bool SetObjectVariableDirect(const std::string& name, ImObject* obj)
-		{
-			if (IsNameUsed(name))
-				return false;
+            widget->SetWidgetName(name);
+            m_WidgetVariables[name] = widget;
+            return true;
+        }
 
-			m_ObjectVariables[name] = obj;
-			return true;
-		}
+        // 直接设置已创建的对象变量-仅供ImUserWidgetClassSerializer使用
+        bool SetObjectVariableDirect(const std::string& name, ImObject* obj)
+        {
+            if (IsNameUsed(name))
+                return false;
 
-		// 直接设置已创建的基本变量
-		bool SetBasicVariableDirect(const std::string& name, ImBasicVariable* var)
-		{
-			if (IsNameUsed(name) && name != var->GetName())
-				return false;
+            m_ObjectVariables[name] = obj;
+            return true;
+        }
 
-			var->SetName(name);
-			m_BasicVariables[name] = var;
-			return true;
-		}
+        // 直接设置已创建的基本变量-仅供ImUserWidgetClassSerializer使用
+        bool SetBasicVariableDirect(const std::string& name, ImBasicVariable* var)
+        {
+            if (IsNameUsed(name) && name != var->GetName())
+                return false;
 
-		// 清空所有变量（用于反序列化前清理）
-		void ClearAllVariables()
-		{
-			for (auto& pair : m_WidgetVariables) delete pair.second;
-			for (auto& pair : m_ObjectVariables) delete pair.second;
-			for (auto& pair : m_BasicVariables) delete pair.second;
+            var->SetName(name);
+            m_BasicVariables[name] = var;
+            return true;
+        }
+    public:
 
-			m_WidgetVariables.clear();
-			m_ObjectVariables.clear();
-			m_BasicVariables.clear();
-			m_DefaultRootVariableName.clear();
-		}
+        // 清空所有变量（用于反序列化前清理）
+        void ClearAllVariables()
+        {
+            for (auto& pair : m_WidgetVariables) delete pair.second;
+            for (auto& pair : m_ObjectVariables) delete pair.second;
+            for (auto& pair : m_BasicVariables) delete pair.second;
+
+            m_WidgetVariables.clear();
+            m_ObjectVariables.clear();
+            m_BasicVariables.clear();
+            m_DefaultRootVariableName.clear();
+        }
 
         bool ExportToCppFiles(const std::string& className,
             const std::string& headerOutputPath,
@@ -831,7 +911,7 @@ namespace ImGuiWidget
 
         nlohmann::json ToJson();
 
-	};
+    };
 
 
 

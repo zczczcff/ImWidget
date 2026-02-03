@@ -116,7 +116,7 @@ void MainUI::ViewTest()
 	std::cout << "\n2. 添加基本变量:" << std::endl;
 
 	std::string intVarName;
-	if (widgetClass->AddBasicVariable(ImGuiWidget::ImBasicVariable::BasicType::Int, "Data", intVarName))
+	if (widgetClass->AddBasicVariable(ImGuiWidget::ImBasicVariable::BasicType::Int,intVarName))
 	{
 		std::cout << "  - 添加Int变量: " << intVarName << std::endl;
 
@@ -129,7 +129,7 @@ void MainUI::ViewTest()
 	}
 
 	std::string floatVarName;
-	if (widgetClass->AddBasicVariable(ImGuiWidget::ImBasicVariable::BasicType::Float, "Data", floatVarName))
+	if (widgetClass->AddBasicVariable(ImGuiWidget::ImBasicVariable::BasicType::Float, floatVarName))
 	{
 		std::cout << "  - 添加Float变量: " << floatVarName << std::endl;
 
@@ -141,7 +141,7 @@ void MainUI::ViewTest()
 	}
 
 	std::string boolVarName;
-	if (widgetClass->AddBasicVariable(ImGuiWidget::ImBasicVariable::BasicType::Bool, "Data", boolVarName))
+	if (widgetClass->AddBasicVariable(ImGuiWidget::ImBasicVariable::BasicType::Bool, boolVarName))
 	{
 		std::cout << "  - 添加Bool变量: " << boolVarName << std::endl;
 
@@ -153,7 +153,7 @@ void MainUI::ViewTest()
 	}
 
 	std::string stringVarName;
-	if (widgetClass->AddBasicVariable(ImGuiWidget::ImBasicVariable::BasicType::String, "Data", stringVarName))
+	if (widgetClass->AddBasicVariable(ImGuiWidget::ImBasicVariable::BasicType::String,stringVarName))
 	{
 		std::cout << "  - 添加String变量: " << stringVarName << std::endl;
 
@@ -165,7 +165,7 @@ void MainUI::ViewTest()
 	}
 
 	std::string colorVarName;
-	if (widgetClass->AddBasicVariable(ImGuiWidget::ImBasicVariable::BasicType::Color, "Style", colorVarName))
+	if (widgetClass->AddBasicVariable(ImGuiWidget::ImBasicVariable::BasicType::Color, colorVarName))
 	{
 		std::cout << "  - 添加Color变量: " << colorVarName << std::endl;
 

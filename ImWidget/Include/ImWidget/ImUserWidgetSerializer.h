@@ -15,6 +15,234 @@ namespace ImGuiWidget
 
     class ImUserWidgetClassSerializer
     {
+    public:
+        // 通用属性值序列化模板函数
+        template<typename T>
+        static json SerializeSinglePropertyValue(PropertyType type, const T& value)
+        {
+            try
+            {
+                switch (type)
+                {
+                case PropertyType::Color:
+                    if constexpr (std::is_same_v<T, ImU32>)
+                    {
+                        return json::array({
+                            IM_COLOR_GET_R(value),
+                            IM_COLOR_GET_G(value),
+                            IM_COLOR_GET_B(value),
+                            IM_COLOR_GET_A(value)
+                            });
+                    }
+                    break;
+
+                case PropertyType::Float:
+                    if constexpr (std::is_same_v<T, float>)
+                    {
+                        return json(value);
+                    }
+                    break;
+
+                case PropertyType::Bool:
+                    if constexpr (std::is_same_v<T, bool>)
+                    {
+                        return json(value);
+                    }
+                    break;
+
+                case PropertyType::Int:
+                    if constexpr (std::is_same_v<T, int>)
+                    {
+                        return json(value);
+                    }
+                    break;
+
+                case PropertyType::String:
+                    if constexpr (std::is_same_v<T, std::string>)
+                    {
+                        return json(value);
+                    }
+                    break;
+
+                case PropertyType::Vec2:
+                    if constexpr (std::is_same_v<T, ImVec2>)
+                    {
+                        return json::array({ value.x, value.y });
+                    }
+                    break;
+
+                case PropertyType::Struct:
+                    // 结构体类型需要递归序列化
+                    if constexpr (std::is_same_v<T, ImObject*>)
+                    {
+                        if (value != nullptr)
+                        {
+                            return SerializeObjectPropertiesROP(value);
+                        }
+                    }
+                    break;
+
+                case PropertyType::StringArray:
+                    if constexpr (std::is_same_v<T, std::vector<std::string>>)
+                    {
+                        return json(value);
+                    }
+                    break;
+
+                case PropertyType::Enum:
+                    // 枚举类型 - 传入的是选项字符串(std::string)
+                    if constexpr (std::is_same_v<T, std::string>)
+                    {
+                        return json(value);
+                    }
+                    break;
+
+                    // 可以添加更多属性类型的处理
+                default:
+                    // 未知或不支持的类型
+                    break;
+                }
+            }
+            catch (const std::exception& e)
+            {
+                std::cerr << "Error serializing property value of type " <<
+                    static_cast<int>(type) << ": " << e.what() << std::endl;
+            }
+
+            // 类型不匹配或处理失败时返回空json
+            return json();
+        }
+
+        // 通用属性值反序列化模板函数
+        template<typename T>
+        static bool DeserializeSinglePropertyValue(PropertyType type, const json& j, T& outValue)
+        {
+            try
+            {
+                switch (type)
+                {
+                case PropertyType::Color:
+                    if constexpr (std::is_same_v<T, ImU32>)
+                    {
+                        if (j.is_array() && j.size() == 4)
+                        {
+                            int r = j[0].template get<int>();
+                            int g = j[1].template get<int>();
+                            int b = j[2].template get<int>();
+                            int a = j[3].template get<int>();
+                            outValue = IM_COLOR_SET_RGBA(r, g, b, a);
+                            return true;
+                        }
+                    }
+                    break;
+
+                case PropertyType::Float:
+                    if constexpr (std::is_same_v<T, float>)
+                    {
+                        if (j.is_number())
+                        {
+                            outValue = j.template get<float>();
+                            return true;
+                        }
+                    }
+                    break;
+
+                case PropertyType::Bool:
+                    if constexpr (std::is_same_v<T, bool>)
+                    {
+                        if (j.is_boolean())
+                        {
+                            outValue = j.template get<bool>();
+                            return true;
+                        }
+                    }
+                    break;
+
+                case PropertyType::Int:
+                    if constexpr (std::is_same_v<T, int>)
+                    {
+                        if (j.is_number_integer())
+                        {
+                            outValue = j.template get<int>();
+                            return true;
+                        }
+                    }
+                    break;
+
+                case PropertyType::String:
+                    if constexpr (std::is_same_v<T, std::string>)
+                    {
+                        if (j.is_string())
+                        {
+                            outValue = j.template get<std::string>();
+                            return true;
+                        }
+                    }
+                    break;
+
+                case PropertyType::Vec2:
+                    if constexpr (std::is_same_v<T, ImVec2>)
+                    {
+                        if (j.is_array() && j.size() == 2)
+                        {
+                            outValue = ImVec2(
+                                j[0].template get<float>(),
+                                j[1].template get<float>()
+                            );
+                            return true;
+                        }
+                    }
+                    break;
+
+                case PropertyType::Struct:
+                    // 结构体类型 - 传入ImObject引用，递归反序列化
+                    if constexpr (std::is_same_v<T, ImObject&> || std::is_same_v<T, ImObject>)
+                    {
+                        if (j.is_object())
+                        {
+                            // 递归反序列化子结构
+                            DeserializeObjectPropertiesROP(&outValue, j);
+                            return true;
+                        }
+                    }
+                    break;
+
+                case PropertyType::StringArray:
+                    if constexpr (std::is_same_v<T, std::vector<std::string>>)
+                    {
+                        if (j.is_array())
+                        {
+                            outValue = j.template get<std::vector<std::string>>();
+                            return true;
+                        }
+                    }
+                    break;
+
+                case PropertyType::Enum:
+                    // 枚举类型 - 反序列化为字符串
+                    if constexpr (std::is_same_v<T, std::string>)
+                    {
+                        if (j.is_string())
+                        {
+                            outValue = j.template get<std::string>();
+                            return true;
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
+                }
+            }
+            catch (const std::exception& e)
+            {
+                std::cerr << "Error deserializing property value of type " <<
+                    static_cast<int>(type) << ": " << e.what() << std::endl;
+            }
+
+            return false;
+        }
+
     private:
         // ================ 新的ROP属性序列化辅助函数 ================
 
@@ -63,8 +291,8 @@ namespace ImGuiWidget
             return { "", key }; // 无类名前缀
         }
 
-        // 序列化单个属性值
-        static json SerializePropertyValue(ROP::Property<PropertyType>& prop)
+        // 序列化单个ROP属性值（统一使用SerializeSinglePropertyValue）
+        static json SerializeROPPropertyValue(ROP::Property<PropertyType>& prop)
         {
             json j;
 
@@ -72,32 +300,40 @@ namespace ImGuiWidget
             {
                 switch (prop.GetType())
                 {
-                case PropertyType::Color: {
+                case PropertyType::Color:
+                {
                     ImU32 color = prop.GetValue<ImU32>();
-                    j = {
-                        IM_COLOR_GET_R(color),
-                        IM_COLOR_GET_G(color),
-                        IM_COLOR_GET_B(color),
-                        IM_COLOR_GET_A(color)
-                    };
+                    j = SerializeSinglePropertyValue<ImU32>(prop.GetType(), color);
                     break;
                 }
                 case PropertyType::Float:
-                    j = prop.GetValue<float>();
+                {
+                    float value = prop.GetValue<float>();
+                    j = SerializeSinglePropertyValue<float>(prop.GetType(), value);
                     break;
+                }
                 case PropertyType::Bool:
-                    j = prop.GetValue<bool>();
+                {
+                    bool value = prop.GetValue<bool>();
+                    j = SerializeSinglePropertyValue<bool>(prop.GetType(), value);
                     break;
+                }
                 case PropertyType::Int:
-                    j = prop.GetValue<int>();
+                {
+                    int value = prop.GetValue<int>();
+                    j = SerializeSinglePropertyValue<int>(prop.GetType(), value);
                     break;
+                }
                 case PropertyType::String:
-                    j = prop.GetValue<std::string>();
+                {
+                    std::string value = prop.GetValue<std::string>();
+                    j = SerializeSinglePropertyValue<std::string>(prop.GetType(), value);
                     break;
+                }
                 case PropertyType::Vec2:
                 {
                     ImVec2 vec = prop.GetValue<ImVec2>();
-                    j = { vec.x, vec.y };
+                    j = SerializeSinglePropertyValue<ImVec2>(prop.GetType(), vec);
                     break;
                 }
                 case PropertyType::Struct:
@@ -113,7 +349,7 @@ namespace ImGuiWidget
                 case PropertyType::StringArray:
                 {
                     std::vector<std::string> vec = prop.GetValue<std::vector<std::string>>();
-                    j = vec;
+                    j = SerializeSinglePropertyValue<std::vector<std::string>>(prop.GetType(), vec);
                     break;
                 }
                 case PropertyType::Enum:
@@ -123,10 +359,13 @@ namespace ImGuiWidget
                     if (optionalProp.IsValid())
                     {
                         // 保存当前选择的选项字符串
-                        j = optionalProp.GetOptionString();
+                        std::string currentOption = optionalProp.GetOptionString();
+                        j = SerializeSinglePropertyValue<std::string>(prop.GetType(), currentOption);
                     }
                     break;
                 }
+                default:
+                    break;
                 }
             }
             catch (const std::exception& e)
@@ -137,61 +376,68 @@ namespace ImGuiWidget
             return j;
         }
 
-        // 反序列化单个属性值
-        static bool DeserializePropertyValue(ROP::Property<PropertyType>& prop, const json& j)
+        // 反序列化单个ROP属性值（统一使用DeserializeSinglePropertyValue）
+        static bool DeserializeROPPropertyValue(ROP::Property<PropertyType>& prop, const json& j)
         {
             try
             {
                 switch (prop.GetType())
                 {
-                case PropertyType::Color: {
-                    if (j.is_array() && j.size() == 4)
+                case PropertyType::Color:
+                {
+                    ImU32 color;
+                    if (DeserializeSinglePropertyValue<ImU32>(prop.GetType(), j, color))
                     {
-                        int r = j[0].template get<int>();
-                        int g = j[1].template get<int>();
-                        int b = j[2].template get<int>();
-                        int a = j[3].template get<int>();
-                        ImU32 color = IM_COLOR_SET_RGBA(r, g, b, a);
                         prop.SetValue<ImU32>(color);
                         return true;
                     }
                     break;
                 }
                 case PropertyType::Float:
-                    if (j.is_number())
+                {
+                    float value;
+                    if (DeserializeSinglePropertyValue<float>(prop.GetType(), j, value))
                     {
-                        prop.SetValue<float>(j.template get<float>());
+                        prop.SetValue<float>(value);
                         return true;
                     }
                     break;
+                }
                 case PropertyType::Bool:
-                    if (j.is_boolean())
+                {
+                    bool value;
+                    if (DeserializeSinglePropertyValue<bool>(prop.GetType(), j, value))
                     {
-                        prop.SetValue<bool>(j.template get<bool>());
+                        prop.SetValue<bool>(value);
                         return true;
                     }
                     break;
+                }
                 case PropertyType::Int:
-                    if (j.is_number_integer())
+                {
+                    int value;
+                    if (DeserializeSinglePropertyValue<int>(prop.GetType(), j, value))
                     {
-                        prop.SetValue<int>(j.template get<int>());
+                        prop.SetValue<int>(value);
                         return true;
                     }
                     break;
+                }
                 case PropertyType::String:
-                    if (j.is_string())
+                {
+                    std::string value;
+                    if (DeserializeSinglePropertyValue<std::string>(prop.GetType(), j, value))
                     {
-                        prop.SetValue<std::string>(j.template get<std::string>());
+                        prop.SetValue<std::string>(value);
                         return true;
                     }
                     break;
-                case PropertyType::Vec2: {
-                    if (j.is_array() && j.size() == 2)
+                }
+                case PropertyType::Vec2:
+                {
+                    ImVec2 vec;
+                    if (DeserializeSinglePropertyValue<ImVec2>(prop.GetType(), j, vec))
                     {
-                        ImVec2 vec(
-                            j[0].template get<float>(),
-                            j[1].template get<float>()
-                        );
                         prop.SetValue<ImVec2>(vec);
                         return true;
                     }
@@ -210,26 +456,30 @@ namespace ImGuiWidget
                 }
                 case PropertyType::StringArray:
                 {
-                    if (j.is_array())
+                    std::vector<std::string> vec;
+                    if (DeserializeSinglePropertyValue<std::vector<std::string>>(prop.GetType(), j, vec))
                     {
-                        prop.SetValue<std::vector<std::string>>(j.template get<std::vector<std::string>>());
+                        prop.SetValue<std::vector<std::string>>(vec);
                         return true;
                     }
                     break;
                 }
                 case PropertyType::Enum:
                 {
-                    if (j.is_string())
+                    std::string optionStr;
+                    if (DeserializeSinglePropertyValue<std::string>(prop.GetType(), j, optionStr))
                     {
                         // 通过OptionalProperty设置枚举值
                         auto optionalProp = prop.GetObject()->ToOptionalProperty(prop);
                         if (optionalProp.IsValid())
                         {
-                            return optionalProp.SetOptionByString(j.template get<std::string>());
+                            return optionalProp.SetOptionByString(optionStr);
                         }
                     }
                     break;
                 }
+                default:
+                    break;
                 }
             }
             catch (const std::exception& e)
@@ -260,7 +510,7 @@ namespace ImGuiWidget
                 std::string key = GeneratePropertyKey(prop, nameCount);
 
                 // 序列化属性值
-                j[key] = SerializePropertyValue(prop);
+                j[key] = SerializeROPPropertyValue(prop);
             }
 
             return j;
@@ -291,7 +541,7 @@ namespace ImGuiWidget
 
                 if (prop.IsValid())
                 {
-                    DeserializePropertyValue(prop, it.value());
+                    DeserializeROPPropertyValue(prop, it.value());
                 }
                 else
                 {
@@ -305,61 +555,61 @@ namespace ImGuiWidget
         // 序列化基本变量类型到字符串
         static std::string BasicTypeToString(ImBasicVariable::BasicType type)
         {
-            switch (type)
-            {
-            case ImBasicVariable::BasicType::Int: return "Int";
-            case ImBasicVariable::BasicType::Float: return "Float";
-            case ImBasicVariable::BasicType::Bool: return "Bool";
-            case ImBasicVariable::BasicType::String: return "String";
-            case ImBasicVariable::BasicType::Color: return "Color";
-            default: return "Unknown";
-            }
+            return PropertyTypeToString(static_cast<PropertyType>(type));
         }
 
         // 从字符串反序列化基本变量类型
         static ImBasicVariable::BasicType StringToBasicType(const std::string& str)
         {
-            if (str == "Int") return ImBasicVariable::BasicType::Int;
-            if (str == "Float") return ImBasicVariable::BasicType::Float;
-            if (str == "Bool") return ImBasicVariable::BasicType::Bool;
-            if (str == "String") return ImBasicVariable::BasicType::String;
-            if (str == "Color") return ImBasicVariable::BasicType::Color;
-            return ImBasicVariable::BasicType::Int;
+            return static_cast<ImBasicVariable::BasicType>(StringToPropertyType(str));
         }
 
-        // 序列化基本变量值（直接使用GetValuePtr）
+    public:
+
+        // 序列化基本变量值（统一使用SerializeSinglePropertyValue）
         static json SerializeBasicVariableValue(ImBasicVariable* var)
         {
             if (!var) return json();
 
-            void* valuePtr = var->GetValuePtr();
-            if (!valuePtr) return json();
-
             json j;
+            PropertyType type = static_cast<PropertyType>(var->GetBasicType());
 
-            switch (var->GetBasicType())
+            switch (type)
             {
-            case ImBasicVariable::BasicType::Int:
-                j = *static_cast<int*>(valuePtr);
-                break;
-            case ImBasicVariable::BasicType::Float:
-                j = *static_cast<float*>(valuePtr);
-                break;
-            case ImBasicVariable::BasicType::Bool:
-                j = *static_cast<bool*>(valuePtr);
-                break;
-            case ImBasicVariable::BasicType::String:
-                j = *static_cast<std::string*>(valuePtr);
-                break;
-            case ImBasicVariable::BasicType::Color:
+            case PropertyType::Int:
             {
-                ImU32 color = *static_cast<ImU32*>(valuePtr);
-                j = {
-                    IM_COLOR_GET_R(color),
-                    IM_COLOR_GET_G(color),
-                    IM_COLOR_GET_B(color),
-                    IM_COLOR_GET_A(color)
-                };
+                int value = var->GetValue<int>();
+                j = SerializeSinglePropertyValue<int>(type, value);
+                break;
+            }
+            case PropertyType::Float:
+            {
+                float value = var->GetValue<float>();
+                j = SerializeSinglePropertyValue<float>(type, value);
+                break;
+            }
+            case PropertyType::Bool:
+            {
+                bool value = var->GetValue<bool>();
+                j = SerializeSinglePropertyValue<bool>(type, value);
+                break;
+            }
+            case PropertyType::String:
+            {
+                std::string value = var->GetValue<std::string>();
+                j = SerializeSinglePropertyValue<std::string>(type, value);
+                break;
+            }
+            case PropertyType::Color:
+            {
+                ImU32 color = var->GetValue<ImU32>();
+                j = SerializeSinglePropertyValue<ImU32>(type, color);
+                break;
+            }
+            case PropertyType::Vec2:
+            {
+                ImVec2 vec = var->GetValue<ImVec2>();
+                j = SerializeSinglePropertyValue<ImVec2>(type, vec);
                 break;
             }
             default:
@@ -369,57 +619,71 @@ namespace ImGuiWidget
             return j;
         }
 
-        // 反序列化基本变量值（直接使用GetValuePtr）
+        // 反序列化基本变量值（统一使用DeserializeSinglePropertyValue）
         static bool DeserializeBasicVariableValue(ImBasicVariable* var, const json& j)
         {
             if (!var) return false;
 
-            void* valuePtr = var->GetValuePtr();
-            if (!valuePtr) return false;
+            PropertyType type = static_cast<PropertyType>(var->GetBasicType());
 
             try
             {
-                switch (var->GetBasicType())
+                switch (type)
                 {
-                case ImBasicVariable::BasicType::Int:
-                    if (j.is_number_integer())
+                case PropertyType::Int:
+                {
+                    int value;
+                    if (DeserializeSinglePropertyValue<int>(type, j, value))
                     {
-                        *static_cast<int*>(valuePtr) = j.template get<int>();
-                        return true;
+                        return var->SetValue<int>(value);
                     }
                     break;
-                case ImBasicVariable::BasicType::Float:
-                    if (j.is_number())
+                }
+                case PropertyType::Float:
+                {
+                    float value;
+                    if (DeserializeSinglePropertyValue<float>(type, j, value))
                     {
-                        *static_cast<float*>(valuePtr) = j.template get<float>();
-                        return true;
+                        return var->SetValue<float>(value);
                     }
                     break;
-                case ImBasicVariable::BasicType::Bool:
-                    if (j.is_boolean())
+                }
+                case PropertyType::Bool:
+                {
+                    bool value;
+                    if (DeserializeSinglePropertyValue<bool>(type, j, value))
                     {
-                        *static_cast<bool*>(valuePtr) = j.template get<bool>();
-                        return true;
+                        return var->SetValue<bool>(value);
                     }
                     break;
-                case ImBasicVariable::BasicType::String:
-                    if (j.is_string())
+                }
+                case PropertyType::String:
+                {
+                    std::string value;
+                    if (DeserializeSinglePropertyValue<std::string>(type, j, value))
                     {
-                        *static_cast<std::string*>(valuePtr) = j.template get<std::string>();
-                        return true;
+                        return var->SetValue<std::string>(value);
                     }
                     break;
-                case ImBasicVariable::BasicType::Color:
-                    if (j.is_array() && j.size() == 4)
+                }
+                case PropertyType::Color:
+                {
+                    ImU32 color;
+                    if (DeserializeSinglePropertyValue<ImU32>(type, j, color))
                     {
-                        int r = j[0].template get<int>();
-                        int g = j[1].template get<int>();
-                        int b = j[2].template get<int>();
-                        int a = j[3].template get<int>();
-                        *static_cast<ImU32*>(valuePtr) = IM_COLOR_SET_RGBA(r, g, b, a);
-                        return true;
+                        return var->SetValue<ImU32>(color);
                     }
                     break;
+                }
+                case PropertyType::Vec2:
+                {
+                    ImVec2 vec;
+                    if (DeserializeSinglePropertyValue<ImVec2>(type, j, vec))
+                    {
+                        return var->SetValue<ImVec2>(vec);
+                    }
+                    break;
+                }
                 default:
                     break;
                 }
@@ -432,45 +696,8 @@ namespace ImGuiWidget
             return false;
         }
 
-        // 序列化基本变量（直接使用GetValuePtr）
-        static json SerializeBasicVariable(ImBasicVariable* var)
-        {
-            json j;
-            if (!var) return j;
-
-            j["Name"] = var->GetName();
-            j["Type"] = BasicTypeToString(var->GetBasicType());
-            j["Value"] = SerializeBasicVariableValue(var);
-
-            return j;
-        }
-
-        // 反序列化基本变量（直接使用GetValuePtr）
-        static ImBasicVariable* DeserializeBasicVariable(const json& j)
-        {
-            if (!j.contains("Name") || !j.contains("Type") || !j.contains("Value"))
-                return nullptr;
-
-            std::string name = j["Name"].get<std::string>();
-            ImBasicVariable::BasicType type = StringToBasicType(j["Type"].get<std::string>());
-
-            // 创建基本变量
-            ImBasicVariable* var = new ImBasicVariable(name, type);
-
-            // 设置值
-            if (!DeserializeBasicVariableValue(var, j["Value"]))
-            {
-                delete var;
-                return nullptr;
-            }
-
-            return var;
-        }
-    public:
-        // ================ 控件树序列化辅助函数 ================
-
-        // 序列化控件树（使用ROP属性系统）
-        static json SerializeWidgetTree(ImWidget* root)
+        // 序列化控件树为JSON（使用ROP属性系统）
+        static json TransWidgetToJson(ImWidget* root)
         {
             json j;
             if (!root) return j;
@@ -498,7 +725,7 @@ namespace ImGuiWidget
                     if (!child) continue;
 
                     // 递归序列化子控件
-                    json childJson = SerializeWidgetTree(child);
+                    json childJson = TransWidgetToJson(child);
 
                     // 序列化slot属性（使用ROP属性系统）
                     childJson["ParentSlot"] = SerializeObjectPropertiesROP(slot);
@@ -560,21 +787,58 @@ namespace ImGuiWidget
             return widget;
         }
 
-        // 序列化控件树变量
-        static json SerializeWidgetVariable(ImWidget* widget)
+        // ================ ImUserWidgetClass变量<== 转换 ==>JSON对象 ================
+        
+        // 序列化基本变量为JSON
+        static json TransBasicVariableToJson(ImBasicVariable* var)
+        {
+            json j;
+            if (!var) return j;
+
+            j["Name"] = var->GetName();
+            j["Type"] = BasicTypeToString(var->GetBasicType());
+            j["Value"] = SerializeBasicVariableValue(var);
+
+            return j;
+        }
+
+        // 从JSON创建基本变量
+        static ImBasicVariable* CreateBasicVariableFromJson(const json& j)
+        {
+            if (!j.contains("Name") || !j.contains("Type") || !j.contains("Value"))
+                return nullptr;
+
+            std::string name = j["Name"].get<std::string>();
+            ImBasicVariable::BasicType type = StringToBasicType(j["Type"].get<std::string>());
+
+            // 创建基本变量
+            ImBasicVariable* var = new ImBasicVariable(name, type);
+
+            // 设置值
+            if (!DeserializeBasicVariableValue(var, j["Value"]))
+            {
+                delete var;
+                return nullptr;
+            }
+
+            return var;
+        }
+
+        // 序列化控件树变量为JSON
+        static json TransWidgetVariableToJson(ImWidget* widget)
         {
             if (!widget) return json();
 
             json j;
             j["Name"] = widget->GetWidgetName();
             j["Type"] = widget->GetRegisterTypeName();
-            j["Data"] = SerializeWidgetTree(widget);
+            j["Data"] = TransWidgetToJson(widget);
 
             return j;
         }
 
-        // 反序列化控件树变量
-        static ImWidget* DeserializeWidgetVariable(const json& j)
+        // 从JSON创建控件树变量
+        static ImWidget* CreateWidgetVariableFromJson(const json& j)
         {
             if (!j.contains("Name") || !j.contains("Type") || !j.contains("Data"))
                 return nullptr;
@@ -589,8 +853,8 @@ namespace ImGuiWidget
             return createdWidget;
         }
 
-        // 序列化ImObject变量（使用ROP属性系统）
-        static json SerializeObjectVariable(ImObject* obj, const std::string& name)
+        // 序列化ImObject变量为Json（使用ROP属性系统）
+        static json TransObjectVariableToJson(ImObject* obj, const std::string& name)
         {
             if (!obj) return json();
 
@@ -602,8 +866,8 @@ namespace ImGuiWidget
             return j;
         }
 
-        // 反序列化ImObject变量（使用ROP属性系统）
-        static ImObject* DeserializeObjectVariable(const json& j)
+        // 从Json创建ImObject变量（使用ROP属性系统）
+        static ImObject* CreateObjectVariableFromJson(const json& j)
         {
             if (!j.contains("Name") || !j.contains("Type") || !j.contains("Properties"))
                 return nullptr;
@@ -621,7 +885,7 @@ namespace ImGuiWidget
             return obj;
         }
 
-        // ================ 主要序列化/反序列化接口 ================
+        // ================ ImUserWidgetClass序列化/反序列化接口 ================
 
         // 序列化ImUserWidgetClass
         static json SerializeUserWidgetClass(const ImUserWidgetClass& widgetClass)
@@ -640,7 +904,7 @@ namespace ImGuiWidget
                 ImWidget* widget = widgetClass.GetWidgetVariable(varName);
                 if (widget)
                 {
-                    widgetVarsJson.push_back(SerializeWidgetVariable(widget));
+                    widgetVarsJson.push_back(TransWidgetVariableToJson(widget));
                 }
             }
             j["WidgetVariables"] = widgetVarsJson;
@@ -653,7 +917,7 @@ namespace ImGuiWidget
                 ImObject* obj = widgetClass.GetObjectVariable(varName);
                 if (obj)
                 {
-                    objectVarsJson.push_back(SerializeObjectVariable(obj, varName));
+                    objectVarsJson.push_back(TransObjectVariableToJson(obj, varName));
                 }
             }
             j["ObjectVariables"] = objectVarsJson;
@@ -666,7 +930,7 @@ namespace ImGuiWidget
                 ImBasicVariable* var = widgetClass.GetBasicVariable(varName);
                 if (var)
                 {
-                    basicVarsJson.push_back(SerializeBasicVariable(var));
+                    basicVarsJson.push_back(TransBasicVariableToJson(var));
                 }
             }
             j["BasicVariables"] = basicVarsJson;
@@ -699,7 +963,7 @@ namespace ImGuiWidget
                 {
                     try
                     {
-                        ImWidget* widget = DeserializeWidgetVariable(widgetJson);
+                        ImWidget* widget = CreateWidgetVariableFromJson(widgetJson);
                         if (widget)
                         {
                             std::string name = widgetJson["Name"].get<std::string>();
@@ -728,7 +992,7 @@ namespace ImGuiWidget
                 {
                     try
                     {
-                        ImObject* obj = DeserializeObjectVariable(objectJson);
+                        ImObject* obj = CreateObjectVariableFromJson(objectJson);
                         if (obj)
                         {
                             std::string name = objectJson["Name"].get<std::string>();
@@ -757,7 +1021,7 @@ namespace ImGuiWidget
                 {
                     try
                     {
-                        ImBasicVariable* var = DeserializeBasicVariable(basicJson);
+                        ImBasicVariable* var = CreateBasicVariableFromJson(basicJson);
                         if (var)
                         {
                             std::string name = basicJson["Name"].get<std::string>();

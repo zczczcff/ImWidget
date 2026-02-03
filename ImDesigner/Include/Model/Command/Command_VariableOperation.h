@@ -1,7 +1,11 @@
+// Command_VariableOperation.h - 修改后的六个子命令实现
 #pragma once
 
 #include "ImDesignerCommandBase.h"
 #include "ImWidget/ImUserWidgetClass.h"
+#include "ImUserWidgetSerializer.h"
+#include <nlohmann/json.hpp>
+
 // VariableOperation子类型
 enum class VariableOperationSubType
 {
@@ -16,16 +20,14 @@ enum class VariableOperationSubType
 class VariableOperationCommandBase : public ImUserWidgetClassCommandBase
 {
 protected:
-    std::string m_VariableName;
+    std::string m_VariableName;  // 执行后记录的变量名
 
 public:
     VariableOperationCommandBase(ImGuiWidget::ImUserWidgetClass* target,
-        VariableOperationSubType subType,
-        const std::string& variableName)
+        VariableOperationSubType subType)
         : ImUserWidgetClassCommandBase(target,
             CommandDataType(CommandCategory::VariableOperation,
-                static_cast<int>(subType))),
-        m_VariableName(variableName)
+                static_cast<int>(subType)))
     {
     }
 
@@ -36,289 +38,303 @@ public:
     {
         return false;
     }
+
+    // 获取执行后生成的变量名
+    std::string GetVariableName() const { return m_VariableName; }
 };
 
+// ============================================================================
+// 增加基本变量命令
+// ============================================================================
 class AddBasicVariableCommand : public VariableOperationCommandBase
 {
 private:
-    ImGuiWidget::ImBasicVariable::BasicType m_Type;
-    std::string m_Category;
-    std::string m_GeneratedName;  // 存储实际生成的名称
+    ImGuiWidget::PropertyType m_Type;
 
 public:
     AddBasicVariableCommand(ImGuiWidget::ImUserWidgetClass* target,
-        ImGuiWidget::ImBasicVariable::BasicType type,
-        const std::string& category)
-        : VariableOperationCommandBase(target, VariableOperationSubType::AddBasicVariable, ""),
-        m_Type(type), m_Category(category)
+        ImGuiWidget::PropertyType type)
+        : VariableOperationCommandBase(target,
+            VariableOperationSubType::AddBasicVariable)
+        , m_Type(type)
+        
     {
     }
 
     virtual bool Execute() override
     {
-        std::string outVarName;
-        bool success = m_TargetClass->AddBasicVariable(m_Type, m_Category, outVarName);
-        if (success)
-        {
-            m_VariableName = outVarName;  // 保存实际生成的名称
-            m_GeneratedName = outVarName;
-        }
-        return success;
+        if (!m_TargetClass)
+            return false;
+
+        // 执行添加操作，变量名由ImUserWidgetClass生成
+        return m_TargetClass->AddBasicVariable(m_Type, m_VariableName);
     }
 
     virtual bool Undo() override
     {
-        return m_TargetClass->RemoveVariable(m_GeneratedName);
+        if (!m_TargetClass)
+            return false;
+
+        return m_TargetClass->RemoveVariable(m_VariableName);
     }
 
     virtual std::string GetDescription() const override
     {
-        return "Add basic variable: " + m_GeneratedName + " (Type: " + std::to_string(static_cast<int>(m_Type)) + ")";
+        return "添加基本变量: " + m_VariableName + " (类型: " +
+            ImGuiWidget::PropertyTypeToString(m_Type) + ")";
     }
+
 };
 
+// ============================================================================
+// 删除基本变量命令
+// ============================================================================
 class RemoveBasicVariableCommand : public VariableOperationCommandBase
 {
 private:
-    ImGuiWidget::ImBasicVariable* m_RemovedVariable;  // 保存被删除的变量，用于Undo
-    ImGuiWidget::ImBasicVariable::BasicType m_Type;
-    std::string m_Category;
+    ImGuiWidget::PropertyType m_Type;
+    nlohmann::json m_SerializedData;  // 序列化后的变量数据（用于恢复）
 
 public:
     RemoveBasicVariableCommand(ImGuiWidget::ImUserWidgetClass* target,
         const std::string& variableName)
-        : VariableOperationCommandBase(target, VariableOperationSubType::RemoveBasicVariable, variableName),
-        m_RemovedVariable(nullptr)
+        : VariableOperationCommandBase(target,
+            VariableOperationSubType::RemoveBasicVariable)
     {
-        // 在构造函数中获取变量信息
-        auto var = m_TargetClass->GetBasicVariable(variableName);
-        if (var)
-        {
-            m_Type = var->GetBasicType();
-            m_Category = var->GetName();  // 注意：这里可能需要获取category，但ImBasicVariable没有category成员
-        }
-    }
-
-    virtual ~RemoveBasicVariableCommand()
-    {
-        if (m_RemovedVariable)
-        {
-            delete m_RemovedVariable;
-        }
+        m_VariableName = variableName;
     }
 
     virtual bool Execute() override
     {
-        m_RemovedVariable = m_TargetClass->GetBasicVariable(m_VariableName);
-        if (!m_RemovedVariable) return false;
+        if (!m_TargetClass)
+            return false;
 
-        // 创建副本用于Undo
-        m_RemovedVariable = new ImGuiWidget::ImBasicVariable(*m_RemovedVariable);
+        // 在删除前序列化变量数据
+        ImGuiWidget::ImBasicVariable* var = m_TargetClass->GetBasicVariable(m_VariableName);
+        if (!var)
+            return false;
 
+        m_Type = var->GetBasicType();
+        m_SerializedData = ImGuiWidget::ImUserWidgetClassSerializer::TransBasicVariableToJson(var);
+
+        // 执行删除
         return m_TargetClass->RemoveVariable(m_VariableName);
     }
 
     virtual bool Undo() override
     {
-        if (!m_RemovedVariable) return false;
+        if (!m_TargetClass)
+            return false;
 
-        bool success = m_TargetClass->SetBasicVariableDirect(m_VariableName, m_RemovedVariable);
-        if (success)
-        {
-            m_RemovedVariable = nullptr;  // 所有权转移给TargetClass
-        }
-        return success;
+        // 从序列化数据重建变量
+        ImGuiWidget::ImBasicVariable* var =
+            ImGuiWidget::ImUserWidgetClassSerializer::CreateBasicVariableFromJson(m_SerializedData);
+
+        if (!var)
+            return false;
+
+        // 添加到目标类
+        return m_TargetClass->SetBasicVariableDirect(m_VariableName, var);
     }
 
     virtual std::string GetDescription() const override
     {
-        return "Remove basic variable: " + m_VariableName;
+        return "删除基本变量: " + m_VariableName;
     }
 };
 
+// ============================================================================
+// 增加ImObject变量命令
+// ============================================================================
 class AddObjectVariableCommand : public VariableOperationCommandBase
 {
 private:
-    std::string m_TypeName;
-    std::string m_GeneratedName;
+    std::string m_ObjectType;
 
 public:
     AddObjectVariableCommand(ImGuiWidget::ImUserWidgetClass* target,
-        const std::string& typeName)
-        : VariableOperationCommandBase(target, VariableOperationSubType::AddObjectVariable, ""),
-        m_TypeName(typeName)
+        const std::string& objectType)
+        : VariableOperationCommandBase(target,
+            VariableOperationSubType::AddObjectVariable)
+        , m_ObjectType(objectType)
     {
     }
 
     virtual bool Execute() override
     {
-        std::string outVarName;
-        bool success = m_TargetClass->AddObjectVariable(m_TypeName, outVarName);
-        if (success)
-        {
-            m_VariableName = outVarName;
-            m_GeneratedName = outVarName;
-        }
-        return success;
+        if (!m_TargetClass)
+            return false;
+
+        // 执行添加操作，变量名由ImUserWidgetClass生成
+        return  m_TargetClass->AddObjectVariable(m_ObjectType, m_VariableName);
     }
 
     virtual bool Undo() override
     {
-        return m_TargetClass->RemoveVariable(m_GeneratedName);
+        if (!m_TargetClass)
+            return false;
+
+        return m_TargetClass->RemoveVariable(m_VariableName);
     }
 
     virtual std::string GetDescription() const override
     {
-        return "Add object variable: " + m_GeneratedName + " (Type: " + m_TypeName + ")";
+        return "添加ImObject变量: " + m_VariableName + " (类型: " + m_ObjectType + ")";
     }
+
 };
 
+// ============================================================================
+// 删除ImObject变量命令
+// ============================================================================
 class RemoveObjectVariableCommand : public VariableOperationCommandBase
 {
 private:
-    ImGuiWidget::ImObject* m_RemovedObject;
-    std::vector<uint8_t> m_SerializedData;  // 序列化数据用于Undo
+    std::string m_ObjectType;
+    nlohmann::json m_SerializedData;  // 序列化后的对象数据
 
 public:
     RemoveObjectVariableCommand(ImGuiWidget::ImUserWidgetClass* target,
         const std::string& variableName)
-        : VariableOperationCommandBase(target, VariableOperationSubType::RemoveObjectVariable, variableName),
-        m_RemovedObject(nullptr)
+        : VariableOperationCommandBase(target,
+            VariableOperationSubType::RemoveObjectVariable)
     {
-    }
-
-    virtual ~RemoveObjectVariableCommand()
-    {
-        if (m_RemovedObject)
-        {
-            delete m_RemovedObject;
-        }
+        m_VariableName = variableName;
     }
 
     virtual bool Execute() override
     {
-        auto obj = m_TargetClass->GetObjectVariable(m_VariableName);
-        if (!obj) return false;
+        if (!m_TargetClass)
+            return false;
 
-        // 序列化对象用于Undo
-        m_SerializedData = obj->Serialize();
-        m_RemovedObject = obj;
+        // 在删除前序列化对象数据
+        ImGuiWidget::ImObject* obj = m_TargetClass->GetObjectVariable(m_VariableName);
+        if (!obj)
+            return false;
 
+        m_ObjectType = obj->GetRegisterTypeName();
+        m_SerializedData = ImGuiWidget::ImUserWidgetClassSerializer::TransObjectVariableToJson(obj, m_VariableName);
+
+        // 执行删除
         return m_TargetClass->RemoveVariable(m_VariableName);
     }
 
     virtual bool Undo() override
     {
-        if (m_SerializedData.empty()) return false;
+        if (!m_TargetClass)
+            return false;
 
-        // 反序列化对象
-        ImGuiWidget::ImObject* newObj = ImGuiWidget::ImObjectFactory::GetInstance().CreateObject(m_RemovedObject->GetRegisterTypeName());
-        if (!newObj) return false;
+        // 从序列化数据重建对象
+        ImGuiWidget::ImObject* obj =
+            ImGuiWidget::ImUserWidgetClassSerializer::CreateObjectVariableFromJson(m_SerializedData);
 
-        if (newObj->Deserialize(m_SerializedData))
-        {
-            bool success = m_TargetClass->SetObjectVariableDirect(m_VariableName, newObj);
-            if (success)
-            {
-                m_RemovedObject = nullptr;  // 所有权转移
-                m_SerializedData.clear();
-                return true;
-            }
-        }
+        if (!obj)
+            return false;
 
-        delete newObj;
-        return false;
+        // 添加到目标类
+        return m_TargetClass->SetObjectVariableDirect(m_VariableName, obj);
     }
 
     virtual std::string GetDescription() const override
     {
-        return "Remove object variable: " + m_VariableName;
+        return "删除ImObject变量: " + m_VariableName;
     }
 };
 
+// ============================================================================
+// 增加控件树变量命令
+// ============================================================================
 class AddWidgetVariableCommand : public VariableOperationCommandBase
 {
 private:
-    std::string m_TypeName;
-    std::string m_GeneratedName;
+    std::string m_WidgetType;
+    nlohmann::json m_SerializedData;  // 序列化后的控件树数据
 
 public:
     AddWidgetVariableCommand(ImGuiWidget::ImUserWidgetClass* target,
-        const std::string& typeName)
-        : VariableOperationCommandBase(target, VariableOperationSubType::AddWidgetVariable, ""),
-        m_TypeName(typeName)
+        const std::string& widgetType)
+        : VariableOperationCommandBase(target,
+            VariableOperationSubType::AddWidgetVariable)
+        , m_WidgetType(widgetType)
     {
     }
 
     virtual bool Execute() override
     {
-        std::string outVarName;
-        bool success = m_TargetClass->AddWidgetVariable(m_TypeName, outVarName);
-        if (success)
-        {
-            m_VariableName = outVarName;
-            m_GeneratedName = outVarName;
-        }
-        return success;
+        if (!m_TargetClass)
+            return false;
+
+        // 执行添加操作，变量名由ImUserWidgetClass生成
+        return m_TargetClass->AddWidgetVariable(m_WidgetType, m_VariableName);
     }
 
     virtual bool Undo() override
     {
-        return m_TargetClass->RemoveVariable(m_GeneratedName);
+        if (!m_TargetClass)
+            return false;
+
+        return m_TargetClass->RemoveVariable(m_VariableName);
     }
 
     virtual std::string GetDescription() const override
     {
-        return "Add widget variable: " + m_GeneratedName + " (Type: " + m_TypeName + ")";
+        return "添加控件树变量: " + m_VariableName + " (类型: " + m_WidgetType + ")";
     }
 };
 
+// ============================================================================
+// 删除控件树变量命令
+// ============================================================================
 class RemoveWidgetVariableCommand : public VariableOperationCommandBase
 {
 private:
-    ImGuiWidget::ImWidget* m_RemovedWidget;
+    std::string m_WidgetType;
+    nlohmann::json m_SerializedData;  // 序列化后的控件树数据
 
 public:
     RemoveWidgetVariableCommand(ImGuiWidget::ImUserWidgetClass* target,
         const std::string& variableName)
-        : VariableOperationCommandBase(target, VariableOperationSubType::RemoveWidgetVariable, variableName),
-        m_RemovedWidget(nullptr)
+        : VariableOperationCommandBase(target,
+            VariableOperationSubType::RemoveWidgetVariable)
     {
-    }
-
-    virtual ~RemoveWidgetVariableCommand()
-    {
-        if (m_RemovedWidget)
-        {
-            delete m_RemovedWidget;
-        }
+        m_VariableName = variableName;
     }
 
     virtual bool Execute() override
     {
-        m_RemovedWidget = m_TargetClass->GetWidgetVariable(m_VariableName);
-        if (!m_RemovedWidget) return false;
+        if (!m_TargetClass)
+            return false;
 
-        // 创建深拷贝用于Undo
-        m_RemovedWidget = m_RemovedWidget->CopyWidget();
+        // 在删除前序列化控件树数据
+        ImGuiWidget::ImWidget* widget = m_TargetClass->GetWidgetVariable(m_VariableName);
+        if (!widget)
+            return false;
 
+        m_WidgetType = widget->GetRegisterTypeName();
+        m_SerializedData = ImGuiWidget::ImUserWidgetClassSerializer::TransWidgetVariableToJson(widget);
+
+        // 执行删除
         return m_TargetClass->RemoveVariable(m_VariableName);
     }
 
     virtual bool Undo() override
     {
-        if (!m_RemovedWidget) return false;
+        if (!m_TargetClass)
+            return false;
 
-        bool success = m_TargetClass->SetWidgetVariableDirect(m_VariableName, m_RemovedWidget);
-        if (success)
-        {
-            m_RemovedWidget = nullptr;  // 所有权转移
-        }
-        return success;
+        // 从序列化数据重建控件树
+        ImGuiWidget::ImWidget* widget =
+            ImGuiWidget::ImUserWidgetClassSerializer::CreateWidgetFromJson(m_SerializedData);
+
+        if (!widget)
+            return false;
+
+        // 添加到目标类
+        return m_TargetClass->SetWidgetVariableDirect(m_VariableName, widget);
     }
 
     virtual std::string GetDescription() const override
     {
-        return "Remove widget variable: " + m_VariableName;
+        return "删除控件树变量: " + m_VariableName;
     }
 };

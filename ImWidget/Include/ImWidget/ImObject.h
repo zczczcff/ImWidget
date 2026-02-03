@@ -369,11 +369,6 @@ namespace ImGuiWidget
             }
             return T{};
         }
-        // 序列化函数
-        std::vector<uint8_t> Serialize();
-
-        // 反序列化函数
-        bool Deserialize(const std::vector<uint8_t>& data);
 
         virtual std::string GetRegisterTypeName() { return ""; }
     };

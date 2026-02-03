@@ -743,7 +743,6 @@ namespace ImGuiWidget
                 selectionInfo.IsRootWidget = false;
                 selectionInfo.IsChildWidget = false;
                 selectionInfo.DataPointer = var;
-                selectionInfo.WidgetRegisterTypeName = var->GetRegisterTypeName();
             }
             else if (itemType == "ObjectVariable")
             {
