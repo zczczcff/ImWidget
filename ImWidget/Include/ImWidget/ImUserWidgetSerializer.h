@@ -1,14 +1,18 @@
+// ImUserWidgetSerializer.h
 #pragma once
 #include <nlohmann/json.hpp>
 #include <fstream>
 #include <imgui.h>
+#include <unordered_map>
+#include <iostream>
+#include <ctime>
 #include "ImUserWidgetClass.h"
 #include "ImWidget.h"
 #include "ImPanelWidget.h"
 #include "ImWidgetFactory.h"
 #include "ImObjectFactory.h"
-#include <unordered_set>
 #include "ImWidget/ImButton.h"
+
 namespace ImGuiWidget
 {
     using json = nlohmann::ordered_json;
@@ -16,7 +20,7 @@ namespace ImGuiWidget
     class ImUserWidgetClassSerializer
     {
     public:
-        // 通用属性值序列化模板函数
+        // ================ 通用属性值序列化模板函数 ================
         template<typename T>
         static json SerializeSinglePropertyValue(PropertyType type, const T& value)
         {
@@ -97,7 +101,6 @@ namespace ImGuiWidget
                     }
                     break;
 
-                    // 可以添加更多属性类型的处理
                 default:
                     // 未知或不支持的类型
                     break;
@@ -244,7 +247,7 @@ namespace ImGuiWidget
         }
 
     private:
-        // ================ 新的ROP属性序列化辅助函数 ================
+        // ================ ROP属性序列化辅助函数 ================
 
         // 统计属性名出现次数，用于处理重名属性
         static std::unordered_map<std::string, int> CountPropertyNames(ImObject* obj)
@@ -550,65 +553,51 @@ namespace ImGuiWidget
             }
         }
 
-        // ================ 基本变量序列化辅助函数 ================
+        // ================ 基本变量序列化辅助函数（适配ImWidgetClassVariable_Basic） ================
 
-        // 序列化基本变量类型到字符串
-        static std::string BasicTypeToString(ImBasicVariable::BasicType type)
+        // 序列化基本变量值
+        static json SerializeBasicVariableValue(ImWidgetClassVariable_Basic* basicVar)
         {
-            return PropertyTypeToString(static_cast<PropertyType>(type));
-        }
-
-        // 从字符串反序列化基本变量类型
-        static ImBasicVariable::BasicType StringToBasicType(const std::string& str)
-        {
-            return static_cast<ImBasicVariable::BasicType>(StringToPropertyType(str));
-        }
-
-    public:
-
-        // 序列化基本变量值（统一使用SerializeSinglePropertyValue）
-        static json SerializeBasicVariableValue(ImBasicVariable* var)
-        {
-            if (!var) return json();
+            if (!basicVar) return json();
 
             json j;
-            PropertyType type = static_cast<PropertyType>(var->GetBasicType());
+            PropertyType type = basicVar->GetValueType();
 
             switch (type)
             {
             case PropertyType::Int:
             {
-                int value = var->GetValue<int>();
+                int value = basicVar->GetValue<int>();
                 j = SerializeSinglePropertyValue<int>(type, value);
                 break;
             }
             case PropertyType::Float:
             {
-                float value = var->GetValue<float>();
+                float value = basicVar->GetValue<float>();
                 j = SerializeSinglePropertyValue<float>(type, value);
                 break;
             }
             case PropertyType::Bool:
             {
-                bool value = var->GetValue<bool>();
+                bool value = basicVar->GetValue<bool>();
                 j = SerializeSinglePropertyValue<bool>(type, value);
                 break;
             }
             case PropertyType::String:
             {
-                std::string value = var->GetValue<std::string>();
+                std::string value = basicVar->GetValue<std::string>();
                 j = SerializeSinglePropertyValue<std::string>(type, value);
                 break;
             }
             case PropertyType::Color:
             {
-                ImU32 color = var->GetValue<ImU32>();
+                ImU32 color = basicVar->GetValue<ImU32>();
                 j = SerializeSinglePropertyValue<ImU32>(type, color);
                 break;
             }
             case PropertyType::Vec2:
             {
-                ImVec2 vec = var->GetValue<ImVec2>();
+                ImVec2 vec = basicVar->GetValue<ImVec2>();
                 j = SerializeSinglePropertyValue<ImVec2>(type, vec);
                 break;
             }
@@ -619,12 +608,12 @@ namespace ImGuiWidget
             return j;
         }
 
-        // 反序列化基本变量值（统一使用DeserializeSinglePropertyValue）
-        static bool DeserializeBasicVariableValue(ImBasicVariable* var, const json& j)
+        // 反序列化基本变量值
+        static bool DeserializeBasicVariableValue(ImWidgetClassVariable_Basic* basicVar, const json& j)
         {
-            if (!var) return false;
+            if (!basicVar) return false;
 
-            PropertyType type = static_cast<PropertyType>(var->GetBasicType());
+            PropertyType type = basicVar->GetValueType();
 
             try
             {
@@ -635,7 +624,7 @@ namespace ImGuiWidget
                     int value;
                     if (DeserializeSinglePropertyValue<int>(type, j, value))
                     {
-                        return var->SetValue<int>(value);
+                        return basicVar->SetValue<int>(value);
                     }
                     break;
                 }
@@ -644,7 +633,7 @@ namespace ImGuiWidget
                     float value;
                     if (DeserializeSinglePropertyValue<float>(type, j, value))
                     {
-                        return var->SetValue<float>(value);
+                        return basicVar->SetValue<float>(value);
                     }
                     break;
                 }
@@ -653,7 +642,7 @@ namespace ImGuiWidget
                     bool value;
                     if (DeserializeSinglePropertyValue<bool>(type, j, value))
                     {
-                        return var->SetValue<bool>(value);
+                        return basicVar->SetValue<bool>(value);
                     }
                     break;
                 }
@@ -662,7 +651,7 @@ namespace ImGuiWidget
                     std::string value;
                     if (DeserializeSinglePropertyValue<std::string>(type, j, value))
                     {
-                        return var->SetValue<std::string>(value);
+                        return basicVar->SetValue<std::string>(value);
                     }
                     break;
                 }
@@ -671,7 +660,7 @@ namespace ImGuiWidget
                     ImU32 color;
                     if (DeserializeSinglePropertyValue<ImU32>(type, j, color))
                     {
-                        return var->SetValue<ImU32>(color);
+                        return basicVar->SetValue<ImU32>(color);
                     }
                     break;
                 }
@@ -680,7 +669,7 @@ namespace ImGuiWidget
                     ImVec2 vec;
                     if (DeserializeSinglePropertyValue<ImVec2>(type, j, vec))
                     {
-                        return var->SetValue<ImVec2>(vec);
+                        return basicVar->SetValue<ImVec2>(vec);
                     }
                     break;
                 }
@@ -696,8 +685,117 @@ namespace ImGuiWidget
             return false;
         }
 
+    public:
+        // ================ 统一变量序列化辅助函数 ================
+
+        // 序列化变量
+        static json SerializeVariable(ImWidgetClassVariable* var)
+        {
+            if (!var) return json();
+
+            json j;
+            j["Name"] = var->GetName();
+            j["VariableType"] = static_cast<int>(var->GetType());
+
+            switch (var->GetType())
+            {
+            case WidgetClassVariableType::Widget:
+            {
+                auto widgetVar = var->As<ImWidgetClassVariable_Widget>();
+                if (widgetVar)
+                {
+                    j["DataType"] = widgetVar->GetTypeString();
+                    j["Data"] = SerializeWidgetTree(widgetVar->GetWidget());
+                }
+                break;
+            }
+            case WidgetClassVariableType::Object:
+            {
+                auto objectVar = var->As<ImWidgetClassVariable_Object>();
+                if (objectVar)
+                {
+                    j["DataType"] = objectVar->GetTypeString();
+                    j["Data"] = SerializeObjectPropertiesROP(objectVar->GetObject());
+                }
+                break;
+            }
+            case WidgetClassVariableType::Basic:
+            {
+                auto basicVar = var->As<ImWidgetClassVariable_Basic>();
+                if (basicVar)
+                {
+                    j["DataType"] = basicVar->GetTypeString();
+                    j["Data"] = SerializeBasicVariableValue(basicVar);
+                }
+                break;
+            }
+            }
+
+            return j;
+        }
+
+        // 从JSON创建变量
+        static ImWidgetClassVariable* CreateVariableFromJson(const json& j)
+        {
+            if (!j.contains("Name") || !j.contains("VariableType") || !j.contains("DataType"))
+                return nullptr;
+
+            std::string name = j["Name"].get<std::string>();
+            WidgetClassVariableType varType = static_cast<WidgetClassVariableType>(
+                j["VariableType"].get<int>());
+            std::string dataType = j["DataType"].get<std::string>();
+
+            switch (varType)
+            {
+            case WidgetClassVariableType::Widget:
+            {
+                if (!j.contains("Data"))
+                    return nullptr;
+
+                ImWidget* widget = CreateWidgetFromJson(j["Data"]);
+                if (!widget) return nullptr;
+
+                widget->SetWidgetName(name);
+                return new ImWidgetClassVariable_Widget(name, widget);
+            }
+
+            case WidgetClassVariableType::Object:
+            {
+                if (!j.contains("Data"))
+                    return nullptr;
+
+                ImObject* obj = ImObjectFactory::GetInstance().CreateObject(dataType);
+                if (!obj) return nullptr;
+
+                DeserializeObjectPropertiesROP(obj, j["Data"]);
+                return new ImWidgetClassVariable_Object(name, obj);
+            }
+
+            case WidgetClassVariableType::Basic:
+            {
+                if (!j.contains("Data"))
+                    return nullptr;
+
+                PropertyType propType = StringToPropertyType(dataType);
+                auto basicVar = new ImWidgetClassVariable_Basic(name, propType);
+
+                if (!DeserializeBasicVariableValue(basicVar, j["Data"]))
+                {
+                    return nullptr;
+                }
+
+                return basicVar;
+            }
+
+            default:
+                return nullptr;
+            }
+        }
+
+        // ================ 控件树序列化辅助函数 ================
+
         // 序列化控件树为JSON（使用ROP属性系统）
-        static json TransWidgetToJson(ImWidget* root)
+        static json SerializeWidgetTree(ImWidget* root)
         {
             json j;
             if (!root) return j;
@@ -725,7 +823,7 @@ namespace ImGuiWidget
                     if (!child) continue;
 
                     // 递归序列化子控件
-                    json childJson = TransWidgetToJson(child);
+                    json childJson = SerializeWidgetTree(child);
 
                     // 序列化slot属性（使用ROP属性系统）
                     childJson["ParentSlot"] = SerializeObjectPropertiesROP(slot);
@@ -762,7 +860,7 @@ namespace ImGuiWidget
             }
 
             // 检查是否为容器控件
-            if (auto panel = dynamic_cast<ImPanelWidget*>(widget))//-----------待改进----------
+            if (auto panel = dynamic_cast<ImPanelWidget*>(widget))
             {
                 if (j.contains("Children"))
                 {
@@ -787,104 +885,6 @@ namespace ImGuiWidget
             return widget;
         }
 
-        // ================ ImUserWidgetClass变量<== 转换 ==>JSON对象 ================
-        
-        // 序列化基本变量为JSON
-        static json TransBasicVariableToJson(ImBasicVariable* var)
-        {
-            json j;
-            if (!var) return j;
-
-            j["Name"] = var->GetName();
-            j["Type"] = BasicTypeToString(var->GetBasicType());
-            j["Value"] = SerializeBasicVariableValue(var);
-
-            return j;
-        }
-
-        // 从JSON创建基本变量
-        static ImBasicVariable* CreateBasicVariableFromJson(const json& j)
-        {
-            if (!j.contains("Name") || !j.contains("Type") || !j.contains("Value"))
-                return nullptr;
-
-            std::string name = j["Name"].get<std::string>();
-            ImBasicVariable::BasicType type = StringToBasicType(j["Type"].get<std::string>());
-
-            // 创建基本变量
-            ImBasicVariable* var = new ImBasicVariable(name, type);
-
-            // 设置值
-            if (!DeserializeBasicVariableValue(var, j["Value"]))
-            {
-                delete var;
-                return nullptr;
-            }
-
-            return var;
-        }
-
-        // 序列化控件树变量为JSON
-        static json TransWidgetVariableToJson(ImWidget* widget)
-        {
-            if (!widget) return json();
-
-            json j;
-            j["Name"] = widget->GetWidgetName();
-            j["Type"] = widget->GetRegisterTypeName();
-            j["Data"] = TransWidgetToJson(widget);
-
-            return j;
-        }
-
-        // 从JSON创建控件树变量
-        static ImWidget* CreateWidgetVariableFromJson(const json& j)
-        {
-            if (!j.contains("Name") || !j.contains("Type") || !j.contains("Data"))
-                return nullptr;
-
-            std::string type = j["Type"].get<std::string>();
-            std::string name = j["Name"].get<std::string>();
-
-            // 使用已有的CreateWidgetFromJson函数（已使用ROP属性系统）
-            const json& data = j["Data"];
-            ImWidget* createdWidget = CreateWidgetFromJson(data);
-
-            return createdWidget;
-        }
-
-        // 序列化ImObject变量为Json（使用ROP属性系统）
-        static json TransObjectVariableToJson(ImObject* obj, const std::string& name)
-        {
-            if (!obj) return json();
-
-            json j;
-            j["Name"] = name;
-            j["Type"] = obj->GetRegisterTypeName();
-            j["Properties"] = SerializeObjectPropertiesROP(obj);
-
-            return j;
-        }
-
-        // 从Json创建ImObject变量（使用ROP属性系统）
-        static ImObject* CreateObjectVariableFromJson(const json& j)
-        {
-            if (!j.contains("Name") || !j.contains("Type") || !j.contains("Properties"))
-                return nullptr;
-
-            std::string type = j["Type"].get<std::string>();
-            std::string name = j["Name"].get<std::string>();
-
-            // 创建对象
-            ImObject* obj = ImObjectFactory::GetInstance().CreateObject(type);
-            if (!obj) return nullptr;
-
-            // 设置属性（使用ROP属性系统）
-            DeserializeObjectPropertiesROP(obj, j["Properties"]);
-
-            return obj;
-        }
-
         // ================ ImUserWidgetClass序列化/反序列化接口 ================
 
         // 序列化ImUserWidgetClass
@@ -895,54 +895,32 @@ namespace ImGuiWidget
             // 基本信息
             j["ClassName"] = widgetClass.GetClassName();
             j["DefaultRoot"] = widgetClass.GetDefaultRootVariableName();
+            j["Namespace"] = widgetClass.GetNamespace();
+            j["BaseClass"] = widgetClass.GetBaseClass();
 
-            // 控件树变量
-            json widgetVarsJson = json::array();
-            auto widgetVarNames = widgetClass.GetWidgetVariableNames();
-            for (const auto& varName : widgetVarNames)
-            {
-                ImWidget* widget = widgetClass.GetWidgetVariable(varName);
-                if (widget)
-                {
-                    widgetVarsJson.push_back(TransWidgetVariableToJson(widget));
-                }
-            }
-            j["WidgetVariables"] = widgetVarsJson;
+            // 序列化所有变量
+            json variablesJson = json::array();
+            auto variableNames = widgetClass.GetAllVariableNames();
 
-            // ImObject变量
-            json objectVarsJson = json::array();
-            auto objectVarNames = widgetClass.GetObjectVariableNames();
-            for (const auto& varName : objectVarNames)
+            for (const auto& varName : variableNames)
             {
-                ImObject* obj = widgetClass.GetObjectVariable(varName);
-                if (obj)
-                {
-                    objectVarsJson.push_back(TransObjectVariableToJson(obj, varName));
-                }
-            }
-            j["ObjectVariables"] = objectVarsJson;
-
-            // 基本变量
-            json basicVarsJson = json::array();
-            auto basicVarNames = widgetClass.GetBasicVariableNames();
-            for (const auto& varName : basicVarNames)
-            {
-                ImBasicVariable* var = widgetClass.GetBasicVariable(varName);
+                ImWidgetClassVariable* var = widgetClass.GetVariable(varName);
                 if (var)
                 {
-                    basicVarsJson.push_back(TransBasicVariableToJson(var));
+                    variablesJson.push_back(SerializeVariable(var));
                 }
             }
-            j["BasicVariables"] = basicVarsJson;
+
+            j["Variables"] = variablesJson;
 
             // 元数据
-            j["Version"] = "1.0";
+            j["Version"] = "2.0";  // 版本升级，表示新格式
             j["Timestamp"] = std::time(nullptr);
 
             return j;
         }
 
-        // 反序列化ImUserWidgetClass
+        // 反序列化ImUserWidgetClass（新格式）
         static bool DeserializeUserWidgetClass(ImUserWidgetClass& widgetClass, const json& j)
         {
             if (!j.contains("ClassName"))
@@ -951,9 +929,110 @@ namespace ImGuiWidget
             // 清空现有数据
             widgetClass.ClearAllVariables();
 
-            // 设置类名
+            // 设置基本信息
             widgetClass.SetClassName(j["ClassName"].get<std::string>());
 
+            if (j.contains("Namespace"))
+                widgetClass.SetNamespace(j["Namespace"].get<std::string>());
+
+            if (j.contains("BaseClass"))
+                widgetClass.SetBaseClass(j["BaseClass"].get<std::string>());
+
+            bool success = true;
+
+            // 反序列化变量
+            if (j.contains("Variables") && j["Variables"].is_array())
+            {
+                // 检查版本
+                std::string version = j.value("Version", "1.0");
+
+                if (version == "2.0")
+                {
+                    // 新格式：统一变量存储
+                    for (const auto& varJson : j["Variables"])
+                    {
+                        try
+                        {
+                            auto var = CreateVariableFromJson(varJson);
+                            if (var)
+                            {
+                                std::string name = var->GetName();
+
+                                // 根据类型添加到目标类
+                                switch (var->GetType())
+                                {
+                                case WidgetClassVariableType::Widget:
+                                {
+                                    auto widgetVar = var->As<ImWidgetClassVariable_Widget>();
+                                    if (widgetVar)
+                                    {
+                                        // 转移控件所有权
+                                        ImWidget* widget = widgetVar->GetWidget();
+                                        widgetVar->SetWidget(nullptr, false);
+                                        widgetClass.SetWidgetVariableDirect(name, widget);
+                                    }
+                                    break;
+                                }
+                                case WidgetClassVariableType::Object:
+                                {
+                                    auto objectVar = var->As<ImWidgetClassVariable_Object>();
+                                    if (objectVar)
+                                    {
+                                        // 转移对象所有权
+                                        ImObject* obj = objectVar->GetObject();
+                                        objectVar->SetObject(nullptr, false);
+                                        widgetClass.SetObjectVariableDirect(name, obj);
+                                    }
+                                    break;
+                                }
+                                case WidgetClassVariableType::Basic:
+                                {
+                                    auto basicVar = var->As<ImWidgetClassVariable_Basic>();
+                                    if (basicVar)
+                                    {
+                                        // 转移基本变量所有权
+                                        widgetClass.SetBasicVariableDirect(name, basicVar);
+                                    }
+                                    break;
+                                }
+                                }
+                            }
+                            else
+                            {
+                                success = false;
+                            }
+                        }
+                        catch (const std::exception& e)
+                        {
+                            std::cerr << "Error deserializing variable: " << e.what() << std::endl;
+                            success = false;
+                        }
+                    }
+                }
+                else
+                {
+                    // 旧格式：向后兼容处理
+                    success = DeserializeOldFormat(widgetClass, j);
+                }
+            }
+
+            // 设置默认根控件
+            if (j.contains("DefaultRoot"))
+            {
+                std::string defaultRoot = j["DefaultRoot"].get<std::string>();
+                if (!defaultRoot.empty())
+                {
+                    widgetClass.SetDefaultRootVariable(defaultRoot);
+                }
+            }
+
+            return success;
+        }
+
+    private:
+        // 反序列化旧格式（保持向后兼容）
+        static bool DeserializeOldFormat(ImUserWidgetClass& widgetClass, const json& j)
+        {
             bool success = true;
 
             // 反序列化控件树变量
@@ -963,7 +1042,7 @@ namespace ImGuiWidget
                 {
                     try
                     {
-                        ImWidget* widget = CreateWidgetVariableFromJson(widgetJson);
+                        ImWidget* widget = CreateWidgetFromJson(widgetJson.contains("Data") ? widgetJson["Data"] : widgetJson);
                         if (widget)
                         {
                             std::string name = widgetJson["Name"].get<std::string>();
@@ -978,8 +1057,9 @@ namespace ImGuiWidget
                             success = false;
                         }
                     }
-                    catch (...)
+                    catch (const std::exception& e)
                     {
+                        std::cerr << "Error deserializing widget variable: " << e.what() << std::endl;
                         success = false;
                     }
                 }
@@ -1007,8 +1087,9 @@ namespace ImGuiWidget
                             success = false;
                         }
                     }
-                    catch (...)
+                    catch (const std::exception& e)
                     {
+                        std::cerr << "Error deserializing object variable: " << e.what() << std::endl;
                         success = false;
                     }
                 }
@@ -1021,39 +1102,162 @@ namespace ImGuiWidget
                 {
                     try
                     {
-                        ImBasicVariable* var = CreateBasicVariableFromJson(basicJson);
-                        if (var)
+                        if (!basicJson.contains("Name") || !basicJson.contains("Type") || !basicJson.contains("Value"))
+                            continue;
+
+                        std::string name = basicJson["Name"].get<std::string>();
+                        PropertyType type = StringToPropertyType(basicJson["Type"].get<std::string>());
+
+                        // 创建基本变量
+                        auto basicVar = std::make_unique<ImWidgetClassVariable_Basic>(name, type);
+
+                        // 设置值
+                        if (!DeserializeBasicVariableValue(basicVar.get(), basicJson["Value"]))
                         {
-                            std::string name = basicJson["Name"].get<std::string>();
-                            if (!widgetClass.SetBasicVariableDirect(name, var))
-                            {
-                                delete var;
-                                success = false;
-                            }
+                            success = false;
+                            continue;
                         }
-                        else
+
+                        if (!widgetClass.SetBasicVariableDirect(name, basicVar.release()))
                         {
                             success = false;
                         }
                     }
-                    catch (...)
+                    catch (const std::exception& e)
                     {
+                        std::cerr << "Error deserializing basic variable: " << e.what() << std::endl;
                         success = false;
                     }
                 }
             }
 
-            // 设置默认根控件
-            if (j.contains("DefaultRoot"))
-            {
-                std::string defaultRoot = j["DefaultRoot"].get<std::string>();
-                if (!defaultRoot.empty())
-                {
-                    widgetClass.SetDefaultRootVariable(defaultRoot);
-                }
-            }
-
             return success;
+        }
+
+        // 从JSON创建ImObject变量（兼容旧格式）
+        static ImObject* CreateObjectVariableFromJson(const json& j)
+        {
+            if (!j.contains("Name") || !j.contains("Type") || !j.contains("Properties"))
+                return nullptr;
+
+            std::string type = j["Type"].get<std::string>();
+            std::string name = j["Name"].get<std::string>();
+
+            ImObject* obj = ImObjectFactory::GetInstance().CreateObject(type);
+            if (!obj) return nullptr;
+
+            DeserializeObjectPropertiesROP(obj, j["Properties"]);
+
+            return obj;
+        }
+
+    public:
+        // ================ 文件操作接口 ================
+
+        // 保存到JSON文件
+        static bool SaveToFile(const ImUserWidgetClass& widgetClass, const std::string& filePath)
+        {
+            try
+            {
+                json j = SerializeUserWidgetClass(widgetClass);
+
+                std::ofstream file(filePath);
+                if (!file.is_open())
+                {
+                    std::cerr << "无法打开文件: " << filePath << std::endl;
+                    return false;
+                }
+
+                file << j.dump(4);  // 使用4空格缩进
+                file.close();
+
+                return true;
+            }
+            catch (const std::exception& e)
+            {
+                std::cerr << "保存文件失败: " << e.what() << std::endl;
+                return false;
+            }
+        }
+
+        // 从JSON文件加载
+        static bool LoadFromFile(ImUserWidgetClass& widgetClass, const std::string& filePath)
+        {
+            try
+            {
+                std::ifstream file(filePath);
+                if (!file.is_open())
+                {
+                    std::cerr << "无法打开文件: " << filePath << std::endl;
+                    return false;
+                }
+
+                json j;
+                file >> j;
+                file.close();
+
+                return DeserializeUserWidgetClass(widgetClass, j);
+            }
+            catch (const std::exception& e)
+            {
+                std::cerr << "加载文件失败: " << e.what() << std::endl;
+                return false;
+            }
+        }
+
+        // ================ 调试和验证函数 ================
+
+        // 打印序列化结果（用于调试）
+        static void PrintSerializedData(const ImUserWidgetClass& widgetClass)
+        {
+            json j = SerializeUserWidgetClass(widgetClass);
+            std::cout << "Serialized UserWidgetClass:" << std::endl;
+            std::cout << j.dump(2) << std::endl;
+        }
+
+        // 验证序列化/反序列化完整性
+        static bool ValidateSerialization(const ImUserWidgetClass& widgetClass)
+        {
+            try
+            {
+                // 序列化
+                json j = SerializeUserWidgetClass(widgetClass);
+
+                // 创建新的对象
+                ImUserWidgetClass testClass(widgetClass.GetClassName());
+                testClass.SetNamespace(widgetClass.GetNamespace());
+                testClass.SetBaseClass(widgetClass.GetBaseClass());
+
+                // 反序列化
+                if (!DeserializeUserWidgetClass(testClass, j))
+                {
+                    std::cerr << "反序列化失败" << std::endl;
+                    return false;
+                }
+
+                // 验证基本信息
+                if (testClass.GetClassName() != widgetClass.GetClassName() ||
+                    testClass.GetDefaultRootVariableName() != widgetClass.GetDefaultRootVariableName())
+                {
+                    std::cerr << "基本信息不匹配" << std::endl;
+                    return false;
+                }
+
+                // 验证变量数量
+                if (testClass.GetAllVariableNames().size() != widgetClass.GetAllVariableNames().size())
+                {
+                    std::cerr << "变量数量不匹配" << std::endl;
+                    return false;
+                }
+
+                std::cout << "序列化/反序列化验证通过" << std::endl;
+                return true;
+            }
+            catch (const std::exception& e)
+            {
+                std::cerr << "验证失败: " << e.what() << std::endl;
+                return false;
+            }
         }
     };
 }

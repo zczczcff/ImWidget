@@ -1,3 +1,4 @@
+// ImUserWidgetClassCodeGenerator.h
 #pragma once
 #include <sstream>
 #include <iomanip>
@@ -7,6 +8,7 @@
 #include <set>
 #include <algorithm>
 #include <iostream>
+#include <queue>
 #include "ImUserWidgetClass.h"
 
 namespace ImGuiWidget
@@ -52,7 +54,7 @@ namespace ImGuiWidget
         static const std::string AUTO_GEN_BEGIN;
         static const std::string AUTO_GEN_END;
 
-        // ================ 从ImWidgetCodeGenerator.h复制过来的辅助函数 ================
+        // ================ 辅助函数 ================
 
         // 辅助函数：将ImU32颜色转换为IM_COL32宏
         static std::string ColorToCode(ImU32 color)
@@ -157,7 +159,7 @@ namespace ImGuiWidget
             }
         }
 
-        // ================ 新的ROP属性辅助函数 ================
+        // ================ ROP属性辅助函数 ================
 
         // 辅助函数：将ROP属性值转换为代码
         static std::string ROPValueToCode(const ROP::Property<PropertyType>& prop)
@@ -201,11 +203,11 @@ namespace ImGuiWidget
                         if (i > 0) oss << ", ";
                         if (NeedsU8Prefix(vec[i]))
                         {
-                            oss << "u8\"" + vec[i] << "\"";
+                            oss << "u8\"" + vec[i] + "\"";
                         }
                         else
                         {
-                            oss << "\"" + vec[i] << "\"";
+                            oss << "\"" + vec[i] + "\"";
                         }
                     }
                     oss << "}";
@@ -280,34 +282,36 @@ namespace ImGuiWidget
         }
 
         // BasicType转C++类型字符串
-        static std::string BasicTypeToCppType(ImBasicVariable::BasicType type)
+        static std::string BasicTypeToCppType(PropertyType type)
         {
             switch (type)
             {
-            case ImBasicVariable::BasicType::Int: return "int";
-            case ImBasicVariable::BasicType::Float: return "float";
-            case ImBasicVariable::BasicType::Bool: return "bool";
-            case ImBasicVariable::BasicType::String: return "std::string";
-            case ImBasicVariable::BasicType::Color: return "ImU32";
+            case PropertyType::Int: return "int";
+            case PropertyType::Float: return "float";
+            case PropertyType::Bool: return "bool";
+            case PropertyType::String: return "std::string";
+            case PropertyType::Color: return "ImU32";
+            case PropertyType::Vec2: return "ImVec2";
             default: return "int";
             }
         }
 
         // 获取基本变量类型默认值
-        static std::string GetBasicVariableTypeDefault(ImBasicVariable::BasicType type)
+        static std::string GetBasicVariableTypeDefault(PropertyType type)
         {
             switch (type)
             {
-            case ImBasicVariable::BasicType::Int: return "0";
-            case ImBasicVariable::BasicType::Float: return "0.0f";
-            case ImBasicVariable::BasicType::Bool: return "false";
-            case ImBasicVariable::BasicType::String: return "\"\"";
-            case ImBasicVariable::BasicType::Color: return "IM_COL32(255, 255, 255, 255)";
+            case PropertyType::Int: return "0";
+            case PropertyType::Float: return "0.0f";
+            case PropertyType::Bool: return "false";
+            case PropertyType::String: return "\"\"";
+            case PropertyType::Color: return "IM_COL32(255, 255, 255, 255)";
+            case PropertyType::Vec2: return "ImVec2(0.0f, 0.0f)";
             default: return "0";
             }
         }
 
-        // ================ 新的ROP属性生成函数 ================
+        // ================ ROP属性生成函数 ================
 
         // 生成ROP属性设置代码（处理重名属性）
         static void GenerateROPPropertySetCode(ROP::Property<PropertyType>& prop,
@@ -352,20 +356,19 @@ namespace ImGuiWidget
             }
             else if (prop.GetType() == PropertyType::Struct)
             {
-                // ================ 改进：完善结构体递归处理 ================
+                // 处理嵌套结构体
                 context.writeLine("{");
                 context.increaseIndent();
                 context.writeLine(u8"// 处理嵌套结构体: " + propName);
                 std::string nestedVarName = objectVarName + "_" + propName;
                 // 获取嵌套对象
-                context.writeLine("ImObject* "+ nestedVarName +" = " + objectVarName +
+                context.writeLine("ImObject* " + nestedVarName + " = " + objectVarName +
                     "->GetProperty(\"" + propName + "\", \"" + className + "\").GetPointer<ImObject>();");
-                context.writeLine("if ("+ nestedVarName+ ")");
+                context.writeLine("if (" + nestedVarName + ")");
                 context.writeLine("{");
                 context.increaseIndent();
 
                 // 递归处理嵌套结构体的属性
-                
                 context.writeLine(u8"// 递归设置嵌套结构体属性");
                 ImObject* nestedObj = prop.GetPointer<ImObject>();
                 GenerateROPObjectProperties(nestedObj, nestedVarName, context, true);
@@ -460,15 +463,15 @@ namespace ImGuiWidget
                     }
                     else if (prop.GetType() == PropertyType::Struct)
                     {
-                        // ================ 改进：处理唯一属性名但类型为Struct的情况 ================
+                        // 处理唯一属性名但类型为Struct的情况
                         context.writeLine("{");
                         context.increaseIndent();
                         context.writeLine(u8"// 处理嵌套结构体: " + propName);
                         std::string nestedVarName = varName + "_" + propName;
                         // 获取嵌套对象
-                        context.writeLine("ImObject* "+ nestedVarName +" = " + varName +
+                        context.writeLine("ImObject* " + nestedVarName + " = " + varName +
                             "->GetProperty(\"" + propName + "\").GetPointer<ImObject>();");
-                        context.writeLine("if ("+ nestedVarName+")");
+                        context.writeLine("if (" + nestedVarName + ")");
                         context.writeLine("{");
                         context.increaseIndent();
 
@@ -494,9 +497,9 @@ namespace ImGuiWidget
             }
         }
 
-        // ================ 改进：基本变量直接获取值 ================
+        // ================ 基本变量处理函数 ================
 
-        // 生成基本变量初始化代码（直接获取值，不使用ROP）
+        // 生成基本变量初始化代码
         static void GenerateBasicVariableInitCode(const std::vector<std::string>& basicVars,
             const ImUserWidgetClass& widgetClass,
             ClassGenContext& context)
@@ -507,32 +510,35 @@ namespace ImGuiWidget
 
             for (const auto& varName : basicVars)
             {
-                ImBasicVariable* var = widgetClass.GetBasicVariable(varName);
+                ImWidgetClassVariable_Basic* var = widgetClass.GetBasicVariable(varName);
                 if (!var) continue;
 
-                // 直接通过GetValuePtr获取值，不使用ROP
-                void* valuePtr = var->GetValuePtr();
-                if (!valuePtr) continue;
+                PropertyType type = var->GetValueType();
 
-                switch (var->GetBasicType())
+                switch (type)
                 {
-                case ImBasicVariable::BasicType::Int:
-                    context.writeLine(varName + " = " + std::to_string(*static_cast<int*>(valuePtr)) + ";");
+                case PropertyType::Int:
+                    context.writeLine(varName + " = " + std::to_string(var->GetValue<int>()) + ";");
                     break;
-                case ImBasicVariable::BasicType::Float:
-                    context.writeLine(varName + " = " + std::to_string(*static_cast<float*>(valuePtr)) + "f;");
+                case PropertyType::Float:
+                    context.writeLine(varName + " = " + std::to_string(var->GetValue<float>()) + "f;");
                     break;
-                case ImBasicVariable::BasicType::Bool:
-                    context.writeLine(varName + " = " + (*static_cast<bool*>(valuePtr) ? "true" : "false") + ";");
+                case PropertyType::Bool:
+                    context.writeLine(varName + " = " + (var->GetValue<bool>() ? "true" : "false") + ";");
                     break;
-                case ImBasicVariable::BasicType::String: {
-                    std::string str = *static_cast<std::string*>(valuePtr);
+                case PropertyType::String: {
+                    std::string str = var->GetValue<std::string>();
                     context.writeLine(varName + " = " + (NeedsU8Prefix(str) ? "u8\"" + str + "\"" : "\"" + str + "\"") + ";");
                     break;
                 }
-                case ImBasicVariable::BasicType::Color: {
-                    ImU32 color = *static_cast<ImU32*>(valuePtr);
+                case PropertyType::Color: {
+                    ImU32 color = var->GetValue<ImU32>();
                     context.writeLine(varName + " = " + ColorToCode(color) + ";");
+                    break;
+                }
+                case PropertyType::Vec2: {
+                    ImVec2 vec = var->GetValue<ImVec2>();
+                    context.writeLine(varName + " = " + Vec2ToCode(vec) + ";");
                     break;
                 }
                 }
@@ -541,6 +547,8 @@ namespace ImGuiWidget
             context.writeLine("//===Auto Gen End=== (Basic Variables Init)");
             context.writeEmptyLine();
         }
+
+        // ================ 文件处理函数 ================
 
         // 替换文件中标记区域的内容
         static bool ReplaceMarkedRegionInFile(const std::string& filePath,
@@ -681,6 +689,8 @@ namespace ImGuiWidget
             return "";
         }
 
+        // ================ 头文件生成函数 ================
+
         // 生成头文件成员变量声明
         static void GenerateHeaderMembers(const ImUserWidgetClass& widgetClass, ClassGenContext& context)
         {
@@ -752,12 +762,12 @@ namespace ImGuiWidget
                 context.writeLine(u8"// 基本变量");
                 for (const auto& varName : basicVars)
                 {
-                    ImBasicVariable* var = widgetClass.GetBasicVariable(varName);
+                    ImWidgetClassVariable_Basic* var = widgetClass.GetBasicVariable(varName);
                     if (var)
                     {
-                        std::string typeStr = BasicTypeToCppType(var->GetBasicType());
+                        std::string typeStr = BasicTypeToCppType(var->GetValueType());
                         context.writeLine(typeStr + " " + varName + " = " +
-                            GetBasicVariableTypeDefault(var->GetBasicType()) + ";");
+                            GetBasicVariableTypeDefault(var->GetValueType()) + ";");
                     }
                 }
             }
@@ -885,7 +895,30 @@ namespace ImGuiWidget
                 ImWidget* widget = widgetClass.GetWidgetVariable(varName);
                 if (widget)
                 {
-                    headers.insert("\"" + widget->GetRegisterTypeName() + ".h\"");
+                    std::string typeName = widget->GetRegisterTypeName();
+                    size_t pos = typeName.find_last_of("::");
+                    if (pos != std::string::npos)
+                    {
+                        typeName = typeName.substr(pos + 1);
+                    }
+                    headers.insert("\"" + typeName + ".h\"");
+                }
+            }
+
+            // 根据对象变量添加头文件
+            auto objectVars = widgetClass.GetObjectVariableNames();
+            for (const auto& varName : objectVars)
+            {
+                ImObject* obj = widgetClass.GetObjectVariable(varName);
+                if (obj)
+                {
+                    std::string typeName = obj->GetRegisterTypeName();
+                    size_t pos = typeName.find_last_of("::");
+                    if (pos != std::string::npos)
+                    {
+                        typeName = typeName.substr(pos + 1);
+                    }
+                    headers.insert("\"" + typeName + ".h\"");
                 }
             }
         }
@@ -910,7 +943,125 @@ namespace ImGuiWidget
             }
         }
 
-        // 生成InitializeVariables函数代码（使用ROP系统）
+        // ================ 源文件生成函数 ================
+
+        // 生成单个控件变量初始化
+        static void GenerateWidgetVariableInit(const std::string& varName,
+            const ImUserWidgetClass& widgetClass,
+            ClassGenContext& context)
+        {
+            ImWidget* widget = widgetClass.GetWidgetVariable(varName);
+            if (!widget) return;
+
+            std::string typeName = widget->GetRegisterTypeName();
+            size_t pos = typeName.find_last_of("::");
+            if (pos != std::string::npos)
+            {
+                typeName = typeName.substr(pos + 1);
+            }
+
+            std::string widgetName = widget->GetWidgetName();
+            context.writeLine(varName + " = new " + typeName + "(\"" + widgetName + "\");");
+
+            // 设置控件属性
+            GenerateROPObjectProperties(widget, varName, context);
+        }
+
+        // 生成控件子项初始化
+        static void GenerateWidgetChildrenInit(ImWidget* parent, const std::string& parentVarName,
+            const ImUserWidgetClass& widgetClass,
+            ClassGenContext& context)
+        {
+            try
+            {
+                int childCount = parent->GetChildNum();
+                if (childCount <= 0) return;
+
+                context.writeLine(u8"// 建立 " + parentVarName + u8" 的子控件关系");
+
+                for (int i = 0; i < childCount; i++)
+                {
+                    ImWidget* child = parent->GetChildAt(i);
+                    if (!child) continue;
+
+                    // 生成子控件的初始化代码
+                    std::string childVarName = child->GetWidgetName();
+                    if (childVarName.empty())
+                    {
+                        childVarName = parentVarName + "_Child" + std::to_string(i);
+                    }
+
+                    // 这里需要确保子控件已经创建
+                    // 在实际应用中，可能需要递归生成子控件的创建代码
+                    context.writeLine(parentVarName + "->AddChild(" + childVarName + ");");
+                }
+            }
+            catch (...)
+            {
+                // 控件不支持子控件
+            }
+        }
+
+        // 生成对象变量初始化
+        static void GenerateObjectVariableInit(const std::string& varName,
+            const ImUserWidgetClass& widgetClass,
+            ClassGenContext& context)
+        {
+            ImObject* obj = widgetClass.GetObjectVariable(varName);
+            if (!obj) return;
+
+            std::string typeName = obj->GetRegisterTypeName();
+            size_t pos = typeName.find_last_of("::");
+            if (pos != std::string::npos)
+            {
+                typeName = typeName.substr(pos + 1);
+            }
+
+            context.writeLine(varName + " = new " + typeName + "();");
+            context.writeLine(u8"// 设置 " + varName + u8" 的属性");
+            GenerateROPObjectProperties(obj, varName, context);
+        }
+
+        // 生成基本变量初始化
+        static void GenerateBasicVariableInit(const std::string& varName,
+            const ImUserWidgetClass& widgetClass,
+            ClassGenContext& context)
+        {
+            ImWidgetClassVariable_Basic* var = widgetClass.GetBasicVariable(varName);
+            if (!var) return;
+
+            PropertyType type = var->GetValueType();
+
+            switch (type)
+            {
+            case PropertyType::Int:
+                context.writeLine(varName + " = " + std::to_string(var->GetValue<int>()) + ";");
+                break;
+            case PropertyType::Float:
+                context.writeLine(varName + " = " + std::to_string(var->GetValue<float>()) + "f;");
+                break;
+            case PropertyType::Bool:
+                context.writeLine(varName + " = " + (var->GetValue<bool>() ? "true" : "false") + ";");
+                break;
+            case PropertyType::String: {
+                std::string str = var->GetValue<std::string>();
+                context.writeLine(varName + " = " + (NeedsU8Prefix(str) ? "u8\"" + str + "\"" : "\"" + str + "\"") + ";");
+                break;
+            }
+            case PropertyType::Color: {
+                ImU32 color = var->GetValue<ImU32>();
+                context.writeLine(varName + " = " + ColorToCode(color) + ";");
+                break;
+            }
+            case PropertyType::Vec2: {
+                ImVec2 vec = var->GetValue<ImVec2>();
+                context.writeLine(varName + " = " + Vec2ToCode(vec) + ";");
+                break;
+            }
+            }
+        }
+
+        // 生成InitializeVariables函数代码
         static void GenerateInitializeVariablesCode(const ImUserWidgetClass& widgetClass, ClassGenContext& context)
         {
             auto basicVars = widgetClass.GetBasicVariableNames();
@@ -931,96 +1082,41 @@ namespace ImGuiWidget
 
             context.writeLine("//===Auto Gen Begin=== (InitializeVariables)");
 
-            // ================ 修改：基本变量直接获取值，不使用ROP ================
+            // 生成基本变量初始化
             if (!basicVars.empty())
             {
-                context.writeLine(u8"// 初始化基本变量（直接获取值）");
+                context.writeLine(u8"// 初始化基本变量");
                 GenerateBasicVariableInitCode(basicVars, widgetClass, context);
             }
 
-            // 生成ImObject变量初始化（使用ROP系统）
+            // 生成ImObject变量初始化
             if (!objectVars.empty())
             {
-                context.writeLine(u8"// 初始化ImObject变量（使用ROP系统）");
+                context.writeLine(u8"// 初始化ImObject变量");
                 for (const auto& varName : objectVars)
                 {
-                    ImObject* obj = widgetClass.GetObjectVariable(varName);
-                    if (!obj) continue;
-
-                    std::string typeName = obj->GetRegisterTypeName();
-                    size_t pos = typeName.find_last_of("::");
-                    if (pos != std::string::npos)
-                    {
-                        typeName = typeName.substr(pos + 1);
-                    }
-
-                    // 创建对象
-                    context.writeLine(varName + " = new " + typeName + "();");
-
-                    // 使用ROP系统设置属性
-                    context.writeLine(u8"// 设置 " + varName + u8" 的属性");
-                    GenerateROPObjectProperties(obj, varName, context);
+                    GenerateObjectVariableInit(varName, widgetClass, context);
                 }
                 context.writeEmptyLine();
             }
 
-            // 生成控件变量初始化（包括子控件，使用ROP系统）
+            // 生成控件变量初始化
             if (!allWidgets.empty())
             {
-                context.writeLine(u8"// 初始化控件变量（使用ROP系统）");
+                context.writeLine(u8"// 初始化控件变量");
 
                 // 先创建所有控件
                 for (const auto& [varName, widget] : allWidgets)
                 {
-                    std::string typeName = widget->GetRegisterTypeName();
-                    size_t pos = typeName.find_last_of("::");
-                    if (pos != std::string::npos)
-                    {
-                        typeName = typeName.substr(pos + 1);
-                    }
-
-                    std::string widgetName = widget->GetWidgetName();
-                    if (widgetName.empty())
-                    {
-                        widgetName = varName;
-                    }
-
-                    context.writeLine(varName + " = new " + typeName + "(\"" + widgetName + "\");");
+                    GenerateWidgetVariableInit(varName, widgetClass, context);
                 }
                 context.writeEmptyLine();
 
-                // 然后设置控件属性（使用ROP系统）
-                for (const auto& [varName, widget] : allWidgets)
-                {
-                    context.writeLine(u8"// 设置 " + varName + u8" 的属性");
-                    GenerateROPObjectProperties(widget, varName, context);
-                }
-                context.writeEmptyLine();
-
-                // 最后建立父子关系
+                // 然后建立父子关系
                 context.writeLine(u8"// 建立控件树父子关系");
                 for (const auto& [varName, widget] : allWidgets)
                 {
-                    try
-                    {
-                        int childCount = widget->GetChildNum();
-                        if (childCount <= 0) continue;
-
-                        for (int i = 0; i < childCount; i++)
-                        {
-                            ImWidget* childWidget = widget->GetChildAt(i);
-                            if (!childWidget) continue;
-
-                            std::string childVarName = FindWidgetVariableName(childWidget, allWidgets);
-                            if (childVarName.empty()) continue;
-
-                            context.writeLine(varName + "->AddChild(" + childVarName + ");");
-                        }
-                    }
-                    catch (...)
-                    {
-                        // 控件不支持子控件，跳过
-                    }
+                    GenerateWidgetChildrenInit(widget, varName, widgetClass, context);
                 }
             }
 
@@ -1191,6 +1287,22 @@ namespace ImGuiWidget
             std::cout << "源文件: " << sourceOutputPath << std::endl;
 
             return true;
+        }
+
+        // 导出到单个文件（简单接口）
+        static bool ExportToCppFile(const ImUserWidgetClass& widgetClass,
+            const std::string& outputDir)
+        {
+            std::string className = widgetClass.GetClassName();
+            if (className.empty())
+            {
+                className = "AutoGeneratedWidget";
+            }
+
+            std::string headerPath = outputDir + "/" + className + ".h";
+            std::string sourcePath = outputDir + "/" + className + ".cpp";
+
+            return ExportUserWidgetClassToFiles(widgetClass, className, headerPath, sourcePath);
         }
     };
 

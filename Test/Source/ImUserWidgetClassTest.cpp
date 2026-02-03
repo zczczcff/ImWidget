@@ -4,6 +4,7 @@
 #include <iostream>
 #include "ImUserWidgetClass.h"
 #include "ImUserWidgetSerializer.h"
+#include "ImUserWidgetClassCodeGenerator.h"
 #include "ImWidgetFactory.h"
 #include "ImObjectFactory.h"
 
@@ -22,7 +23,7 @@ void TestUserWidgetClassSerialization()
     std::cout << "\n2. 添加基本变量:" << std::endl;
 
     std::string intVarName;
-    if (widgetClass.AddBasicVariable(ImBasicVariable::BasicType::Int, "Data", intVarName))
+    if (widgetClass.AddBasicVariable(PropertyType::Int, intVarName))
     {
         std::cout << "  - 添加Int变量: " << intVarName << std::endl;
 
@@ -30,95 +31,80 @@ void TestUserWidgetClassSerialization()
         auto* intVar = widgetClass.GetBasicVariable(intVarName);
         if (intVar)
         {
-            auto props = intVar->GetProperties();
-            for (auto& prop : props)
-            {
-                if (prop.name == intVarName)
-                {
-                    ((ImGuiWidget::PropertyInfo)prop).SetIntValue(42);
-                    std::cout << "    设置值为: " << prop.GetIntValue() << std::endl;
-                }
-            }
+            // 使用新的ImWidgetClassVariable_Basic接口
+            intVar->SetValue<int>(42);
+            int value = intVar->GetValue<int>();
+            std::cout << "    设置值为: " << value << std::endl;
         }
     }
 
     std::string floatVarName;
-    if (widgetClass.AddBasicVariable(ImBasicVariable::BasicType::Float, "Data", floatVarName))
+    if (widgetClass.AddBasicVariable(PropertyType::Float, floatVarName))
     {
         std::cout << "  - 添加Float变量: " << floatVarName << std::endl;
 
         auto* floatVar = widgetClass.GetBasicVariable(floatVarName);
         if (floatVar)
         {
-            auto props = floatVar->GetProperties();
-            for (auto& prop : props)
-            {
-                if (prop.name == floatVarName)
-                {
-                    ((ImGuiWidget::PropertyInfo)prop).SetFloatValue(3.14f);
-                    std::cout << "    设置值为: " << prop.GetFloatValue() << std::endl;
-                }
-            }
+            floatVar->SetValue<float>(3.14f);
+            float value = floatVar->GetValue<float>();
+            std::cout << "    设置值为: " << value << std::endl;
         }
     }
 
     std::string boolVarName;
-    if (widgetClass.AddBasicVariable(ImBasicVariable::BasicType::Bool, "Data", boolVarName))
+    if (widgetClass.AddBasicVariable(PropertyType::Bool, boolVarName))
     {
         std::cout << "  - 添加Bool变量: " << boolVarName << std::endl;
 
         auto* boolVar = widgetClass.GetBasicVariable(boolVarName);
         if (boolVar)
         {
-            auto props = boolVar->GetProperties();
-            for (auto& prop : props)
-            {
-                if (prop.name == boolVarName)
-                {
-                    ((ImGuiWidget::PropertyInfo)prop).SetBoolValue(true);
-                    std::cout << "    设置值为: " << (prop.GetBoolValue() ? "true" : "false") << std::endl;
-                }
-            }
+            boolVar->SetValue<bool>(true);
+            bool value = boolVar->GetValue<bool>();
+            std::cout << "    设置值为: " << (value ? "true" : "false") << std::endl;
         }
     }
 
     std::string stringVarName;
-    if (widgetClass.AddBasicVariable(ImBasicVariable::BasicType::String, "Data", stringVarName))
+    if (widgetClass.AddBasicVariable(PropertyType::String, stringVarName))
     {
         std::cout << "  - 添加String变量: " << stringVarName << std::endl;
 
         auto* stringVar = widgetClass.GetBasicVariable(stringVarName);
         if (stringVar)
         {
-            auto props = stringVar->GetProperties();
-            for (auto& prop : props)
-            {
-                if (prop.name == stringVarName)
-                {
-                    ((ImGuiWidget::PropertyInfo)prop).SetStringValue("Hello, World!");
-                    std::cout << "    设置值为: " << prop.GetStringValue() << std::endl;
-                }
-            }
+            stringVar->SetValue<std::string>("Hello, World!");
+            std::string value = stringVar->GetValue<std::string>();
+            std::cout << "    设置值为: " << value << std::endl;
         }
     }
 
     std::string colorVarName;
-    if (widgetClass.AddBasicVariable(ImBasicVariable::BasicType::Color, "Style", colorVarName))
+    if (widgetClass.AddBasicVariable(PropertyType::Color, colorVarName))
     {
         std::cout << "  - 添加Color变量: " << colorVarName << std::endl;
 
         auto* colorVar = widgetClass.GetBasicVariable(colorVarName);
         if (colorVar)
         {
-            auto props = colorVar->GetProperties();
-            for (auto& prop : props)
-            {
-                if (prop.name == colorVarName)
-                {
-                    ((ImGuiWidget::PropertyInfo)prop).SetColorValue(IM_COL32(255, 0, 0, 255)); // 红色
-                    std::cout << "    设置值为: 红色 (ARGB: " << std::hex << prop.GetColorValue() << std::dec << ")" << std::endl;
-                }
-            }
+            colorVar->SetValue<ImU32>(IM_COL32(255, 0, 0, 255)); // 红色
+            ImU32 value = colorVar->GetValue<ImU32>();
+            std::cout << "    设置值为: 红色 (ARGB: " << std::hex << value << std::dec << ")" << std::endl;
+        }
+    }
+
+    std::string vec2VarName;
+    if (widgetClass.AddBasicVariable(PropertyType::Vec2, vec2VarName))
+    {
+        std::cout << "  - 添加Vec2变量: " << vec2VarName << std::endl;
+
+        auto* vec2Var = widgetClass.GetBasicVariable(vec2VarName);
+        if (vec2Var)
+        {
+            vec2Var->SetValue<ImVec2>(ImVec2(100.0f, 200.0f));
+            ImVec2 value = vec2Var->GetValue<ImVec2>();
+            std::cout << "    设置值为: (" << value.x << ", " << value.y << ")" << std::endl;
         }
     }
 
@@ -132,40 +118,25 @@ void TestUserWidgetClassSerialization()
 
         // 获取按钮控件
         ImWidget* buttonWidget = widgetClass.GetWidgetVariable(buttonVarName);
-        //auto properties=buttonWidget->GetAllPropertiesOrdered();
-        //ImObject* obj = properties[2].GetPointer<ImObject>();
-        //auto properties2 = obj->GetAllPropertiesOrdered();
         if (buttonWidget)
         {
             // 设置按钮位置和大小
             buttonWidget->SetPosition(ImVec2(10, 10));
             buttonWidget->SetSize(ImVec2(100, 40));
 
-            // 创建并添加TextBlock作为按钮内容
-            ImWidget* textBlock = ImWidgetFactory::GetInstance().CreateWidget("ImTextBlock", "ButtonText");
-            if (textBlock)
-            {
-                // 设置TextBlock文本
-                auto textProps = textBlock->GetProperties();
-                for (auto& prop : textProps)
-                {
-                    if (prop.name == "Text")
-                    {
-                        ((ImGuiWidget::PropertyInfo)prop).SetStringValue("Click Me");
-                        break;
-                    }
-                }
+            // 设置按钮文本属性（使用ROP属性系统）
+            std::string textVarName = "Text";
+            std::string textValue = "Click Me";
 
-                // 将TextBlock添加到按钮中
-                if (buttonWidget->GetAllowMaxChildNum() > 0)
-                {
-                    buttonWidget->AddChild(textBlock);
-                    std::cout << "    - 添加ImTextBlock作为按钮内容" << std::endl;
-                }
-                else
-                {
-                    delete textBlock;
-                }
+            // 使用ROP属性系统设置文本
+            bool success = buttonWidget->SetPropertyValue<std::string>("Text", textValue);
+            if (success)
+            {
+                std::cout << "    - 设置按钮文本为: " << textValue << std::endl;
+            }
+            else
+            {
+                std::cout << "    - 无法设置按钮文本，可能属性名不正确" << std::endl;
             }
 
             // 设置为默认根控件
@@ -174,17 +145,57 @@ void TestUserWidgetClassSerialization()
         }
     }
 
-    // 4. 序列化
-    std::cout << "\n4. 序列化ImUserWidgetClass:" << std::endl;
+    // 4. 添加ImObject变量
+    std::cout << "\n4. 添加ImObject变量:" << std::endl;
 
-    json serialized = widgetClass.ToJson();
+    std::string colorStyleVarName;
+    if (widgetClass.AddObjectVariable("ImObject", colorStyleVarName))  // 假设存在ImColorStyle类
+    {
+        std::cout << "  - 添加ImObject变量: " << colorStyleVarName << std::endl;
+
+        // 获取对象
+        ImObject* colorStyle = widgetClass.GetObjectVariable(colorStyleVarName);
+        if (colorStyle)
+        {
+            // 使用ROP属性系统设置对象属性
+            // 示例：设置颜色属性
+            bool success = colorStyle->SetPropertyValue<ImU32>("PrimaryColor", IM_COL32(0, 0, 255, 255));  // 蓝色
+            if (success)
+            {
+                std::cout << "    - 设置主颜色为蓝色" << std::endl;
+            }
+        }
+    }
+
+    // 5. 测试变量重命名
+    std::cout << "\n5. 测试变量重命名:" << std::endl;
+
+    if (!intVarName.empty())
+    {
+        std::string newIntVarName = "RenamedInt";
+        if (widgetClass.RenameVariable(intVarName, newIntVarName))
+        {
+            std::cout << "  - 重命名 " << intVarName << " 为 " << newIntVarName << std::endl;
+            intVarName = newIntVarName;
+        }
+        else
+        {
+            std::cout << "  - 重命名失败，名称可能已被使用" << std::endl;
+        }
+    }
+
+    // 6. 序列化
+    std::cout << "\n6. 序列化ImUserWidgetClass:" << std::endl;
+
+    // 使用序列化器进行序列化
+    json serialized = ImUserWidgetClassSerializer::SerializeUserWidgetClass(widgetClass);
 
     // 打印序列化结果
     std::string serializedStr = serialized.dump(2); // 使用2个空格缩进
     std::cout << serializedStr << std::endl;
 
-    // 5. 可选：验证序列化结果的基本结构
-    std::cout << "\n5. 验证序列化结果:" << std::endl;
+    // 7. 验证序列化结果
+    std::cout << "\n7. 验证序列化结果:" << std::endl;
 
     if (serialized.contains("ClassName"))
     {
@@ -197,62 +208,162 @@ void TestUserWidgetClassSerialization()
         std::cout << "  - 默认根控件: " << defaultRoot << std::endl;
     }
 
-    if (serialized.contains("BasicVariables") && serialized["BasicVariables"].is_array())
+    if (serialized.contains("Variables") && serialized["Variables"].is_array())
     {
-        std::cout << "  - 基本变量数量: " << serialized["BasicVariables"].size() << std::endl;
-    }
+        std::cout << "  - 总变量数量: " << serialized["Variables"].size() << std::endl;
 
-    if (serialized.contains("WidgetVariables") && serialized["WidgetVariables"].is_array())
-    {
-        std::cout << "  - 控件树变量数量: " << serialized["WidgetVariables"].size() << std::endl;
+        // 按类型统计变量
+        int widgetCount = 0;
+        int objectCount = 0;
+        int basicCount = 0;
 
-        // 显示控件树变量的详细信息
-        for (const auto& widgetJson : serialized["WidgetVariables"])
+        for (const auto& varJson : serialized["Variables"])
         {
-            if (widgetJson.contains("Name") && widgetJson.contains("Type"))
+            if (varJson.contains("VariableType"))
             {
-                std::cout << "    * " << widgetJson["Name"].get<std::string>()
-                    << " (" << widgetJson["Type"].get<std::string>() << ")" << std::endl;
+                int type = varJson["VariableType"].get<int>();
+                switch (static_cast<WidgetClassVariableType>(type))
+                {
+                case WidgetClassVariableType::Widget:
+                    widgetCount++;
+                    break;
+                case WidgetClassVariableType::Object:
+                    objectCount++;
+                    break;
+                case WidgetClassVariableType::Basic:
+                    basicCount++;
+                    break;
+                }
             }
         }
+
+        std::cout << "  - 控件变量: " << widgetCount << std::endl;
+        std::cout << "  - 对象变量: " << objectCount << std::endl;
+        std::cout << "  - 基本变量: " << basicCount << std::endl;
     }
 
-    // 6. 可选：测试反序列化（可选步骤）
-    std::cout << "\n6. 测试反序列化（可选）:" << std::endl;
+    // 8. 测试反序列化
+    std::cout << "\n8. 测试反序列化:" << std::endl;
 
     // 创建一个新的ImUserWidgetClass用于反序列化测试
     ImUserWidgetClass deserializedClass("DeserializedTest");
 
-    if (deserializedClass.InitFormJson(serialized))
+    if (ImUserWidgetClassSerializer::DeserializeUserWidgetClass(deserializedClass, serialized))
     {
         std::cout << "  - 反序列化成功!" << std::endl;
         std::cout << "  - 类名: " << deserializedClass.GetClassName() << std::endl;
         std::cout << "  - 默认根控件: " << deserializedClass.GetDefaultRootVariableName() << std::endl;
-        std::cout << "  - 基本变量数量: " << deserializedClass.GetBasicVariableNames().size() << std::endl;
-        std::cout << "  - 控件树变量数量: " << deserializedClass.GetWidgetVariableNames().size() << std::endl;
+
+        // 验证变量数量
+        auto allVarNames = deserializedClass.GetAllVariableNames();
+        std::cout << "  - 总变量数量: " << allVarNames.size() << std::endl;
+
+        // 验证基本变量值
+        if (!intVarName.empty())
+        {
+            auto* intVar = deserializedClass.GetBasicVariable(intVarName);
+            if (intVar)
+            {
+                int value = intVar->GetValue<int>();
+                std::cout << "  - 验证Int变量 " << intVarName << " = " << value << " (应为42)" << std::endl;
+            }
+        }
+
+        // 验证控件变量
+        if (!buttonVarName.empty())
+        {
+            ImWidget* buttonWidget = deserializedClass.GetWidgetVariable(buttonVarName);
+            if (buttonWidget)
+            {
+                std::cout << "  - 验证按钮控件 " << buttonVarName << " 存在" << std::endl;
+
+                // 验证按钮文本
+                auto textProp = buttonWidget->GetProperty("Text");
+                if (textProp.IsValid())
+                {
+                    std::string textValue = textProp.GetValue<std::string>();
+                    std::cout << "  - 按钮文本: " << textValue << " (应为Click Me)" << std::endl;
+                }
+            }
+        }
     }
     else
     {
         std::cout << "  - 反序列化失败!" << std::endl;
     }
 
-    // 7. .h.cpp类文件输出测试
-    deserializedClass.SetNamespace("");
-    deserializedClass.ExportToCppFiles("test", "test.h", "test.cpp");
+    // 9. 文件操作测试
+    std::cout << "\n9. 文件操作测试:" << std::endl;
+
+    std::string testFile = "test_widget_class.json";
+
+    // 保存到文件
+    if (ImUserWidgetClassSerializer::SaveToFile(widgetClass, testFile))
+    {
+        std::cout << "  - 保存到文件成功: " << testFile << std::endl;
+
+        // 从文件加载
+        ImUserWidgetClass loadedClass("LoadedWidgetClass");
+        if (ImUserWidgetClassSerializer::LoadFromFile(loadedClass, testFile))
+        {
+            std::cout << "  - 从文件加载成功" << std::endl;
+            std::cout << "  - 加载的类名: " << loadedClass.GetClassName() << std::endl;
+        }
+        else
+        {
+            std::cout << "  - 从文件加载失败" << std::endl;
+        }
+
+        // 删除测试文件
+        std::remove(testFile.c_str());
+        std::cout << "  - 删除测试文件" << std::endl;
+    }
+    else
+    {
+        std::cout << "  - 保存到文件失败" << std::endl;
+    }
+
+    // 10. .h/.cpp类文件输出测试
+    std::cout << "\n10. .h/.cpp类文件输出测试:" << std::endl;
+
+    // 使用代码生成器
+    if (ImUserWidgetClassCodeGenerator::ExportUserWidgetClassToFiles(
+        widgetClass,
+        "TestGeneratedWidget",
+        "TestGeneratedWidget.h",
+        "TestGeneratedWidget.cpp"))
+    {
+        std::cout << "  - 成功生成C++类文件" << std::endl;
+        std::cout << "  - 头文件: TestGeneratedWidget.h" << std::endl;
+        std::cout << "  - 源文件: TestGeneratedWidget.cpp" << std::endl;
+    }
+    else
+    {
+        std::cout << "  - 生成C++类文件失败" << std::endl;
+    }
 
     std::cout << "\n=== 测试完成 ===" << std::endl;
 }
 
+// 注册基础控件
 #include "ImWidget/ImBasicWidgetDeclaration.h"
 
 ImGuiWidget::ImWidget* ImInit()
 {
+    // 注册基础控件
     ImGuiWidget::RegisterBaseWidget();
+
+    // 运行测试
     TestUserWidgetClassSerialization();
 
     exit(1);
-    while(1){}
 
+    // 返回nullptr表示不使用控件
     return nullptr;
 }
-void ImTick(){}
+
+void ImTick()
+{
+    // 每帧调用的函数
+    // 可以添加GUI渲染或其他每帧逻辑
+}
