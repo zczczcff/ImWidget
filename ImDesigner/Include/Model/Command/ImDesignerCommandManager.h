@@ -3,4 +3,4 @@
 #include "ImDesignerCommandType.h"
 #include "ImDesignerCommandData.h"
 
-using ImDesingnerCommandManager = CommandManager<CommandDataType>;
+using ImDesingnerCommandManager = EditCommandManager<CommandDataType>;

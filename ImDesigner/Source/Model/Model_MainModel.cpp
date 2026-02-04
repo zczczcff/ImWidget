@@ -110,6 +110,8 @@ std::string Model_MainModel::CteateNewUIFileInDir(const std::string& Dir)
 {
 	std::string NewFile = FileUtil::createUniqueFile(Dir, "NewUI", ".imui");
 	if (NewFile.empty()) return "";
+	ImGuiWidget::ImUserWidgetClass tempNewClass(FileUtil::getPureFileName(NewFile));
+	tempNewClass.ExportToJsonFile(Dir + "/" + NewFile);
 	m_ProjectFileManager.rescan();
 	Publish(Events::ProjectView::UPDATE_PROJECT_VIEW, &m_ProjectFileManager);
 	//OnProjectConfigChanged.Broadcast(&m_ProjectFileManager);

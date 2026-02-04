@@ -1622,10 +1622,10 @@ namespace ImGuiWidget
 
             m_FileActions.clear();
 
-            AddSequentialProcessor(m_EditedFileFullPath + Action::WIDGET_SELECTED, [this](const std::string& SelectedWidgetName) 
+            m_FileActions.push_back(AddSequentialProcessor(m_EditedFileFullPath + Action::WIDGET_SELECTED, [this](const std::string& SelectedWidgetName)
                 {
                     SelectItemByName(SelectedWidgetName);
-                });
+                }));
         };
         
         // 内部Action处理函数
