@@ -75,9 +75,9 @@ void MainUI::Init2()
 		});
 
 	//控件树视图
-	ImScrollBox_WidgetTree = new ImGuiWidget::ImScrollBox("ImScrollBox_WidgetTree");
-	ImScrollBox_WidgetTree->bHaveBorder = false;
-	ImPageManager_LeftPart->AddPage(u8"控件树", ImScrollBox_WidgetTree);
+	ImScrollBox_Outline = new ImGuiWidget::ImScrollBox("ImScrollBox_Outline");
+	ImScrollBox_Outline->bHaveBorder = false;
+	ImPageManager_LeftPart->AddPage(u8"变量列表", ImScrollBox_Outline);
 
 	//细节框
 	ImScrollBox_FileDetail = new ImGuiWidget::ImScrollBox("ImScrollBox_FileDetail");
@@ -106,127 +106,12 @@ void MainUI::Init2()
 
 }
 
-void MainUI::ViewTest()
-{
-	// 1. 创建ImUserWidgetClass对象
-	ImGuiWidget::ImUserWidgetClass* widgetClass= new ImGuiWidget::ImUserWidgetClass("TestWidgetClass");
-	std::cout << "1. 创建ImUserWidgetClass: " << widgetClass->GetClassName() << std::endl;
-
-	// 2. 添加基本变量
-	std::cout << "\n2. 添加基本变量:" << std::endl;
-
-	std::string intVarName;
-	if (widgetClass->AddBasicVariable(ImGuiWidget::PropertyType::Int,intVarName))
-	{
-		std::cout << "  - 添加Int变量: " << intVarName << std::endl;
-
-		// 设置初始值
-		auto* intVar = widgetClass->GetBasicVariable(intVarName);
-		if (intVar)
-		{
-			*(int*)intVar->GetValuePtr() = 42;
-		}
-	}
-
-	std::string floatVarName;
-	if (widgetClass->AddBasicVariable(ImGuiWidget::PropertyType::Float, floatVarName))
-	{
-		std::cout << "  - 添加Float变量: " << floatVarName << std::endl;
-
-		auto* floatVar = widgetClass->GetBasicVariable(floatVarName);
-		if (floatVar)
-		{
-			*(float*)floatVar->GetValuePtr() = 3.14f;
-		}
-	}
-
-	std::string boolVarName;
-	if (widgetClass->AddBasicVariable(ImGuiWidget::PropertyType::Bool, boolVarName))
-	{
-		std::cout << "  - 添加Bool变量: " << boolVarName << std::endl;
-
-		auto* boolVar = widgetClass->GetBasicVariable(boolVarName);
-		if (boolVar)
-		{
-			*(bool*)boolVar->GetValuePtr() = true;
-		}
-	}
-
-	std::string stringVarName;
-	if (widgetClass->AddBasicVariable(ImGuiWidget::PropertyType::String,stringVarName))
-	{
-		std::cout << "  - 添加String变量: " << stringVarName << std::endl;
-
-		auto* stringVar = widgetClass->GetBasicVariable(stringVarName);
-		if (stringVar)
-		{
-			*(std::string*)stringVar->GetValuePtr() = "hello world";
-		}
-	}
-
-	std::string colorVarName;
-	if (widgetClass->AddBasicVariable(ImGuiWidget::PropertyType::Color, colorVarName))
-	{
-		std::cout << "  - 添加Color变量: " << colorVarName << std::endl;
-
-		auto* colorVar = widgetClass->GetBasicVariable(colorVarName);
-		if (colorVar)
-		{
-			*(ImU32*)colorVar->GetValuePtr() = IM_COL32(255, 0, 0, 255);
-		}
-	}
-
-	// 3. 添加控件树变量
-	std::cout << "\n3. 添加控件树变量:" << std::endl;
-
-	std::string buttonVarName;
-	if (widgetClass->AddWidgetVariable("ImButton", buttonVarName))
-	{
-		std::cout << "  - 添加ImButton变量: " << buttonVarName << std::endl;
-
-		// 获取按钮控件
-		ImWidget* buttonWidget = widgetClass->GetWidgetVariable(buttonVarName);
-		if (buttonWidget)
-		{
-			// 设置按钮位置和大小
-			buttonWidget->SetPosition(ImVec2(10, 10));
-			buttonWidget->SetSize(ImVec2(100, 40));
-
-			// 创建并添加TextBlock作为按钮内容
-			ImWidget* textBlock = ImGuiWidget::ImWidgetFactory::GetInstance().CreateWidget("ImTextBlock", "ButtonText");
-			if (textBlock)
-			{
-				textBlock->SetPropertyValue<std::string>("Text", "Click Me");
-
-				// 将TextBlock添加到按钮中
-				if (buttonWidget->GetAllowMaxChildNum() > 0)
-				{
-					buttonWidget->AddChild(textBlock);
-					std::cout << "    - 添加ImTextBlock作为按钮内容" << std::endl;
-				}
-				else
-				{
-					delete textBlock;
-				}
-			}
-
-			// 设置为默认根控件
-			widgetClass->SetDefaultRootVariable(buttonVarName);
-			std::cout << "    - 设置为默认根控件" << std::endl;
-		}
-	}
-
-	ImGuiWidget::ImUserWidgetClassOutlineView* outline = new ImGuiWidget::ImUserWidgetClassOutlineView("test", widgetClass,"test.imui");
-
-	ImPageManager_LeftPart->AddPage(u8"大纲", outline);
-}
-
 void MainUI::EventInit()
 {
 	Subscribe(Events::MainUI::UI_FILE_OPENED, [this](ImGuiWidget::ImUserWidgetClass* UerWidgetClassFile, std::string FileName, std::string FileFullPath)
 		{
 			CreateNewWidgetEditorPage(UerWidgetClassFile, FileName, FileFullPath);
-			//CreateNewWidgetTreeView(FileFullPath, UerWidgetClassFile);
+			CreateNewOutlineView(FileFullPath, UerWidgetClassFile);
 			CreateNewDetailView(FileFullPath);
 			SwitchCurrentEditFile(FileFullPath);
 		});
@@ -309,75 +194,74 @@ void MainUI::On_EditorPageClosed(const std::string& FilePath)
 void MainUI::On_EditorPageSelected(const std::string& PageID)
 {
 	ExecuteAction(Action::MainUI::EDITOR_PAGE_SELECTED, PageID);
-	ShowWidgetTreeViewByName(PageID);
+	ShowOutlineViewByName(PageID);
 	ShowDetailViewByName(PageID);
 	ShowWidgetEditorByName(PageID);
 	//OnEditorPageSelected.Broadcast(PageID);
 }
 
-bool MainUI::CreateNewWidgetTreeView(const std::string& Name, ImGuiWidget::ImWidget* TargetWidget)
+bool MainUI::CreateNewOutlineView(const std::string& Name, ImGuiWidget::ImUserWidgetClass* TargetWidget)
 {
-	if (AllTreeViews.find(Name) != AllTreeViews.end()) return false;
-	UI_WidgetTreeView* New_UI_WidgetTreeView = new UI_WidgetTreeView("UI_WidgetTreeView", Name);
-	New_UI_WidgetTreeView->SetTargetWidget(TargetWidget);
-	AllTreeViews.insert(std::make_pair(Name, New_UI_WidgetTreeView));
+	if (AllOutlineViews.find(Name) != AllOutlineViews.end()) return false;
+	UI_ImUserWidgetClassOutlineView* New_UI_OutlineView = new UI_ImUserWidgetClassOutlineView("UI_WidgetTreeView", TargetWidget, Name);
+	AllOutlineViews.insert(std::make_pair(Name, New_UI_OutlineView));
 	return true;
 }
 
-UI_WidgetTreeView* MainUI::GetWidgetTreeViewByName(const std::string& Name)
+UI_ImUserWidgetClassOutlineView* MainUI::GetOutlineViewByName(const std::string& Name)
 {
-	auto it = AllTreeViews.find(Name);
-	if (it != AllTreeViews.end())
+	auto it = AllOutlineViews.find(Name);
+	if (it != AllOutlineViews.end())
 	{
 		return it->second;
 	}
 	return nullptr;
 }
 
-bool MainUI::ShowWidgetTreeViewByName(const std::string& Name)
+bool MainUI::ShowOutlineViewByName(const std::string& Name)
 {
-	if (CurrentTreeView == Name) return true;
+	if (CurrentOutlineView == Name) return true;
 	if (Name == "")
 	{
-		ImScrollBox_WidgetTree->SetContent(nullptr, false);
-		CurrentTreeView = Name;
+		ImScrollBox_Outline->SetContent(nullptr, false);
+		CurrentOutlineView = Name;
 		return true;
 	}
-	auto it = AllTreeViews.find(Name);
-	if (it != AllTreeViews.end())
+	auto it = AllOutlineViews.find(Name);
+	if (it != AllOutlineViews.end())
 	{
-		ImScrollBox_WidgetTree->SetContent(it->second, false);
-		CurrentTreeView = Name;
+		ImScrollBox_Outline->SetContent(it->second, false);
+		CurrentOutlineView = Name;
 		return true;
 	}
 	return false;
 }
 
-bool MainUI::RemoveWidgetTreeViewByName(const std::string& Name)
+bool MainUI::RemoveOutlineViewByName(const std::string& Name)
 {
-	auto it = AllTreeViews.find(Name);
-	if (it != AllTreeViews.end())
+	auto it = AllOutlineViews.find(Name);
+	if (it != AllOutlineViews.end())
 	{
-		if (CurrentTreeView == Name)
+		if (CurrentOutlineView == Name)
 		{
-			ShowWidgetTreeViewByName("");
+			ShowOutlineViewByName("");
 		}
 		delete it->second;
-		AllTreeViews.erase(it);
+		AllOutlineViews.erase(it);
 		return true;
 	}
 	return false;
 }
 
-bool MainUI::RenameWidgetTreeView(const std::string& OldName, const std::string& NewName)
+bool MainUI::RenameOutlineView(const std::string& OldName, const std::string& NewName)
 {
-	auto it = AllTreeViews.find(OldName);
-	if (it != AllTreeViews.end())
+	auto it = AllOutlineViews.find(OldName);
+	if (it != AllOutlineViews.end())
 	{
-		UI_WidgetTreeView* v = it->second;
-		AllTreeViews.erase(it);
-		AllTreeViews.insert(std::make_pair(NewName, v));
-		ShowWidgetTreeViewByName(NewName);
+		UI_ImUserWidgetClassOutlineView* v = it->second;
+		AllOutlineViews.erase(it);
+		AllOutlineViews.insert(std::make_pair(NewName, v));
+		ShowOutlineViewByName(NewName);
 		return true;
 	}
 	else
@@ -462,7 +346,7 @@ bool MainUI::HandleRenameFile(const std::string& OldFullPath, const std::string&
 {
 	bool success = true;
 	success &= RenameWidgetEditorPage(OldFullPath, NewFullPath);
-	success &= RenameWidgetTreeView(OldFullPath, NewFullPath);
+	success &= RenameOutlineView(OldFullPath, NewFullPath);
 	success &= RenameDetailView(OldFullPath, NewFullPath);
 	if (CurrentEditedFile == OldFullPath)
 	{
@@ -479,7 +363,7 @@ bool MainUI::HandleCloseFile(const std::string& FileFullPath)
 {
 	bool success = true;
 
-	success &= RemoveWidgetTreeViewByName(FileFullPath);
+	success &= RemoveOutlineViewByName(FileFullPath);
 	success &= RemoveDetailViewByName(FileFullPath);
 
 	if (!success)
@@ -491,7 +375,7 @@ bool MainUI::HandleCloseFile(const std::string& FileFullPath)
 
 void MainUI::SwitchCurrentEditFile(const std::string& FileFullPath)
 {
-	ShowWidgetTreeViewByName(FileFullPath);
+	ShowOutlineViewByName(FileFullPath);
 	ShowDetailViewByName(FileFullPath);
 	ShowWidgetEditorByName(FileFullPath);
 	CurrentEditedFile = FileFullPath;

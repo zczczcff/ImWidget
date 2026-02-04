@@ -13,7 +13,7 @@ namespace ImGuiWidget
     class ImWindow;
     class ImUserWidgetClass;
 }
-class UI_WidgetTreeView;
+class UI_ImUserWidgetClassOutlineView;
 class UI_WidgetEditor;
 class UI_DetailView;
 class UI_ProjectView;
@@ -23,14 +23,12 @@ class MainUI : public ImGuiWidget::ImUserWidget,public EditorGlobalInterface
 public:
     void Init();
     void Init2();
-    void ViewTest();
     MainUI(const std::string& name): ImGuiWidget::ImUserWidget(name)
 {
     Init();
     Init2();
     EventInit();
     ActionInit();
-    ViewTest();
 }
 
 protected:
@@ -67,10 +65,10 @@ protected:
 
     UI_ProjectView* ProjectView;
 
-    //---------------------控件树视图-----------------------
-    ImGuiWidget::ImScrollBox* ImScrollBox_WidgetTree;
-    std::map<std::string, UI_WidgetTreeView*> AllTreeViews;
-    std::string CurrentTreeView;
+    //---------------------Outline视图-----------------------
+    ImGuiWidget::ImScrollBox* ImScrollBox_Outline;
+    std::map<std::string, UI_ImUserWidgetClassOutlineView*> AllOutlineViews;
+    std::string CurrentOutlineView;
     //---------------------细节框-------------------------
     ImGuiWidget::ImScrollBox* ImScrollBox_FileDetail;
     std::map<std::string, UI_DetailView*> AllFileDetails;
@@ -107,14 +105,14 @@ public:
 private:
     bool RenameWidgetEditorPage(const std::string& OldFullPath, const std::string& NewFullPath);
 
-    //WidgetTreeView相关操作
+    //OutlineView相关操作
 public:
-    bool CreateNewWidgetTreeView(const std::string& Name, ImGuiWidget::ImWidget* TargetWidget);
-    UI_WidgetTreeView* GetWidgetTreeViewByName(const std::string& Name);
-    bool ShowWidgetTreeViewByName(const std::string& Name);
-    bool RemoveWidgetTreeViewByName(const std::string& Name);
+    bool CreateNewOutlineView(const std::string& Name, ImGuiWidget::ImUserWidgetClass* TargetWidget);
+    UI_ImUserWidgetClassOutlineView* GetOutlineViewByName(const std::string& Name);
+    bool ShowOutlineViewByName(const std::string& Name);
+    bool RemoveOutlineViewByName(const std::string& Name);
 private:
-    bool RenameWidgetTreeView(const std::string& OldName, const std::string& NewName);
+    bool RenameOutlineView(const std::string& OldName, const std::string& NewName);
 
     //DetailView相关操作
 public:
