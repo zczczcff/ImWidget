@@ -21,10 +21,11 @@ protected:
 
 public:
     ClassPropertyCommandBase(ImGuiWidget::ImUserWidgetClass* target,
+        Model_ImUserWidgetClassEditor* Model,
         ClassStringPropertyType subType,
         const std::string& oldValue,
         const std::string& newValue)
-        : ImUserWidgetClassCommandBase(target,
+        : ImUserWidgetClassCommandBase(target,Model,
             CommandDataType(CommandCategory::ClassProperty,
                 static_cast<int>(subType))),
         m_OldValue(oldValue), m_NewValue(newValue)

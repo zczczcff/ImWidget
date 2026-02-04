@@ -3,14 +3,7 @@
 
 #include "EditorEventObject.h"
 #include "ImWidget/ImUserWidgetClass.h"
-#include "Command/ImDesignerCommandManager.h"
-#include "Command/Command_VariableOperation.h"
-#include "Command/Command_VarRename.h"
-#include "Command/Command_ChildWidgetOperation.h"
-#include "Command/Command_ClassStringPropertyEdit.h"
-#include "Command/Command_ObjectVarPropertyEdit.h"
-#include "Command/Command_WidgetVarPropertyEdit.h"
-#include "Command/Command_WidgetSlotPropertyEdit.h"
+#include "Model/Command/ImDesignerCommandManager.h"
 #include "EditorAction.h"
 #include "EditorEvents.h"
 #include <memory>
@@ -210,105 +203,13 @@ private:
     }
 
 
-    void OnCreateBasicVariable(ImGuiWidget::PropertyType type)
-    {
-        if (!m_TargetClass) return;
+    void OnCreateBasicVariable(ImGuiWidget::PropertyType type);
 
-        // 创建命令并执行
-        std::string typeName = ImGuiWidget::PropertyTypeToString(type);
-        auto command = std::make_unique<CreateNewVariableCommand>(
-            m_TargetClass,
-            ImGuiWidget::WidgetClassVariableType::Basic,
-            typeName);
+    void OnCreateObjectVariable(const std::string& objectRegisterName);
 
-        if (m_CommandManager->Execute(std::move(command)))
-        {
-            m_IsModified = true;
+    void OnCreateWidgetVariable(const std::string& widgetRegisterName);
 
-            // 发布更新事件
-            Publish(m_EditedFileFullPath + Events::OutlineView::UPDATE_BASIC_VARIABLE_SECTION);
-
-            // 更新Undo/Redo状态
-            UpdateUndoRedoState();
-
-        }
-    }
-
-    void OnCreateObjectVariable(const std::string& objectRegisterName)
-    {
-        if (!m_TargetClass) return;
-
-        auto command = std::make_unique<CreateNewVariableCommand>(
-            m_TargetClass,
-            ImGuiWidget::WidgetClassVariableType::Object,
-            objectRegisterName);
-
-        if (m_CommandManager->Execute(std::move(command)))
-        {
-            m_IsModified = true;
-
-            Publish(m_EditedFileFullPath + Events::OutlineView::UPDATE_OBJECT_VARIABLE_SECTION);
-            UpdateUndoRedoState();
-        }
-    }
-
-    void OnCreateWidgetVariable(const std::string& widgetRegisterName)
-    {
-        if (!m_TargetClass) return;
-
-        auto command = std::make_unique<CreateNewVariableCommand>(
-            m_TargetClass,
-            ImGuiWidget::WidgetClassVariableType::Widget,
-            widgetRegisterName);
-
-        if (m_CommandManager->Execute(std::move(command)))
-        {
-            m_IsModified = true;
-
-            Publish(m_EditedFileFullPath + Events::OutlineView::UPDATE_WIDGET_VARIABLE_SECTION);
-            UpdateUndoRedoState();
-
-        }
-    }
-
-    void OnDeleteVariable(const std::string& variableName)
-    {
-        if (!m_TargetClass) return;
-
-        // 获取变量类型以便恢复选择
-        auto varType = m_TargetClass->GetVariableType(variableName);
-
-        auto command = std::make_unique<RemoveVariableCommand>(m_TargetClass, variableName);
-
-        if (m_CommandManager->Execute(std::move(command)))
-        {
-            m_IsModified = true;
-
-            // 根据删除的变量类型发布相应的事件
-            switch (varType)
-            {
-            case ImGuiWidget::WidgetClassVariableType::Widget:
-                Publish(m_EditedFileFullPath + Events::OutlineView::UPDATE_WIDGET_VARIABLE_SECTION);
-                break;
-            case ImGuiWidget::WidgetClassVariableType::Object:
-                Publish(m_EditedFileFullPath + Events::OutlineView::UPDATE_OBJECT_VARIABLE_SECTION);
-                break;
-            case ImGuiWidget::WidgetClassVariableType::Basic:
-                Publish(m_EditedFileFullPath + Events::OutlineView::UPDATE_BASIC_VARIABLE_SECTION);
-                break;
-            }
-
-            UpdateUndoRedoState();
-
-            // 清除当前选择
-            if (m_CurrentSelectedVariableName == variableName)
-            {
-                m_CurrentSelectedVariableName.clear();
-                m_CurrentSelectedVariableType = ImGuiWidget::WidgetClassVariableType::Widget;
-                m_CurrentSelectedWidget = nullptr;
-            }
-        }
-    }
+    void OnDeleteVariable(const std::string& variableName);
 
     // 更新Undo/Redo状态
     void UpdateUndoRedoState()
@@ -319,101 +220,17 @@ private:
     }
 
     // 重命名变量（从事件处理）
-    void OnVariableRenamed(const std::string& oldName, const std::string& newName)
-    {
-        if (!m_TargetClass) return;
-
-        auto command = std::make_unique<RenameVariableCommand>(m_TargetClass, oldName, newName);
-
-        if (m_CommandManager->Execute(std::move(command)))
-        {
-            m_IsModified = true;
-
-            // 更新当前选择
-            if (m_CurrentSelectedVariableName == oldName)
-            {
-                m_CurrentSelectedVariableName = newName;
-            }
-
-            // 发布变量重命名事件
-            Publish(m_EditedFileFullPath + Events::OutlineView::VARIABLE_RENAMED, oldName, newName);
-            UpdateUndoRedoState();
-        }
-    }
+    void OnVariableRenamed(const std::string& oldName, const std::string& newName);
 
     // 重命名控件（通过路径）
     void OnRenameWidgetByPath(const std::string& widgetTreeVarName,
         const std::string& widgetPath,
-        const std::string& newName)
-    {
-        if (!m_TargetClass) return;
-
-        // 首先获取旧名称
-        ImGuiWidget::ImWidget* rootWidget = m_TargetClass->GetWidgetVariable(widgetTreeVarName);
-        if (!rootWidget) return;
-
-        // 从路径解析出控件
-        // 这里需要路径解析函数，暂时简化处理
-        std::string oldName = ExtractWidgetNameFromPath(widgetPath);
-
-        auto command = std::make_unique<RenameWidgetByPathCommand>(
-            m_TargetClass, widgetTreeVarName, widgetPath, newName);
-
-        if (m_CommandManager->Execute(std::move(command)))
-        {
-            m_IsModified = true;
-
-            // 更新当前选择
-            if (m_CurrentSelectedWidget && m_CurrentSelectedWidget->GetWidgetName() == oldName)
-            {
-                m_CurrentSelectedWidget->SetWidgetName(newName);
-            }
-
-            // 发布控件重命名事件
-            Publish(m_EditedFileFullPath + Events::OutlineView::WIDGET_CHILD_RENAMED,
-                widgetTreeVarName, oldName, newName);
-            UpdateUndoRedoState();
-        }
-    }
+        const std::string& newName);
 
     void OnInsertWidget(const std::string& widgetTreeVarName, const std::string& parentPath,
-        const std::string& insertWidgetRegisterName, int insertIndex)
-    {
-        if (!m_TargetClass) return;
+        const std::string& insertWidgetRegisterName, int insertIndex);
 
-        auto command = std::make_unique<InsertChildByPathCommand>(
-            m_TargetClass, widgetTreeVarName, parentPath, insertWidgetRegisterName, insertIndex);
-
-        if (m_CommandManager->Execute(std::move(command)))
-        {
-            m_IsModified = true;
-
-            // 发布控件添加事件
-            Publish(m_EditedFileFullPath + Events::OutlineView::WIDGET_CHILD_ADDED,
-                widgetTreeVarName, parentPath, insertWidgetRegisterName);
-
-            UpdateUndoRedoState();
-        }
-    }
-
-    void OnDeleteWidget(const std::string& widgetTreeVarName, const std::string& widgetPath)
-    {
-        if (!m_TargetClass) return;
-
-        auto command = std::make_unique<RemoveChildByPathCommand>(
-            m_TargetClass, widgetTreeVarName, widgetPath);
-
-        if (m_CommandManager->Execute(std::move(command)))
-        {
-            m_IsModified = true;
-
-            // 发布控件删除事件
-            Publish(m_EditedFileFullPath + Events::OutlineView::WIDGET_CHILD_REMOVED,
-                widgetTreeVarName, widgetPath);
-
-            UpdateUndoRedoState();
-        }
-    }
+    void OnDeleteWidget(const std::string& widgetTreeVarName, const std::string& widgetPath);
 
 private:
     // 辅助函数：从路径中提取控件名

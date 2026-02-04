@@ -24,8 +24,9 @@ protected:
 
 public:
     VariableOperationCommandBase(ImGuiWidget::ImUserWidgetClass* target,
+        Model_ImUserWidgetClassEditor* Model,
         VariableOperationSubType subType)
-        : ImUserWidgetClassCommandBase(target,
+        : ImUserWidgetClassCommandBase(target,Model,
             CommandDataType(CommandCategory::VariableOperation,
                 static_cast<int>(subType)))
     {
@@ -57,9 +58,10 @@ private:
 
 public:
     CreateNewVariableCommand(ImGuiWidget::ImUserWidgetClass* target,
+        Model_ImUserWidgetClassEditor* Model,
         ImGuiWidget::WidgetClassVariableType type,
         const std::string& specificType)
-        : VariableOperationCommandBase(target,
+        : VariableOperationCommandBase(target,Model,
             VariableOperationSubType::CreateNewVariable)
         , m_Type(type)
         , m_SpecificType(specificType)
@@ -122,8 +124,9 @@ private:
 
 public:
     RemoveVariableCommand(ImGuiWidget::ImUserWidgetClass* target,
+        Model_ImUserWidgetClassEditor* Model,
         const std::string& variableName)
-        : VariableOperationCommandBase(target,
+        : VariableOperationCommandBase(target,Model,
             VariableOperationSubType::RemoveVariable)
     {
         m_VariableName = variableName;
@@ -244,9 +247,10 @@ private:
 
 public:
     PasteVariableCommand(ImGuiWidget::ImUserWidgetClass* target,
+        Model_ImUserWidgetClassEditor* Model,
         const nlohmann::json& serializedData,
         bool keepOriginalName = false)
-        : VariableOperationCommandBase(target,
+        : VariableOperationCommandBase(target,Model,
             VariableOperationSubType::PasteVariable)
         , m_SerializedData(serializedData)
         , m_KeepOriginalName(keepOriginalName)
@@ -420,10 +424,11 @@ private:
 
 public:
     PasteObjectVariableCommand(ImGuiWidget::ImUserWidgetClass* target,
+        Model_ImUserWidgetClassEditor* Model,
         const nlohmann::json& objectJson,
         const std::string& suggestedName = "",
         bool keepSuggestedName = false)
-        : VariableOperationCommandBase(target,
+        : VariableOperationCommandBase(target,Model,
             VariableOperationSubType::PasteObjectVariable)
         , m_ObjectJson(objectJson)
         , m_SuggestedName(suggestedName)
@@ -538,10 +543,11 @@ private:
 
 public:
     PasteWidgetVariableCommand(ImGuiWidget::ImUserWidgetClass* target,
+        Model_ImUserWidgetClassEditor* Model,
         const nlohmann::json& widgetJson,
         const std::string& suggestedName = "",
         bool keepSuggestedName = false)
-        : VariableOperationCommandBase(target,
+        : VariableOperationCommandBase(target,Model,
             VariableOperationSubType::PasteWidgetVariable)
         , m_WidgetJson(widgetJson)
         , m_SuggestedName(suggestedName)

@@ -26,11 +26,12 @@ private:
 
 public:
     InsertChildByPathCommand(ImGuiWidget::ImUserWidgetClass* target,
+        Model_ImUserWidgetClassEditor* Model,
         const std::string& widgetTreeVarName,
         const std::string& parentWidgetPath,
         const std::string& insertWidgetRegisterName,
         int insertIndex)
-        : ImUserWidgetClassCommandBase(target,
+        : ImUserWidgetClassCommandBase(target,Model,
             CommandDataType(CommandCategory::ChildWidgetOperation,
                 static_cast<int>(ChildWidgetOperationSubType::InsertChildByPath),
                 "InsertChildByPath")),
@@ -128,11 +129,12 @@ private:
 
 public:
     InsertChildByJsonCommand(ImGuiWidget::ImUserWidgetClass* target,
+        Model_ImUserWidgetClassEditor* Model,
         const std::string& widgetTreeVarName,
         const std::string& parentWidgetPath,
         const nlohmann::json& widgetJson,
         int insertIndex)
-        : ImUserWidgetClassCommandBase(target,
+        : ImUserWidgetClassCommandBase(target,Model,
             CommandDataType(CommandCategory::ChildWidgetOperation,
                 static_cast<int>(ChildWidgetOperationSubType::InsertChildByJson),
                 "InsertChildByJson")),
@@ -231,9 +233,10 @@ private:
 
 public:
     RemoveChildByPathCommand(ImGuiWidget::ImUserWidgetClass* target,
+        Model_ImUserWidgetClassEditor* Model,
         const std::string& widgetTreeVarName,
         const std::string& childWidgetPath)
-        : ImUserWidgetClassCommandBase(target,
+        : ImUserWidgetClassCommandBase(target,Model,
             CommandDataType(CommandCategory::ChildWidgetOperation,
                 static_cast<int>(ChildWidgetOperationSubType::RemoveChildByPath),
                 "RemoveChildByPath")),

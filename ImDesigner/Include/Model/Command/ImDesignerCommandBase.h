@@ -13,11 +13,12 @@ class ImUserWidgetClassCommandBase : public CommandBase<CommandDataType> , publi
 {
 protected:
     ImGuiWidget::ImUserWidgetClass* m_TargetClass;
-
+    class Model_ImUserWidgetClassEditor* m_Model;
 public:
     ImUserWidgetClassCommandBase(ImGuiWidget::ImUserWidgetClass* target,
+        Model_ImUserWidgetClassEditor* Model,
         const CommandDataType& data = CommandDataType())
-        : CommandBase<CommandDataType>(data), m_TargetClass(target)
+        : CommandBase<CommandDataType>(data), m_TargetClass(target),m_Model(Model)
     {
     }
 

@@ -21,9 +21,10 @@ private:
 
 public:
     RenameVariableCommand(ImGuiWidget::ImUserWidgetClass* target,
+        Model_ImUserWidgetClassEditor* Model,
         const std::string& oldName,
         const std::string& newName)
-        : ImUserWidgetClassCommandBase(target,
+        : ImUserWidgetClassCommandBase(target,Model,
             CommandDataType(CommandCategory::RenameOperation,
                 static_cast<int>(RenameOperationSubType::RenameVariable),
                 "RenameVariable")),
@@ -102,10 +103,11 @@ private:
 
 public:
     RenameWidgetByPathCommand(ImGuiWidget::ImUserWidgetClass* target,
+        Model_ImUserWidgetClassEditor* Model,
         const std::string& widgetTreeVarName,
         const std::string& widgetPath,
         const std::string& newName)
-        : ImUserWidgetClassCommandBase(target,
+        : ImUserWidgetClassCommandBase(target,Model,
             CommandDataType(CommandCategory::RenameOperation,
                 static_cast<int>(RenameOperationSubType::RenameWidgetByPath),
                 "RenameWidgetByPath")),

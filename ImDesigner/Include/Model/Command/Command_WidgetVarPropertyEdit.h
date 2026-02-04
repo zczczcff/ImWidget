@@ -15,12 +15,13 @@ protected:
 
 public:
     WidgetPropertyEditCommandBase(ImGuiWidget::ImUserWidgetClass* target,
+        Model_ImUserWidgetClassEditor* Model,
         const std::string& widgetVarName,
         const std::string& widgetPath,
         const std::string& propertyPath,
         const T& oldValue,
         const T& newValue)
-        : ImUserWidgetClassCommandBase(target,
+        : ImUserWidgetClassCommandBase(target,Model,
             CommandDataType(CommandCategory::WidgetPropertyEdit,
                 0,
                 boost::typeindex::ctti_type_index::type_id<T>().pretty_name()
