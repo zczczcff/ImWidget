@@ -1,6 +1,7 @@
 #pragma once
 #include "ImDesignerCommandBase.h"
 #include <boost/type_index/ctti_type_index.hpp>
+#include "ImWidget/ImUserWidgetClass.h"
 
 template<typename T>
 class SlotPropertyEditCommandBase : public ImUserWidgetClassCommandBase
@@ -13,7 +14,7 @@ protected:
     T m_NewValue;
 
 public:
-    SlotPropertyEditCommandBase(ImUserWidgetClass* target,
+    SlotPropertyEditCommandBase(ImGuiWidget::ImUserWidgetClass* target,
         const std::string& widgetVarName,
         const std::string& widgetPath,
         const std::string& propertyPath,
@@ -21,7 +22,7 @@ public:
         const T& newValue)
         : ImUserWidgetClassCommandBase(target,
             CommandDataType(CommandCategory::SlotPropertyEdit,
-                static_cast<int>(SlotPropertyEditSubType::SetSlotProperty),
+                0,
                 boost::typeindex::ctti_type_index::type_id<T>().pretty_name())),
         m_WidgetVarName(widgetVarName),
         m_WidgetPath(widgetPath),
@@ -53,11 +54,14 @@ public:
         if (!ImUserWidgetClassCommandBase::IsWithinMergeWindow(other))
             return false;
 
+        if (!(other->m_Data == m_Data)) return false;
+
+        auto* otherCmd = static_cast<SlotPropertyEditCommandBase<T>*>(other);
+
         return (m_TargetClass == otherCmd->m_TargetClass) &&
             (m_WidgetVarName == otherCmd->m_WidgetVarName) &&
             (m_WidgetPath == otherCmd->m_WidgetPath) &&
-            (m_PropertyPath == otherCmd->m_PropertyPath)&&
-            (m_Data==other->m_Data)
+            (m_PropertyPath == otherCmd->m_PropertyPath)
             ;
     }
 

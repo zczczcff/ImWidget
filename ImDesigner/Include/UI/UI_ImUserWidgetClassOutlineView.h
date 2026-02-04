@@ -1647,11 +1647,13 @@ protected:
 
 	void Action_InsertWidget(const std::string& OperatorVarName, ImGuiWidget::ImWidget* target, int insertIndex, const std::string& widgetRegisterName)
 	{
-		ExecuteAction(m_EditedFileFullPath + Action::OutlineView::INSERT_WIDGET, OperatorVarName, target, widgetRegisterName, insertIndex);
+		std::string targetPath = m_TargetClass->GetWidgetVariable(OperatorVarName)->BuildPathTo(target);
+		ExecuteAction(m_EditedFileFullPath + Action::OutlineView::INSERT_WIDGET, OperatorVarName, targetPath, widgetRegisterName, insertIndex);
 	}
 	void Action_DeleteWidget(const std::string& widgetRootVarName, ImGuiWidget::ImWidget* target)
 	{
-		ExecuteAction(m_EditedFileFullPath + Action::OutlineView::DELETE_WIDGET, widgetRootVarName, target);
+		std::string targetPath = m_TargetClass->GetWidgetVariable(widgetRootVarName)->BuildPathTo(target);
+		ExecuteAction(m_EditedFileFullPath + Action::OutlineView::DELETE_WIDGET, widgetRootVarName, targetPath);
 	}
 
 	void ResetEvent()

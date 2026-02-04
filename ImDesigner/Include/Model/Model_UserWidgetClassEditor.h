@@ -6,6 +6,11 @@
 #include "Command/ImDesignerCommandManager.h"
 #include "Command/Command_VariableOperation.h"
 #include "Command/Command_VarRename.h"
+#include "Command/Command_ChildWidgetOperation.h"
+#include "Command/Command_ClassStringPropertyEdit.h"
+#include "Command/Command_ObjectVarPropertyEdit.h"
+#include "Command/Command_WidgetVarPropertyEdit.h"
+#include "Command/Command_WidgetSlotPropertyEdit.h"
 #include "EditorAction.h"
 #include "EditorEvents.h"
 #include <memory>
@@ -173,6 +178,19 @@ private:
             [this](const std::string& variableName)
             {
                 OnDeleteVariable(variableName);
+            }));
+
+        m_FileActions.push_back(AddSequentialProcessor(m_EditedFileFullPath + Action::OutlineView::INSERT_WIDGET,
+            [this](const std::string& widgetTreeVarName, const std::string& parentPath,
+                const std::string& insertWidgetRegisterName, int insertIndex)
+            {
+                OnInsertWidget(widgetTreeVarName, parentPath, insertWidgetRegisterName, insertIndex);
+            }));
+
+        m_FileActions.push_back(AddSequentialProcessor(m_EditedFileFullPath + Action::OutlineView::DELETE_WIDGET,
+            [this](const std::string& widgetTreeVarName, const std::string& widgetPath)
+            {
+                OnDeleteWidget(widgetTreeVarName, widgetPath);
             }));
 
         // 订阅全局撤销/重做请求
@@ -354,6 +372,45 @@ private:
             // 发布控件重命名事件
             Publish(m_EditedFileFullPath + Events::OutlineView::WIDGET_CHILD_RENAMED,
                 widgetTreeVarName, oldName, newName);
+            UpdateUndoRedoState();
+        }
+    }
+
+    void OnInsertWidget(const std::string& widgetTreeVarName, const std::string& parentPath,
+        const std::string& insertWidgetRegisterName, int insertIndex)
+    {
+        if (!m_TargetClass) return;
+
+        auto command = std::make_unique<InsertChildByPathCommand>(
+            m_TargetClass, widgetTreeVarName, parentPath, insertWidgetRegisterName, insertIndex);
+
+        if (m_CommandManager->Execute(std::move(command)))
+        {
+            m_IsModified = true;
+
+            // 发布控件添加事件
+            Publish(m_EditedFileFullPath + Events::OutlineView::WIDGET_CHILD_ADDED,
+                widgetTreeVarName, parentPath, insertWidgetRegisterName);
+
+            UpdateUndoRedoState();
+        }
+    }
+
+    void OnDeleteWidget(const std::string& widgetTreeVarName, const std::string& widgetPath)
+    {
+        if (!m_TargetClass) return;
+
+        auto command = std::make_unique<RemoveChildByPathCommand>(
+            m_TargetClass, widgetTreeVarName, widgetPath);
+
+        if (m_CommandManager->Execute(std::move(command)))
+        {
+            m_IsModified = true;
+
+            // 发布控件删除事件
+            Publish(m_EditedFileFullPath + Events::OutlineView::WIDGET_CHILD_REMOVED,
+                widgetTreeVarName, widgetPath);
+
             UpdateUndoRedoState();
         }
     }

@@ -22,7 +22,7 @@ public:
         const T& newValue)
         : ImUserWidgetClassCommandBase(target,
             CommandDataType(CommandCategory::WidgetPropertyEdit,
-                static_cast<int>(WidgetPropertyEditSubType::SetWidgetProperty),
+                0,
                 boost::typeindex::ctti_type_index::type_id<T>().pretty_name()
                 )),
         m_WidgetVarName(widgetVarName),
@@ -55,11 +55,14 @@ public:
         if (!ImUserWidgetClassCommandBase::IsWithinMergeWindow(other))
             return false;
 
+        if (!(m_Data == other->m_Data)) return false;
+
+        auto* otherCmd = static_cast<WidgetPropertyEditCommandBase<T>*>(other);
+
         return (m_TargetClass == otherCmd->m_TargetClass) &&
             (m_WidgetVarName == otherCmd->m_WidgetVarName) &&
             (m_WidgetPath == otherCmd->m_WidgetPath) &&
-            (m_PropertyPath == otherCmd->m_PropertyPath)&&
-            (m_Data==other->m_Data)
+            (m_PropertyPath == otherCmd->m_PropertyPath)
             ;
     }
 
