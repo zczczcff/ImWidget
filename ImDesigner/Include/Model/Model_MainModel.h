@@ -10,7 +10,7 @@ namespace ImGuiWidget
 	class ImWidget;
 	class ImUserWidgetClass;
 }
-class Model_WidgetEditor;
+class Model_ImUserWidgetClassEditor;
 class JAsyncLog;
 class Model_MainModel:public EditorGlobalInterface
 {
@@ -19,17 +19,23 @@ public:
 	{
 		std::string FileFullPath;
 		ImGuiWidget::ImUserWidgetClass* EditedFile;
-		Model_WidgetEditor* model_editor;
-		EditedUIFile(std::string FileFullPath, ImGuiWidget::ImUserWidgetClass* EditedFile,Model_WidgetEditor* model_editor)
+		Model_ImUserWidgetClassEditor* model_editor;
+		EditedUIFile(std::string FileFullPath, ImGuiWidget::ImUserWidgetClass* EditedFile,Model_ImUserWidgetClassEditor* model_editor)
 			:FileFullPath(FileFullPath),
 			EditedFile(EditedFile),
 			model_editor(model_editor)
 		{ }
+		EditedUIFile():EditedFile(nullptr), model_editor(nullptr){}
+
+		operator bool()
+		{
+			return (!FileFullPath.empty()) && EditedFile && model_editor;
+		}
 	};
 private:
 	ProjectConfig m_ProjectConfig;
 	ProjectFileManager m_ProjectFileManager;
-	std::map<std::string, EditedUIFile*> EditedFiles;
+	std::map<std::string, EditedUIFile> EditedFiles;
 	JAsyncLog* m_Log;
 public:
 	//ImMulticastDelegate<ProjectFileManager*> OnProjectConfigChanged;
@@ -44,7 +50,7 @@ public:
 	}
 	void Tick();
 	void Init();
-	EditedUIFile* BeginEditFile(const std::string& FileFullPath);
+	EditedUIFile BeginEditFile(const std::string& FileFullPath);
 	bool FinishEditFile(const std::string& FileFullPath);
 	std::string CteateNewUIFileInDir(const std::string& Dir);
 	bool RenameFile(const std::string& OldFullPath, const std::string& NewFullPath);

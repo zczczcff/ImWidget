@@ -35,9 +35,9 @@ private:
     std::vector<EditorActionID> m_FileActions;
     std::vector<EditorEventID> m_FileEvents;
 public:
-    Model_ImUserWidgetClassEditor(const std::string& editedFileFullPath)
+    Model_ImUserWidgetClassEditor(const std::string& editedFileFullPath, ImGuiWidget::ImUserWidgetClass* Target)
         : m_EditedFileFullPath(editedFileFullPath)
-        , m_TargetClass(nullptr)
+        , m_TargetClass(Target)
         , m_IsModified(false)
         , m_CurrentSelectedWidget(nullptr)
         , m_CurrentSelectedVariableType(ImGuiWidget::WidgetClassVariableType::Widget)
@@ -53,17 +53,6 @@ public:
         {
             delete m_TargetClass;
         }
-    }
-
-    // 设置目标类
-    void SetTargetClass(ImGuiWidget::ImUserWidgetClass* targetClass)
-    {
-        if (m_TargetClass)
-        {
-            delete m_TargetClass;
-        }
-        m_TargetClass = targetClass;
-        m_IsModified = false;
     }
 
     // 获取目标类
