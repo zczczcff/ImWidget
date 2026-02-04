@@ -175,19 +175,6 @@ private:
                 OnDeleteVariable(variableName);
             }));
 
-        m_FileActions.push_back(AddSequentialProcessor(m_EditedFileFullPath + Action::OutlineView::INSERT_WIDGET,
-            [this](const std::string& operatorVarName, ImGuiWidget::ImWidget* target,
-                int insertIndex, const std::string& widgetRegisterName)
-            {
-                OnInsertWidget(operatorVarName, target, insertIndex, widgetRegisterName);
-            }));
-
-        m_FileActions.push_back(AddSequentialProcessor(m_EditedFileFullPath + Action::OutlineView::DELETE_WIDGET,
-            [this](const std::string& widgetRootVarName, ImGuiWidget::ImWidget* target)
-            {
-                OnDeleteWidget(widgetRootVarName, target);
-            }));
-
         // 订阅全局撤销/重做请求
         m_FileActions.push_back(AddValidator(m_EditedFileFullPath + Action::_REQUEST_UNDO,
             [this]()
@@ -200,6 +187,8 @@ private:
             {
                 return Redo();
             }));
+
+
     }
 
 
@@ -302,75 +291,6 @@ private:
             }
         }
     }
-
-    void OnInsertWidget(const std::string& operatorVarName, ImGuiWidget::ImWidget* target,
-        int insertIndex, const std::string& widgetRegisterName)
-    {
-        if (!m_TargetClass || !target) return;
-
-        // 注意：这里需要一个新的命令类来处理控件树中插入子控件的操作
-        // 由于你提供的文件中没有这个命令类，这里使用伪代码表示
-
-        // auto command = std::make_unique<InsertChildWidgetCommand>(
-        //     m_TargetClass, operatorVarName, target, insertIndex, widgetRegisterName);
-        // 
-        // if (m_CommandManager->Execute(std::move(command)))
-        // {
-        //     m_IsModified = true;
-        //     
-        //     // 发布子控件添加事件
-        //     Publish(m_EditedFileFullPath + Events::OutlineView::WIDGET_CHILD_ADDED, 
-        //             operatorVarName, "新控件名");
-        //     
-        //     UpdateUndoRedoState();
-        // }
-
-        // 临时实现：直接调用类的方法（不支持撤销/重做）
-        ImGuiWidget::ImWidget* newChild = m_TargetClass->InsertChildWidget(
-            operatorVarName, target, widgetRegisterName, insertIndex);
-
-        if (newChild)
-        {
-            m_IsModified = true;
-
-            // 发布子控件添加事件
-            Publish(m_EditedFileFullPath + Events::OutlineView::WIDGET_CHILD_ADDED,
-                operatorVarName, newChild->GetWidgetName());
-
-        }
-    }
-
-    void OnDeleteWidget(const std::string& widgetRootVarName, ImGuiWidget::ImWidget* target)
-    {
-        if (!m_TargetClass || !target) return;
-
-        // 获取父控件和控件名
-        ImGuiWidget::ImWidget* parent = target->GetParents();
-        std::string childName = target->GetWidgetName();
-
-        if (!parent) return;
-
-        // 临时实现：直接调用类的方法（不支持撤销/重做）
-        bool success = m_TargetClass->RemoveChildWidget(widgetRootVarName, target, true);
-
-        if (success)
-        {
-            m_IsModified = true;
-
-            // 发布子控件删除事件
-            Publish(m_EditedFileFullPath + Events::OutlineView::WIDGET_CHILD_REMOVED,
-                widgetRootVarName, childName);
-
-            // 清除选择
-            if (m_CurrentSelectedWidget == target)
-            {
-                m_CurrentSelectedVariableName.clear();
-                m_CurrentSelectedVariableType = ImGuiWidget::WidgetClassVariableType::Widget;
-                m_CurrentSelectedWidget = nullptr;
-            }
-        }
-    }
-
 
     // 更新Undo/Redo状态
     void UpdateUndoRedoState()

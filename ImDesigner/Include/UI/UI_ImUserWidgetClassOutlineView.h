@@ -99,7 +99,7 @@ private:
 	OutlineViewSelectionInfo m_CurrentSelection;
 
 	// 控件树缓存
-	std::unordered_set<std::string> m_RootWidgetNames;
+	//std::unordered_set<std::string> m_RootWidgetNames;
 
 	// 样式颜色
 	ImU32 m_SelectedBgColor = IM_COL32(65, 105, 225, 255);
@@ -177,7 +177,6 @@ public:
 		, m_ObjectVarsContainer(nullptr)
 		, m_WidgetTreeContainer(nullptr)
 	{
-		BuildRootWidgetCache();
 		BuildUI();
 		InitPopupMenus();
 		ActionInit();
@@ -194,7 +193,6 @@ public:
 	// 完全刷新视图
 	void RefreshView()
 	{
-		BuildRootWidgetCache();
 		ClearAllCaches();
 		if (m_MainContainer)
 		{
@@ -207,7 +205,6 @@ public:
 	void SetTargetClass(ImGuiWidget::ImUserWidgetClass* targetClass)
 	{
 		m_TargetClass = targetClass;
-		BuildRootWidgetCache();
 		ClearAllCaches();
 		RefreshView();
 	}
@@ -218,21 +215,11 @@ public:
 	void SetNormalColor(ImU32 color) { m_NormalBgColor = color; }
 
 protected:
-	// 构建根控件缓存
-	void BuildRootWidgetCache()
-	{
-		m_RootWidgetNames.clear();
-		if (m_TargetClass)
-		{
-			auto widgetVarNames = m_TargetClass->GetWidgetVariableNames();
-			m_RootWidgetNames.insert(widgetVarNames.begin(), widgetVarNames.end());
-		}
-	}
 
 	// 判断是否为根控件
 	bool IsRootWidget(const std::string& widgetName) const
 	{
-		return m_RootWidgetNames.find(widgetName) != m_RootWidgetNames.end();
+		return m_TargetClass->GetVariable(widgetName);
 	}
 
 	// 构建UI
@@ -907,17 +894,6 @@ protected:
 			}
 		}
 
-		// 如果是控件，还需要更新控件树缓存
-		if (changeInfo.VariableType == "Widget")
-		{
-			// 更新根控件缓存
-			if (m_RootWidgetNames.find(changeInfo.OldName) != m_RootWidgetNames.end())
-			{
-				m_RootWidgetNames.erase(changeInfo.OldName);
-				m_RootWidgetNames.insert(changeInfo.NewName);
-			}
-		}
-
 		return true;
 	}
 
@@ -1557,9 +1533,13 @@ protected:
 	{
 		CloseActiveMenu();
 
-		if ((m_PopupMenus.CurrentMode == PopupMenuSystem::MenuMode::WidgetRoot ||
-			m_PopupMenus.CurrentMode == PopupMenuSystem::MenuMode::WidgetChild) &&
-			!m_PopupMenus.TargetVarName.empty())
+		if (m_PopupMenus.TargetVarName.empty()) return;
+
+		if (m_PopupMenus.CurrentMode == PopupMenuSystem::MenuMode::WidgetRoot)
+		{
+			Action_DeleteVariable(m_PopupMenus.TargetVarName);
+		}
+		else if(m_PopupMenus.CurrentMode == PopupMenuSystem::MenuMode::WidgetChild)
 		{
 			Action_DeleteWidget(m_PopupMenus.TargetVarName, m_PopupMenus.TargetWidget);
 		}
@@ -1658,6 +1638,11 @@ protected:
 	void Action_CreateWidgetVariable(const std::string& widgetRegisterName)
 	{
 		ExecuteAction(m_EditedFileFullPath + Action::OutlineView::CREATE_WIDGET_VARIABLE, widgetRegisterName);
+	}
+
+	void Action_DeleteVariable(const std::string& varName)
+	{
+		ExecuteAction(m_EditedFileFullPath + Action::OutlineView::DELETE_VARIABLE, varName);
 	}
 
 	void Action_InsertWidget(const std::string& OperatorVarName, ImGuiWidget::ImWidget* target, int insertIndex, const std::string& widgetRegisterName)
