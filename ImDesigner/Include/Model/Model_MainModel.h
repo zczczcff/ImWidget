@@ -4,7 +4,7 @@
 #include "ImTools/ImDelegate.h"
 #include "Tools/ProjectFileManager.h"
 #include <map>
-#include "EditorGlobalInterface.h"
+#include "EditorEventObject.h"
 namespace ImGuiWidget
 {
 	class ImWidget;
@@ -12,7 +12,7 @@ namespace ImGuiWidget
 }
 class Model_ImUserWidgetClassEditor;
 class JAsyncLog;
-class Model_MainModel:public EditorGlobalInterface
+class Model_MainModel:public EditorEventObject
 {
 public:
 	struct EditedUIFile

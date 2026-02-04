@@ -4,13 +4,13 @@
 #include "ImTools/ImDelegate.h"
 #include <map>
 #include <unordered_map>
-#include "EditorGlobalInterface.h"
+#include "EditorEventObject.h"
 
 namespace ImGuiWidget
 {
     class ImWindow;
 }
-class UI_ProjectView : public ImGuiWidget::ImUserWidget,public EditorGlobalInterface
+class UI_ProjectView : public ImGuiWidget::ImUserWidget,public EditorEventObject
 {
 private:
     ImGuiWidget::ImScrollBox* ImScrollBox_Folder;

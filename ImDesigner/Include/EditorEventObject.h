@@ -3,7 +3,7 @@
 #include <unordered_set>
 
 
-class EditorGlobalInterface
+class EditorEventObject
 {
 protected:
 	ActionSystem<KeyStringType>* m_ActionSystem;
@@ -68,11 +68,11 @@ protected:
 	}
 
 public:
-	EditorGlobalInterface()
+	EditorEventObject()
 	{
 		m_ActionSystem = EditorGlobal::GetActionSystemInstance();
 	}
-	virtual ~EditorGlobalInterface()
+	virtual ~EditorEventObject()
 	{
 		for (auto& id : AllActionProcessor)
 		{

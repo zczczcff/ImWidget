@@ -5,7 +5,7 @@
 #include "ImTools/ImDelegate.h"
 #include <string>
 #include <map>
-#include "EditorGlobalInterface.h"
+#include "EditorEventObject.h"
 
 namespace ImGuiWidget
 {
@@ -13,7 +13,7 @@ namespace ImGuiWidget
     class ButtonStateStyle;
 }
 
-class UI_WidgetTreeView :public ImGuiWidget::ImUserWidget,public EditorGlobalInterface
+class UI_WidgetTreeView :public ImGuiWidget::ImUserWidget,public EditorEventObject
 {
 private:
     struct TreeViewStruct

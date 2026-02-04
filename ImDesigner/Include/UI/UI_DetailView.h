@@ -3,9 +3,9 @@
 #include "ImWidget/ImBasicWidgetDeclaration.h"
 #include "ImTools/ImDelegate.h"
 #include <map>
-#include "EditorGlobalInterface.h"
+#include "EditorEventObject.h"
 
-class UI_DetailView : public ImGuiWidget::ImUserWidget, public EditorGlobalInterface
+class UI_DetailView : public ImGuiWidget::ImUserWidget, public EditorEventObject
 {
 private:
     struct PropertyInfor

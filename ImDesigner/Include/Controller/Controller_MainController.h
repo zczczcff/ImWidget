@@ -1,9 +1,9 @@
 #pragma once
 #include <map>
 #include <string>
-#include "EditorGlobalInterface.h"
+#include "EditorEventObject.h"
 
-class Controller_MainController:public EditorGlobalInterface
+class Controller_MainController:public EditorEventObject
 {
 private:
 	class MainUI* m_MainUI;

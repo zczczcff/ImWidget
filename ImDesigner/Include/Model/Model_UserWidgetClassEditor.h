@@ -1,7 +1,7 @@
 // Model_ImUserWidgetClassEditor.h
 #pragma once
 
-#include "EditorGlobalInterface.h"
+#include "EditorEventObject.h"
 #include "ImWidget/ImUserWidgetClass.h"
 #include "Command/ImDesignerCommandManager.h"
 #include "Command/Command_VariableOperation.h"
@@ -16,7 +16,7 @@
 #include <memory>
 #include <string>
 
-class Model_ImUserWidgetClassEditor : public EditorGlobalInterface
+class Model_ImUserWidgetClassEditor : public EditorEventObject
 {
 private:
     // 编辑的文件完整路径

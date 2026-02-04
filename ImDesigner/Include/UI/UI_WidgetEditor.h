@@ -2,10 +2,10 @@
 #pragma once
 #include "ImWidget/ImUserWidget.h"
 #include "ImTools/ImDelegate.h"
-#include "EditorGlobalInterface.h"
+#include "EditorEventObject.h"
 #include "ImUserWidgetClass.h"  // 添加头文件
 
-class UI_WidgetEditor :public ImGuiWidget::ImUserWidget, public EditorGlobalInterface
+class UI_WidgetEditor :public ImGuiWidget::ImUserWidget, public EditorEventObject
 {
 private:
     std::string EditFileFullPath;

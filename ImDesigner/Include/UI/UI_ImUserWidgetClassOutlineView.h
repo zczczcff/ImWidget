@@ -78,7 +78,7 @@ struct OutlineViewChangeInfo
 };
 
 // 大纲视图控件（支持增量更新）
-class UI_ImUserWidgetClassOutlineView : public ImGuiWidget::ImUserWidget, public EditorGlobalInterface
+class UI_ImUserWidgetClassOutlineView : public ImGuiWidget::ImUserWidget, public EditorEventObject
 {
 private:
 	ImGuiWidget::ImUserWidgetClass* m_TargetClass;
@@ -170,7 +170,7 @@ private:
 public:
 	UI_ImUserWidgetClassOutlineView(const std::string& widgetName, ImGuiWidget::ImUserWidgetClass* targetClass, const std::string& editedFileFullPath)
 		: ImGuiWidget::ImUserWidget(widgetName)
-		, EditorGlobalInterface()
+		, EditorEventObject()
 		, m_TargetClass(targetClass)
 		, m_EditedFileFullPath(editedFileFullPath)
 		, m_BasicVarsContainer(nullptr)

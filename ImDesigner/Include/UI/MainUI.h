@@ -4,7 +4,7 @@
 #include "ImBasicWidgetDeclaration.h"
 #include "ImTools/ImDelegate.h"
 #include <map>
-#include "EditorGlobalInterface.h"
+#include "EditorEventObject.h"
 
 
 namespace ImGuiWidget
@@ -18,7 +18,7 @@ class UI_WidgetEditor;
 class UI_DetailView;
 class UI_ProjectView;
 
-class MainUI : public ImGuiWidget::ImUserWidget,public EditorGlobalInterface
+class MainUI : public ImGuiWidget::ImUserWidget,public EditorEventObject
 {
 public:
     void Init();

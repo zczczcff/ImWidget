@@ -1,6 +1,7 @@
 #pragma once
 #include<EditorKit/CommandBase.h>
 #include "ImDesignerCommandData.h"
+#include "EditorEventInterface.h"
 
 namespace ImGuiWidget
 {
@@ -8,7 +9,7 @@ namespace ImGuiWidget
 }
 
 // 所有ImUserWidgetClass编辑命令的基类
-class ImUserWidgetClassCommandBase : public CommandBase<CommandDataType>
+class ImUserWidgetClassCommandBase : public CommandBase<CommandDataType> , public EditorEventInterface
 {
 protected:
     ImGuiWidget::ImUserWidgetClass* m_TargetClass;
