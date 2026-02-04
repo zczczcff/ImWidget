@@ -103,55 +103,7 @@ namespace ImGuiWidget
         ImWidget* FindWidgetByPath(ImWidget* root, const std::string& path) const
         {
             if (!root) return nullptr;
-
-            // 如果路径为空或为"."，返回根控件
-            if (path.empty() || path == ".")
-                return root;
-
-            // 分割路径
-            std::vector<std::string> pathParts;
-            std::stringstream ss(path);
-            std::string part;
-            while (std::getline(ss, part, '/'))
-            {
-                if (!part.empty() && part != ".")
-                {
-                    pathParts.push_back(part);
-                }
-            }
-
-            // 遍历路径查找控件
-            ImWidget* current = root;
-            for (const auto& partName : pathParts)
-            {
-                bool found = false;
-
-                // 如果是特殊路径".."，表示父控件
-                if (partName == "..")
-                {
-                    current = current->GetParents();
-                    if (!current) return nullptr;
-                    found = true;
-                }
-                else
-                {
-                    // 在当前控件的子控件中查找
-                    for (int i = 0; i < current->GetChildNum(); i++)
-                    {
-                        ImWidget* child = current->GetChildAt(i);
-                        if (child && child->GetWidgetName() == partName)
-                        {
-                            current = child;
-                            found = true;
-                            break;
-                        }
-                    }
-                }
-
-                if (!found) return nullptr;
-            }
-
-            return current;
+            return root->FindChildByPath(path);
         }
 
         // 获取指定类型的变量（模板辅助函数）

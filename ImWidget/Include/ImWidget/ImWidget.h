@@ -256,6 +256,13 @@ namespace ImGuiWidget
 
 		void SetToolTip(const std::string& tooltiptext) { m_ToolTipText = tooltiptext; }
 
+		// 根据路径查找子控件（路径格式：child1/child2/grandchild  ./child1/child2/grandchild）
+		ImWidget* FindChildByPath(const std::string& path);
+
+		// 构建从当前控件到目标控件的路径
+		// 如果目标控件不在当前控件的子树中，返回空字符串
+		// 如果目标控件==当前控件，返回 "."
+		std::string BuildPathTo(ImWidget* descendant);
 
 		DECLARE_IMOBJECT(ImWidget, ImObject)
 		registrar

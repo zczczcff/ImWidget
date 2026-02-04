@@ -264,7 +264,7 @@ public:
         }
         else
         {
-            parentWidget = FindWidgetByPath(rootWidget, m_ParentWidgetPath);
+            parentWidget = rootWidget->FindChildByPath(m_ChildWidgetPath);
             if (!parentWidget) return false;
             targetWidget = FindChildByName(parentWidget, m_ChildWidgetName, m_ChildIndex);
         }
@@ -324,42 +324,6 @@ private:
             parentPath = path.substr(0, lastSlash);
             widgetName = path.substr(lastSlash + 1);
         }
-    }
-
-    ImGuiWidget::ImWidget* FindWidgetByPath(ImGuiWidget::ImWidget* root, const std::string& path)
-    {
-        if (!root) return nullptr;
-
-        if (path.empty() || path == ".") return root;
-
-        std::vector<std::string> pathParts;
-        std::stringstream ss(path);
-        std::string part;
-        while (std::getline(ss, part, '/'))
-        {
-            if (!part.empty() && part != ".")
-                pathParts.push_back(part);
-        }
-
-        ImGuiWidget::ImWidget* current = root;
-        for (const auto& partName : pathParts)
-        {
-            bool found = false;
-            for (int i = 0; i < current->GetChildNum(); i++)
-            {
-                auto child = current->GetChildAt(i);
-                if (child && child->GetWidgetName() == partName)
-                {
-                    current = child;
-                    found = true;
-                    break;
-                }
-            }
-
-            if (!found) return nullptr;
-        }
-
-        return current;
     }
 
     ImGuiWidget::ImWidget* FindChildByName(ImGuiWidget::ImWidget* parent,
