@@ -608,7 +608,7 @@ protected:
 				auto* childNode = CreateWidgetTreeNode(child, child->GetWidgetName(), widgetPath, false);
 				if (childNode)
 				{
-					bodyContainer->AddChild(childNode);
+					bodyContainer->AddChildToVerticalBox(childNode)->SetIfAutoSize(false);
 				}
 			}
 		}
@@ -1017,30 +1017,12 @@ protected:
 					}
 					else
 					{
-						// 非根控件：刷新祖父节点
+						// 非根控件：刷父节点
 						ImWidget* parent = widget->GetParents();
 						if (parent)
 						{
-							ImWidget* grandParent = parent->GetParents();
-							if (grandParent)
-							{
-								std::string grandParentPath = FindWidgetPath(grandParent);
-								if (!grandParentPath.empty())
-								{
-									RefreshWidgetTreeNode(grandParent, grandParentPath);
-									return;
-								}
-							}
-							else
-							{
-								// 父控件是根控件
-								std::string parentPath = FindWidgetPath(parent);
-								if (!parentPath.empty())
-								{
-									RefreshWidgetTreeNode(parent, parentPath);
-									return;
-								}
-							}
+							std::string ParentPath = FindWidgetPath(parent);
+							RefreshWidgetTreeNode(parent, ParentPath);
 						}
 					}
 				}
@@ -1062,7 +1044,7 @@ protected:
 							auto* childNode = CreateWidgetTreeNode(child, child->GetWidgetName(), widgetPath, false);
 							if (childNode)
 							{
-								container->AddChild(childNode);
+								container->AddChildToVerticalBox(childNode)->SetIfAutoSize(false);
 							}
 						}
 					}
@@ -1092,30 +1074,12 @@ protected:
 				}
 				else
 				{
-					// 非根控件：找到祖父控件并刷新
+					// 非根控件：父控件刷新
 					ImWidget* parent = widget->GetParents();
 					if (parent)
 					{
-						ImWidget* grandParent = parent->GetParents();
-						if (grandParent)
-						{
-							std::string grandParentPath = FindWidgetPath(grandParent);
-							if (!grandParentPath.empty())
-							{
-								RefreshWidgetTreeNode(grandParent, grandParentPath);
-								return;
-							}
-						}
-						else
-						{
-							// 父控件是根控件
-							std::string parentPath = FindWidgetPath(parent);
-							if (!parentPath.empty())
-							{
-								RefreshWidgetTreeNode(parent, parentPath);
-								return;
-							}
-						}
+						std::string ParentPath = FindWidgetPath(parent);
+						RefreshWidgetTreeNode(parent, ParentPath);
 					}
 				}
 			}

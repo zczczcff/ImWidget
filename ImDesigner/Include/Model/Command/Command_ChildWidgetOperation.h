@@ -77,7 +77,7 @@ public:
         if (m_Model) {
             std::string filePath = m_Model->GetEditedFileFullPath();
             Publish(filePath + Events::OutlineView::WIDGET_CHILD_ADDED,
-                m_WidgetTreeVarName, m_ParentWidgetPath, m_InsertWidgetRegisterName);
+                m_WidgetTreeVarName, m_ParentWidgetPath, m_ActualChildName);
         }
 
         return true;
@@ -193,7 +193,7 @@ public:
         if (m_Model) {
             std::string filePath = m_Model->GetEditedFileFullPath();
             Publish(filePath + Events::OutlineView::WIDGET_CHILD_ADDED,
-                m_WidgetTreeVarName, m_ParentWidgetPath, m_ExpectedName);
+                m_WidgetTreeVarName, m_ParentWidgetPath, m_ActualChildName);
         }
 
         return true;
