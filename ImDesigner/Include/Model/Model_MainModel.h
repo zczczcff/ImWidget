@@ -55,6 +55,17 @@ public:
 	std::string CteateNewUIFileInDir(const std::string& Dir);
 	bool RenameFile(const std::string& OldFullPath, const std::string& NewFullPath);
 	~Model_MainModel();
+
+	// 获取编辑的文件
+	EditedUIFile* GetEditedUIFile(const std::string& filePath)
+	{
+		auto it = EditedFiles.find(filePath);
+		if (it != EditedFiles.end())
+		{
+			return &it->second;
+		}
+		return nullptr;
+	}
 private:
 	void LoadConfig(const std::string& ConfigPath);
 };

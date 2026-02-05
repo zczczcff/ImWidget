@@ -25,6 +25,7 @@ struct OutlineViewSelectionInfo
 	void* DataPointer;
 	std::string WidgetRegisterTypeName;
 	ImGuiWidget::ImButton* ItemButton;
+	std::string ItemName;  // 完整路径（用于控件路径格式）
 
 	OutlineViewSelectionInfo()
 		: VariableName("")
@@ -34,11 +35,12 @@ struct OutlineViewSelectionInfo
 		, DataPointer(nullptr)
 		, WidgetRegisterTypeName("")
 		, ItemButton(nullptr)
+		, ItemName("")
 	{
 	}
 
 	OutlineViewSelectionInfo(const std::string& varName, const std::string& varType,
-		bool isRoot, bool isChild, void* dataPtr, ImGuiWidget::ImButton* ItemButton, const std::string& widgetType = "")
+		bool isRoot, bool isChild, void* dataPtr, ImGuiWidget::ImButton* ItemButton, const std::string& widgetType = "", const std::string& itemName = "")
 		: VariableName(varName)
 		, VariableType(varType)
 		, IsRootWidget(isRoot)
@@ -46,6 +48,7 @@ struct OutlineViewSelectionInfo
 		, DataPointer(dataPtr)
 		, WidgetRegisterTypeName(widgetType)
 		, ItemButton(ItemButton)
+		, ItemName(itemName.empty() ? varName : itemName)
 	{
 	}
 };
@@ -664,7 +667,7 @@ protected:
 		}
 
 		itemButton->SetContent(contentContainer);
-		ConfigureItemButton(itemButton, "Widget", widgetName, widget);
+		ConfigureItemButton(itemButton, "Widget", widgetName, widget, widgetPath);
 
 		// 缓存按钮引用
 		VariableName_To_Button[widgetName] = itemButton;
@@ -691,7 +694,7 @@ protected:
 
 	// 配置项按钮样式和回调
 	void ConfigureItemButton(ImGuiWidget::ImButton* button, const std::string& itemType,
-		const std::string& itemName, void* dataPtr)
+		const std::string& itemName, void* dataPtr, const std::string& itemPath = "")
 	{
 		bool isSelected = (m_CurrentSelection.VariableType == itemType &&
 			m_CurrentSelection.VariableName == itemName);
@@ -728,6 +731,7 @@ protected:
 		selectionInfo.VariableName = itemName;
 		selectionInfo.VariableType = itemType;
 		selectionInfo.ItemButton = button;
+		selectionInfo.ItemName = itemPath.empty() ? itemName : itemPath;
 
 		if (itemType == "Widget")
 		{
@@ -753,7 +757,9 @@ protected:
 			selectionInfo.WidgetRegisterTypeName = obj->GetRegisterTypeName();
 		}
 
-		ItemName_To_SelectionInfo[itemName] = selectionInfo;
+		// 使用完整路径作为key（对于控件）或变量名（对于变量）
+		std::string mapKey = itemPath.empty() ? itemName : itemPath;
+		ItemName_To_SelectionInfo[mapKey] = selectionInfo;
 
 		button->SetOnPressed([this, itemName]()
 			{
@@ -1847,9 +1853,10 @@ protected:
 
 		m_FileActions.clear();
 
-		m_FileActions.push_back(AddSequentialProcessor(m_EditedFileFullPath + Action::WIDGET_SELECTED, [this](const std::string& SelectedWidgetName)
+		// 订阅控件选中事件，使用单参数（控件路径）
+		m_FileActions.push_back(AddSequentialProcessor(m_EditedFileFullPath + Action::WIDGET_SELECTED, [this](const std::string& widgetPath)
 			{
-				SelectItemByName(SelectedWidgetName);
+				SelectItemByName(widgetPath);
 			}));
 	}
 
@@ -1862,7 +1869,8 @@ protected:
 			{
 				ExecuteAction(m_EditedFileFullPath + Action::OutlineView::SELECT_VARIABLE, selectionInfo.VariableName);
 			}
-			ExecuteAction(m_EditedFileFullPath + Action::WIDGET_SELECTED, selectionInfo.VariableName, (ImGuiWidget::ImWidget*)selectionInfo.DataPointer);
+			// 发布控件选中动作，使用单参数（控件路径）
+			ExecuteAction(m_EditedFileFullPath + Action::WIDGET_SELECTED, selectionInfo.ItemName);
 		}
 		else
 		{

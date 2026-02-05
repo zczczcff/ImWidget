@@ -2,71 +2,71 @@
 #include "UI/UI_WidgetEditor.h"
 #include "EditorAction.h"
 
-// ¶¯Ì¬ĞéÏß¿ò»æÖÆº¯Êı
+// ç»˜åˆ¶åŠ¨æ€è™šçº¿æ¡†å‡½æ•°
 void UI_WidgetEditor::DrawAnimatedDashedRect(const ImVec2& min, const ImVec2& max, ImU32 color, float thickness, float dashLen, float gapLen, float& offset, float speed)
 {
     ImDrawList* drawList = ImGui::GetWindowDrawList();
-    // ¸üĞÂÆ«ÒÆÁ¿£¬ÊµÏÖ¶¯»­Ğ§¹û
+    // åç§»å¢é‡å®ç°åŠ¨ç”»æ•ˆæœ
     offset += speed;
     if (offset >= dashLen + gapLen)
     {
         offset -= (dashLen + gapLen);
     }
 
-    // ¼ÆËã·½¿òµÄËÄÌõ±ß
+    // è®¡ç®—çŸ©å½¢å››ä¸ªè§’
     ImVec2 topLeft = min;
     ImVec2 topRight = ImVec2(max.x, min.y);
     ImVec2 bottomRight = max;
     ImVec2 bottomLeft = ImVec2(min.x, max.y);
 
-    // ¼ÆËãËÄÌõ±ßµÄ×Ü³¤¶È
+    // è®¡ç®—å››æ¡è¾¹çš„æ€»é•¿åº¦
     float topLen = topRight.x - topLeft.x;
     float rightLen = bottomRight.y - topRight.y;
     float bottomLen = bottomRight.x - bottomLeft.x;
     float leftLen = bottomLeft.y - topLeft.y;
 
-    // »æÖÆ¶¥²¿ĞéÏß
+    // ç»˜åˆ¶é¡¶éƒ¨è™šçº¿
     DrawDashedLine(drawList, topLeft, topRight, color, thickness, dashLen, gapLen, offset);
 
-    // »æÖÆÓÒ²àĞéÏß
+    // ç»˜åˆ¶å³ä¾§è™šçº¿
     DrawDashedLine(drawList, topRight, bottomRight, color, thickness, dashLen, gapLen, offset - topLen);
 
-    // »æÖÆµ×²¿ĞéÏß£¨·½Ïò´ÓÓÒµ½×ó£©
+    // ç»˜åˆ¶åº•éƒ¨è™šçº¿ï¼ˆä»å³åˆ°å·¦ï¼‰
     DrawDashedLine(drawList, bottomRight, bottomLeft, color, thickness, dashLen, gapLen, offset - topLen - rightLen);
 
-    // »æÖÆ×ó²àĞéÏß£¨·½Ïò´ÓÏÂµ½ÉÏ£©
+    // ç»˜åˆ¶å·¦ä¾§è™šçº¿ï¼ˆä»ä¸‹åˆ°ä¸Šï¼‰
     DrawDashedLine(drawList, bottomLeft, topLeft, color, thickness, dashLen, gapLen, offset - topLen - rightLen - bottomLen);
 }
 
-// »æÖÆ´øÆ«ÒÆÁ¿µÄĞéÏß
+// ç»˜åˆ¶å¸¦åç§»é‡çš„è™šçº¿
 void UI_WidgetEditor::DrawDashedLine(ImDrawList* drawList, const ImVec2& start, const ImVec2& end, ImU32 color, float thickness, float dashLen, float gapLen, float offset)
 {
-    // ¼ÆËãÏß¶Î·½ÏòºÍ³¤¶È
+    // è®¡ç®—çº¿æ®µæ–¹å‘å’Œé•¿åº¦
     ImVec2 dir = ImVec2(end.x - start.x, end.y - start.y);
     float length = sqrtf(dir.x * dir.x + dir.y * dir.y);
     dir.x /= length;
     dir.y /= length;
 
-    // ¼ÆËãÖÜÆÚ³¤¶È
+    // è®¡ç®—å‘¨æœŸé•¿åº¦
     float period = dashLen + gapLen;
 
-    // ³õÊ¼Æ«ÒÆ´¦Àí
+    // å¼€å§‹åç§»é‡å¤„ç†
     float currentPos = fmod(offset, period);
     if (currentPos < 0) currentPos += period;
 
-    // ±éÀúÏß¶Î£¬»æÖÆĞéÏß
+    // ç»˜åˆ¶çº¿æ®µï¼Œå¾ªç¯å¤„ç†
     float traveled = 0.0f;
     while (traveled < length)
     {
-        // ¼ÆËãµ±Ç°¶ÎµÄÊ£Óà³¤¶È
+        // è®¡ç®—å½“å‰å‘¨æœŸçš„å‰©ä½™é•¿åº¦
         float remaining = length - traveled;
 
-        // ¼ÆËãµ±Ç°ÖÜÆÚÎ»ÖÃ
+        // è®¡ç®—å½“å‰ç›¸ä½çš„ä½ç½®
         float phasePos = fmod(currentPos, period);
 
         if (phasePos < dashLen)
         {
-            // Ó¦¸Ã»æÖÆĞéÏßµÄ²¿·Ö
+            // åº”è¯¥ç»˜åˆ¶è™šçº¿çš„éƒ¨åˆ†
             float dashStart = traveled;
             float dashEnd = dashStart + fmin(dashLen - phasePos, remaining);
 
@@ -88,7 +88,7 @@ void UI_WidgetEditor::DrawDashedLine(ImDrawList* drawList, const ImVec2& start, 
         }
         else
         {
-            // ¼ä¸ô²¿·Ö
+            // é—´éš™éƒ¨åˆ†
             float gapRemaining = period - phasePos;
             float move = fmin(gapRemaining, remaining);
             traveled += move;
@@ -112,23 +112,20 @@ void UI_WidgetEditor::OnMouseDown(ImGuiWidget::ImMouseDownEvent& e)
 
     if (!m_TargetClass) return;
 
-    // Èç¹ûÃ»ÓĞÖ¸¶¨µ±Ç°±à¼­µÄ¿Ø¼şÊ÷£¬Ôò·µ»Ø
+    // å¦‚æœç”¨æˆ·æ²¡æœ‰æŒ‡å®šå½“å‰ç¼–è¾‘çš„æ§ä»¶æ ‘åˆ™è¿”å›
     if (m_CurrentEditingWidgetVarName.empty()) return;
 
     ImGuiWidget::ImWidget* currentRoot = GetCurrentRootWidget();
     if (!currentRoot) return;
 
     ImGuiWidget::ImWidget* HitChild = currentRoot->ChildHitTest(e.GetPosition());
-    if (HitChild && HitChild != SelectedWidgetRef.GetWidget())
+    if (HitChild)
     {
-        // ²éÕÒ¿Ø¼şËùÊôµÄ¿Ø¼şÊ÷±äÁ¿Ãû
-        std::string widgetVarName = m_CurrentEditingWidgetVarName;
+        // æ„å»ºæ§ä»¶è·¯å¾„ï¼šæ§ä»¶æ ‘å˜é‡å + ç›¸å¯¹è·¯å¾„
+        std::string widgetPath = BuildWidgetPath(HitChild);
 
-        // Ö´ĞĞÑ¡ÖĞ¶¯×÷
-        ExecuteAction(EditFileFullPath + Action::WIDGET_SELECTED, widgetVarName, HitChild);
-
-        SelectedWidgetRef = HitChild->GetWidgetRef();
-        SelectedWidgetVarName = widgetVarName;
+        // å‘å¸ƒæ§ä»¶é€‰ä¸­åŠ¨ä½œï¼Œä½¿ç”¨å•å‚æ•°ï¼ˆæ§ä»¶è·¯å¾„ï¼‰
+        ExecuteAction(EditFileFullPath + Action::WIDGET_SELECTED, widgetPath);
     }
     e.StopPropagation();
 }
@@ -143,14 +140,29 @@ void UI_WidgetEditor::OnKeyDown(ImGuiWidget::ImKeyDownEvent& e)
 
 void UI_WidgetEditor::PostRender()
 {
+    // æ£€æŸ¥é€‰ä¸­æ§ä»¶æ˜¯å¦ä»ç„¶æœ‰æ•ˆ
     if (SelectedWidgetRef)
     {
-        // Ö»»æÖÆÊôÓÚµ±Ç°±à¼­¿Ø¼şÊ÷µÄÑ¡ÖĞ¿Ø¼ş
+        ImGuiWidget::ImWidget* widget = SelectedWidgetRef.GetWidget();
+        if (!widget)
+        {
+            // æ§ä»¶å·²å¤±æ•ˆï¼Œæ¸…é™¤é€‰ä¸­çŠ¶æ€
+            SelectedWidgetRef.Reset();
+            SelectedWidgetVarName.clear();
+            return;
+        }
+
+        // åªç»˜åˆ¶å±äºå½“å‰ç¼–è¾‘æ§ä»¶æ ‘çš„é€‰ä¸­æ§ä»¶
         if (!SelectedWidgetVarName.empty() && SelectedWidgetVarName == m_CurrentEditingWidgetVarName)
         {
-            ImVec2 Pos1 = SelectedWidgetRef->GetPosition();
-            ImVec2 Pos2 = Pos1 + SelectedWidgetRef->GetSize();
-            DrawAnimatedDashedRect(Pos1, Pos2, IM_COL32(255, 0, 0, 255), 2, 10, 10, dashOffset, 0);
+            // å†æ¬¡æ£€æŸ¥æ§ä»¶æ˜¯å¦åœ¨å½“å‰æ ‘ä¸­
+            ImGuiWidget::ImWidget* currentRoot = GetCurrentRootWidget();
+            if (currentRoot && widget->IsInTree(currentRoot))
+            {
+                ImVec2 Pos1 = widget->GetPosition();
+                ImVec2 Pos2 = Pos1 + widget->GetSize();
+                DrawAnimatedDashedRect(Pos1, Pos2, IM_COL32(255, 0, 0, 255), 2, 10, 10, dashOffset, 0);
+            }
         }
     }
 }
@@ -177,11 +189,11 @@ void UI_WidgetEditor::ResetAction()
     }
     FileActions.clear();
 
-    // ¼àÌı¿Ø¼şÑ¡ÖĞÊÂ¼ş£¨°üº¬¿Ø¼şÊ÷±äÁ¿Ãû£©
+    // è®¢é˜…æ§ä»¶é€‰ä¸­äº‹ä»¶ï¼Œä½¿ç”¨å•å‚æ•°ï¼ˆæ§ä»¶è·¯å¾„ï¼‰
     FileActions.push_back(AddSequentialProcessor(EditFileFullPath + Action::WIDGET_SELECTED,
-        [this](const std::string& widgetVarName, ImGuiWidget::ImWidget* SelectedWidget)
+        [this](const std::string& widgetPath)
         {
-            SetSelectedWidget(widgetVarName, SelectedWidget);
+            SetSelectedWidgetByPath(widgetPath);
         }));
 }
 
@@ -196,13 +208,13 @@ UI_WidgetEditor::UI_WidgetEditor(const std::string& name,
 
     if (m_TargetClass)
     {
-        // »ñÈ¡ËùÓĞ¿Ø¼şÊ÷±äÁ¿
+        // è·å–æ‰€æœ‰æ§ä»¶æ ‘å˜é‡
         auto widgetVarNames = m_TargetClass->GetWidgetVariableNames();
 
-        // Èç¹ûÃ»ÓĞÖ¸¶¨µ±Ç°±à¼­µÄ¿Ø¼şÊ÷£¬Ê¹ÓÃÄ¬ÈÏµÄ»òµÚÒ»¸ö
+        // å¦‚æœç”¨æˆ·æ²¡æœ‰æŒ‡å®šå½“å‰ç¼–è¾‘çš„æ§ä»¶æ ‘ï¼Œåˆ™ä½¿ç”¨é»˜è®¤çš„ç¬¬ä¸€ä¸ª
         if (!widgetVarNames.empty())
         {
-            // ÓÅÏÈÊ¹ÓÃÄ¬ÈÏ¸ù¿Ø¼ş
+            // ä¼˜å…ˆä½¿ç”¨é»˜è®¤æ ¹æ§ä»¶
             std::string defaultRootVarName = m_TargetClass->GetDefaultRootVariableName();
             if (!defaultRootVarName.empty() &&
                 std::find(widgetVarNames.begin(), widgetVarNames.end(), defaultRootVarName) != widgetVarNames.end())
@@ -223,7 +235,7 @@ bool UI_WidgetEditor::SetSelectedWidget(ImGuiWidget::ImWidget* widget)
 {
     if (!widget) return false;
 
-    // ²éÕÒ¿Ø¼şËùÊôµÄ¿Ø¼şÊ÷±äÁ¿Ãû
+    // æŸ¥æ‰¾æ§ä»¶æ‰€å±çš„æ§ä»¶æ ‘å˜é‡å
     std::string widgetVarName = FindWidgetVarName(widget);
     if (widgetVarName.empty()) return false;
 
@@ -234,14 +246,14 @@ bool UI_WidgetEditor::SetSelectedWidget(const std::string& widgetVarName, ImGuiW
 {
     if (!widget || !m_TargetClass) return false;
 
-    // ÑéÖ¤¿Ø¼şÊÇ·ñÊôÓÚÖ¸¶¨µÄ¿Ø¼şÊ÷
+    // éªŒè¯æ§ä»¶æ˜¯å¦å±äºæŒ‡å®šçš„æ§ä»¶æ ‘
     ImGuiWidget::ImWidget* rootWidget = m_TargetClass->GetWidgetVariable(widgetVarName);
     if (!rootWidget || !widget->IsInTree(rootWidget)) return false;
 
     SelectedWidgetRef = widget->GetWidgetRef();
     SelectedWidgetVarName = widgetVarName;
 
-    // Èç¹ûÑ¡ÖĞµÄ¿Ø¼ş²»ÔÚµ±Ç°±à¼­µÄ¿Ø¼şÊ÷ÖĞ£¬×Ô¶¯ÇĞ»»µ½¸Ã¿Ø¼şÊ÷
+    // å¦‚æœé€‰ä¸­çš„æ§ä»¶ä¸åœ¨å½“å‰ç¼–è¾‘çš„æ§ä»¶æ ‘ä¸­ï¼Œè‡ªåŠ¨åˆ‡æ¢åˆ°è¯¥æ§ä»¶æ ‘
     if (widgetVarName != m_CurrentEditingWidgetVarName)
     {
         SetEditingWidgetTree(widgetVarName);
@@ -250,13 +262,95 @@ bool UI_WidgetEditor::SetSelectedWidget(const std::string& widgetVarName, ImGuiW
     return true;
 }
 
+bool UI_WidgetEditor::SetSelectedWidgetByPath(const std::string& widgetPath)
+{
+    if (!m_TargetClass) return false;
+    if (widgetPath.empty()) return false;
+
+    // è§£ææ§ä»¶è·¯å¾„ï¼šæ ¼å¼ä¸º "WidgetTreeVarName/RelativePath" æˆ– "WidgetTreeVarName"
+    size_t slashPos = widgetPath.find('/');
+    std::string widgetVarName;
+    std::string relativePath;
+
+    if (slashPos == std::string::npos)
+    {
+        // æ²¡æœ‰æ–œæ ï¼Œè¯´æ˜æ˜¯æ ¹æ§ä»¶
+        widgetVarName = widgetPath;
+        relativePath = ".";
+    }
+    else
+    {
+        widgetVarName = widgetPath.substr(0, slashPos);
+        relativePath = widgetPath.substr(slashPos + 1);
+        if (relativePath.empty()) relativePath = ".";
+    }
+
+    // è·å–æ§ä»¶æ ‘æ ¹æ§ä»¶
+    ImGuiWidget::ImWidget* rootWidget = m_TargetClass->GetWidgetVariable(widgetVarName);
+    if (!rootWidget) return false;
+
+    // é€šè¿‡ç›¸å¯¹è·¯å¾„æŸ¥æ‰¾æ§ä»¶
+    ImGuiWidget::ImWidget* targetWidget = nullptr;
+    if (relativePath == ".")
+    {
+        targetWidget = rootWidget;
+    }
+    else
+    {
+        targetWidget = rootWidget->FindChildByPath(relativePath);
+    }
+
+    if (!targetWidget) return false;
+
+    // è®¾ç½®é€‰ä¸­çŠ¶æ€
+    SelectedWidgetRef = targetWidget->GetWidgetRef();
+    SelectedWidgetVarName = widgetVarName;
+
+    // å¦‚æœé€‰ä¸­çš„æ§ä»¶ä¸åœ¨å½“å‰ç¼–è¾‘çš„æ§ä»¶æ ‘ä¸­ï¼Œè‡ªåŠ¨åˆ‡æ¢åˆ°è¯¥æ§ä»¶æ ‘
+    if (widgetVarName != m_CurrentEditingWidgetVarName)
+    {
+        SetEditingWidgetTree(widgetVarName);
+    }
+
+    return true;
+}
+
+std::string UI_WidgetEditor::BuildWidgetPath(ImGuiWidget::ImWidget* widget) const
+{
+    if (!widget || !m_TargetClass) return "";
+
+    // æŸ¥æ‰¾æ§ä»¶æ‰€å±çš„æ§ä»¶æ ‘
+    std::string widgetVarName = FindWidgetVarName(widget);
+    if (widgetVarName.empty()) return "";
+
+    ImGuiWidget::ImWidget* rootWidget = m_TargetClass->GetWidgetVariable(widgetVarName);
+    if (!rootWidget) return "";
+
+    // æ„å»ºç›¸å¯¹è·¯å¾„
+    std::string relativePath = rootWidget->BuildPathTo(widget);
+
+    // ç»„åˆå®Œæ•´è·¯å¾„ï¼šæ§ä»¶æ ‘å˜é‡å + ç›¸å¯¹è·¯å¾„
+    if (relativePath == "." || relativePath.empty())
+    {
+        return widgetVarName;
+    }
+
+    // ç§»é™¤ç›¸å¯¹è·¯å¾„å‰é¢çš„ "./"
+    if (relativePath.size() >= 2 && relativePath[0] == '.' && relativePath[1] == '/')
+    {
+        relativePath = relativePath.substr(2);
+    }
+
+    return widgetVarName + "/" + relativePath;
+}
+
 void UI_WidgetEditor::SetEditingWidgetTree(const std::string& widgetVarName)
 {
     if (widgetVarName == m_CurrentEditingWidgetVarName) return;
 
     SetCurrentEditingWidgetTree(widgetVarName);
 
-    // Çå¿ÕÑ¡ÖĞ×´Ì¬£¨Èç¹ûÑ¡ÖĞµÄ¿Ø¼ş²»ÊôÓÚµ±Ç°±à¼­µÄ¿Ø¼şÊ÷£©
+    // æ¸…é™¤é€‰ä¸­çŠ¶æ€ï¼Œå¦‚æœé€‰ä¸­çš„æ§ä»¶ä¸åœ¨å½“å‰ç¼–è¾‘çš„æ§ä»¶æ ‘ä¸­
     if (!SelectedWidgetVarName.empty() && SelectedWidgetVarName != m_CurrentEditingWidgetVarName)
     {
         SelectedWidgetRef.Reset();
@@ -273,7 +367,7 @@ void UI_WidgetEditor::SetCurrentEditingWidgetTree(const std::string& widgetVarNa
 
     m_CurrentEditingWidgetVarName = widgetVarName;
 
-    // ÉèÖÃ¸ù¿Ø¼ş
+    // è®¾ç½®æ ¹æ§ä»¶
     SetRootWidget(rootWidget, false);
 }
 
@@ -287,7 +381,7 @@ std::string UI_WidgetEditor::FindWidgetVarName(ImGuiWidget::ImWidget* widget) co
 {
     if (!widget || !m_TargetClass) return "";
 
-    // ±éÀúËùÓĞ¿Ø¼şÊ÷£¬²éÕÒ¿Ø¼şËùÊôµÄÊ÷
+    // éå†æ‰€æœ‰æ§ä»¶æ ‘å˜é‡ï¼ŒæŸ¥æ‰¾æ§ä»¶æ‰€å±çš„æ§ä»¶æ ‘å˜é‡å
     auto widgetVarNames = m_TargetClass->GetWidgetVariableNames();
     for (const auto& varName : widgetVarNames)
     {
@@ -311,19 +405,19 @@ void UI_WidgetEditor::SetTargetClass(ImGuiWidget::ImUserWidgetClass* targetClass
     {
         auto widgetVarNames = m_TargetClass->GetWidgetVariableNames();
 
-        // ÖØÖÃµ±Ç°±à¼­µÄ¿Ø¼şÊ÷
+        // è®¾ç½®å½“å‰ç¼–è¾‘çš„æ§ä»¶æ ‘
         if (!widgetVarNames.empty())
         {
-            // ÓÅÏÈ±£³ÖÔ­ÓĞµÄ¿Ø¼şÊ÷
+            // ä¼˜å…ˆä¿ç•™åŸæœ‰çš„æ§ä»¶æ ‘
             if (!m_CurrentEditingWidgetVarName.empty() &&
                 std::find(widgetVarNames.begin(), widgetVarNames.end(), m_CurrentEditingWidgetVarName) != widgetVarNames.end())
             {
-                // ±£³ÖÔ­ÓĞµÄ¿Ø¼şÊ÷
+                // ä½¿ç”¨åŸæœ‰çš„æ§ä»¶æ ‘
                 SetCurrentEditingWidgetTree(m_CurrentEditingWidgetVarName);
             }
             else
             {
-                // ÓÅÏÈÊ¹ÓÃÄ¬ÈÏ¸ù¿Ø¼ş
+                // ä½¿ç”¨é»˜è®¤æ ¹æ§ä»¶
                 std::string defaultRootVarName = m_TargetClass->GetDefaultRootVariableName();
                 if (!defaultRootVarName.empty() &&
                     std::find(widgetVarNames.begin(), widgetVarNames.end(), defaultRootVarName) != widgetVarNames.end())
@@ -332,7 +426,7 @@ void UI_WidgetEditor::SetTargetClass(ImGuiWidget::ImUserWidgetClass* targetClass
                 }
                 else
                 {
-                    // Ê¹ÓÃµÚÒ»¸ö¿Ø¼şÊ÷
+                    // ä½¿ç”¨ç¬¬ä¸€ä¸ªæ§ä»¶æ ‘
                     SetCurrentEditingWidgetTree(widgetVarNames[0]);
                 }
             }
@@ -344,7 +438,7 @@ void UI_WidgetEditor::SetTargetClass(ImGuiWidget::ImUserWidgetClass* targetClass
         }
     }
 
-    // Çå¿ÕÑ¡ÖĞ×´Ì¬
+    // æ¸…é™¤é€‰ä¸­çŠ¶æ€
     SelectedWidgetRef.Reset();
     SelectedWidgetVarName.clear();
 }

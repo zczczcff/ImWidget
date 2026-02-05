@@ -1,8 +1,13 @@
-#include "UI/UI_DetailView.h"
+ï»¿#include "UI/UI_DetailView.h"
 #include "ImWidget/ImBasicWidgetList.h"
+#include "ImWidget/ImUserWidgetClass.h"
 #include "Tools/JLog.h"
 #include "EditorAction.h"
 #include "EditorEvents.h"
+#include "Model/Model_MainModel.h"
+
+// å…¨å±€å˜é‡å£°æ˜
+extern Model_MainModel* global_MainModel;
 
 void UI_DetailView::OnKeyDown(ImGuiWidget::ImKeyDownEvent& e)
 {
@@ -54,10 +59,55 @@ void UI_DetailView::ResetFileAction()
     }
     FileActions.clear();
 
+    // è®¢é˜…æ§ä»¶é€‰ä¸­äº‹ä»¶ï¼Œä½¿ç”¨å•å‚æ•°ï¼ˆæ§ä»¶è·¯å¾„ï¼‰
     FileActions.push_back(AddSequentialProcessor(EditedFileFullPath + Action::WIDGET_SELECTED,
-        [this](ImGuiWidget::ImWidget* SelectedWidget)
+        [this](const std::string& widgetPath)
         {
-            SetCurrentWidget(SelectedWidget);
+            if (!global_MainModel) return;
+            if (widgetPath.empty()) return;
+
+            // è·å–ç¼–è¾‘çš„æ–‡ä»¶
+            Model_MainModel::EditedUIFile* editedFile = global_MainModel->GetEditedUIFile(EditedFileFullPath);
+            if (!editedFile || !editedFile->EditedFile) return;
+
+            ImGuiWidget::ImUserWidgetClass* targetClass = editedFile->EditedFile;
+
+            // è§£ææ§ä»¶è·¯å¾„ï¼šæ ¼å¼ä¸º "WidgetTreeVarName/RelativePath" æˆ– "WidgetTreeVarName"
+            size_t slashPos = widgetPath.find('/');
+            std::string widgetVarName;
+            std::string relativePath;
+
+            if (slashPos == std::string::npos)
+            {
+                widgetVarName = widgetPath;
+                relativePath = ".";
+            }
+            else
+            {
+                widgetVarName = widgetPath.substr(0, slashPos);
+                relativePath = widgetPath.substr(slashPos + 1);
+                if (relativePath.empty()) relativePath = ".";
+            }
+
+            // è·å–æ§ä»¶æ ‘æ ¹æ§ä»¶
+            ImGuiWidget::ImWidget* rootWidget = targetClass->GetWidgetVariable(widgetVarName);
+            if (!rootWidget) return;
+
+            // é€šè¿‡ç›¸å¯¹è·¯å¾„æŸ¥æ‰¾æ§ä»¶
+            ImGuiWidget::ImWidget* targetWidget = nullptr;
+            if (relativePath == ".")
+            {
+                targetWidget = rootWidget;
+            }
+            else
+            {
+                targetWidget = rootWidget->FindChildByPath(relativePath);
+            }
+
+            if (targetWidget)
+            {
+                SetCurrentWidget(targetWidget);
+            }
         }));
 }
 
@@ -124,7 +174,7 @@ std::string UI_DetailView::GetPropertyDisplayName(const ROP::Property<ImGuiWidge
 
     if (!description.empty())
     {
-        // ¿ÉÒÔ¸ù¾İĞèÒª¸ñÊ½»¯ÏÔÊ¾Ãû³Æ£¬ÀıÈçÌí¼ÓÃèÊö
+        // å±æ€§å¯æ ¹æ®é‡è¦éœ€è¦æ ¼å¼æ˜¾ç¤ºåç§°ï¼Œæš‚æ—¶çœç•¥
         // displayName += " - " + description;
     }
 
@@ -135,7 +185,7 @@ bool UI_DetailView::IsOptionalProperty(const ROP::Property<ImGuiWidget::Property
 {
     try
     {
-        // ³¢ÊÔ×ª»»ÎªOptionalPropertyÀ´¼ì²éÊÇ·ñÎªÑ¡ÏîÊôĞÔ
+        // å°è¯•è½¬æ¢ä¸ºOptionalPropertyæ¥åˆ¤æ–­æ˜¯å¦ä¸ºå¯é€‰å±æ€§
         auto optionalProp = prop.GetObject()->ToOptionalProperty(prop);
         return optionalProp.IsValid() && optionalProp.IsOptional();
     }
@@ -159,7 +209,7 @@ std::vector<std::string> UI_DetailView::GetOptionalPropertyOptions(const ROP::Pr
     }
     catch (...)
     {
-        // ´¦ÀíÒì³£
+        // å¿½ç•¥å¼‚å¸¸
     }
 
     return options;
@@ -176,7 +226,7 @@ void UI_DetailView::HandleSingleProperty(
 
     if (Updaters.find(propName) != Updaters.end())
     {
-        AddLogLineEx(u8"ÖØ¸´ÊôĞÔ[", propName, u8"]ÒÑ±»Ìí¼Ó");
+        AddLogLineEx(u8"é‡å¤å±æ€§[", propName, u8"]å·²è¢«å¿½ç•¥");
         return;
     }
 
@@ -211,7 +261,7 @@ void UI_DetailView::HandleSingleProperty(
             }
             catch (...)
             {
-                // ´¦ÀíÒì³£
+                // æ•è·å¼‚å¸¸
             }
         };
         break;
@@ -241,7 +291,7 @@ void UI_DetailView::HandleSingleProperty(
             }
             catch (...)
             {
-                // ´¦ÀíÒì³£
+                // æ•è·å¼‚å¸¸
             }
         };
 
@@ -273,7 +323,7 @@ void UI_DetailView::HandleSingleProperty(
             }
             catch (...)
             {
-                // ´¦ÀíÒì³£
+                // æ•è·å¼‚å¸¸
             }
         };
 
@@ -305,7 +355,7 @@ void UI_DetailView::HandleSingleProperty(
             }
             catch (...)
             {
-                // ´¦ÀíÒì³£
+                // æ•è·å¼‚å¸¸
             }
         };
 
@@ -337,7 +387,7 @@ void UI_DetailView::HandleSingleProperty(
             }
             catch (...)
             {
-                // ´¦ÀíÒì³£
+                // æ•è·å¼‚å¸¸
             }
         };
 
@@ -395,7 +445,7 @@ void UI_DetailView::HandleSingleProperty(
             }
             catch (...)
             {
-                // ´¦ÀíÒì³£
+                // æ•è·å¼‚å¸¸
             }
         };
 
@@ -427,7 +477,7 @@ void UI_DetailView::HandleSingleProperty(
             CachedPropertyInfors.insert(std::make_pair(SubTarget, NewPropertyInfor));
         }
 
-        Updater = []() {}; // ½á¹¹ÀàĞÍÔİÊ±²»Ö±½Ó¸üĞÂ
+        Updater = []() {}; // ç»“æ„ä½“æš‚ä¸æ”¯æŒç›´æ¥æ›´æ–°
         CurrentVerticalBox->AddChildToVerticalBox(StructBox)->SetIfAutoSize(false);
         break;
     }
@@ -535,7 +585,7 @@ void UI_DetailView::HandleSingleProperty(
         }
         catch (...)
         {
-            // Èç¹ûÎŞ·¨×ª»»ÎªOptionalProperty£¬³¢ÊÔÆäËû·½Ê½
+            // å¦‚æœæ— æ³•è½¬æ¢ä¸ºOptionalPropertyï¼Œåˆ™ä½¿ç”¨å›é€€æ–¹å¼
             allOptions = GetOptionalPropertyOptions(prop);
             if (!allOptions.empty())
             {
@@ -549,7 +599,7 @@ void UI_DetailView::HandleSingleProperty(
                 }
                 catch (...)
                 {
-                    // ´¦ÀíÒì³£
+                    // æ•è·å¼‚å¸¸
                 }
             }
         }
@@ -570,15 +620,15 @@ void UI_DetailView::HandleSingleProperty(
                         }
                         else
                         {
-                            // Ö±½ÓÉèÖÃÕûÊıÖµ
-                            // Ó¦¸ÃÍ¨¹ıaction·¢ËÍ£¬ÏÈ²»´¦Àí
+                            // ç›´æ¥è®¾ç½®æ–°å€¼
+                            // åº”è¯¥é€šè¿‡actionå‘é€ï¼Œæš‚æ—¶ä¸å¤„ç†
                             //prop.SetValue<int>(NewIndex);
                         }
                         ExecutePropertyEditAction(prop, &NewIndex, Target);
                     }
                     catch (...)
                     {
-                        // ´¦ÀíÒì³£
+                        // æ•è·å¼‚å¸¸
                     }
                 }
             });
@@ -601,7 +651,7 @@ void UI_DetailView::HandleSingleProperty(
             }
             catch (...)
             {
-                // ´¦ÀíÒì³£
+                // æ•è·å¼‚å¸¸
             }
         };
 
@@ -610,7 +660,7 @@ void UI_DetailView::HandleSingleProperty(
     }
     default:
     {
-        AddLogLineEx(u8"Î´ÖªÊôĞÔÀàĞÍ:widget:", WidgetOwner->GetWidgetName(), u8", ÊôĞÔ:", prop.GetName());
+        AddLogLineEx(u8"æœªçŸ¥å±æ€§ç±»å‹:widget:", WidgetOwner->GetWidgetName(), u8", å±æ€§:", prop.GetName());
         break;
     }
     }
@@ -637,13 +687,13 @@ void UI_DetailView::SetCurrentWidget(ImGuiWidget::ImWidget* widget)
         return;
     }
 
-    // ´´½¨ĞÂµÄÏêÇéÊÓÍ¼
+    // åˆ›å»ºæ–°çš„è¯¦æƒ…è§†å›¾
     ImGuiWidget::ImVerticalBox* VBox = new ImGuiWidget::ImVerticalBox(widget->GetWidgetName() + "detaailvbox");
     ImGuiWidget::ImTextBlock* WidgetName = new ImGuiWidget::ImTextBlock(m_WidgetID + "_WidgetName");
     WidgetName->SetText(widget->GetRegisterTypeName());
     VBox->AddChildToVerticalBox(WidgetName)->SetIfAutoSize(false);
 
-    // ´¦Àí²å²ÛÊôĞÔ
+    // å¤„ç†æ’æ§½å±æ€§
     if (auto Slot = widget->GetSlotAt())
     {
         ImGuiWidget::ImExpandableBox* SlotBox = new ImGuiWidget::ImExpandableBox(m_WidgetID + "_SlotBox");
@@ -666,7 +716,7 @@ void UI_DetailView::SetCurrentWidget(ImGuiWidget::ImWidget* widget)
         VBox->AddChildToVerticalBox(SlotBox)->SetIfAutoSize(false);
     }
 
-    // ´¦Àí¿Ø¼ş×ÔÉíÊôĞÔ
+    // å¤„ç†æ§ä»¶æœ¬èº«å±æ€§
     std::unordered_map<std::string, std::function<void()>> Updaters;
     auto properties = widget->GetAllPropertiesOrdered();
 
@@ -685,12 +735,12 @@ void UI_DetailView::SetCurrentWidget(ImGuiWidget::ImWidget* widget)
 void UI_DetailView::ExecutePropertyEditAction(const ROP::Property<ImGuiWidget::PropertyType>& prop,
     const void* NewValue, ImGuiWidget::ImObject* Target)
 {
-    // ×¢Òâ£ºÕâÀïĞèÒª½«ROP::Property×ª»»Îª¿ÉÒÔĞòÁĞ»¯µÄĞÎÊ½
-    // ÓÉÓÚROP::Property°üº¬ÁËËùÓĞ±ØÒªĞÅÏ¢£¬ÎÒÃÇ¿ÉÒÔ´«µİËüµÄ¹Ø¼üÊı¾İ
+    // æ³¨æ„ï¼šè¿™é‡Œéœ€è¦å°†ROP::Propertyè½¬æ¢ä¸ºæŸç§å¯åºåˆ—åŒ–æ ¼å¼
+    // ä½†ROP::Propertyå·²ç»åŒ…å«æ‰€æœ‰éœ€è¦ä¿¡æ¯ï¼Œæ‰€ä»¥å¯ä»¥ä»ä¸­æå–å…³é”®ä¿¡æ¯
     ExecuteAction(EditedFileFullPath + Action::DetailView::_REQUEST_EDIT_PROPERTY,
         prop.GetName(), prop.GetClassName(), NewValue, Target);
 
-    // Á¢¼´¸üĞÂÏÔÊ¾
+    // æ›´æ–°å±æ€§æ˜¾ç¤º
     UpdatePropertyDisplay(Target, prop.GetName());
 }
 
@@ -699,15 +749,15 @@ void UI_DetailView::UpdatePropertyDisplay(ImGuiWidget::ImObject* Target, const s
     auto it = CachedPropertyInfors.find(Target);
     if (it == CachedPropertyInfors.end())
     {
-        AddLogLineEx(u8"¸üĞÂÊôĞÔÏÔÊ¾Ê§°Ü£ºTarget[", Target, "], Name[", PropertyName, "]");
+        AddLogLineEx(u8"æ›´æ–°å±æ€§æ˜¾ç¤ºå¤±è´¥ï¼šTarget[", Target, "], Name[", PropertyName, "]");
         return;
     }
 
     auto UpdaterIt = it->second->Updaters.find(PropertyName);
     if (UpdaterIt == it->second->Updaters.end())
     {
-        // ¿ÉÄÜÊÇÇ¶Ì×ÊôĞÔ£¬³¢ÊÔ²éÕÒ¸¸¶ÔÏó
-        AddLogLineEx(u8"¸üĞÂÊôĞÔÏÔÊ¾Ê§°Ü£ºWidget[", it->second->WidgetOwner->GetWidgetName(),
+        // å¯èƒ½æ˜¯åµŒå¥—å±æ€§ï¼Œä¸éœ€è¦æ›´æ–°
+        AddLogLineEx(u8"æ›´æ–°å±æ€§æ˜¾ç¤ºå¤±è´¥ï¼šWidget[", it->second->WidgetOwner->GetWidgetName(),
             "] Target[", Target, "], Name[", PropertyName, "]");
         return;
     }
@@ -718,6 +768,6 @@ void UI_DetailView::UpdatePropertyDisplay(ImGuiWidget::ImObject* Target, const s
     }
     catch (...)
     {
-        AddLogLineEx(u8"¸üĞÂÊôĞÔÊ±·¢ÉúÒì³££º", PropertyName);
+        AddLogLineEx(u8"æ›´æ–°å±æ€§æ—¶å‘ç”Ÿå¼‚å¸¸ï¼š", PropertyName);
     }
 }

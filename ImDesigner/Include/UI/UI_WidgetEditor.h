@@ -3,25 +3,25 @@
 #include "ImWidget/ImUserWidget.h"
 #include "ImTools/ImDelegate.h"
 #include "EditorEventObject.h"
-#include "ImUserWidgetClass.h"  // Ìí¼ÓÍ·ÎÄ¼ş
+#include "ImUserWidgetClass.h"  // å¼•å…¥å¤´æ–‡ä»¶
 
 class UI_WidgetEditor :public ImGuiWidget::ImUserWidget, public EditorEventObject
 {
 private:
     std::string EditFileFullPath;
-    ImGuiWidget::ImUserWidgetClass* m_TargetClass = nullptr;  // Ìæ»» EditorRootWidget
+    ImGuiWidget::ImUserWidgetClass* m_TargetClass = nullptr;  // æ›¿æ¢ EditorRootWidget
 
-    std::string m_CurrentEditingWidgetVarName;  // µ±Ç°±à¼­µÄ¿Ø¼şÊ÷±äÁ¿Ãû
+    std::string m_CurrentEditingWidgetVarName;  // å½“å‰ç¼–è¾‘çš„æ§ä»¶æ ‘å˜é‡å
     bool bAllowOperateChild = false;
     float dashOffset = 0.0f;
 
     ImGuiWidget::ImWidgetRef SelectedWidgetRef;
-    std::string SelectedWidgetVarName;  // Ñ¡ÖĞ¿Ø¼şËùÊôµÄ¿Ø¼şÊ÷±äÁ¿Ãû
+    std::string SelectedWidgetVarName;  // é€‰ä¸­æ§ä»¶æ‰€å±çš„æ§ä»¶æ ‘å˜é‡å
 
     std::vector<EditorActionID> FileActions;
 
 protected:
-    // ¶¯Ì¬ĞéÏß¿ò»æÖÆº¯Êı
+    // ç»˜åˆ¶åŠ¨æ€è™šçº¿æ¡†å‡½æ•°
     void DrawAnimatedDashedRect(
         const ImVec2& min,
         const ImVec2& max,
@@ -33,7 +33,7 @@ protected:
         float speed = 1.0f
     );
 
-    // »æÖÆĞéÏß
+    // ç»˜åˆ¶è™šçº¿
     void DrawDashedLine(
         ImDrawList* drawList,
         const ImVec2& start,
@@ -53,35 +53,41 @@ protected:
     void ActionInit();
     void ResetAction();
 
-    // ¸üĞÂµ±Ç°±à¼­µÄ¿Ø¼şÊ÷
+    // è®¾ç½®å½“å‰ç¼–è¾‘çš„æ§ä»¶æ ‘
     void SetCurrentEditingWidgetTree(const std::string& widgetVarName);
 
-    // »ñÈ¡µ±Ç°±à¼­µÄ¸ù¿Ø¼ş
+    // è·å–å½“å‰ç¼–è¾‘çš„æ ¹æ§ä»¶
     ImGuiWidget::ImWidget* GetCurrentRootWidget() const;
 
-    // ²éÕÒ¿Ø¼şËùÊôµÄ¿Ø¼şÊ÷±äÁ¿Ãû
+    // æŸ¥æ‰¾æ§ä»¶æ‰€å±çš„æ§ä»¶æ ‘å˜é‡å
     std::string FindWidgetVarName(ImGuiWidget::ImWidget* widget) const;
+
+    // æ„å»ºæ§ä»¶è·¯å¾„
+    std::string BuildWidgetPath(ImGuiWidget::ImWidget* widget) const;
 
 public:
     UI_WidgetEditor(const std::string& name,
         ImGuiWidget::ImUserWidgetClass* targetClass,
         const std::string& EditFileFullPath);
 
-    // ÉèÖÃÑ¡ÖĞµÄ¿Ø¼ş
+    // è®¾ç½®é€‰ä¸­çš„æ§ä»¶
     bool SetSelectedWidget(ImGuiWidget::ImWidget* widget);
 
-    // ÉèÖÃÑ¡ÖĞµÄ¿Ø¼ş£¨Ö¸¶¨ËùÊôµÄ¿Ø¼şÊ÷±äÁ¿Ãû£©
+    // è®¾ç½®é€‰ä¸­çš„æ§ä»¶ï¼ˆæŒ‡å®šæ§ä»¶æ ‘å˜é‡åï¼‰
     bool SetSelectedWidget(const std::string& widgetVarName, ImGuiWidget::ImWidget* widget);
 
-    // ÉèÖÃµ±Ç°±à¼­µÄ¿Ø¼şÊ÷
+    // é€šè¿‡æ§ä»¶è·¯å¾„è®¾ç½®é€‰ä¸­æ§ä»¶
+    bool SetSelectedWidgetByPath(const std::string& widgetPath);
+
+    // è®¾ç½®å½“å‰ç¼–è¾‘çš„æ§ä»¶æ ‘
     void SetEditingWidgetTree(const std::string& widgetVarName);
 
-    // »ñÈ¡µ±Ç°±à¼­µÄ¿Ø¼şÊ÷±äÁ¿Ãû
+    // è·å–å½“å‰ç¼–è¾‘çš„æ§ä»¶æ ‘å˜é‡å
     std::string GetCurrentEditingWidgetVarName() const { return m_CurrentEditingWidgetVarName; }
 
-    // »ñÈ¡Ä¿±êÀà
+    // è·å–ç›®æ ‡ç±»
     ImGuiWidget::ImUserWidgetClass* GetTargetClass() const { return m_TargetClass; }
 
-    // ÉèÖÃÄ¿±êÀà
+    // è®¾ç½®ç›®æ ‡ç±»
     void SetTargetClass(ImGuiWidget::ImUserWidgetClass* targetClass);
 };
