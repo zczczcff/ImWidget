@@ -109,3 +109,4 @@ ehthumbs.db
 ### 其他生成文件 ###
 *.autosave
 compile_commands.json
+/.obsidian/

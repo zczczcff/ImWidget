@@ -1,0 +1,183 @@
+{
+  "timestamp": "2026-02-05T17:58:15+08:00",
+  "project_name": "ImWidget",
+  "description": "C++用户界面控件编辑器项目",
+  "modules": [
+    {
+      "name": "ImWidget",
+      "path": "./ImWidget",
+      "type": "core_library",
+      "language": "C++",
+      "entry_files": [
+        "ImWidget/ImWidgetConfig.h",
+        "ImMain.cpp"
+      ],
+      "cmake_file": "ImWidget/CMakeLists.txt",
+      "key_interfaces": [
+        "ImWidget",
+        "ImPanelWidget",
+        "ImUserWidget",
+        "ImEventSystem",
+        "ImUserWidgetClass",
+        "ImUserWidgetSerializer",
+        "ImUserWidgetClassCodeGenerator"
+      ],
+      "dependencies": [
+        "ImGui",
+        "nlohmann_json",
+        "stb_image",
+        "ROP"
+      ],
+      "test_directory": null,
+      "config_directory": null,
+      "coverage": {
+        "estimated_files": 150,
+        "scanned_files": 50,
+        "coverage_percent": 33,
+        "has_interfaces": true,
+        "has_tests": false,
+        "has_data_models": true
+      },
+      "gaps": [
+        "部分控件实现文件未详细扫描",
+        "无独立测试目录"
+      ]
+    },
+    {
+      "name": "ImCreator",
+      "path": "./ImCreator",
+      "type": "application",
+      "language": "C++",
+      "entry_files": [
+        "ImCreator/Include/ImBasicWidgetDeclaration.h",
+        "ImCreator/Src/ImCreator_main.cpp"
+      ],
+      "cmake_file": "ImCreator/CMakeLists.txt",
+      "key_interfaces": [
+        "WidgetTreeView",
+        "ImDesignPanel",
+        "DetailList",
+        "ImCreator_PageManager",
+        "EventBus"
+      ],
+      "dependencies": [
+        "ImWidget"
+      ],
+      "test_directory": null,
+      "config_directory": "ImCreator/cmake",
+      "coverage": {
+        "estimated_files": 10,
+        "scanned_files": 10,
+        "coverage_percent": 100,
+        "has_interfaces": true,
+        "has_tests": false,
+        "has_data_models": false
+      },
+      "gaps": []
+    },
+    {
+      "name": "ImDesigner",
+      "path": "./ImDesigner",
+      "type": "application",
+      "language": "C++",
+      "entry_files": [
+        "ImDesigner/Source/ImDesigner_main.cpp",
+        "ImDesigner/Include/UI/MainUI.h"
+      ],
+      "cmake_file": "ImDesigner/CMakeLists.txt",
+      "key_interfaces": [
+        "MainUI",
+        "Model_MainModel",
+        "Controller_MainController",
+        "ImDesignerCommandManager",
+        "UI_ProjectView",
+        "UI_WidgetEditor",
+        "UI_DetailView"
+      ],
+      "dependencies": [
+        "ImWidget",
+        "EditorKit"
+      ],
+      "test_directory": null,
+      "config_directory": "ImDesigner/cmake",
+      "coverage": {
+        "estimated_files": 80,
+        "scanned_files": 60,
+        "coverage_percent": 75,
+        "has_interfaces": true,
+        "has_tests": false,
+        "has_data_models": true
+      },
+      "gaps": [
+        "部分命令实现未详细扫描"
+      ]
+    },
+    {
+      "name": "Test",
+      "path": "./Test",
+      "type": "test",
+      "language": "C++",
+      "entry_files": [
+        "Test/Source/ImUserWidgetClassTest.cpp"
+      ],
+      "cmake_file": "Test/CMakeLists.txt",
+      "key_interfaces": [
+        "TestUserWidgetClassSerialization"
+      ],
+      "dependencies": [
+        "ImWidget"
+      ],
+      "test_directory": "Test/Source",
+      "config_directory": "Test/cmake",
+      "coverage": {
+        "estimated_files": 5,
+        "scanned_files": 5,
+        "coverage_percent": 100,
+        "has_interfaces": true,
+        "has_tests": true,
+        "has_data_models": false
+      },
+      "gaps": [
+        "测试覆盖范围有限，仅测试了序列化功能"
+      ]
+    }
+  ],
+  "overall_stats": {
+    "total_estimated_files": 245,
+    "total_scanned_files": 125,
+    "overall_coverage_percent": 51,
+    "modules_with_tests": 1,
+    "modules_with_interfaces": 4,
+    "modules_with_data_models": 2
+  },
+  "ignore_patterns": [
+    "build*/**",
+    "Build*/**",
+    "Extern/**",
+    "*.vcxproj",
+    "*.filters",
+    "*.sln",
+    "*.pdb",
+    "*.ilk",
+    "*.obj",
+    "*.log",
+    ".vs/**",
+    ".vscode/**",
+    ".idea/**",
+    "*.imui"
+  ],
+  "ignore_stats": {
+    "build_dirs": 8,
+    "extern_files": 1000,
+    "generated_files": 50,
+    "total_ignored": 1058
+  },
+  "truncated": false,
+  "truncation_reason": null,
+  "next_steps": [
+    "补扫ImWidget模块的控件实现文件（ImButton.cpp等）",
+    "补扫ImDesigner模块的命令实现文件",
+    "补扫ROP属性系统的实现细节",
+    "识别测试用例的完整覆盖范围"
+  ]
+}
