@@ -1,4 +1,4 @@
-#include "UI/MainUI.h"
+ï»¿#include "UI/MainUI.h"
 #include "ImBasicWidgetList.h"
 #include "UI/Widget_ExampleWidgetButton.h"
 #include "UI/Widget_PageTag.h"
@@ -8,7 +8,6 @@
 #include "UI/IconManager.h"
 #include "Application/ImApplication.h"
 #include "UI/UI_WidgetEditor.h"
-#include "UI/UI_WidgetTreeView.h"
 #include "UI/UI_DetailView.h"
 #include "UI/UI_ProjectView.h"
 #include "Model/FileUtil.h"
@@ -42,7 +41,7 @@ void MainUI::Init2()
 
 	ImPageManager_LeftPart = new ImGuiWidget::ImPageManager("ImPageManager_LeftPart");
 	
-	// ´´½¨ÏîÄ¿ÊÓÍ¼ÊµÀý
+	// åˆ›å»ºé¡¹ç›®è§†å›¾å®žä¾‹
 	ProjectView = new UI_ProjectView("ProjectView");
 	//ProjectView->OnUIFileSelected.Add([this](const std::string& FileName, const std::string& FileFullPath) 
 	//	{
@@ -53,13 +52,13 @@ void MainUI::Init2()
 	ImPageManager_LeftPart->SetTabPosition(ImGuiWidget::ImPageManager::TabPosition::Bottom);
 	ImPageManager_LeftPart->SetShowCloseButton(false);
 
-	ImPageManager_LeftPart->AddPage(u8"ÏîÄ¿Ä¿Â¼", ProjectView);
+	ImPageManager_LeftPart->AddPage(u8"é¡¹ç›®ç›®å½•", ProjectView);
 	
 
 	m_FolderOperatorMenuWindow = ImGuiWidget::GetGlobalInstance()->GetGlobalApp()->GetWindowManager()->CreatePopupWindow(ImVec2(0, 0), ImVec2(0, 0), nullptr, false);
 	m_FolderOperatorMenuWindow->Close();
 
-	//Ö÷¹¤×÷½çÃæ
+	//ä¸»å·¥ä½œç•Œé¢
 	ImPageManager_Main = new ImGuiWidget::ImPageManager("ImPageManager_Main");
 	ImBorder_MainWorkSpace->SetContent(ImPageManager_Main);
 	//ImGuiWidget::ImTextBlock* testtext = new ImGuiWidget::ImTextBlock("testblock");
@@ -74,12 +73,12 @@ void MainUI::Init2()
 			On_EditorPageSelected(PageID); 
 		});
 
-	//¿Ø¼þÊ÷ÊÓÍ¼
+	//æŽ§ä»¶æ ‘è§†å›¾
 	ImScrollBox_Outline = new ImGuiWidget::ImScrollBox("ImScrollBox_Outline");
 	ImScrollBox_Outline->bHaveBorder = false;
-	ImPageManager_LeftPart->AddPage(u8"±äÁ¿ÁÐ±í", ImScrollBox_Outline);
+	ImPageManager_LeftPart->AddPage(u8"å˜é‡åˆ—è¡¨", ImScrollBox_Outline);
 
-	//Ï¸½Ú¿ò
+	//ç»†èŠ‚æ¡†
 	ImScrollBox_FileDetail = new ImGuiWidget::ImScrollBox("ImScrollBox_FileDetail");
 	ImScrollBox_FileDetail->bHaveBorder = false;
 	ImBorder_Right->SetContent(ImScrollBox_FileDetail);
@@ -92,14 +91,14 @@ void MainUI::Init2()
 			//OnRequestUndo.Broadcast(); 
 		});
 	ImButton_Undo->SetToolTipEnable(true);
-	ImButton_Undo->SetToolTip(u8"³·Ïú£¨Ctrl+Z£©");
+	ImButton_Undo->SetToolTip(u8"æ’¤é”€ï¼ˆCtrl+Zï¼‰");
 	ImButton_Redo->OnLeftClicked.Add([this]() 
 		{
 			ExecuteAction(CurrentEditedFile + Action::_REQUEST_REDO);
 			//OnRequestRedo.Broadcast();
 		});
 	ImButton_Redo->SetToolTipEnable(true);
-	ImButton_Redo->SetToolTip(u8"ÖØ×ö");
+	ImButton_Redo->SetToolTip(u8"é‡åš");
 	ImImage_Undo->SetTextureID(IconManager::GetInstance()->GetIcon(ImDesignerIcon::Undo),20,20);
 	ImImage_Redo->SetTextureID(IconManager::GetInstance()->GetIcon(ImDesignerIcon::Redo),20,20);
 	UpdateUndoRedoState(false, false);
@@ -203,7 +202,7 @@ void MainUI::On_EditorPageSelected(const std::string& PageID)
 bool MainUI::CreateNewOutlineView(const std::string& Name, ImGuiWidget::ImUserWidgetClass* TargetWidget)
 {
 	if (AllOutlineViews.find(Name) != AllOutlineViews.end()) return false;
-	UI_ImUserWidgetClassOutlineView* New_UI_OutlineView = new UI_ImUserWidgetClassOutlineView("UI_WidgetTreeView", TargetWidget, Name);
+	UI_ImUserWidgetClassOutlineView* New_UI_OutlineView = new UI_ImUserWidgetClassOutlineView("UI_OutlineView", TargetWidget, Name);
 	AllOutlineViews.insert(std::make_pair(Name, New_UI_OutlineView));
 	return true;
 }
@@ -354,7 +353,7 @@ bool MainUI::HandleRenameFile(const std::string& OldFullPath, const std::string&
 	}
 	if (!success)
 	{
-		//±¨´í
+		//æŠ¥é”™
 	}
 	return success;
 }

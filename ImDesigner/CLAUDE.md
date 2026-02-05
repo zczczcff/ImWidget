@@ -3,63 +3,58 @@
 ## ImDesigner - UI设计器
 
 ### 模块职责
-ImDesigner是一个功能完整的UI设计器，支持可视化编辑、代码生成、命令撤销/重做等高级功能。采用MVC架构，提供项目管理、控件编辑、属性编辑等全方位的UI设计能力。
+ImDesigner是一个功能完整的UI设计器，支持可视化编辑、代码生成、命令撤销/重做等高级功能。采用事件驱动架构，通过事件总线实现各组件间的松耦合通信，提供项目管理、控件编辑、属性编辑等全方位的UI设计能力。
 
 ### 模块统计
-- **头文件**: 64个
-- **源文件**: 50个
-- **代码行数**: 约50,000+行
+- **头文件**: 61个
+- **源文件**: 46个
+- **代码行数**: 约48,000+行
 - **主要语言**: C++17
 
 ---
 
 ## 架构设计
 
-### MVC架构图
+### 事件驱动架构图
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                         MVC架构                             │
+│                    事件驱动架构                              │
 ├─────────────────────────────────────────────────────────────┤
 │                                                             │
-│  ┌──────────────┐        ┌──────────────┐                 │
-│  │   View层     │◄──────┤Controller层  │                 │
-│  │  (UI组件)    │        │  (控制逻辑)   │                 │
-│  └──────┬───────┘        └───────┬──────┘                 │
-│         │                        │                         │
-│         │                        │                         │
-│         └────────────────────────┘                         │
-│                      ▼                                     │
-│              ┌──────────────┐                             │
-│              │   Model层    │                             │
-│              │ (数据管理)    │                             │
-│              └──────────────┘                             │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │         ActionSystem<KeyStringType>                   │  │
+│  │         (全局事件总线)                                 │  │
+│  └──────────────────────────────────────────────────────┘  │
+│                          │                                  │
+│         ┌────────────────┼────────────────┐                │
+│         ▼                ▼                ▼                │
+│  ┌──────────────┐ ┌──────────────┐ ┌──────────────┐      │
+│  │  Model层     │ │   View层     │ │  全局服务     │      │
+│  │ (数据管理)    │ │  (UI组件)    │ │  (项目管理)   │      │
+│  └──────────────┘ └──────────────┘ └──────────────┘      │
 │                                                             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### 继承关系图
+### 组件继承关系图
 
 ```
 EditorEventObject (事件对象基类)
     │
     ├─── Model_MainModel (主数据模型)
     │
-    ├─── Model_UserWidgetClassEditor (编辑模型)
+    ├─── Model_UserWidgetClassEditor (编辑器模型)
     │
     ├─── MainUI : ImUserWidget (主界面)
     │
-    ├─── UI_WidgetTreeView : ImUserWidget
+    ├─── UI_WidgetEditor : ImUserWidget (控件编辑器)
     │
-    ├─── UI_DetailView : ImUserWidget
+    ├─── UI_DetailView : ImUserWidget (属性详情视图)
     │
-    ├─── UI_ImUserWidgetClassOutlineView : ImUserWidget
+    ├─── UI_ImUserWidgetClassOutlineView : ImUserWidget (大纲视图)
     │
-    ├─── UI_ProjectView : ImUserWidget
-    │
-    └─── Controller_MainController (主控制器)
-          │
-          └─── Controller_WidgetEditor (编辑器控制器)
+    └─── UI_ProjectView : ImUserWidget (项目文件视图)
 
 
 CommandBase<CommandDataType> (EditorKit)
@@ -271,7 +266,7 @@ class RenameVariableCommand : public ImUserWidgetClassCommandBase;
 │  ┌──────────────────────────────────────────────────────┐  │
 │  │         ActionSystem<KeyStringType>                   │  │
 │  │         (全局动作系统)                                 │  │
-│  └──────────────────────────────────────────────────────┘  │
+│  └───────────────────┬──────────────────────────────────┘  │
 │                      │                                      │
 │         ┌────────────┴────────────┐                        │
 │         ▼                         ▼                        │
@@ -365,6 +360,9 @@ namespace Action {
         ACTION(EditProperty);       // 编辑属性
         ACTION(RefreshProperties);  // 刷新属性
     }
+
+    // 控件选中动作（双参数签名）
+    ACTION(WIDGET_SELECTED);        // (widgetVarName, widget*)
 }
 ```
 
@@ -492,6 +490,49 @@ public:
 };
 ```
 
+### UI_WidgetEditor - 控件编辑器
+
+**文件**: `Include/UI/UI_WidgetEditor.h`
+
+可视化控件编辑器，支持鼠标点击选择、虚线框高亮显示、快捷键撤销等功能。
+
+```cpp
+class UI_WidgetEditor : public ImUserWidget, public EditorEventObject
+{
+public:
+    // 设置选中的控件
+    bool SetSelectedWidget(ImGuiWidget::ImWidget* widget);
+    bool SetSelectedWidget(const std::string& widgetVarName, ImGuiWidget::ImWidget* widget);
+
+    // 设置当前编辑的控件树
+    void SetEditingWidgetTree(const std::string& widgetVarName);
+    std::string GetCurrentEditingWidgetVarName() const;
+
+    // 获取/设置目标类
+    ImGuiWidget::ImUserWidgetClass* GetTargetClass() const;
+    void SetTargetClass(ImGuiWidget::ImUserWidgetClass* targetClass);
+
+private:
+    // 鼠标事件处理
+    virtual void OnMouseDown(ImGuiWidget::ImMouseDownEvent& e) override;
+    virtual void OnKeyDown(ImGuiWidget::ImKeyDownEvent& e) override;
+
+    // 绘制动态虚线框
+    void DrawAnimatedDashedRect(
+        const ImVec2& min, const ImVec2& max,
+        ImU32 color, float thickness,
+        float dashLen, float gapLen,
+        float& offset, float speed = 1.0f
+    );
+};
+```
+
+**动作订阅**:
+- `EditFileFullPath + Action::WIDGET_SELECTED`: 控件选中动作，双参数签名 `(widgetVarName, widget*)`
+
+**动作发布**:
+- 鼠标点击控件时发布 `Action::WIDGET_SELECTED`
+
 ### UI_ImUserWidgetClassOutlineView - 大纲视图
 
 **文件**: `Include/UI/UI_ImUserWidgetClassOutlineView.h`
@@ -523,6 +564,15 @@ public:
 };
 ```
 
+**动作订阅**:
+- `m_EditedFileFullPath + Action::WIDGET_SELECTED`: 控件选中动作
+
+**动作发布**:
+- 选中控件时发布 `Action::WIDGET_SELECTED`
+
+**缓存映射**:
+- `WidgetPointer_To_ItemName`: 控件指针到项目名的映射，用于响应来自其他视图的选中动作
+
 ### UI_DetailView - 属性详情视图
 
 **文件**: `Include/UI/UI_DetailView.h`
@@ -546,29 +596,8 @@ public:
 };
 ```
 
-### Controller_MainController - 主控制器
-
-**文件**: `Include/Controller/Controller_MainController.h`
-
-协调Model和View的主控制器。
-
-```cpp
-class Controller_MainController : public EditorEventObject
-{
-public:
-    // 获取MVC组件
-    Model_MainModel* GetMainModel();
-    MainUI* GetMainUI();
-
-    // 事件处理
-    void HandleOpenFile(const std::string& filePath);
-    void HandleSaveFile(const std::string& filePath);
-    void HandleGenerateCode();
-
-    // 创建编辑器控制器
-    Controller_WidgetEditor* CreateWidgetEditor(Model_UserWidgetClassEditor* model);
-};
-```
+**动作订阅**:
+- `EditedFileFullPath + Action::WIDGET_SELECTED`: 控件选中动作
 
 ---
 
@@ -632,6 +661,26 @@ EditorEventID id = Subscribe(
 Unsubscribe(id);
 ```
 
+### 控件选中同步
+
+```cpp
+// 视图A：发布控件选中动作
+void OnWidgetClicked(ImWidget* widget)
+{
+    ExecuteAction(m_FilePath + Action::WIDGET_SELECTED, m_WidgetVarName, widget);
+}
+
+// 视图B：订阅控件选中动作
+void ResetAction()
+{
+    AddSequentialProcessor(m_FilePath + Action::WIDGET_SELECTED,
+        [this](const std::string& widgetVarName, ImWidget* selectedWidget)
+        {
+            SetSelectedWidget(widgetVarName, selectedWidget);
+        });
+}
+```
+
 ### 创建自定义视图
 
 ```cpp
@@ -664,42 +713,36 @@ public:
 ## 入口与启动
 
 ### 入口文件
-- **主入口**: `Source/ImDesigner_main.cpp` - 应用程序入口，初始化MVC组件
+- **主入口**: `Source/ImDesigner_main.cpp` - 应用程序入口
 - **主界面**: `Include/UI/MainUI.h` - 主界面类
 
 ### 全局实例
 ```cpp
 extern MainUI* global_MainUI;                    // 主界面
 extern Model_MainModel* global_MainModel;        // 主数据模型
-extern Controller_MainController* global_MainController;  // 主控制器
 ```
 
 ### 初始化流程
 
 ```cpp
 // ImDesigner_main.cpp
-int main()
+ImGuiWidget::ImWidget* ImInit()
 {
-    // 1. 初始化ImGui
-    ImApplication::Initialize();
+    // 1. 注册基础控件
+    ImGuiWidget::RegisterBaseWidget();
 
-    // 2. 创建MVC组件
+    // 2. 创建全局组件
     global_MainModel = new Model_MainModel();
-    global_MainController = new Controller_MainController();
-    global_MainUI = new MainUI();
+    global_MainUI = new MainUI("ImDesigner_MainUI");
 
-    // 3. 连接事件
-    global_MainController->InitializeEventConnections();
+    // 3. 事件总线已通过 EditorEventObject 基类自动连接
 
-    // 4. 主循环
-    while (!ImApplication::ShouldClose())
-    {
-        ImApplication::NewFrame();
-        global_MainUI->Render();
-        ImApplication::Render();
-    }
+    return global_MainUI;
+}
 
-    return 0;
+void ImTick()
+{
+    global_MainModel->Tick();
 }
 ```
 
@@ -727,17 +770,17 @@ int main()
 - **应用**: 撤销/重做系统
 - **优势**: 操作封装为对象，支持命令队列，易于扩展
 
-### 2. MVC Pattern（模型-视图-控制器模式）
-- **应用**: 整体架构
-- **优势**: 关注点分离，便于维护和扩展
-
-### 3. Observer Pattern（观察者模式）
-- **应用**: 事件系统
+### 2. Observer Pattern（观察者模式）
+- **应用**: 事件总线系统
 - **优势**: 松耦合通信，一对多通知
 
-### 4. Template Method Pattern（模板方法模式）
+### 3. Template Method Pattern（模板方法模式）
 - **应用**: 命令基类
 - **优势**: 统一执行流程，子类定制细节
+
+### 4. Event Bus Pattern（事件总线模式）
+- **应用**: 全局组件通信
+- **优势**: 完全解耦Model和View，无需Controller层
 
 ---
 
@@ -788,6 +831,9 @@ bool SaveProject();
 ### Q4: 如何生成代码？
 **A**: 使用主界面的生成按钮，系统会根据当前编辑的UI文件生成对应的C++代码。
 
+### Q5: 为什么没有Controller层？
+**A**: ImDesigner采用事件驱动架构，所有Model和View之间的通信都通过全局事件总线实现，无需中间的Controller层，实现了更松耦合的设计。
+
 ---
 
 ## 文件清单
@@ -797,11 +843,9 @@ bool SaveProject();
 Include/UI/
 ├── MainUI.h                           # 主界面
 ├── UI_ProjectView.h                   # 项目文件视图
-├── UI_WidgetEditor.h                   # 控件编辑器
+├── UI_WidgetEditor.h                   # 控件编辑器（可视化编辑）
 ├── UI_DetailView.h                     # 属性详情视图
-├── UI_WidgetTreeView.h                 # 控件树形视图
 ├── UI_ImUserWidgetClassOutlineView.h  # 用户控件类大纲视图
-├── UI_UserWidgetClassView.h            # 用户控件类视图
 ├── EditorViewBase.h                    # 编辑器基类
 ├── IconManager.h                       # 图标管理器
 ├── Widget_PageTag.h                    # 页面标签
@@ -828,13 +872,6 @@ Include/Model/
     ├── Command_VarRename.h               # 变量重命名
     ├── Command_ChildWidgetOperation.h   # 子控件操作
     └── Command_VariableOperation.h      # 变量操作
-```
-
-### 控制器层 (Controller/)
-```
-Include/Controller/
-├── Controller_MainController.h          # 主控制器
-└── Controller_WidgetEditor.h            # 控件编辑控制器
 ```
 
 ### 资源层 (Resource/)
@@ -875,6 +912,19 @@ Include/
 ---
 
 ## 变更记录 (Changelog)
+
+### 2026-02-05 v2.3.0
+- 弃用 UI_UserWidgetClassView（已删除文件）
+- 更新模块统计：头文件61个，源文件46个
+- 更新文件清单
+
+### 2026-02-05 v2.2.0
+- 移除 Controller 层，完全采用事件驱动架构
+- 弃用 UI_WidgetTreeView（已删除文件）
+- 统一控件选中动作为双参数签名 `(widgetVarName, widget*)`
+- 新增 UI_WidgetEditor 核心类文档
+- 更新架构设计图，移除Controller层和TreeView组件
+- 新增事件总线模式说明
 
 ### 2026-02-05 v2.0.0
 - 完成深度模块扫描和架构分析

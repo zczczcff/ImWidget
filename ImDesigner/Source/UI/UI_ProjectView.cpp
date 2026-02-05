@@ -1,4 +1,4 @@
-#include "UI/UI_ProjectView.h"
+ï»¿#include "UI/UI_ProjectView.h"
 #include "ImWidget/ImBasicWidgetList.h"
 #include "Tools/ProjectFileManager.h"
 #include "UI/IconManager.h"
@@ -28,7 +28,7 @@ void UI_ProjectView::Init()
     ImVerticalBox_Folder->bHaveBorder = false;
     ImScrollBox_Folder->SetContent(ImVerticalBox_Folder);
 
-    // ÉèÖÃ¸ù×é¼þ
+    // è®¾ç½®æ ¹ç»„ä»¶
     SetRootWidget(ImScrollBox_Folder);
 }
 
@@ -59,13 +59,13 @@ void UI_ProjectView::InitAction()
 
 void UI_ProjectView::InitPopUpMenu()
 {
-    //´´½¨µ¯³ö²Ëµ¥
+    //åˆ›å»ºå¼¹å‡ºèœå•
     ImVerticalBox_FolderOperatorMenu = new ImGuiWidget::ImVerticalBox("ImVerticalBox_FolderOperatorMenu");
-    // ´´½¨µ¯³ö²Ëµ¥´°¿Ú
+    // åˆ›å»ºå¼¹å‡ºèœå•çª—å£
     m_FolderOperatorMenuWindow = ImGuiWidget::GetGlobalInstance()->GetGlobalApp()->GetWindowManager()->CreatePopupWindow(ImVec2(0, 0), ImVec2(0, 0), ImVerticalBox_FolderOperatorMenu, false);
     m_FolderOperatorMenuWindow->Close();
 
-    ImGuiWidget::ImButton* ImButton_CreateNewFile = CreateWidgetMenuButton(u8"ÐÂ½¨", m_FolderOperatorMenuWindow);
+    ImGuiWidget::ImButton* ImButton_CreateNewFile = CreateWidgetMenuButton(u8"æ–°å»º", m_FolderOperatorMenuWindow);
     
     ImVerticalBox_FolderOperatorMenu->AddChildToVerticalBox(ImButton_CreateNewFile)->SetIfAutoSize(false);
     ImButton_CreateNewFile->OnLeftClicked.Add([this]() 
@@ -150,7 +150,7 @@ void UI_ProjectView::SetProjectViewVBoxContent(ProjectFileManager* projectmanang
 
 void UI_ProjectView::SetupButtonStyle(ImGuiWidget::ImButton* filebutton)
 {
-    // Õý³£×´Ì¬ÑùÊ½ - ÉÔÉîµÄ»ÒÉ«
+    // æ­£å¸¸çŠ¶æ€æ ·å¼ - ç¨æ·±çš„ç°è‰²
     ImGuiWidget::ButtonStateStyle normalStyle;
     normalStyle.BackgroundColor = IM_COL32(220, 230, 245, 255);
     normalStyle.Rounding = 0.0f;
@@ -159,7 +159,7 @@ void UI_ProjectView::SetupButtonStyle(ImGuiWidget::ImButton* filebutton)
     normalStyle.BorderColor = IM_COL32(190, 190, 190, 255);
     filebutton->SetNormalStyle(normalStyle);
 
-    // ÐüÍ£×´Ì¬ÑùÊ½ - ÉÔÉîµÄÀ¶É«µ÷»ÒÉ«
+    // æ‚¬åœçŠ¶æ€æ ·å¼ - ç¨æ·±çš„è“è‰²è°ƒç°è‰²
     ImGuiWidget::ButtonStateStyle hoverStyle;
     hoverStyle.BackgroundColor = IM_COL32(205, 215, 235, 255);
     hoverStyle.Rounding = 0.0f;
@@ -168,7 +168,7 @@ void UI_ProjectView::SetupButtonStyle(ImGuiWidget::ImButton* filebutton)
     hoverStyle.BorderColor = IM_COL32(170, 170, 170, 255);
     filebutton->SetHoveredStyle(hoverStyle);
 
-    // °´ÏÂ×´Ì¬ÑùÊ½ - ¸üÉîµÄÀ¶É«µ÷»ÒÉ«
+    // æŒ‰ä¸‹çŠ¶æ€æ ·å¼ - æ›´æ·±çš„è“è‰²è°ƒç°è‰²
     ImGuiWidget::ButtonStateStyle pressedStyle;
     pressedStyle.BackgroundColor = IM_COL32(185, 200, 225, 255);
     pressedStyle.Rounding = 0.0f;
@@ -177,7 +177,7 @@ void UI_ProjectView::SetupButtonStyle(ImGuiWidget::ImButton* filebutton)
     pressedStyle.BorderColor = IM_COL32(150, 150, 150, 255);
     filebutton->SetPressedStyle(pressedStyle);
 
-    // Ñ¡ÖÐ×´Ì¬ÑùÊ½£¨½¹µã×´Ì¬£©- À¶É«¸ßÁÁ
+    // é€‰ä¸­çŠ¶æ€æ ·å¼ï¼ˆç„¦ç‚¹çŠ¶æ€ï¼‰- è“è‰²é«˜äº®
     ImGuiWidget::ButtonStateStyle selectedStyle;
     selectedStyle.BackgroundColor = IM_COL32(100, 149, 237, 255);
     selectedStyle.Rounding = 0.0f;
@@ -204,7 +204,7 @@ void UI_ProjectView::PopupDirRightKeyWindow()
     //ImGuiWidget::ImVerticalBox* ImVerticalBox_DirRightKeyMenu = new ImGuiWidget::ImVerticalBox("ImVerticalBox_DirRightKeyMenu");
     //ImGuiWidget::ImButton* OptionButton = new ImGuiWidget::ImButton(dir + "_OptionButton");
     //ImGuiWidget::ImTextBlock* Text_NewFile = new ImGuiWidget::ImTextBlock(dir + "_Text");
-    //Text_NewFile->SetText(u8"ÔÚ" + dir + u8"ÖÐ´´½¨UIÎÄ¼þ");
+    //Text_NewFile->SetText(u8"åœ¨" + dir + u8"ä¸­åˆ›å»ºUIæ–‡ä»¶");
     //OptionButton->SetContent(Text_NewFile);
     //ImVerticalBox_DirRightKeyMenu->AddChildToVerticalBox(OptionButton);
     //PopupRightKeyWindow(ImVerticalBox_DirRightKeyMenu);
@@ -231,7 +231,7 @@ void UI_ProjectView::ExpandToFile(const std::string& FileFullPath)
     if (it != FileFullPathToFileBodyHBox.end())
     {
         ImGuiWidget::ImWidget* currentwidget = it->second;
-        while (currentwidget != ImVerticalBox_Folder && currentwidget)//µÝ¹éÕ¹¿ªÂ·¾¶ÉÏµÄËùÓÐÕ¹¿ª¿ò
+        while (currentwidget != ImVerticalBox_Folder && currentwidget)//é€’å½’å±•å¼€è·¯å¾„ä¸Šçš„æ‰€æœ‰å±•å¼€æ¡†
         {
             if (ImGuiWidget::ImExpandableBox* exbox = dynamic_cast<ImGuiWidget::ImExpandableBox*>(currentwidget))
             {

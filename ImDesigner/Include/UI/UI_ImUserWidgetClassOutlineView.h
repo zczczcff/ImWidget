@@ -1295,7 +1295,7 @@ protected:
 		);
 		m_PopupMenus.WidgetRootMenu->Close();
 
-		// 5. 创建控件子菜单（与UI_WidgetTreeView相同）
+		// 5. 创建控件子菜单
 		m_PopupMenus.WidgetChildMenuContent = BuildWidgetChildMenuContent();
 		m_PopupMenus.WidgetChildMenu = windowManager->CreatePopupWindow(
 			m_PopupMenus.WidgetChildMenuContent->GetMinSize(),
@@ -1430,7 +1430,7 @@ protected:
 		return content;
 	}
 
-	// 新增：构建控件子菜单内容（与UI_WidgetTreeView相同）
+	// 构建控件子菜单内容
 	ImGuiWidget::ImVerticalBox* BuildWidgetChildMenuContent()
 	{
 		ImGuiWidget::ImVerticalBox* content = new ImGuiWidget::ImVerticalBox("WidgetChildMenuContent");
