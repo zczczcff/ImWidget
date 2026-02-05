@@ -906,7 +906,7 @@ protected:
 		std::string parentPath = FindWidgetPath(changeInfo.ParentWidget);
 		if (parentPath.empty()) return false;
 
-		// 刷新父控件节点
+		// 刷新父控件节点，RefreshWidgetTreeNode会处理展开框的创建
 		RefreshWidgetTreeNode(changeInfo.ParentWidget, parentPath);
 		return true;
 	}
@@ -920,7 +920,7 @@ protected:
 		std::string parentPath = FindWidgetPath(changeInfo.ParentWidget);
 		if (parentPath.empty()) return false;
 
-		// 刷新父控件节点
+		// 刷新父控件节点，RefreshWidgetTreeNode会处理展开框到简单按钮项的转换
 		RefreshWidgetTreeNode(changeInfo.ParentWidget, parentPath);
 		return true;
 	}
@@ -988,30 +988,125 @@ protected:
 			{
 				ImGuiWidget::ImVerticalBox* container = containerIt->second;
 
-				// 保存当前展开状态
-				bool wasExpanded = expander->GetIfExpanded();
-
-				// 清空容器
-				container->RemoveAllChild(true);
-
-				// 重新添加子控件
+				// 检查是否有子控件
 				int childCount = widget->GetChildNum();
-				for (int i = 0; i < childCount; i++)
+
+				if (childCount == 0)
 				{
-					ImGuiWidget::ImWidget* child = widget->GetChildAt(i);
-					if (child)
+					// 没有子控件，需要将展开框转换为简单按钮项
+					// 通过刷新父节点来实现
+					bool isRootWidget = IsRootWidget(widget->GetWidgetName());
+					if (isRootWidget)
 					{
-						auto* childNode = CreateWidgetTreeNode(child, child->GetWidgetName(), widgetPath, false);
-						if (childNode)
+						// 根控件：刷新整个控件树
+						RefreshWidgetTreeContent();
+						return;
+					}
+					else
+					{
+						// 非根控件：刷新祖父节点
+						ImWidget* parent = widget->GetParents();
+						if (parent)
 						{
-							container->AddChild(childNode);
+							ImWidget* grandParent = parent->GetParents();
+							if (grandParent)
+							{
+								std::string grandParentPath = FindWidgetPath(grandParent);
+								if (!grandParentPath.empty())
+								{
+									RefreshWidgetTreeNode(grandParent, grandParentPath);
+									return;
+								}
+							}
+							else
+							{
+								// 父控件是根控件
+								std::string parentPath = FindWidgetPath(parent);
+								if (!parentPath.empty())
+								{
+									RefreshWidgetTreeNode(parent, parentPath);
+									return;
+								}
+							}
 						}
 					}
 				}
+				else
+				{
+					// 有子控件，正常刷新
+					// 保存当前展开状态
+					bool wasExpanded = expander->GetIfExpanded();
 
-				// 恢复展开状态
-				expander->SetExpandedState(wasExpanded);
+					// 清空容器
+					container->RemoveAllChild(true);
+
+					// 重新添加子控件
+					for (int i = 0; i < childCount; i++)
+					{
+						ImGuiWidget::ImWidget* child = widget->GetChildAt(i);
+						if (child)
+						{
+							auto* childNode = CreateWidgetTreeNode(child, child->GetWidgetName(), widgetPath, false);
+							if (childNode)
+							{
+								container->AddChild(childNode);
+							}
+						}
+					}
+
+					// 恢复展开状态
+					expander->SetExpandedState(wasExpanded);
+				}
 			}
+		}
+		else
+		{
+			// 没有找到展开框，需要检查控件是否有子控件
+			bool hasChildren = (widget->GetChildNum() > 0);
+			bool hasExpander = (expanderIt != WidgetPath_To_Expander.end());
+
+			// 如果控件有子控件但没有展开框，需要重新创建节点
+			if (hasChildren && !hasExpander)
+			{
+				// 判断是否是根控件
+				bool isRootWidget = IsRootWidget(widget->GetWidgetName());
+
+				if (isRootWidget)
+				{
+					// 根控件：刷新整个控件树
+					RefreshWidgetTreeContent();
+					return;
+				}
+				else
+				{
+					// 非根控件：找到祖父控件并刷新
+					ImWidget* parent = widget->GetParents();
+					if (parent)
+					{
+						ImWidget* grandParent = parent->GetParents();
+						if (grandParent)
+						{
+							std::string grandParentPath = FindWidgetPath(grandParent);
+							if (!grandParentPath.empty())
+							{
+								RefreshWidgetTreeNode(grandParent, grandParentPath);
+								return;
+							}
+						}
+						else
+						{
+							// 父控件是根控件
+							std::string parentPath = FindWidgetPath(parent);
+							if (!parentPath.empty())
+							{
+								RefreshWidgetTreeNode(parent, parentPath);
+								return;
+							}
+						}
+					}
+				}
+			}
+			// 如果控件没有子控件，不需要展开框，保持现状即可
 		}
 	}
 
@@ -1706,29 +1801,64 @@ protected:
 
 		// 订阅子控件增量更新事件
 		m_FileEvents.push_back(Subscribe(m_EditedFileFullPath + Events::OutlineView::WIDGET_CHILD_ADDED,
-			[this](const std::string& parentVarName, const std::string& childWidgetName)
+			[this](const std::string& widgetTreeVarName, const std::string& parentWidgetPath, const std::string& childIdentifier)
 			{
-				// 获取父控件
-				ImWidget* parentWidget = m_TargetClass->GetWidgetVariable(parentVarName);
+				// 获取根控件
+				ImWidget* rootWidget = m_TargetClass->GetWidgetVariable(widgetTreeVarName);
+				if (!rootWidget) return;
+
+				// 找到父控件
+				ImWidget* parentWidget = nullptr;
+				if (parentWidgetPath.empty() || parentWidgetPath == ".")
+				{
+					parentWidget = rootWidget;
+				}
+				else
+				{
+					parentWidget = rootWidget->FindChildByPath(parentWidgetPath);
+				}
+
 				if (!parentWidget) return;
 
 				// 找到添加的子控件
 				ImWidget* childWidget = nullptr;
 				int childCount = parentWidget->GetChildNum();
+
+				// 先尝试精确匹配名称
 				for (int i = 0; i < childCount; i++)
 				{
 					ImWidget* child = parentWidget->GetChildAt(i);
-					if (child && child->GetWidgetName() == childWidgetName)
+					if (child && child->GetWidgetName() == childIdentifier)
 					{
 						childWidget = child;
 						break;
 					}
 				}
 
+				// 如果精确匹配失败，尝试查找名称包含标识符的子控件
+				if (!childWidget)
+				{
+					for (int i = 0; i < childCount; i++)
+					{
+						ImWidget* child = parentWidget->GetChildAt(i);
+						if (child && child->GetWidgetName().find(childIdentifier) != std::string::npos)
+						{
+							childWidget = child;
+							break;
+						}
+					}
+				}
+
+				// 如果还是找不到，选择最后一个子控件（假设是刚刚添加的）
+				if (!childWidget && childCount > 0)
+				{
+					childWidget = parentWidget->GetChildAt(childCount - 1);
+				}
+
 				if (!childWidget) return;
 
 				OutlineViewChangeInfo changeInfo(OutlineViewChangeType::WidgetChildAdded);
-				changeInfo.ParentVarName = parentVarName;
+				changeInfo.ParentVarName = widgetTreeVarName;
 				changeInfo.ParentWidget = parentWidget;
 				changeInfo.ChangedWidget = childWidget;
 				HandleWidgetChildAdded(changeInfo);
@@ -1736,16 +1866,45 @@ protected:
 		));
 
 		m_FileEvents.push_back(Subscribe(m_EditedFileFullPath + Events::OutlineView::WIDGET_CHILD_REMOVED,
-			[this](const std::string& parentVarName, const std::string& childWidgetName)
+			[this](const std::string& widgetTreeVarName, const std::string& childWidgetPath)
 			{
-				ImWidget* parentWidget = m_TargetClass->GetWidgetVariable(parentVarName);
+				// 获取根控件
+				ImWidget* rootWidget = m_TargetClass->GetWidgetVariable(widgetTreeVarName);
+				if (!rootWidget) return;
+
+				// 解析路径，获取父路径和子控件名称
+				std::string parentPath, childName;
+				size_t lastSlash = childWidgetPath.find_last_of('/');
+				if (lastSlash == std::string::npos)
+				{
+					// 没有斜杠，表示子控件是根控件的直接子控件
+					parentPath = "";
+					childName = childWidgetPath;
+				}
+				else
+				{
+					parentPath = childWidgetPath.substr(0, lastSlash);
+					childName = childWidgetPath.substr(lastSlash + 1);
+				}
+
+				// 找到父控件
+				ImWidget* parentWidget = nullptr;
+				if (parentPath.empty())
+				{
+					parentWidget = rootWidget;
+				}
+				else
+				{
+					parentWidget = rootWidget->FindChildByPath(parentPath);
+				}
+
 				if (!parentWidget) return;
 
 				OutlineViewChangeInfo changeInfo(OutlineViewChangeType::WidgetChildRemoved);
-				changeInfo.ParentVarName = parentVarName;
+				changeInfo.ParentVarName = widgetTreeVarName;
 				changeInfo.ParentWidget = parentWidget;
 				// 注意：被删除的控件指针可能无效，这里我们只传递名称
-				changeInfo.VariableName = childWidgetName;
+				changeInfo.VariableName = childName;
 				HandleWidgetChildRemoved(changeInfo);
 			}
 		));
