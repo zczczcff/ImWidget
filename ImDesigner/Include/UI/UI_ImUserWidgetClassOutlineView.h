@@ -617,7 +617,6 @@ protected:
 		}
 
 		expandableBox->SetBody(bodyContainer);
-		expandableBox->SetExpandedState(true);
 
 		return expandableBox;
 	}
@@ -932,6 +931,20 @@ protected:
 
 		// 刷新父控件节点，RefreshWidgetTreeNode会处理展开框的创建
 		RefreshWidgetTreeNode(changeInfo.ParentWidget, parentPath);
+
+		// 自动展开父控件以显示新添加的子控件
+		auto expanderIt = WidgetPath_To_Expander.find(parentPath);
+		if (expanderIt != WidgetPath_To_Expander.end())
+		{
+			ImGuiWidget::ImExpandableBox* expander = expanderIt->second;
+			if (expander)
+			{
+				// 展开控件并更新状态
+				expander->SetExpandedState(true);
+				// 状态会通过 SetOnExpandedStateChanged 回调自动保存到 m_ExpandedStateMap
+			}
+		}
+
 		return true;
 	}
 
