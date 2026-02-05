@@ -285,30 +285,50 @@ public:
 
     virtual bool Execute() override
     {
-        // 获取要移除的控件
+        // 获取根控件
         auto rootWidget = m_TargetClass->GetWidgetVariable(m_WidgetTreeVarName);
         if (!rootWidget) return false;
 
-        ImGuiWidget::ImWidget* targetWidget = nullptr;
-        ImGuiWidget::ImWidget* parentWidget = nullptr;
-
-        // 查找父控件和目标控件
-        if (m_ParentWidgetPath.empty())
+        // 通过路径找到要删除的控件
+        ImGuiWidget::ImWidget* targetWidget = rootWidget->FindChildByPath(m_ChildWidgetPath);
+        if (!targetWidget)
         {
-            parentWidget = rootWidget;
-            targetWidget = FindChildByName(parentWidget, m_ChildWidgetName, m_ChildIndex);
-        }
-        else
-        {
-            parentWidget = rootWidget->FindChildByPath(m_ChildWidgetPath);
-            if (!parentWidget) return false;
-            targetWidget = FindChildByName(parentWidget, m_ChildWidgetName, m_ChildIndex);
+            // 路径查找失败，尝试通过名称查找（备用方案）
+            if (m_ParentWidgetPath.empty())
+            {
+                // 在根控件下查找
+                targetWidget = FindChildByName(rootWidget, m_ChildWidgetName, m_ChildIndex);
+            }
+            else
+            {
+                // 在父控件下查找
+                ImGuiWidget::ImWidget* parentWidget = rootWidget->FindChildByPath(m_ParentWidgetPath);
+                if (parentWidget)
+                {
+                    targetWidget = FindChildByName(parentWidget, m_ChildWidgetName, m_ChildIndex);
+                }
+            }
         }
 
         if (!targetWidget) return false;
 
-        // 序列化要移除的控件
+        // 序列化要移除的控件（在删除之前）
         m_RemovedWidgetJson = ImGuiWidget::ImUserWidgetClassSerializer::SerializeImWidget(targetWidget);
+
+        // 获取父控件（用于记录索引）
+        ImGuiWidget::ImWidget* parentWidget = targetWidget->GetParents();
+        if (parentWidget)
+        {
+            // 记录子控件的索引位置
+            for (int i = 0; i < parentWidget->GetChildNum(); i++)
+            {
+                if (parentWidget->GetChildAt(i) == targetWidget)
+                {
+                    m_ChildIndex = i;
+                    break;
+                }
+            }
+        }
 
         // 执行移除操作
         bool success = m_TargetClass->RemoveChildWidgetByPath(

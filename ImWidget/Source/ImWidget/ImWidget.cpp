@@ -119,7 +119,7 @@ ImGuiWidget::ImWidget* ImGuiWidget::ImWidget::FindChildByPath(const std::string&
 
 std::string ImGuiWidget::ImWidget::BuildPathTo(ImWidget* descendant)
 {
-	if (!descendant || descendant->IsInTree(this))
+	if (!descendant || !descendant->IsInTree(this))
 	{
 		return "";
 	}
