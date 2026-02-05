@@ -128,6 +128,7 @@ private:
 		ImGuiWidget::ImWindow* WidgetRootMenu = nullptr;
 		ImGuiWidget::ImWindow* WidgetChildMenu = nullptr;
 		ImGuiWidget::ImWindow* InsertWidgetMenu = nullptr;
+		ImGuiWidget::ImWindow* VariableMenu = nullptr;  // 新增：变量右键菜单
 
 		ImGuiWidget::ImVerticalBox* BasicVarsMenuContent = nullptr;
 		ImGuiWidget::ImVerticalBox* ObjectVarsMenuContent = nullptr;
@@ -135,17 +136,20 @@ private:
 		ImGuiWidget::ImVerticalBox* WidgetRootMenuContent = nullptr;
 		ImGuiWidget::ImVerticalBox* WidgetChildMenuContent = nullptr;
 		ImGuiWidget::ImVerticalBox* InsertWidgetMenuContent = nullptr;
+		ImGuiWidget::ImVerticalBox* VariableMenuContent = nullptr;  // 新增：变量菜单内容
 
 		enum class MenuMode
 		{
 			None,
 			SectionRoot,
 			WidgetRoot,
-			WidgetChild
+			WidgetChild,
+			Variable  // 新增：变量模式
 		};
 
 		MenuMode CurrentMode = MenuMode::None;
 		std::string TargetVarName;
+		std::string TargetVarType;  // 新增：变量类型（BasicVariable/ObjectVariable）
 		ImWidget* TargetWidget = nullptr;
 
 		enum class InsertChildMode
@@ -764,6 +768,15 @@ protected:
 					}
 				});
 		}
+		else if (itemType == "BasicVariable" || itemType == "ObjectVariable")
+		{
+			// 为变量添加右键菜单
+			button->OnRightClicked.Add([this, itemType, itemName]()
+				{
+					ImVec2 mousePos = ImGuiWidget::GetMousePos();
+					ShowVariableMenu(itemType, itemName, mousePos);
+				});
+		}
 	}
 
 	// 判断是否是分区根展开框
@@ -1209,6 +1222,16 @@ protected:
 			nullptr // 父窗口将在需要时动态设置
 		);
 		m_PopupMenus.InsertWidgetMenu->Close();
+
+		// 7. 创建变量右键菜单
+		m_PopupMenus.VariableMenuContent = BuildVariableMenuContent();
+		m_PopupMenus.VariableMenu = windowManager->CreatePopupWindow(
+			m_PopupMenus.VariableMenuContent->GetMinSize(),
+			ImVec2(0, 0),
+			m_PopupMenus.VariableMenuContent,
+			false
+		);
+		m_PopupMenus.VariableMenu->Close();
 	}
 
 	// 新增：构建基本变量分区菜单内容
@@ -1409,6 +1432,26 @@ protected:
 		return content;
 	}
 
+	// 新增：构建变量右键菜单内容
+	ImGuiWidget::ImVerticalBox* BuildVariableMenuContent()
+	{
+		ImGuiWidget::ImVerticalBox* content = new ImGuiWidget::ImVerticalBox("VariableMenuContent");
+
+		// 删除变量按钮
+		ImGuiWidget::ImButton* deleteBtn = CreateMenuButton(u8"删除变量");
+		deleteBtn->OnLeftClicked.Add([this]()
+			{
+				CloseActiveMenu();
+				if (!m_PopupMenus.TargetVarName.empty())
+				{
+					Action_DeleteVariable(m_PopupMenus.TargetVarName);
+				}
+			});
+		content->AddChildToVerticalBox(deleteBtn)->SetIfAutoSize(false);
+
+		return content;
+	}
+
 	// 新增：创建菜单按钮
 	ImGuiWidget::ImButton* CreateMenuButton(const std::string& text, bool hasSubMenu = false)
 	{
@@ -1527,6 +1570,17 @@ protected:
 
 		m_PopupMenus.WidgetChildMenu->SetPopupRect(position);
 		m_PopupMenus.WidgetChildMenu->SetActive();
+	}
+
+	// 新增：显示变量右键菜单
+	void ShowVariableMenu(const std::string& varType, const std::string& varName, const ImVec2& position)
+	{
+		m_PopupMenus.CurrentMode = PopupMenuSystem::MenuMode::Variable;
+		m_PopupMenus.TargetVarType = varType;
+		m_PopupMenus.TargetVarName = varName;
+
+		m_PopupMenus.VariableMenu->SetPopupRect(position);
+		m_PopupMenus.VariableMenu->SetActive();
 	}
 
 	void OnCreateBasicVariableClicked(const ImGuiWidget::PropertyType& type)
@@ -1660,6 +1714,10 @@ protected:
 
 		case PopupMenuSystem::MenuMode::WidgetChild:
 			m_PopupMenus.WidgetChildMenu->Close();
+			break;
+
+		case PopupMenuSystem::MenuMode::Variable:
+			m_PopupMenus.VariableMenu->Close();
 			break;
 		}
 
