@@ -51,7 +51,7 @@ public:
 
     // 处理单个属性 - 现在使用ROP::Property
     void HandleSingleProperty(
-        const ROP::Property<ImGuiWidget::PropertyType>& prop,
+        ROP::Property<ImGuiWidget::PropertyType>& prop,
         ImGuiWidget::ImVerticalBox* CurrentVerticalBox,
         ImGuiWidget::ImObject* Target,
         ImGuiWidget::ImWidget* WidgetOwner,

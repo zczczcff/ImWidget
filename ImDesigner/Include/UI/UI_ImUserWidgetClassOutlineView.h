@@ -762,12 +762,12 @@ protected:
 		}
 
 		// 使用完整路径作为key（对于控件）或变量名（对于变量）
-		std::string mapKey = itemPath.empty() ? itemName : itemPath;
-		ItemName_To_SelectionInfo[mapKey] = selectionInfo;
+		std::string itemPathKey = itemPath.empty() ? itemName : itemPath;
+		ItemName_To_SelectionInfo[itemPathKey] = selectionInfo;
 
-		button->SetOnPressed([this, itemName]()
+		button->SetOnPressed([this, itemPathKey]()
 			{
-				SelectItemByName(itemName);
+				SelectItemByName(itemPathKey);
 			});
 
 		if (itemType == "Widget")
@@ -807,8 +807,8 @@ protected:
 			expandableBox == m_WidgetTreeSection);
 	}
 
-	// 外部设置选中item
-	void SelectItemByName(const std::string& ItemName, bool OutSideSet = false)
+	// 外部设置选中item（通过变量名或控件路径）
+	void SelectItemByName(const std::string& ItemPath, bool OutSideSet = false)
 	{
 		auto it = ItemName_To_SelectionInfo.find(m_CurrentSelection.VariableName);
 		if (it != ItemName_To_SelectionInfo.end())
@@ -816,7 +816,7 @@ protected:
 			it->second.ItemButton->GetNormalStyle().BackgroundColor = m_NormalBgColor;
 		}
 
-		it = ItemName_To_SelectionInfo.find(ItemName);
+		it = ItemName_To_SelectionInfo.find(ItemPath);
 		if (it != ItemName_To_SelectionInfo.end())
 		{
 			m_CurrentSelection = it->second;
@@ -832,7 +832,7 @@ protected:
 						if (ImGuiWidget::ImExpandableBox* eBox = dynamic_cast<ImGuiWidget::ImExpandableBox*>(current))
 						{
 							eBox->SetExpandedState(true);
-							m_ExpandedStateMap[ItemName] = true;
+							m_ExpandedStateMap[ItemPath] = true;
 						}
 					}
 					current = current->GetParents();
@@ -1860,7 +1860,7 @@ protected:
 
 		m_FileActions.clear();
 
-		// 订阅控件选中事件，使用单参数（控件路径）
+		// 订阅控件选中事件（参数为控件路径或变量名）
 		m_FileActions.push_back(AddSequentialProcessor(m_EditedFileFullPath + Action::WIDGET_SELECTED, [this](const std::string& widgetPath)
 			{
 				// 检查是否正在处理动作，避免循环触发

@@ -216,7 +216,7 @@ std::vector<std::string> UI_DetailView::GetOptionalPropertyOptions(const ROP::Pr
 }
 
 void UI_DetailView::HandleSingleProperty(
-    const ROP::Property<ImGuiWidget::PropertyType>& prop,
+    ROP::Property<ImGuiWidget::PropertyType>& prop,
     ImGuiWidget::ImVerticalBox* CurrentVerticalBox,
     ImGuiWidget::ImObject* Target,
     ImGuiWidget::ImWidget* WidgetOwner,
@@ -462,13 +462,13 @@ void UI_DetailView::HandleSingleProperty(
         StructBox->SetHead(PropertyName);
         StructBox->SetBody(StructPropertyBox);
 
-        ImGuiWidget::ImObject* SubTarget = prop.GetValue<ImGuiWidget::ImObject*>();
+        ImGuiWidget::ImObject* SubTarget = prop.GetPointer<ImGuiWidget::ImObject>();
         if (SubTarget)
         {
             std::unordered_map<std::string, std::function<void()>> SubUpdaters;
             auto allProps = SubTarget->GetAllPropertiesOrdered();
 
-            for (const auto& subProp : allProps)
+            for (auto& subProp : allProps)
             {
                 HandleSingleProperty(subProp, StructPropertyBox, SubTarget, WidgetOwner, SubUpdaters);
             }
@@ -706,7 +706,7 @@ void UI_DetailView::SetCurrentWidget(ImGuiWidget::ImWidget* widget)
         std::unordered_map<std::string, std::function<void()>> Updaters;
         auto slotProps = Slot->GetAllPropertiesOrdered();
 
-        for (const auto& prop : slotProps)
+        for (auto& prop : slotProps)
         {
             HandleSingleProperty(prop, SlotPropertyBox, Slot, widget, Updaters);
         }
@@ -720,7 +720,7 @@ void UI_DetailView::SetCurrentWidget(ImGuiWidget::ImWidget* widget)
     std::unordered_map<std::string, std::function<void()>> Updaters;
     auto properties = widget->GetAllPropertiesOrdered();
 
-    for (const auto& prop : properties)
+    for (auto& prop : properties)
     {
         HandleSingleProperty(prop, VBox, widget, widget, Updaters);
     }
