@@ -1,4 +1,4 @@
-// Command_VariableOperation.h - »ùÓÚĞÂImUserWidgetClassµÄÍ³Ò»±äÁ¿²Ù×÷ÃüÁî
+ï»¿// Command_VariableOperation.h - æä¾›ImUserWidgetClassçš„ç»Ÿä¸€å˜é‡æ“ä½œå‘½ä»¤
 #pragma once
 
 #include "ImDesignerCommandBase.h"
@@ -6,21 +6,21 @@
 #include "ImUserWidgetSerializer.h"
 #include <nlohmann/json.hpp>
 
-// VariableOperation×ÓÀàĞÍ
+// VariableOperationå­ç±»å‹
 enum class VariableOperationSubType
 {
-    CreateNewVariable = 0,    // ´´½¨ĞÂ±äÁ¿£¨Í³Ò»½Ó¿Ú£©
-    RemoveVariable,           // É¾³ı±äÁ¿£¨Í³Ò»½Ó¿Ú£©
-    PasteVariable,            // Õ³Ìù±äÁ¿£¨Í¨¹ıjson¶ÔÏó£©
-    PasteObjectVariable,      // Õ³ÌùImObjectµÄJson¶ÔÏóÎªImObject±äÁ¿
-    PasteWidgetVariable       // Õ³ÌùImWidgetµÄJson¶ÔÏóÎª¿Ø¼şÊ÷±äÁ¿
+    CreateNewVariable = 0,    // åˆ›å»ºæ–°å˜é‡ï¼ˆç»Ÿä¸€æ¥å£ï¼‰
+    RemoveVariable,           // åˆ é™¤å˜é‡ï¼ˆç»Ÿä¸€æ¥å£ï¼‰
+    PasteVariable,            // ç²˜è´´å˜é‡ï¼ˆé€šè¿‡jsonæ•°æ®ï¼‰
+    PasteObjectVariable,      // ç²˜è´´ImObjectçš„Jsonæ•°æ®ä¸ºImObjectå˜é‡
+    PasteWidgetVariable       // ç²˜è´´ImWidgetçš„Jsonæ•°æ®ä¸ºæ§ä»¶å˜é‡
 };
 
 class VariableOperationCommandBase : public ImUserWidgetClassCommandBase
 {
 protected:
-    std::string m_VariableName;  // Ö´ĞĞºó¼ÇÂ¼µÄ±äÁ¿Ãû
-    ImGuiWidget::WidgetClassVariableType m_VariableType;  // ±äÁ¿ÀàĞÍ
+    std::string m_VariableName;  // æ‰§è¡Œåç”Ÿæˆçš„å˜é‡å
+    ImGuiWidget::WidgetClassVariableType m_VariableType;  // å˜é‡ç±»å‹
 
 public:
     VariableOperationCommandBase(ImGuiWidget::ImUserWidgetClass* target,
@@ -34,27 +34,27 @@ public:
 
     virtual ~VariableOperationCommandBase() = default;
 
-    // ±äÁ¿²Ù×÷Í¨³£²»¿ÉºÏ²¢
+    // å˜é‡æ“ä½œé€šå¸¸ä¸èƒ½åˆå¹¶
     virtual bool CanMergeWith(const CommandBase<CommandDataType>* other) const override
     {
         return false;
     }
 
-    // »ñÈ¡Ö´ĞĞºóÉú³ÉµÄ±äÁ¿Ãû
+    // è·å–æ‰§è¡Œåç”Ÿæˆçš„å˜é‡å
     std::string GetVariableName() const { return m_VariableName; }
 
-    // »ñÈ¡±äÁ¿ÀàĞÍ
+    // è·å–å˜é‡ç±»å‹
     ImGuiWidget::WidgetClassVariableType GetVariableType() const { return m_VariableType; }
 };
 
 // ============================================================================
-// ´´½¨ĞÂ±äÁ¿ÃüÁî
+// åˆ›å»ºæ–°å˜é‡å‘½ä»¤
 // ============================================================================
 class CreateNewVariableCommand : public VariableOperationCommandBase
 {
 private:
     ImGuiWidget::WidgetClassVariableType m_Type;
-    std::string m_SpecificType;  // ¾ßÌåÀàĞÍÃû³Æ
+    std::string m_SpecificType;  // å…·ä½“ç±»å‹å­—ç¬¦ä¸²
 
 public:
     CreateNewVariableCommand(ImGuiWidget::ImUserWidgetClass* target,
@@ -70,15 +70,30 @@ public:
 
     virtual bool Execute() override
     {
-        if (!m_TargetClass)
+        if (!m_TargetClass || !m_Model)
             return false;
 
-        // Ö´ĞĞÌí¼Ó²Ù×÷£¬±äÁ¿ÃûÓÉImUserWidgetClassÉú³É
+        // æ‰§è¡Œæ·»åŠ å˜é‡æ“ä½œï¼Œå†…éƒ¨ç”Ÿæˆå˜é‡å
         bool success = m_TargetClass->AddVariable(m_Type, m_SpecificType, m_VariableName);
 
         if (success)
         {
             m_VariableType = m_Type;
+
+            // å‘å¸ƒæ›´æ–°äº‹ä»¶
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            switch (m_Type)
+            {
+            case ImGuiWidget::WidgetClassVariableType::Basic:
+                Publish(filePath + Events::OutlineView::UPDATE_BASIC_VARIABLE_SECTION);
+                break;
+            case ImGuiWidget::WidgetClassVariableType::Object:
+                Publish(filePath + Events::OutlineView::UPDATE_OBJECT_VARIABLE_SECTION);
+                break;
+            case ImGuiWidget::WidgetClassVariableType::Widget:
+                Publish(filePath + Events::OutlineView::UPDATE_WIDGET_VARIABLE_SECTION);
+                break;
+            }
         }
 
         return success;
@@ -86,10 +101,30 @@ public:
 
     virtual bool Undo() override
     {
-        if (!m_TargetClass)
+        if (!m_TargetClass || !m_Model)
             return false;
 
-        return m_TargetClass->RemoveVariable(m_VariableName);
+        bool success = m_TargetClass->RemoveVariable(m_VariableName);
+
+        if (success)
+        {
+            // å‘å¸ƒæ›´æ–°äº‹ä»¶
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            switch (m_Type)
+            {
+            case ImGuiWidget::WidgetClassVariableType::Basic:
+                Publish(filePath + Events::OutlineView::UPDATE_BASIC_VARIABLE_SECTION);
+                break;
+            case ImGuiWidget::WidgetClassVariableType::Object:
+                Publish(filePath + Events::OutlineView::UPDATE_OBJECT_VARIABLE_SECTION);
+                break;
+            case ImGuiWidget::WidgetClassVariableType::Widget:
+                Publish(filePath + Events::OutlineView::UPDATE_WIDGET_VARIABLE_SECTION);
+                break;
+            }
+        }
+
+        return success;
     }
 
     virtual std::string GetDescription() const override
@@ -98,29 +133,29 @@ public:
         switch (m_Type)
         {
         case ImGuiWidget::WidgetClassVariableType::Widget:
-            typeStr = "¿Ø¼şÊ÷±äÁ¿";
+            typeStr = "æ§ä»¶å˜é‡";
             break;
         case ImGuiWidget::WidgetClassVariableType::Object:
-            typeStr = "ImObject±äÁ¿";
+            typeStr = "ImObjectå˜é‡";
             break;
         case ImGuiWidget::WidgetClassVariableType::Basic:
-            typeStr = "»ù±¾±äÁ¿";
+            typeStr = "åŸºæœ¬å˜é‡";
             break;
         }
 
-        return "´´½¨" + typeStr + ": " + m_VariableName + " (ÀàĞÍ: " + m_SpecificType + ")";
+        return "åˆ›å»º" + typeStr + ": " + m_VariableName + " (ç±»å‹: " + m_SpecificType + ")";
     }
 };
 
 // ============================================================================
-// É¾³ı±äÁ¿ÃüÁî
+// åˆ é™¤å˜é‡å‘½ä»¤
 // ============================================================================
 class RemoveVariableCommand : public VariableOperationCommandBase
 {
 private:
     ImGuiWidget::WidgetClassVariableType m_Type;
-    std::string m_SpecificType;      // ¾ßÌåÀàĞÍÃû³Æ
-    nlohmann::json m_SerializedData; // ĞòÁĞ»¯ºóµÄ±äÁ¿Êı¾İ£¨ÓÃÓÚ»Ö¸´£©
+    std::string m_SpecificType;      // å…·ä½“ç±»å‹å­—ç¬¦ä¸²
+    nlohmann::json m_SerializedData; // åºåˆ—åŒ–çš„å˜é‡æ•°æ®ï¼Œç”¨äºæ¢å¤
 
 public:
     RemoveVariableCommand(ImGuiWidget::ImUserWidgetClass* target,
@@ -134,10 +169,10 @@ public:
 
     virtual bool Execute() override
     {
-        if (!m_TargetClass)
+        if (!m_TargetClass || !m_Model)
             return false;
 
-        // »ñÈ¡±äÁ¿
+        // è·å–å˜é‡
         ImGuiWidget::ImWidgetClassVariable* var = m_TargetClass->GetVariable(m_VariableName);
         if (!var)
             return false;
@@ -145,26 +180,46 @@ public:
         m_Type = var->GetType();
         m_SpecificType = var->GetTypeString();
 
-        // ĞòÁĞ»¯±äÁ¿Êı¾İ - Ê¹ÓÃ¹«¹²º¯Êı
+        // åºåˆ—åŒ–å˜é‡æ•°æ® - ä½¿ç”¨å·¥å…·å‡½æ•°
         m_SerializedData = ImGuiWidget::ImUserWidgetClassSerializer::SerializeVariable(var);
 
-        // Ö´ĞĞÉ¾³ı
-        return m_TargetClass->RemoveVariable(m_VariableName);
+        // æ‰§è¡Œåˆ é™¤
+        bool success = m_TargetClass->RemoveVariable(m_VariableName);
+
+        if (success)
+        {
+            // å‘å¸ƒæ›´æ–°äº‹ä»¶
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            switch (m_Type)
+            {
+            case ImGuiWidget::WidgetClassVariableType::Basic:
+                Publish(filePath + Events::OutlineView::UPDATE_BASIC_VARIABLE_SECTION);
+                break;
+            case ImGuiWidget::WidgetClassVariableType::Object:
+                Publish(filePath + Events::OutlineView::UPDATE_OBJECT_VARIABLE_SECTION);
+                break;
+            case ImGuiWidget::WidgetClassVariableType::Widget:
+                Publish(filePath + Events::OutlineView::UPDATE_WIDGET_VARIABLE_SECTION);
+                break;
+            }
+        }
+
+        return success;
     }
 
     virtual bool Undo() override
     {
-        if (!m_TargetClass)
+        if (!m_TargetClass || !m_Model)
             return false;
 
-        // ´ÓĞòÁĞ»¯Êı¾İÖØ½¨±äÁ¿ - Ê¹ÓÃ¹«¹²º¯Êı
+        // ä»åºåˆ—åŒ–æ•°æ®æ¢å¤å˜é‡ - ä½¿ç”¨å·¥å…·å‡½æ•°
         ImGuiWidget::ImWidgetClassVariable* var =
             ImGuiWidget::ImUserWidgetClassSerializer::CreateVariableFromJson(m_SerializedData);
 
         if (!var)
             return false;
 
-        // ¸ù¾İ±äÁ¿ÀàĞÍÌí¼Óµ½Ä¿±êÀà
+        // æ ¹æ®å˜é‡ç±»å‹æ·»åŠ åˆ°ç›®æ ‡ç±»
         bool success = false;
         switch (var->GetType())
         {
@@ -173,9 +228,9 @@ public:
             auto widgetVar = var->As<ImGuiWidget::ImWidgetClassVariable_Widget>();
             if (widgetVar)
             {
-                // ×ªÒÆ¿Ø¼şËùÓĞÈ¨
+                // è½¬ç§»æ§ä»¶æ‰€æœ‰æƒ
                 ImGuiWidget::ImWidget* widget = widgetVar->GetWidget();
-                widgetVar->SetWidget(nullptr, false);  // ²»É¾³ı¿Ø¼ş
+                widgetVar->SetWidget(nullptr, false);  // ä¸åˆ é™¤æ§ä»¶
                 success = m_TargetClass->SetWidgetVariableDirect(m_VariableName, widget);
             }
             break;
@@ -185,9 +240,9 @@ public:
             auto objectVar = var->As<ImGuiWidget::ImWidgetClassVariable_Object>();
             if (objectVar)
             {
-                // ×ªÒÆ¶ÔÏóËùÓĞÈ¨
+                // è½¬ç§»å¯¹è±¡æ‰€æœ‰æƒ
                 ImGuiWidget::ImObject* obj = objectVar->GetObject();
-                objectVar->SetObject(nullptr, false);  // ²»É¾³ı¶ÔÏó
+                objectVar->SetObject(nullptr, false);  // ä¸åˆ é™¤å¯¹è±¡
                 success = m_TargetClass->SetObjectVariableDirect(m_VariableName, obj);
             }
             break;
@@ -197,19 +252,37 @@ public:
             auto basicVar = var->As<ImGuiWidget::ImWidgetClassVariable_Basic>();
             if (basicVar)
             {
-                // ×ªÒÆ»ù±¾±äÁ¿ËùÓĞÈ¨
+                // è½¬ç§»åŸºæœ¬å˜é‡æ‰€æœ‰æƒ
                 success = m_TargetClass->SetBasicVariableDirect(m_VariableName, basicVar);
-                // ×¢Òâ£ºSetBasicVariableDirect»á½Ó¹ÜËùÓĞÈ¨£¬ËùÒÔvarÖ¸Õë²»Ó¦ÔÙ±»É¾³ı
-                var = nullptr;  // ·ÀÖ¹ºóÃæµÄdelete
+                // æ³¨æ„ï¼šSetBasicVariableDirectä¼šæ¥ç®¡æ‰€æœ‰æƒï¼Œå› æ­¤varæŒ‡é’ˆä¸åº”å†è¢«åˆ é™¤
+                var = nullptr;  // é˜²æ­¢åç»­delete
             }
             break;
         }
         }
 
-        // ÇåÀíÁÙÊ±±äÁ¿¶ÔÏó
+        // æ¸…ç†ä¸´æ—¶å˜é‡
         if (var)
         {
             delete var;
+        }
+
+        if (success)
+        {
+            // å‘å¸ƒæ›´æ–°äº‹ä»¶
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            switch (m_Type)
+            {
+            case ImGuiWidget::WidgetClassVariableType::Basic:
+                Publish(filePath + Events::OutlineView::UPDATE_BASIC_VARIABLE_SECTION);
+                break;
+            case ImGuiWidget::WidgetClassVariableType::Object:
+                Publish(filePath + Events::OutlineView::UPDATE_OBJECT_VARIABLE_SECTION);
+                break;
+            case ImGuiWidget::WidgetClassVariableType::Widget:
+                Publish(filePath + Events::OutlineView::UPDATE_WIDGET_VARIABLE_SECTION);
+                break;
+            }
         }
 
         return success;
@@ -221,29 +294,29 @@ public:
         switch (m_Type)
         {
         case ImGuiWidget::WidgetClassVariableType::Widget:
-            typeStr = "¿Ø¼şÊ÷±äÁ¿";
+            typeStr = "æ§ä»¶å˜é‡";
             break;
         case ImGuiWidget::WidgetClassVariableType::Object:
-            typeStr = "ImObject±äÁ¿";
+            typeStr = "ImObjectå˜é‡";
             break;
         case ImGuiWidget::WidgetClassVariableType::Basic:
-            typeStr = "»ù±¾±äÁ¿";
+            typeStr = "åŸºæœ¬å˜é‡";
             break;
         }
 
-        return "É¾³ı" + typeStr + ": " + m_VariableName;
+        return "åˆ é™¤" + typeStr + ": " + m_VariableName;
     }
 };
 
 // ============================================================================
-// Õ³Ìù±äÁ¿ÃüÁî£¨Í¨¹ıImWidgetClassVariableĞòÁĞ»¯µÃµ½µÄjson¶ÔÏó£©
+// ç²˜è´´å˜é‡å‘½ä»¤ï¼ˆé€šè¿‡ImWidgetClassVariableåºåˆ—åŒ–å¾—åˆ°çš„jsonæ•°æ®ï¼‰
 // ============================================================================
 class PasteVariableCommand : public VariableOperationCommandBase
 {
 private:
-    nlohmann::json m_SerializedData;      // ĞòÁĞ»¯ºóµÄ±äÁ¿Êı¾İ
-    std::string m_OriginalVariableName;   // Ô­Ê¼±äÁ¿Ãû£¨ÓÃÓÚÉú³ÉĞÂÃû³Æ£©
-    bool m_KeepOriginalName;              // ÊÇ·ñ±£³ÖÔ­Ê¼Ãû³Æ
+    nlohmann::json m_SerializedData;      // åºåˆ—åŒ–çš„å˜é‡æ•°æ®
+    std::string m_OriginalVariableName;   // åŸå§‹å˜é‡åï¼ˆæ¥è‡ªå¤åˆ¶æºï¼‰
+    bool m_KeepOriginalName;              // æ˜¯å¦ä¿æŒåŸå§‹åç§°
 
 public:
     PasteVariableCommand(ImGuiWidget::ImUserWidgetClass* target,
@@ -255,7 +328,7 @@ public:
         , m_SerializedData(serializedData)
         , m_KeepOriginalName(keepOriginalName)
     {
-        // ´ÓĞòÁĞ»¯Êı¾İÖĞÌáÈ¡Ô­Ê¼±äÁ¿Ãû
+        // ä»åºåˆ—åŒ–æ•°æ®æå–åŸå§‹å˜é‡å
         if (m_SerializedData.contains("Name"))
         {
             m_OriginalVariableName = m_SerializedData["Name"].get<std::string>();
@@ -264,34 +337,34 @@ public:
 
     virtual bool Execute() override
     {
-        if (!m_TargetClass)
+        if (!m_TargetClass || !m_Model)
             return false;
 
-        // ´ÓĞòÁĞ»¯Êı¾İ´´½¨±äÁ¿ - Ê¹ÓÃ¹«¹²º¯Êı
+        // ä»åºåˆ—åŒ–æ•°æ®åˆ›å»ºå˜é‡ - ä½¿ç”¨å·¥å…·å‡½æ•°
         ImGuiWidget::ImWidgetClassVariable* var =
             ImGuiWidget::ImUserWidgetClassSerializer::CreateVariableFromJson(m_SerializedData);
 
         if (!var)
             return false;
 
-        // È·¶¨ĞÂ±äÁ¿Ãû
+        // ç¡®å®šæ–°å˜é‡å
         std::string newName;
         if (m_KeepOriginalName)
         {
-            // ³¢ÊÔÊ¹ÓÃÔ­Ê¼Ãû³Æ£¬Èç¹û³åÍ»ÔòÉú³ÉĞÂÃû³Æ
+            // å°è¯•ä½¿ç”¨åŸå§‹åç§°ï¼Œä½†éœ€è¦é¿å…å†²çª
             newName = GenerateUniqueVariableName(m_OriginalVariableName);
         }
         else
         {
-            // »ùÓÚÔ­Ê¼Ãû³ÆÉú³ÉĞÂÃû³Æ£¨Ìí¼Ó_Copyºó×º£©
+            // åŸºäºåŸå§‹åç§°ç”Ÿæˆæ–°åç§°ï¼Œæ·»åŠ _Copyåç¼€
             std::string baseName = m_OriginalVariableName + "_Copy";
             newName = GenerateUniqueVariableName(baseName);
         }
 
-        // ¸üĞÂ±äÁ¿Ãû
+        // è®¾ç½®æ–°å˜é‡å
         var->SetName(newName);
 
-        // ¶ÔÓÚ¿Ø¼şÊ÷±äÁ¿£¬»¹ĞèÒª¸üĞÂ¿Ø¼şÃû³Æ
+        // å¯¹äºæ§ä»¶å˜é‡ï¼Œéœ€è¦æ›´æ–°æ§ä»¶åç§°
         if (var->GetType() == ImGuiWidget::WidgetClassVariableType::Widget)
         {
             auto widgetVar = var->As<ImGuiWidget::ImWidgetClassVariable_Widget>();
@@ -301,7 +374,7 @@ public:
             }
         }
 
-        // ¸ù¾İ±äÁ¿ÀàĞÍÌí¼Óµ½Ä¿±êÀà
+        // æ ¹æ®å˜é‡ç±»å‹æ·»åŠ åˆ°ç›®æ ‡ç±»
         bool success = false;
         switch (var->GetType())
         {
@@ -310,9 +383,9 @@ public:
             auto widgetVar = var->As<ImGuiWidget::ImWidgetClassVariable_Widget>();
             if (widgetVar)
             {
-                // ×ªÒÆ¿Ø¼şËùÓĞÈ¨
+                // è½¬ç§»æ§ä»¶æ‰€æœ‰æƒ
                 ImGuiWidget::ImWidget* widget = widgetVar->GetWidget();
-                widgetVar->SetWidget(nullptr, false);  // ²»É¾³ı¿Ø¼ş
+                widgetVar->SetWidget(nullptr, false);  // ä¸åˆ é™¤æ§ä»¶
                 success = m_TargetClass->SetWidgetVariableDirect(newName, widget);
                 m_VariableName = newName;
                 m_VariableType = ImGuiWidget::WidgetClassVariableType::Widget;
@@ -324,9 +397,9 @@ public:
             auto objectVar = var->As<ImGuiWidget::ImWidgetClassVariable_Object>();
             if (objectVar)
             {
-                // ×ªÒÆ¶ÔÏóËùÓĞÈ¨
+                // è½¬ç§»å¯¹è±¡æ‰€æœ‰æƒ
                 ImGuiWidget::ImObject* obj = objectVar->GetObject();
-                objectVar->SetObject(nullptr, false);  // ²»É¾³ı¶ÔÏó
+                objectVar->SetObject(nullptr, false);  // ä¸åˆ é™¤å¯¹è±¡
                 success = m_TargetClass->SetObjectVariableDirect(newName, obj);
                 m_VariableName = newName;
                 m_VariableType = ImGuiWidget::WidgetClassVariableType::Object;
@@ -338,21 +411,39 @@ public:
             auto basicVar = var->As<ImGuiWidget::ImWidgetClassVariable_Basic>();
             if (basicVar)
             {
-                // ×ªÒÆ»ù±¾±äÁ¿ËùÓĞÈ¨
+                // è½¬ç§»åŸºæœ¬å˜é‡æ‰€æœ‰æƒ
                 success = m_TargetClass->SetBasicVariableDirect(newName, basicVar);
                 m_VariableName = newName;
                 m_VariableType = ImGuiWidget::WidgetClassVariableType::Basic;
-                // SetBasicVariableDirect»á½Ó¹ÜËùÓĞÈ¨£¬ËùÒÔvarÖ¸Õë²»Ó¦ÔÙ±»É¾³ı
-                var = nullptr;  // ·ÀÖ¹ºóÃæµÄdelete
+                // SetBasicVariableDirectä¼šæ¥ç®¡æ‰€æœ‰æƒï¼Œå› æ­¤varæŒ‡é’ˆä¸åº”å†è¢«åˆ é™¤
+                var = nullptr;  // é˜²æ­¢åç»­delete
             }
             break;
         }
         }
 
-        // ÇåÀíÁÙÊ±±äÁ¿¶ÔÏó
+        // æ¸…ç†ä¸´æ—¶å˜é‡
         if (var)
         {
             delete var;
+        }
+
+        if (success)
+        {
+            // å‘å¸ƒæ›´æ–°äº‹ä»¶
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            switch (m_VariableType)
+            {
+            case ImGuiWidget::WidgetClassVariableType::Basic:
+                Publish(filePath + Events::OutlineView::UPDATE_BASIC_VARIABLE_SECTION);
+                break;
+            case ImGuiWidget::WidgetClassVariableType::Object:
+                Publish(filePath + Events::OutlineView::UPDATE_OBJECT_VARIABLE_SECTION);
+                break;
+            case ImGuiWidget::WidgetClassVariableType::Widget:
+                Publish(filePath + Events::OutlineView::UPDATE_WIDGET_VARIABLE_SECTION);
+                break;
+            }
         }
 
         return success;
@@ -360,10 +451,30 @@ public:
 
     virtual bool Undo() override
     {
-        if (!m_TargetClass)
+        if (!m_TargetClass || !m_Model)
             return false;
 
-        return m_TargetClass->RemoveVariable(m_VariableName);
+        bool success = m_TargetClass->RemoveVariable(m_VariableName);
+
+        if (success)
+        {
+            // å‘å¸ƒæ›´æ–°äº‹ä»¶
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            switch (m_VariableType)
+            {
+            case ImGuiWidget::WidgetClassVariableType::Basic:
+                Publish(filePath + Events::OutlineView::UPDATE_BASIC_VARIABLE_SECTION);
+                break;
+            case ImGuiWidget::WidgetClassVariableType::Object:
+                Publish(filePath + Events::OutlineView::UPDATE_OBJECT_VARIABLE_SECTION);
+                break;
+            case ImGuiWidget::WidgetClassVariableType::Widget:
+                Publish(filePath + Events::OutlineView::UPDATE_WIDGET_VARIABLE_SECTION);
+                break;
+            }
+        }
+
+        return success;
     }
 
     virtual std::string GetDescription() const override
@@ -372,30 +483,30 @@ public:
         switch (m_VariableType)
         {
         case ImGuiWidget::WidgetClassVariableType::Widget:
-            typeStr = "¿Ø¼şÊ÷±äÁ¿";
+            typeStr = "æ§ä»¶å˜é‡";
             break;
         case ImGuiWidget::WidgetClassVariableType::Object:
-            typeStr = "ImObject±äÁ¿";
+            typeStr = "ImObjectå˜é‡";
             break;
         case ImGuiWidget::WidgetClassVariableType::Basic:
-            typeStr = "»ù±¾±äÁ¿";
+            typeStr = "åŸºæœ¬å˜é‡";
             break;
         default:
-            typeStr = "±äÁ¿";
+            typeStr = "å˜é‡";
             break;
         }
 
-        return "Õ³Ìù" + typeStr + ": " + m_VariableName;
+        return "ç²˜è´´" + typeStr + ": " + m_VariableName;
     }
 
 private:
-    // Éú³ÉÎ¨Ò»±äÁ¿Ãû
+    // ç”Ÿæˆå”¯ä¸€å˜é‡å
     std::string GenerateUniqueVariableName(const std::string& baseName) const
     {
         if (!m_TargetClass)
             return baseName;
 
-        // ¼ì²éËùÓĞ±äÁ¿Ãû
+        // è·å–æ‰€æœ‰ç°æœ‰å˜é‡å
         auto allVariables = m_TargetClass->GetAllVariableNames();
         std::unordered_set<std::string> existingNames(allVariables.begin(), allVariables.end());
 
@@ -413,14 +524,14 @@ private:
 };
 
 // ============================================================================
-// Õ³ÌùImObjectµÄJson¶ÔÏóÎªImObject±äÁ¿
+// ç²˜è´´ImObjectçš„Jsonæ•°æ®ä¸ºImObjectå˜é‡
 // ============================================================================
 class PasteObjectVariableCommand : public VariableOperationCommandBase
 {
 private:
-    nlohmann::json m_ObjectJson;        // ImObjectµÄJson¶ÔÏó£¨Í¨¹ıSerializeImObjectµÃµ½£©
-    std::string m_SuggestedName;        // ½¨ÒéµÄ±äÁ¿Ãû
-    bool m_KeepSuggestedName;           // ÊÇ·ñ±£³Ö½¨ÒéÃû³Æ
+    nlohmann::json m_ObjectJson;        // ImObjectçš„Jsonæ•°æ®ï¼ˆé€šè¿‡SerializeImObjectå¾—åˆ°ï¼‰
+    std::string m_SuggestedName;        // å»ºè®®çš„å˜é‡å
+    bool m_KeepSuggestedName;           // æ˜¯å¦ä¿æŒå»ºè®®åç§°
 
 public:
     PasteObjectVariableCommand(ImGuiWidget::ImUserWidgetClass* target,
@@ -434,7 +545,7 @@ public:
         , m_SuggestedName(suggestedName)
         , m_KeepSuggestedName(keepSuggestedName)
     {
-        // ÑéÖ¤Json¶ÔÏó¸ñÊ½
+        // éªŒè¯Jsonæ•°æ®æ ¼å¼
         if (!objectJson.contains("Type") || !objectJson.contains("Properties"))
         {
             std::cerr << "Error: Invalid ImObject JSON format" << std::endl;
@@ -443,17 +554,17 @@ public:
 
     virtual bool Execute() override
     {
-        if (!m_TargetClass || !m_ObjectJson.contains("Type"))
+        if (!m_TargetClass || !m_Model || !m_ObjectJson.contains("Type"))
             return false;
 
-        // ´ÓJson´´½¨ImObject - Ê¹ÓÃĞÂµÄ¹«¹²º¯Êı
+        // ä»Jsonåˆ›å»ºImObject - ä½¿ç”¨æ–°çš„å·¥å…·å‡½æ•°
         ImGuiWidget::ImObject* obj =
             ImGuiWidget::ImUserWidgetClassSerializer::CreateImObjectFromJson(m_ObjectJson);
 
         if (!obj)
             return false;
 
-        // È·¶¨±äÁ¿Ãû
+        // ç¡®å®šå˜é‡å
         std::string varName;
         if (m_KeepSuggestedName && !m_SuggestedName.empty())
         {
@@ -461,7 +572,7 @@ public:
         }
         else
         {
-            // Ê¹ÓÃ¶ÔÏóÀàĞÍ×÷Îª»ù´¡Ãû³Æ
+            // ä½¿ç”¨å¯¹è±¡ç±»å‹ä½œä¸ºåŸºç¡€åç§°
             std::string typeName = m_ObjectJson["Type"].get<std::string>();
             std::string baseName = typeName;
             size_t pos = baseName.find_last_of("::");
@@ -472,13 +583,17 @@ public:
             varName = GenerateUniqueVariableName(baseName);
         }
 
-        // Ìí¼Óµ½Ä¿±êÀà
+        // æ·»åŠ åˆ°ç›®æ ‡ç±»
         bool success = m_TargetClass->SetObjectVariableDirect(varName, obj);
 
         if (success)
         {
             m_VariableName = varName;
             m_VariableType = ImGuiWidget::WidgetClassVariableType::Object;
+
+            // å‘å¸ƒæ›´æ–°äº‹ä»¶
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            Publish(filePath + Events::OutlineView::UPDATE_OBJECT_VARIABLE_SECTION);
         }
         else
         {
@@ -490,10 +605,19 @@ public:
 
     virtual bool Undo() override
     {
-        if (!m_TargetClass)
+        if (!m_TargetClass || !m_Model)
             return false;
 
-        return m_TargetClass->RemoveVariable(m_VariableName);
+        bool success = m_TargetClass->RemoveVariable(m_VariableName);
+
+        if (success)
+        {
+            // å‘å¸ƒæ›´æ–°äº‹ä»¶
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            Publish(filePath + Events::OutlineView::UPDATE_OBJECT_VARIABLE_SECTION);
+        }
+
+        return success;
     }
 
     virtual std::string GetDescription() const override
@@ -504,17 +628,17 @@ public:
             typeName = m_ObjectJson["Type"].get<std::string>();
         }
 
-        return "Õ³ÌùImObject±äÁ¿: " + m_VariableName + " (ÀàĞÍ: " + typeName + ")";
+        return "ç²˜è´´ImObjectå˜é‡: " + m_VariableName + " (ç±»å‹: " + typeName + ")";
     }
 
 private:
-    // Éú³ÉÎ¨Ò»±äÁ¿Ãû
+    // ç”Ÿæˆå”¯ä¸€å˜é‡å
     std::string GenerateUniqueVariableName(const std::string& baseName) const
     {
         if (!m_TargetClass)
             return baseName;
 
-        // ¼ì²éËùÓĞ±äÁ¿Ãû
+        // è·å–æ‰€æœ‰ç°æœ‰å˜é‡å
         auto allVariables = m_TargetClass->GetAllVariableNames();
         std::unordered_set<std::string> existingNames(allVariables.begin(), allVariables.end());
 
@@ -532,14 +656,14 @@ private:
 };
 
 // ============================================================================
-// Õ³ÌùImWidgetµÄJson¶ÔÏóÎª¿Ø¼şÊ÷±äÁ¿
+// ç²˜è´´ImWidgetçš„Jsonæ•°æ®ä¸ºæ§ä»¶å˜é‡
 // ============================================================================
 class PasteWidgetVariableCommand : public VariableOperationCommandBase
 {
 private:
-    nlohmann::json m_WidgetJson;        // ImWidgetµÄJson¶ÔÏó£¨Í¨¹ıSerializeImWidgetµÃµ½£©
-    std::string m_SuggestedName;        // ½¨ÒéµÄ±äÁ¿Ãû
-    bool m_KeepSuggestedName;           // ÊÇ·ñ±£³Ö½¨ÒéÃû³Æ
+    nlohmann::json m_WidgetJson;        // ImWidgetçš„Jsonæ•°æ®ï¼ˆé€šè¿‡SerializeImWidgetå¾—åˆ°ï¼‰
+    std::string m_SuggestedName;        // å»ºè®®çš„å˜é‡å
+    bool m_KeepSuggestedName;           // æ˜¯å¦ä¿æŒå»ºè®®åç§°
 
 public:
     PasteWidgetVariableCommand(ImGuiWidget::ImUserWidgetClass* target,
@@ -553,7 +677,7 @@ public:
         , m_SuggestedName(suggestedName)
         , m_KeepSuggestedName(keepSuggestedName)
     {
-        // ÑéÖ¤Json¶ÔÏó¸ñÊ½
+        // éªŒè¯Jsonæ•°æ®æ ¼å¼
         if (!widgetJson.contains("Type") || !widgetJson.contains("Name"))
         {
             std::cerr << "Error: Invalid ImWidget JSON format" << std::endl;
@@ -562,17 +686,17 @@ public:
 
     virtual bool Execute() override
     {
-        if (!m_TargetClass || !m_WidgetJson.contains("Type") || !m_WidgetJson.contains("Name"))
+        if (!m_TargetClass || !m_Model || !m_WidgetJson.contains("Type") || !m_WidgetJson.contains("Name"))
             return false;
 
-        // ´ÓJson´´½¨ImWidget - Ê¹ÓÃĞÂµÄ¹«¹²º¯Êı
+        // ä»Jsonåˆ›å»ºImWidget - ä½¿ç”¨æ–°çš„å·¥å…·å‡½æ•°
         ImGuiWidget::ImWidget* widget =
             ImGuiWidget::ImUserWidgetClassSerializer::CreateImWidgetFromJson(m_WidgetJson);
 
         if (!widget)
             return false;
 
-        // È·¶¨±äÁ¿Ãû
+        // ç¡®å®šå˜é‡å
         std::string varName;
         if (m_KeepSuggestedName && !m_SuggestedName.empty())
         {
@@ -580,7 +704,7 @@ public:
         }
         else
         {
-            // Ê¹ÓÃ¿Ø¼şÀàĞÍ×÷Îª»ù´¡Ãû³Æ
+            // ä½¿ç”¨æ§ä»¶ç±»å‹ä½œä¸ºåŸºç¡€åç§°
             std::string typeName = m_WidgetJson["Type"].get<std::string>();
             std::string baseName = typeName;
             size_t pos = baseName.find_last_of("::");
@@ -591,16 +715,20 @@ public:
             varName = GenerateUniqueVariableName(baseName);
         }
 
-        // ÉèÖÃ¿Ø¼şÃû³Æ
+        // è®¾ç½®æ§ä»¶åç§°
         widget->SetWidgetName(varName);
 
-        // Ìí¼Óµ½Ä¿±êÀà
+        // æ·»åŠ åˆ°ç›®æ ‡ç±»
         bool success = m_TargetClass->SetWidgetVariableDirect(varName, widget);
 
         if (success)
         {
             m_VariableName = varName;
             m_VariableType = ImGuiWidget::WidgetClassVariableType::Widget;
+
+            // å‘å¸ƒæ›´æ–°äº‹ä»¶
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            Publish(filePath + Events::OutlineView::UPDATE_WIDGET_VARIABLE_SECTION);
         }
         else
         {
@@ -612,10 +740,19 @@ public:
 
     virtual bool Undo() override
     {
-        if (!m_TargetClass)
+        if (!m_TargetClass || !m_Model)
             return false;
 
-        return m_TargetClass->RemoveVariable(m_VariableName);
+        bool success = m_TargetClass->RemoveVariable(m_VariableName);
+
+        if (success)
+        {
+            // å‘å¸ƒæ›´æ–°äº‹ä»¶
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            Publish(filePath + Events::OutlineView::UPDATE_WIDGET_VARIABLE_SECTION);
+        }
+
+        return success;
     }
 
     virtual std::string GetDescription() const override
@@ -626,17 +763,17 @@ public:
             typeName = m_WidgetJson["Type"].get<std::string>();
         }
 
-        return "Õ³Ìù¿Ø¼şÊ÷±äÁ¿: " + m_VariableName + " (ÀàĞÍ: " + typeName + ")";
+        return "ç²˜è´´æ§ä»¶å˜é‡: " + m_VariableName + " (ç±»å‹: " + typeName + ")";
     }
 
 private:
-    // Éú³ÉÎ¨Ò»±äÁ¿Ãû
+    // ç”Ÿæˆå”¯ä¸€å˜é‡å
     std::string GenerateUniqueVariableName(const std::string& baseName) const
     {
         if (!m_TargetClass)
             return baseName;
 
-        // ¼ì²éËùÓĞ±äÁ¿Ãû
+        // è·å–æ‰€æœ‰ç°æœ‰å˜é‡å
         auto allVariables = m_TargetClass->GetAllVariableNames();
         std::unordered_set<std::string> existingNames(allVariables.begin(), allVariables.end());
 

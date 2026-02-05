@@ -1,16 +1,16 @@
-#pragma once
+ï»¿#pragma once
 #include "ImDesignerCommandBase.h"
 #include "ImWidget/ImUserWidgetClass.h"
 
-// ÖØÃüÃû²Ù×÷×ÓÀàÐÍ
+// é‡å‘½åæ“ä½œå­ç±»åž‹
 enum class RenameOperationSubType
 {
-    RenameVariable = 0,       // 9: ÖØÃüÃû±äÁ¿
-    RenameWidgetByPath = 1,   // 10.2: Í¨¹ýÂ·¾¶ÖØÃüÃû¿Ø¼þ
+    RenameVariable = 0,       // é‡å‘½åå˜é‡
+    RenameWidgetByPath = 1,   // é€šè¿‡è·¯å¾„é‡å‘½åæŽ§ä»¶
 };
 
 
-// 6.1 ÖØÃüÃû±äÁ¿ÃüÁî
+// 6.1 é‡å‘½åå˜é‡å‘½ä»¤
 class RenameVariableCommand : public ImUserWidgetClassCommandBase
 {
 private:
@@ -32,7 +32,7 @@ public:
         m_NewName(newName),
         m_IsDefaultRoot(false)
     {
-        // ¼ì²é±äÁ¿ÀàÐÍ
+        // ç¡®å®šå˜é‡ç±»åž‹
         if (m_TargetClass->GetWidgetVariable(oldName))
         {
             m_VariableType = "Widget";
@@ -52,12 +52,22 @@ public:
 
     virtual bool Execute() override
     {
-        return m_TargetClass->RenameVariable(m_OldName, m_NewName);
+        bool success = m_TargetClass->RenameVariable(m_OldName, m_NewName);
+        if (success && m_Model) {
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            Publish(filePath + Events::OutlineView::VARIABLE_RENAMED, m_OldName, m_NewName);
+        }
+        return success;
     }
 
     virtual bool Undo() override
     {
-        return m_TargetClass->RenameVariable(m_NewName, m_OldName);
+        bool success = m_TargetClass->RenameVariable(m_NewName, m_OldName);
+        if (success && m_Model) {
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            Publish(filePath + Events::OutlineView::VARIABLE_RENAMED, m_NewName, m_OldName);
+        }
+        return success;
     }
 
     virtual std::string GetDescription() const override
@@ -74,9 +84,9 @@ public:
         if (!(m_Data == other->GetData())) return false;
 
         const RenameVariableCommand* otherCommand = static_cast<const RenameVariableCommand*>(other);
-        
+
         return (m_TargetClass == otherCommand->m_TargetClass) &&
-            (m_NewName == otherCommand->m_OldName) && // Á¬ÐøÖØÃüÃûÍ¬Ò»±äÁ¿
+            (m_NewName == otherCommand->m_OldName) && // è¿žç»­é‡å‘½ååŒä¸€å˜é‡
             (m_VariableType == otherCommand->m_VariableType)
             ;
     }
@@ -91,7 +101,7 @@ public:
     }
 };
 
-// 6.2 Í¨¹ýÂ·¾¶ÖØÃüÃû¿Ø¼þÃüÁî
+// 6.2 é€šè¿‡è·¯å¾„é‡å‘½åæŽ§ä»¶å‘½ä»¤
 class RenameWidgetByPathCommand : public ImUserWidgetClassCommandBase
 {
 private:
@@ -115,11 +125,11 @@ public:
         m_WidgetPath(widgetPath),
         m_NewName(newName)
     {
-        // ´ÓÂ·¾¶ÖÐÌáÈ¡¿Ø¼þÃû³ÆºÍ¸¸Â·¾¶
+        // ä»Žè·¯å¾„æå–æŽ§ä»¶åç§°å’Œçˆ¶è·¯å¾„
         size_t lastSlash = widgetPath.find_last_of('/');
         if (lastSlash == std::string::npos)
         {
-            m_ParentPath = ""; // ¸ù¿Ø¼þµÄ×ÓÏî
+            m_ParentPath = ""; // æ ¹æŽ§ä»¶è·¯å¾„
             m_OldName = widgetPath;
         }
         else
@@ -133,15 +143,21 @@ public:
 
     virtual bool Execute() override
     {
-        return m_TargetClass->RenameWidgetByPath(
+        bool success = m_TargetClass->RenameWidgetByPath(
             m_WidgetTreeVarName,
             m_WidgetPath,
             m_NewName);
+        if (success && m_Model) {
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            Publish(filePath + Events::OutlineView::WIDGET_CHILD_RENAMED,
+                m_WidgetTreeVarName, m_OldName, m_NewName);
+        }
+        return success;
     }
 
     virtual bool Undo() override
     {
-        // ¼ÆËãÖØÃüÃûºóµÄÐÂÂ·¾¶
+        // æž„å»ºæ–°çš„è·¯å¾„ç”¨äºŽæ’¤é”€
         std::string newPath;
         if (m_ParentPath.empty())
         {
@@ -152,11 +168,17 @@ public:
             newPath = m_ParentPath + "/" + m_NewName;
         }
 
-        // ³·ÏúÖØÃüÃû£º½«ÐÂÂ·¾¶¸Ä»Ø¾ÉÃû³Æ
-        return m_TargetClass->RenameWidgetByPath(
+        // ä½¿ç”¨æ–°çš„è·¯å¾„è¿›è¡Œæ’¤é”€æ“ä½œ
+        bool success = m_TargetClass->RenameWidgetByPath(
             m_WidgetTreeVarName,
             newPath,
             m_OldName);
+        if (success && m_Model) {
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            Publish(filePath + Events::OutlineView::WIDGET_CHILD_RENAMED,
+                m_WidgetTreeVarName, m_NewName, m_OldName);
+        }
+        return success;
     }
 
     virtual std::string GetDescription() const override
@@ -175,7 +197,7 @@ public:
 
         const auto* otherCmd = static_cast<const RenameWidgetByPathCommand*>(other);
 
-        // ¼ì²éÊÇ·ñÎªÍ¬Ò»¿Ø¼þÊ÷ºÍ¸¸Â·¾¶µÄÁ¬ÐøÖØÃüÃû
+        // æ£€æŸ¥æ˜¯å¦ä¸ºåŒä¸€æŽ§ä»¶å’Œçˆ¶è·¯å¾„ä¸‹çš„è¿žç»­é‡å‘½å
         bool sameParentPath = (m_ParentPath == otherCmd->m_ParentPath);
         bool sameWidgetTree = (m_WidgetTreeVarName == otherCmd->m_WidgetTreeVarName);
         bool isConsecutiveRename = (m_NewName == otherCmd->m_OldName);

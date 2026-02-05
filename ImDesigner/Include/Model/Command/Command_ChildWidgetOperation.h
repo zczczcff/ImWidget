@@ -1,14 +1,15 @@
-#pragma once
+ï»¿#pragma once
 #include "ImDesignerCommandBase.h"
 #include "ImWidget/ImUserWidgetClass.h"
 #include "ImWidget/ImUserWidgetSerializer.h"
+#include <nlohmann/json.hpp>
 
-// ¿Ø¼ş×ÓÏîÔöÉ¾²Ù×÷×ÓÀàĞÍ
+// æ§ä»¶å­èŠ‚ç‚¹æ“ä½œå­ç±»å‹
 enum class ChildWidgetOperationSubType
 {
-    InsertChildByPath = 0,    // 7.2: Í¨¹ıÂ·¾¶²åÈë×ÓÏî
-    InsertChildByJson = 1,    // 7.4: Í¨¹ıJson²åÈë×ÓÏî
-    RemoveChildByPath = 2,    // 8.2: Í¨¹ıÂ·¾¶ÒÆ³ı×ÓÏî
+    InsertChildByPath = 0,    // é€šè¿‡è·¯å¾„æ’å…¥å­æ§ä»¶
+    InsertChildByJson = 1,    // é€šè¿‡Jsonæ’å…¥å­æ§ä»¶
+    RemoveChildByPath = 2,    // é€šè¿‡è·¯å¾„ç§»é™¤å­æ§ä»¶
 };
 
 class InsertChildByPathCommand : public ImUserWidgetClassCommandBase
@@ -19,10 +20,10 @@ private:
     std::string m_InsertWidgetRegisterName;
     int m_InsertIndex;
 
-    // Ö´ĞĞºóÊµ¼ÊÉú³ÉµÄ×Ó¿Ø¼şĞÅÏ¢
-    std::string m_ActualChildName;    // Êµ¼ÊÉú³ÉµÄÃû×Ö£¨¿ÉÄÜ±»ÖØÃüÃû£©
-    std::string m_ActualChildPath;    // Êµ¼ÊÉú³ÉµÄÍêÕûÂ·¾¶
-    nlohmann::json m_ActualWidgetJson; // Êµ¼ÊÉú³ÉµÄ¿Ø¼şJSON
+    // æ‰§è¡Œåå®é™…ç”Ÿæˆçš„å­æ§ä»¶ä¿¡æ¯
+    std::string m_ActualChildName;    // å®é™…ç”Ÿæˆçš„åç§°ï¼ˆå¯èƒ½è¢«é‡å‘½åï¼‰
+    std::string m_ActualChildPath;    // å®é™…ç”Ÿæˆçš„å­è·¯å¾„
+    nlohmann::json m_ActualWidgetJson; // å®é™…ç”Ÿæˆçš„æ§ä»¶JSON
 
 public:
     InsertChildByPathCommand(ImGuiWidget::ImUserWidgetClass* target,
@@ -46,7 +47,7 @@ public:
 
     virtual bool Execute() override
     {
-        // Ö´ĞĞ²åÈë²Ù×÷£¨¸¸Â·¾¶Îª¿ÕÊ±±íÊ¾¸ù¿Ø¼ş£©
+        // æ‰§è¡Œæ’å…¥æ“ä½œï¼Œçˆ¶è·¯å¾„ä¸ºç©ºæ—¶è¡¨ç¤ºæ ¹æ§ä»¶
         std::string actualParentPath = m_ParentWidgetPath.empty() ? "." : m_ParentWidgetPath;
 
         auto insertedWidget = m_TargetClass->InsertChildWidgetByPath(
@@ -57,7 +58,7 @@ public:
 
         if (!insertedWidget) return false;
 
-        // ¼ÇÂ¼Êµ¼ÊÉú³ÉµÄ¿Ø¼şĞÅÏ¢
+        // è®°å½•å®é™…ç”Ÿæˆçš„æ§ä»¶ä¿¡æ¯
         m_ActualChildName = insertedWidget->GetWidgetName();
 
         if (m_ParentWidgetPath.empty())
@@ -69,8 +70,16 @@ public:
             m_ActualChildPath = m_ParentWidgetPath + "/" + m_ActualChildName;
         }
 
-        // ĞòÁĞ»¯Êµ¼ÊÉú³ÉµÄ¿Ø¼ş£¨ÓÃÓÚ³·Ïú£©
+        // åºåˆ—åŒ–å®é™…ç”Ÿæˆçš„æ§ä»¶ï¼Œç”¨äºæ’¤é”€
         m_ActualWidgetJson = ImGuiWidget::ImUserWidgetClassSerializer::SerializeImWidget(insertedWidget);
+
+        // å‘å¸ƒæ§ä»¶æ·»åŠ äº‹ä»¶
+        if (m_Model) {
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            Publish(filePath + Events::OutlineView::WIDGET_CHILD_ADDED,
+                m_WidgetTreeVarName, m_ParentWidgetPath, m_InsertWidgetRegisterName);
+        }
+
         return true;
     }
 
@@ -78,33 +87,41 @@ public:
     {
         if (m_ActualChildPath.empty()) return false;
 
-        // ÒÆ³ı²åÈëµÄ×Ó¿Ø¼ş£¨Ê¹ÓÃÊµ¼ÊÂ·¾¶£©
-        return m_TargetClass->RemoveChildWidgetByPath(
+        // ç§»é™¤æ’å…¥çš„å­æ§ä»¶ï¼Œä½¿ç”¨å®é™…è·¯å¾„
+        bool success = m_TargetClass->RemoveChildWidgetByPath(
             m_WidgetTreeVarName,
             m_ActualChildPath);
+
+        if (success && m_Model) {
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            Publish(filePath + Events::OutlineView::WIDGET_CHILD_REMOVED,
+                m_WidgetTreeVarName, m_ActualChildPath);
+        }
+
+        return success;
     }
 
     virtual std::string GetDescription() const override
     {
         std::string expectedName = m_InsertWidgetRegisterName;
-        // ÒÆ³ıÃüÃû¿Õ¼äÇ°×º
+        // ç§»é™¤å‘½åç©ºé—´å‰ç¼€
         size_t pos = expectedName.find_last_of("::");
         if (pos != std::string::npos)
             expectedName = expectedName.substr(pos + 1);
 
         std::string actualNameInfo = m_ActualChildName.empty() ?
             expectedName :
-            expectedName + " (renamed to " + m_ActualChildName + ")";
+            expectedName + " (é‡å‘½åä¸º " + m_ActualChildName + ")";
 
-        return "Insert Child: " + actualNameInfo + " in " +
+        return "æ’å…¥å­æ§ä»¶: " + actualNameInfo + " åœ¨ " +
             m_WidgetTreeVarName + "/" +
-            (m_ParentWidgetPath.empty() ? "[Root]" : m_ParentWidgetPath) +
-            " at index " + std::to_string(m_InsertIndex);
+            (m_ParentWidgetPath.empty() ? "[æ ¹]" : m_ParentWidgetPath) +
+            " ç´¢å¼• " + std::to_string(m_InsertIndex);
     }
 
     virtual bool CanMergeWith(const CommandBase<CommandDataType>* other) const override
     {
-        return false; // ²åÈë²Ù×÷Í¨³£²»¿ÉºÏ²¢
+        return false; // æ’å…¥æ“ä½œé€šå¸¸ä¸èƒ½åˆå¹¶
     }
 
     virtual bool MergeWith(std::unique_ptr<CommandBase<CommandDataType>> other) override
@@ -113,7 +130,7 @@ public:
     }
 };
 
-// 5.2 Í¨¹ıJson²åÈë×ÓÏîÃüÁî-Ò»°ãÓÃÓÚ¸´ÖÆÕ³Ìù
+// 5.2 é€šè¿‡Jsonæ’å…¥å­æ§ä»¶å‘½ä»¤ - ä¸€èˆ¬ç”¨äºå¤åˆ¶ç²˜è´´
 class InsertChildByJsonCommand : public ImUserWidgetClassCommandBase
 {
 private:
@@ -122,10 +139,10 @@ private:
     nlohmann::json m_WidgetJson;
     int m_InsertIndex;
 
-    // Ö´ĞĞºóÊµ¼ÊÉú³ÉµÄ×Ó¿Ø¼şĞÅÏ¢
-    std::string m_ExpectedName;      // JSONÖĞÆÚÍûµÄÃû×Ö
-    std::string m_ActualChildName;   // Êµ¼ÊÉú³ÉµÄÃû×Ö£¨¿ÉÄÜ±»ÖØÃüÃû£©
-    std::string m_ActualChildPath;   // Êµ¼ÊÉú³ÉµÄÍêÕûÂ·¾¶
+    // æ‰§è¡Œåå®é™…ç”Ÿæˆçš„å­æ§ä»¶ä¿¡æ¯
+    std::string m_ExpectedName;      // JSONä¸­çš„æœŸæœ›åç§°
+    std::string m_ActualChildName;   // å®é™…ç”Ÿæˆçš„åç§°ï¼ˆå¯èƒ½è¢«é‡å‘½åï¼‰
+    std::string m_ActualChildPath;   // å®é™…ç”Ÿæˆçš„å­è·¯å¾„
 
 public:
     InsertChildByJsonCommand(ImGuiWidget::ImUserWidgetClass* target,
@@ -143,14 +160,14 @@ public:
         m_WidgetJson(widgetJson),
         m_InsertIndex(insertIndex)
     {
-        // ´ÓJSONÖĞÌáÈ¡ÆÚÍûµÄÃû³Æ
+        // ä»JSONè·å–æœŸæœ›åç§°
         if (m_WidgetJson.contains("Name"))
         {
             m_ExpectedName = m_WidgetJson["Name"].get<std::string>();
         }
         else if (m_WidgetJson.contains("Type"))
         {
-            // Èç¹ûÃ»ÓĞÃû³Æ£¬Ê¹ÓÃÀàĞÍ×÷ÎªÆÚÍûÃû³Æ
+            // å¦‚æœæ²¡æœ‰åç§°ï¼Œä½¿ç”¨ç±»å‹ä½œä¸ºåŸºç¡€åç§°
             m_ExpectedName = m_WidgetJson["Type"].get<std::string>();
         }
     }
@@ -159,7 +176,7 @@ public:
 
     virtual bool Execute() override
     {
-        // Ö´ĞĞ²åÈë²Ù×÷
+        // æ‰§è¡Œæ’å…¥æ“ä½œ
         auto insertedWidget = m_TargetClass->InsertChildWidget(
             m_WidgetTreeVarName,
             m_ParentWidgetPath,
@@ -168,9 +185,17 @@ public:
 
         if (!insertedWidget) return false;
 
-        // ¼ÇÂ¼Êµ¼ÊÉú³ÉµÄ¿Ø¼şĞÅÏ¢
+        // è®°å½•å®é™…ç”Ÿæˆçš„æ§ä»¶ä¿¡æ¯
         m_ActualChildName = insertedWidget->GetWidgetName();
         m_ActualChildPath = BuildWidgetPath(m_ParentWidgetPath, m_ActualChildName);
+
+        // å‘å¸ƒæ§ä»¶æ·»åŠ äº‹ä»¶
+        if (m_Model) {
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            Publish(filePath + Events::OutlineView::WIDGET_CHILD_ADDED,
+                m_WidgetTreeVarName, m_ParentWidgetPath, m_ExpectedName);
+        }
+
         return true;
     }
 
@@ -178,10 +203,18 @@ public:
     {
         if (m_ActualChildPath.empty()) return false;
 
-        // ÒÆ³ı²åÈëµÄ×Ó¿Ø¼ş£¨Ê¹ÓÃÊµ¼ÊÂ·¾¶£©
-        return m_TargetClass->RemoveChildWidgetByPath(
+        // ç§»é™¤æ’å…¥çš„å­æ§ä»¶ï¼Œä½¿ç”¨å®é™…è·¯å¾„
+        bool success = m_TargetClass->RemoveChildWidgetByPath(
             m_WidgetTreeVarName,
             m_ActualChildPath);
+
+        if (success && m_Model) {
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            Publish(filePath + Events::OutlineView::WIDGET_CHILD_REMOVED,
+                m_WidgetTreeVarName, m_ActualChildPath);
+        }
+
+        return success;
     }
 
     virtual std::string GetDescription() const override
@@ -189,17 +222,17 @@ public:
         std::string nameInfo = m_ActualChildName.empty() ?
             m_ExpectedName :
             (m_ExpectedName == m_ActualChildName ? m_ExpectedName :
-                m_ExpectedName + " (renamed to " + m_ActualChildName + ")");
+                m_ExpectedName + " (é‡å‘½åä¸º " + m_ActualChildName + ")");
 
-        return "Insert Child from JSON: " + nameInfo + " in " +
+        return "ä»JSONæ’å…¥å­æ§ä»¶: " + nameInfo + " åœ¨ " +
             m_WidgetTreeVarName + "/" +
-            (m_ParentWidgetPath.empty() ? "[Root]" : m_ParentWidgetPath) +
-            " at index " + std::to_string(m_InsertIndex);
+            (m_ParentWidgetPath.empty() ? "[æ ¹]" : m_ParentWidgetPath) +
+            " ç´¢å¼• " + std::to_string(m_InsertIndex);
     }
 
     virtual bool CanMergeWith(const CommandBase<CommandDataType>* other) const override
     {
-        return false; // ²åÈë²Ù×÷Í¨³£²»¿ÉºÏ²¢
+        return false; // æ’å…¥æ“ä½œé€šå¸¸ä¸èƒ½åˆå¹¶
     }
 
     virtual bool MergeWith(std::unique_ptr<CommandBase<CommandDataType>> other) override
@@ -216,19 +249,19 @@ private:
     }
 };
 
-// 5.3 Í¨¹ıÂ·¾¶ÒÆ³ı×ÓÏîÃüÁî
+// 5.3 é€šè¿‡è·¯å¾„ç§»é™¤å­æ§ä»¶å‘½ä»¤
 class RemoveChildByPathCommand : public ImUserWidgetClassCommandBase
 {
 private:
     std::string m_WidgetTreeVarName;
     std::string m_ChildWidgetPath;
 
-    // ÒÆ³ıÇ°µÄĞÅÏ¢
+    // ç§»é™¤å‰æ§ä»¶ä¿¡æ¯
     std::string m_ParentWidgetPath;
     std::string m_ChildWidgetName;
     int m_ChildIndex;
 
-    // ÒÆ³ıµÄ¿Ø¼şJSONÊı¾İ
+    // ç§»é™¤çš„æ§ä»¶JSONæ•°æ®
     nlohmann::json m_RemovedWidgetJson;
 
 public:
@@ -244,7 +277,7 @@ public:
         m_ChildWidgetPath(childWidgetPath),
         m_ChildIndex(-1)
     {
-        // ½âÎöÂ·¾¶
+        // è§£æè·¯å¾„
         ParseWidgetPath(childWidgetPath, m_ParentWidgetPath, m_ChildWidgetName);
     }
 
@@ -252,14 +285,14 @@ public:
 
     virtual bool Execute() override
     {
-        // »ñÈ¡ÒªÒÆ³ıµÄ¿Ø¼ş
+        // è·å–è¦ç§»é™¤çš„æ§ä»¶
         auto rootWidget = m_TargetClass->GetWidgetVariable(m_WidgetTreeVarName);
         if (!rootWidget) return false;
 
         ImGuiWidget::ImWidget* targetWidget = nullptr;
         ImGuiWidget::ImWidget* parentWidget = nullptr;
 
-        // ²éÕÒ¸¸¿Ø¼şºÍÄ¿±ê¿Ø¼ş
+        // æŸ¥æ‰¾çˆ¶æ§ä»¶å’Œç›®æ ‡æ§ä»¶
         if (m_ParentWidgetPath.empty())
         {
             parentWidget = rootWidget;
@@ -274,38 +307,54 @@ public:
 
         if (!targetWidget) return false;
 
-        // ĞòÁĞ»¯ÒªÒÆ³ıµÄ¿Ø¼ş
+        // åºåˆ—åŒ–è¦ç§»é™¤çš„æ§ä»¶
         m_RemovedWidgetJson = ImGuiWidget::ImUserWidgetClassSerializer::SerializeImWidget(targetWidget);
 
-        // Ö´ĞĞÒÆ³ı²Ù×÷
-        return m_TargetClass->RemoveChildWidgetByPath(
+        // æ‰§è¡Œç§»é™¤æ“ä½œ
+        bool success = m_TargetClass->RemoveChildWidgetByPath(
             m_WidgetTreeVarName,
             m_ChildWidgetPath);
+
+        if (success && m_Model) {
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            Publish(filePath + Events::OutlineView::WIDGET_CHILD_REMOVED,
+                m_WidgetTreeVarName, m_ChildWidgetPath);
+        }
+
+        return success;
     }
 
     virtual bool Undo() override
     {
         if (m_ChildIndex < 0 || m_RemovedWidgetJson.empty()) return false;
 
-        // ĞŞ¸ÄJSONÖĞµÄÃû³ÆÎªÊµ¼ÊÃû³Æ£¨ÒòÎª²åÈëÊ±¿ÉÄÜ»á±»ÖØÃüÃû£©
-        // ÕâÀïÎÒÃÇ±£³ÖÔ­Ê¼Ãû³Æ£¬ÈÃInsertChildWidget×Ô¶¯´¦ÀíÖØÃüÃû
+        // ä¿®æ”¹JSONä¸­çš„åç§°ä¸ºå®é™…åç§°ï¼Œå› ä¸ºæ’å…¥æ—¶å¯èƒ½ä¼šè¢«é‡å‘½å
+        // ä½†è¿™é‡Œæˆ‘ä»¬ä¿ç•™åŸå§‹åç§°ï¼Œè®©InsertChildWidgetè‡ªåŠ¨å¤„ç†é‡å‘½å
         auto insertedWidget = m_TargetClass->InsertChildWidget(
             m_WidgetTreeVarName,
             m_ParentWidgetPath,
             m_RemovedWidgetJson,
             m_ChildIndex);
 
-        return insertedWidget != nullptr;
+        bool success = (insertedWidget != nullptr);
+
+        if (success && m_Model) {
+            std::string filePath = m_Model->GetEditedFileFullPath();
+            Publish(filePath + Events::OutlineView::WIDGET_CHILD_ADDED,
+                m_WidgetTreeVarName, m_ParentWidgetPath, m_ChildWidgetName);
+        }
+
+        return success;
     }
 
     virtual std::string GetDescription() const override
     {
-        return "Remove Child Widget: " + m_WidgetTreeVarName + "/" + m_ChildWidgetPath;
+        return "ç§»é™¤å­æ§ä»¶: " + m_WidgetTreeVarName + "/" + m_ChildWidgetPath;
     }
 
     virtual bool CanMergeWith(const CommandBase<CommandDataType>* other) const override
     {
-        return false; // ÒÆ³ı²Ù×÷Í¨³£²»¿ÉºÏ²¢
+        return false; // ç§»é™¤æ“ä½œé€šå¸¸ä¸èƒ½åˆå¹¶
     }
 
     virtual bool MergeWith(std::unique_ptr<CommandBase<CommandDataType>> other) override

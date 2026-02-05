@@ -24,10 +24,8 @@ void Model_ImUserWidgetClassEditor::OnCreateBasicVariable(ImGuiWidget::PropertyT
         m_IsModified = true;
 
         // 发布更新事件
-        Publish(m_EditedFileFullPath + Events::OutlineView::UPDATE_BASIC_VARIABLE_SECTION);
 
         // 更新Undo/Redo状态
-        UpdateUndoRedoState();
 
     }
 }
@@ -45,8 +43,6 @@ void Model_ImUserWidgetClassEditor::OnCreateObjectVariable(const std::string& ob
     {
         m_IsModified = true;
 
-        Publish(m_EditedFileFullPath + Events::OutlineView::UPDATE_OBJECT_VARIABLE_SECTION);
-        UpdateUndoRedoState();
     }
 }
 
@@ -63,8 +59,6 @@ void Model_ImUserWidgetClassEditor::OnCreateWidgetVariable(const std::string& wi
     {
         m_IsModified = true;
 
-        Publish(m_EditedFileFullPath + Events::OutlineView::UPDATE_WIDGET_VARIABLE_SECTION);
-        UpdateUndoRedoState();
 
     }
 }
@@ -82,21 +76,7 @@ void Model_ImUserWidgetClassEditor::OnDeleteVariable(const std::string& variable
     {
         m_IsModified = true;
 
-        // 根据删除的变量类型发布相应的事件
-        switch (varType)
-        {
-        case ImGuiWidget::WidgetClassVariableType::Widget:
-            Publish(m_EditedFileFullPath + Events::OutlineView::UPDATE_WIDGET_VARIABLE_SECTION);
-            break;
-        case ImGuiWidget::WidgetClassVariableType::Object:
-            Publish(m_EditedFileFullPath + Events::OutlineView::UPDATE_OBJECT_VARIABLE_SECTION);
-            break;
-        case ImGuiWidget::WidgetClassVariableType::Basic:
-            Publish(m_EditedFileFullPath + Events::OutlineView::UPDATE_BASIC_VARIABLE_SECTION);
-            break;
-        }
 
-        UpdateUndoRedoState();
 
         // 清除当前选择
         if (m_CurrentSelectedVariableName == variableName)
@@ -127,8 +107,6 @@ void Model_ImUserWidgetClassEditor::OnVariableRenamed(const std::string& oldName
         }
 
         // 发布变量重命名事件
-        Publish(m_EditedFileFullPath + Events::OutlineView::VARIABLE_RENAMED, oldName, newName);
-        UpdateUndoRedoState();
     }
 }
 
@@ -158,11 +136,6 @@ void Model_ImUserWidgetClassEditor::OnRenameWidgetByPath(const std::string& widg
         {
             m_CurrentSelectedWidget->SetWidgetName(newName);
         }
-
-        // 发布控件重命名事件
-        Publish(m_EditedFileFullPath + Events::OutlineView::WIDGET_CHILD_RENAMED,
-            widgetTreeVarName, oldName, newName);
-        UpdateUndoRedoState();
     }
 }
 
@@ -176,12 +149,6 @@ void Model_ImUserWidgetClassEditor::OnInsertWidget(const std::string& widgetTree
     if (m_CommandManager->Execute(std::move(command)))
     {
         m_IsModified = true;
-
-        // 发布控件添加事件
-        Publish(m_EditedFileFullPath + Events::OutlineView::WIDGET_CHILD_ADDED,
-            widgetTreeVarName, parentPath, insertWidgetRegisterName);
-
-        UpdateUndoRedoState();
     }
 }
 
@@ -195,11 +162,5 @@ void Model_ImUserWidgetClassEditor::OnDeleteWidget(const std::string& widgetTree
     if (m_CommandManager->Execute(std::move(command)))
     {
         m_IsModified = true;
-
-        // 发布控件删除事件
-        Publish(m_EditedFileFullPath + Events::OutlineView::WIDGET_CHILD_REMOVED,
-            widgetTreeVarName, widgetPath);
-
-        UpdateUndoRedoState();
     }
 }
