@@ -101,6 +101,9 @@ private:
 	// 当前选择
 	OutlineViewSelectionInfo m_CurrentSelection;
 
+	// 防止循环触发标志
+	bool m_IsProcessingAction;
+
 	// 控件树缓存
 	//std::unordered_set<std::string> m_RootWidgetNames;
 
@@ -186,6 +189,7 @@ public:
 		, m_BasicVarsContainer(nullptr)
 		, m_ObjectVarsContainer(nullptr)
 		, m_WidgetTreeContainer(nullptr)
+		, m_IsProcessingAction(false)
 	{
 		BuildUI();
 		InitPopupMenus();
@@ -836,7 +840,10 @@ protected:
 			}
 			else
 			{
+				// 设置标志，防止循环触发
+				m_IsProcessingAction = true;
 				Action_SelectItem(m_CurrentSelection);
+				m_IsProcessingAction = false;
 			}
 		}
 	}
@@ -1856,7 +1863,11 @@ protected:
 		// 订阅控件选中事件，使用单参数（控件路径）
 		m_FileActions.push_back(AddSequentialProcessor(m_EditedFileFullPath + Action::WIDGET_SELECTED, [this](const std::string& widgetPath)
 			{
-				SelectItemByName(widgetPath);
+				// 检查是否正在处理动作，避免循环触发
+				if (!m_IsProcessingAction)
+				{
+					SelectItemByName(widgetPath, true);  // true 表示外部调用，不会再次发送事件
+				}
 			}));
 	}
 
