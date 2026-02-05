@@ -113,6 +113,9 @@ private:
 	std::unordered_map<std::string, OutlineViewSelectionInfo> ItemName_To_SelectionInfo;
 	std::unordered_map<std::string, ImGuiWidget::ImButton*> VariableName_To_Button;      // 变量名到按钮的映射
 	std::unordered_map<std::string, ImGuiWidget::ImExpandableBox*> WidgetPath_To_Expander; // 控件路径到展开框的映射
+	std::unordered_map<std::string, ImGuiWidget::ImTextBlock*> WidgetName_To_CountText;   // 控件名到计数文本的映射
+	std::unordered_map<std::string, ImGuiWidget::ImHorizontalBox*> WidgetName_To_ContentContainer; // 控件名到内容容器的映射
+	std::unordered_map<std::string, bool> WidgetName_HadChildren;                     // 控件名到是否有子控件的记录
 	std::unordered_map<ImGuiWidget::ImExpandableBox*, std::string> Expander_To_WidgetPath; // 展开框到控件路径的映射
 	std::unordered_map<std::string, ImGuiWidget::ImVerticalBox*> WidgetPath_To_Container; // 控件路径到容器的映射
 
@@ -651,9 +654,10 @@ protected:
 
 		// 子控件数量提示
 		int childCount = widget->GetChildNum();
+		ImGuiWidget::ImTextBlock* countText = nullptr;
 		if (childCount > 0)
 		{
-			auto* countText = new ImGuiWidget::ImTextBlock(widgetName + "Count");
+			countText = new ImGuiWidget::ImTextBlock(widgetName + "Count");
 			countText->SetText(" (" + std::to_string(childCount) + ")");
 			countText->SetTextColor(IM_COL32(150, 150, 200, 255));
 			countText->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Left);
@@ -665,6 +669,13 @@ protected:
 
 		// 缓存按钮引用
 		VariableName_To_Button[widgetName] = itemButton;
+		// 缓存内容容器和计数文本（用于更新子控件数量显示）
+		WidgetName_To_ContentContainer[widgetName] = contentContainer;
+		if (countText)
+		{
+			WidgetName_To_CountText[widgetName] = countText;
+		}
+		WidgetName_HadChildren[widgetName] = (childCount > 0);
 
 		return itemButton;
 	}
@@ -973,6 +984,28 @@ protected:
 				// 更新缓存映射
 				VariableName_To_Button[changeInfo.NewName] = button;
 				VariableName_To_Button.erase(changeInfo.OldName);
+
+				// 更新内容容器和计数文本的缓存映射
+				auto contentContainerIt = WidgetName_To_ContentContainer.find(changeInfo.OldName);
+				if (contentContainerIt != WidgetName_To_ContentContainer.end())
+				{
+					WidgetName_To_ContentContainer[changeInfo.NewName] = contentContainerIt->second;
+					WidgetName_To_ContentContainer.erase(changeInfo.OldName);
+				}
+
+				auto countTextIt = WidgetName_To_CountText.find(changeInfo.OldName);
+				if (countTextIt != WidgetName_To_CountText.end())
+				{
+					WidgetName_To_CountText[changeInfo.NewName] = countTextIt->second;
+					WidgetName_To_CountText.erase(changeInfo.OldName);
+				}
+
+				auto hadChildrenIt = WidgetName_HadChildren.find(changeInfo.OldName);
+				if (hadChildrenIt != WidgetName_HadChildren.end())
+				{
+					WidgetName_HadChildren[changeInfo.NewName] = hadChildrenIt->second;
+					WidgetName_HadChildren.erase(changeInfo.OldName);
+				}
 			}
 		}
 
@@ -1085,6 +1118,86 @@ protected:
 			}
 			// 如果控件没有子控件，不需要展开框，保持现状即可
 		}
+
+		// 更新当前控件的子项数量显示
+		UpdateWidgetChildCountDisplay(widget);
+
+		// 更新父控件的子项数量显示
+		ImWidget* parent = widget->GetParents();
+		if (parent)
+		{
+			UpdateWidgetChildCountDisplay(parent);
+		}
+	}
+
+	// 更新控件的子项数量显示
+	void UpdateWidgetChildCountDisplay(ImGuiWidget::ImWidget* widget)
+	{
+		if (!widget) return;
+
+		std::string widgetName = widget->GetWidgetName();
+		int childCount = widget->GetChildNum();
+		bool hasChildren = (childCount > 0);
+
+		// 获取内容容器
+		auto contentIt = WidgetName_To_ContentContainer.find(widgetName);
+		if (contentIt == WidgetName_To_ContentContainer.end()) return;
+
+		ImGuiWidget::ImHorizontalBox* contentContainer = contentIt->second;
+		if (!contentContainer) return;
+
+		// 检查之前是否有子控件
+		auto hadChildrenIt = WidgetName_HadChildren.find(widgetName);
+		bool hadChildren = (hadChildrenIt != WidgetName_HadChildren.end()) ? hadChildrenIt->second : false;
+
+		// 如果子控件状态没有变化，只更新数量
+		if (hasChildren == hadChildren)
+		{
+			// 只在有子控件时才更新计数文本
+			if (hasChildren)
+			{
+				auto countTextIt = WidgetName_To_CountText.find(widgetName);
+				if (countTextIt != WidgetName_To_CountText.end())
+				{
+					ImGuiWidget::ImTextBlock* countText = countTextIt->second;
+					if (countText)
+					{
+						countText->SetText(" (" + std::to_string(childCount) + ")");
+					}
+				}
+			}
+		}
+		else
+		{
+			// 子控件状态发生变化，需要重建按钮内容
+			if (hasChildren && !hadChildren)
+			{
+				// 从无子控件变为有子控件，添加计数文本
+				auto* countText = new ImGuiWidget::ImTextBlock(widgetName + "Count");
+				countText->SetText(" (" + std::to_string(childCount) + ")");
+				countText->SetTextColor(IM_COL32(150, 150, 200, 255));
+				countText->SetHorizontalAlignment(ImGuiWidget::ImTextBlock::TextAlignment_Horizontal::Left);
+				contentContainer->AddChild(countText)->SetIfAutoSize(false);
+				WidgetName_To_CountText[widgetName] = countText;
+			}
+			else if (!hasChildren && hadChildren)
+			{
+				// 从有子控件变为无子控件，移除计数文本
+				auto countTextIt = WidgetName_To_CountText.find(widgetName);
+				if (countTextIt != WidgetName_To_CountText.end())
+				{
+					ImGuiWidget::ImTextBlock* countText = countTextIt->second;
+					if (countText)
+					{
+						contentContainer->RemoveChild(countText);
+						WidgetName_To_CountText.erase(widgetName);
+					}
+				}
+			}
+
+			// 更新状态记录
+			WidgetName_HadChildren[widgetName] = hasChildren;
+		}
 	}
 
 	// 查找控件的路径
@@ -1115,6 +1228,9 @@ protected:
 		ItemName_To_SelectionInfo.clear();
 		VariableName_To_Button.clear();
 		WidgetPath_To_Expander.clear();
+		WidgetName_To_CountText.clear();
+		WidgetName_To_ContentContainer.clear();
+		WidgetName_HadChildren.clear();
 		Expander_To_WidgetPath.clear();
 		WidgetPath_To_Container.clear();
 	}
@@ -1690,7 +1806,7 @@ protected:
 
 	//----------------动作及事件----------------------
 
-			// Action系统初始化
+	// Action系统初始化
 	void ActionInit()
 	{
 		ResetAction();
@@ -1722,7 +1838,7 @@ protected:
 			{
 				SelectItemByName(SelectedWidgetName);
 			}));
-	};
+	}
 
 	// 内部Action处理函数
 	void Action_SelectItem(const OutlineViewSelectionInfo& selectionInfo)
