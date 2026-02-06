@@ -735,6 +735,9 @@ void UI_DetailView::SetCurrentWidget(ImGuiWidget::ImWidget* widget)
 void UI_DetailView::ExecutePropertyEditAction(const ROP::Property<ImGuiWidget::PropertyType>& prop,
     const void* NewValue, ImGuiWidget::ImObject* Target)
 {
+    // 防止Updater触发的回调再次执行ExecutePropertyEditAction导致循环
+    if (m_IsUpdatingProperty) return;
+
     // 注意：这里需要将ROP::Property转换为某种可序列化格式
     // 但ROP::Property已经包含所有需要信息，所以可以从中提取关键信息
     ExecuteAction(EditedFileFullPath + Action::DetailView::_REQUEST_EDIT_PROPERTY,
@@ -764,10 +767,14 @@ void UI_DetailView::UpdatePropertyDisplay(ImGuiWidget::ImObject* Target, const s
 
     try
     {
+        // 设置标志，防止Updater触发回调再次调用ExecutePropertyEditAction
+        m_IsUpdatingProperty = true;
         UpdaterIt->second();
+        m_IsUpdatingProperty = false;
     }
     catch (...)
     {
+        m_IsUpdatingProperty = false;
         AddLogLineEx(u8"更新属性时发生异常：", PropertyName);
     }
 }

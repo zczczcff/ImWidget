@@ -21,6 +21,7 @@ private:
     std::string EditedFileFullPath;
     std::vector<EditorActionID> FileActions;
     std::vector<EditorEventID> FileEvents;
+    bool m_IsUpdatingProperty = false;  // é˜²æ­¢Updaterè§¦å‘å›è°ƒå¯¼è‡´çš„å¾ªç¯
 
 public:
     UI_DetailView(const std::string& widgetname, const std::string& EditedFileFullPath) :
@@ -41,7 +42,7 @@ private:
     void ResetFileAction();
 
 public:
-    // ´¦Àí×Ö·û´®Êı×éÏîµÄ¸¨Öúº¯Êı
+    // ï¿½ï¿½ï¿½ï¿½ï¿½Ö·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     ImGuiWidget::ImHorizontalBox* HandleAddStringItem(
         const ROP::Property<ImGuiWidget::PropertyType>& prop,
         std::string& SingleString,
@@ -49,7 +50,7 @@ public:
         ImGuiWidget::ImObject* Target,
         ImGuiWidget::ImWidget* WidgetOwner);
 
-    // ´¦Àíµ¥¸öÊôĞÔ - ÏÖÔÚÊ¹ÓÃROP::Property
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½Ê¹ï¿½ï¿½ROP::Property
     void HandleSingleProperty(
         ROP::Property<ImGuiWidget::PropertyType>& prop,
         ImGuiWidget::ImVerticalBox* CurrentVerticalBox,
@@ -64,12 +65,12 @@ public:
 
     void UpdatePropertyDisplay(ImGuiWidget::ImObject* Target, const std::string& PropertyName);
 
-    // ¸¨Öúº¯Êı£º»ñÈ¡ÊôĞÔµÄÏÔÊ¾Ãû³Æ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡ï¿½ï¿½ï¿½Ôµï¿½ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½
     std::string GetPropertyDisplayName(const ROP::Property<ImGuiWidget::PropertyType>& prop);
 
-    // ¸¨Öúº¯Êı£º¼ì²éÊÇ·ñÎªÑ¡ÏîÊôĞÔ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç·ï¿½ÎªÑ¡ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     bool IsOptionalProperty(const ROP::Property<ImGuiWidget::PropertyType>& prop);
 
-    // ¸¨Öúº¯Êı£º»ñÈ¡Ñ¡ÏîÊôĞÔµÄ¿ÉÑ¡Öµ
+    // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È¡Ñ¡ï¿½ï¿½ï¿½ï¿½ï¿½ÔµÄ¿ï¿½Ñ¡Öµ
     std::vector<std::string> GetOptionalPropertyOptions(const ROP::Property<ImGuiWidget::PropertyType>& prop);
 };
