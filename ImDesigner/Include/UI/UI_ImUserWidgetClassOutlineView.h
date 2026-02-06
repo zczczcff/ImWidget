@@ -1446,6 +1446,17 @@ protected:
 				m_PopupMenus.WidgetRootMenu->Close();
 			});
 
+		// 复制控件树变量按钮
+		ImGuiWidget::ImButton* copyBtn = CreateMenuButton(u8"复制控件树变量");
+		copyBtn->OnLeftClicked.Add([this]()
+			{
+				CloseActiveMenu();
+				if (!m_PopupMenus.TargetVarName.empty())
+				{
+					Action_CopyVariable(m_PopupMenus.TargetVarName);
+				}
+			});
+
 		// 删除控件树变量按钮
 		ImGuiWidget::ImButton* deleteBtn = CreateMenuButton(u8"删除控件树变量");
 		deleteBtn->OnLeftClicked.Add([this]()
@@ -1454,6 +1465,7 @@ protected:
 			});
 
 		content->AddChildToVerticalBox(insertChildBtn)->SetIfAutoSize(false);
+		content->AddChildToVerticalBox(copyBtn)->SetIfAutoSize(false);
 		content->AddChildToVerticalBox(deleteBtn)->SetIfAutoSize(false);
 
 		return content;
@@ -1468,8 +1480,8 @@ protected:
 		ImGuiWidget::ImButton* copyBtn = CreateMenuButton(u8"复制");
 		copyBtn->OnLeftClicked.Add([this]()
 			{
-				m_PopupMenus.WidgetChildMenu->Close();
-				// TODO: 实现复制功能
+				CloseActiveMenu();
+				Action_CopyWidget();
 			});
 
 		// 删除按钮
@@ -1941,6 +1953,15 @@ protected:
 	void Action_CopyVariable(const std::string& varName)
 	{
 		ExecuteAction(m_EditedFileFullPath + Action::OutlineView::COPY_VARIABLE, varName);
+	}
+
+	void Action_CopyWidget()
+	{
+		if (!m_PopupMenus.TargetVarName.empty() && m_PopupMenus.TargetWidget)
+		{
+			std::string targetPath = m_TargetClass->GetWidgetVariable(m_PopupMenus.TargetVarName)->BuildPathTo(m_PopupMenus.TargetWidget);
+			ExecuteAction(m_EditedFileFullPath + Action::OutlineView::COPY_WIDGET, m_PopupMenus.TargetVarName, targetPath);
+		}
 	}
 
 	void Action_InsertWidget(const std::string& OperatorVarName, ImGuiWidget::ImWidget* target, int insertIndex, const std::string& widgetRegisterName)

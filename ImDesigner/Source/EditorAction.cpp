@@ -29,6 +29,7 @@ namespace Action
 		const KeyStringType INSERT_WIDGET = "OutlineViewInsertWidget";
 		const KeyStringType DELETE_WIDGET = "OutlineViewDeleteWidget";
 		const KeyStringType COPY_VARIABLE = "OutlineViewCopyVariable";			//复制变量
+		const KeyStringType COPY_WIDGET = "OutlineViewCopyWidget";				//复制控件子项
 	}
 
 	namespace UIFileView

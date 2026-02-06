@@ -193,6 +193,12 @@ private:
                 OnCopyVariable(variableName);
             }));
 
+        m_FileActions.push_back(AddSequentialProcessor(m_EditedFileFullPath + Action::OutlineView::COPY_WIDGET,
+            [this](const std::string& widgetTreeVarName, const std::string& widgetPath)
+            {
+                OnCopyWidget(widgetTreeVarName, widgetPath);
+            }));
+
         // 订阅全局撤销/重做请求
         m_FileActions.push_back(AddValidator(m_EditedFileFullPath + Action::_REQUEST_UNDO,
             [this]()
@@ -240,6 +246,8 @@ private:
         const std::string& insertWidgetRegisterName, int insertIndex);
 
     void OnDeleteWidget(const std::string& widgetTreeVarName, const std::string& widgetPath);
+
+    void OnCopyWidget(const std::string& widgetTreeVarName, const std::string& widgetPath);
 
     // ==================== 变量粘贴操作 ====================
     void OnPasteVariable(const nlohmann::json& serializedData, bool keepOriginalName = false);

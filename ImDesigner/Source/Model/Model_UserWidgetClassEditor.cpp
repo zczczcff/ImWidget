@@ -286,6 +286,8 @@ void Model_ImUserWidgetClassEditor::OnCopyVariable(const std::string& variableNa
 {
     if (!m_TargetClass) return;
 
+    //------------------暂不具体实现-----------------
+
     // 获取变量类型
     //auto varType = m_TargetClass->GetVariableType(variableName);
     //if (varType == ImGuiWidget::WidgetClassVariableType::Widget)
@@ -327,4 +329,56 @@ void Model_ImUserWidgetClassEditor::OnCopyVariable(const std::string& variableNa
     //    // 设置到剪贴板
     //    ImGui::SetClipboardText(jsonString.c_str());
     //}
+}
+
+// ==================== 复制控件子项 ====================
+
+void Model_ImUserWidgetClassEditor::OnCopyWidget(const std::string& widgetTreeVarName, const std::string& widgetPath)
+{
+    if (!m_TargetClass) return;
+
+    //------------------暂不具体实现-----------------
+
+    // 获取控件树根
+    //ImGuiWidget::ImWidget* rootWidget = m_TargetClass->GetWidgetVariable(widgetTreeVarName);
+    //if (!rootWidget) return;
+
+    //// 找到目标控件
+    //ImGuiWidget::ImWidget* targetWidget = rootWidget;
+    //if (!widgetPath.empty())
+    //{
+    //    std::vector<std::string> pathParts;
+    //    std::stringstream ss(widgetPath);
+    //    std::string part;
+    //    while (std::getline(ss, part, '/'))
+    //    {
+    //        if (!part.empty())
+    //        {
+    //            pathParts.push_back(part);
+    //        }
+    //    }
+
+    //    for (const auto& widgetName : pathParts)
+    //    {
+    //        bool found = false;
+    //        for (int i = 0; i < targetWidget->GetChildNum(); ++i)
+    //        {
+    //            ImGuiWidget::ImWidget* child = targetWidget->GetChildAt(i);
+    //            if (child && child->GetWidgetName() == widgetName)
+    //            {
+    //                targetWidget = child;
+    //                found = true;
+    //                break;
+    //            }
+    //        }
+    //        if (!found) return;
+    //    }
+    //}
+
+    //// 序列化控件为JSON
+    //nlohmann::json widgetJson = ImGuiWidget::ImUserWidgetSerializer::SerializeWidget(targetWidget);
+    //std::string jsonString = widgetJson.dump();
+
+    //// 设置到剪贴板
+    //ImGui::SetClipboardText(jsonString.c_str());
 }

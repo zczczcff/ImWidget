@@ -31,6 +31,7 @@ namespace Action
 		extern const KeyStringType INSERT_WIDGET;            // 插入控件
 		extern const KeyStringType DELETE_WIDGET;            // 删除控件
 		extern const KeyStringType COPY_VARIABLE;			//复制变量
+		extern const KeyStringType COPY_WIDGET;			//复制控件子项
 	}
 
 	namespace UIFileView
