@@ -810,7 +810,8 @@ protected:
 	// 外部设置选中item（通过变量名或控件路径）
 	void SelectItemByName(const std::string& ItemPath, bool OutSideSet = false)
 	{
-		auto it = ItemName_To_SelectionInfo.find(m_CurrentSelection.VariableName);
+		// 使用ItemName（完整路径）作为key查找，而不是VariableName（简单名称）
+		auto it = ItemName_To_SelectionInfo.find(m_CurrentSelection.ItemName);
 		if (it != ItemName_To_SelectionInfo.end())
 		{
 			it->second.ItemButton->GetNormalStyle().BackgroundColor = m_NormalBgColor;
@@ -1091,8 +1092,23 @@ protected:
 					// 保存当前展开状态
 					bool wasExpanded = expander->GetIfExpanded();
 
-					// 清空容器
+					// 清空容器（这会销毁所有旧的子控件和按钮）
 					container->RemoveAllChild(true);
+
+					// 清理该路径下所有子控件的 SelectionInfo 缓存，避免悬空指针
+					// 需要清理所有以 widgetPath/ 开头的缓存项
+					for (auto it = ItemName_To_SelectionInfo.begin(); it != ItemName_To_SelectionInfo.end();)
+					{
+						// 检查是否是当前节点的子控件路径
+						if (it->first.find(widgetPath + "/") == 0 || it->first == widgetPath)
+						{
+							it = ItemName_To_SelectionInfo.erase(it);
+						}
+						else
+						{
+							++it;
+						}
+					}
 
 					// 重新添加子控件
 					for (int i = 0; i < childCount; i++)
