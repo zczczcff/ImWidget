@@ -3,16 +3,16 @@
 #include "ImDesignerCommandBase.h"
 #include "ImWidget/ImUserWidgetClass.h"
 
-// ClassProperty×ÓÀàĞÍ
+// ClassPropertyå­ç±»å‹
 enum class ClassStringPropertyType
 {
-    ClassName = 0,          // ĞŞ¸ÄÀàÃû
-    Namespace,              // ĞŞ¸ÄÃüÃû¿Õ¼ä
-    BaseClass,              // ĞŞ¸Ä»ùÀà
-    DefaultRoot             // ĞŞ¸ÄÄ¬ÈÏ¸ù¿Ø¼ş
+    ClassName = 0,          // ä¿®æ”¹ç±»å
+    Namespace,              // ä¿®æ”¹å‘½åç©ºé—´
+    BaseClass,              // ä¿®æ”¹åŸºç±»
+    DefaultRoot             // ä¿®æ”¹é»˜è®¤æ ¹æ§ä»¶
 };
 
-// =========================== 1. Àà»ù´¡ÊôĞÔÃüÁî»ùÀà ===========================
+// =========================== 1. ç±»åŸºç¡€å±æ€§å‘½ä»¤åŸºç±» ===========================
 class ClassPropertyCommandBase : public ImUserWidgetClassCommandBase
 {
 protected:
@@ -46,7 +46,7 @@ public:
 
     virtual bool CanMergeWith(const CommandBase<CommandDataType>* other) const override
     {
-        // Í¬Ò»ÀàĞÍ¡¢Í¬Ò»Ä¿±êµÄÊôĞÔ±à¼­ÃüÁî¿ÉÒÔºÏ²¢
+        // åŒä¸€ç±»å‹ã€åŒä¸€ç›®æ ‡çš„å±æ€§ç¼–è¾‘å‘½ä»¤å¯ä»¥åˆå¹¶
         if (!ImUserWidgetClassCommandBase::IsWithinMergeWindow(other))
             return false;
 
@@ -69,4 +69,120 @@ public:
 
 protected:
     virtual bool ApplyChange(const std::string& value) = 0;
+};
+
+// =========================== 1.1 ä¿®æ”¹ç±»åå‘½ä»¤ ===========================
+class EditClassNameCommand : public ClassPropertyCommandBase
+{
+public:
+    EditClassNameCommand(ImGuiWidget::ImUserWidgetClass* target,
+        Model_ImUserWidgetClassEditor* Model,
+        const std::string& oldName,
+        const std::string& newName)
+        : ClassPropertyCommandBase(target, Model, ClassStringPropertyType::ClassName, oldName, newName)
+    {
+    }
+
+    virtual ~EditClassNameCommand() = default;
+
+protected:
+    virtual bool ApplyChange(const std::string& value) override
+    {
+        if (!m_TargetClass) return false;
+        m_TargetClass->SetClassName(value);
+        return true;
+    }
+
+public:
+    virtual std::string GetDescription() const override
+    {
+        return "ä¿®æ”¹ç±»å: " + m_OldValue + " -> " + m_NewValue;
+    }
+};
+
+// =========================== 1.2 ä¿®æ”¹å‘½åç©ºé—´å‘½ä»¤ ===========================
+class EditNamespaceCommand : public ClassPropertyCommandBase
+{
+public:
+    EditNamespaceCommand(ImGuiWidget::ImUserWidgetClass* target,
+        Model_ImUserWidgetClassEditor* Model,
+        const std::string& oldNamespace,
+        const std::string& newNamespace)
+        : ClassPropertyCommandBase(target, Model, ClassStringPropertyType::Namespace, oldNamespace, newNamespace)
+    {
+    }
+
+    virtual ~EditNamespaceCommand() = default;
+
+protected:
+    virtual bool ApplyChange(const std::string& value) override
+    {
+        if (!m_TargetClass) return false;
+        m_TargetClass->SetNamespace(value);
+        return true;
+    }
+
+public:
+    virtual std::string GetDescription() const override
+    {
+        return "ä¿®æ”¹å‘½åç©ºé—´: " + m_OldValue + " -> " + m_NewValue;
+    }
+};
+
+// =========================== 1.3 ä¿®æ”¹åŸºç±»å‘½ä»¤ ===========================
+class EditBaseClassCommand : public ClassPropertyCommandBase
+{
+public:
+    EditBaseClassCommand(ImGuiWidget::ImUserWidgetClass* target,
+        Model_ImUserWidgetClassEditor* Model,
+        const std::string& oldBaseClass,
+        const std::string& newBaseClass)
+        : ClassPropertyCommandBase(target, Model, ClassStringPropertyType::BaseClass, oldBaseClass, newBaseClass)
+    {
+    }
+
+    virtual ~EditBaseClassCommand() = default;
+
+protected:
+    virtual bool ApplyChange(const std::string& value) override
+    {
+        if (!m_TargetClass) return false;
+        m_TargetClass->SetBaseClass(value);
+        return true;
+    }
+
+public:
+    virtual std::string GetDescription() const override
+    {
+        return "ä¿®æ”¹åŸºç±»: " + m_OldValue + " -> " + m_NewValue;
+    }
+};
+
+// =========================== 1.4 ä¿®æ”¹é»˜è®¤æ ¹æ§ä»¶å‘½ä»¤ ===========================
+class EditDefaultRootCommand : public ClassPropertyCommandBase
+{
+public:
+    EditDefaultRootCommand(ImGuiWidget::ImUserWidgetClass* target,
+        Model_ImUserWidgetClassEditor* Model,
+        const std::string& oldDefaultRoot,
+        const std::string& newDefaultRoot)
+        : ClassPropertyCommandBase(target, Model, ClassStringPropertyType::DefaultRoot, oldDefaultRoot, newDefaultRoot)
+    {
+    }
+
+    virtual ~EditDefaultRootCommand() = default;
+
+protected:
+    virtual bool ApplyChange(const std::string& value) override
+    {
+        if (!m_TargetClass) return false;
+        m_TargetClass->SetDefaultRootVariable(value);
+        return true;
+    }
+
+public:
+    virtual std::string GetDescription() const override
+    {
+        return "ä¿®æ”¹é»˜è®¤æ ¹æ§ä»¶: " + m_OldValue + " -> " + m_NewValue;
+    }
 };

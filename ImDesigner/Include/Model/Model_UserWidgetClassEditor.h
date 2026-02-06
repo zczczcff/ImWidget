@@ -9,27 +9,28 @@
 #include <memory>
 #include <string>
 
+
 class Model_ImUserWidgetClassEditor : public EditorEventObject
 {
 private:
-    // ±à¼­µÄÎÄ¼şÍêÕûÂ·¾¶
+    // ç¼–è¾‘çš„æ–‡ä»¶å®Œæ•´è·¯å¾„
     std::string m_EditedFileFullPath;
 
-    // Ä¿±êÀà
+    // ç›®æ ‡ç±»
     ImGuiWidget::ImUserWidgetClass* m_TargetClass;
 
-    // ÃüÁî¹ÜÀíÆ÷
+    // å‘½ä»¤ç®¡ç†å™¨
     std::unique_ptr<ImDesingnerCommandManager> m_CommandManager;
 
-    // µ±Ç°Ñ¡ÔñµÄ±äÁ¿ĞÅÏ¢
+    // å½“å‰é€‰æ‹©çš„å˜é‡ä¿¡æ¯
     std::string m_CurrentSelectedVariableName;
     ImGuiWidget::WidgetClassVariableType m_CurrentSelectedVariableType;
     ImGuiWidget::ImWidget* m_CurrentSelectedWidget;
 
-    // ±à¼­×´Ì¬
+    // ç¼–è¾‘çŠ¶æ€
     bool m_IsModified;
 
-    // Ìí¼Ó£ºActionºÍEventÈİÆ÷
+    // æ·»åŠ ï¼šActionå’ŒEventå®¹å™¨
     std::vector<EditorActionID> m_FileActions;
     std::vector<EditorEventID> m_FileEvents;
 public:
@@ -46,39 +47,39 @@ public:
 
     virtual ~Model_ImUserWidgetClassEditor()
     {
-        // ¸¸ÀàÎö¹¹º¯Êı»á×Ô¶¯ÇåÀí¶©ÔÄ
+        // çˆ¶ç±»ææ„å‡½æ•°ä¼šè‡ªåŠ¨æ¸…ç†è®¢é˜…
         if (m_TargetClass)
         {
             delete m_TargetClass;
         }
     }
 
-    // »ñÈ¡Ä¿±êÀà
+    // è·å–ç›®æ ‡ç±»
     ImGuiWidget::ImUserWidgetClass* GetTargetClass() const { return m_TargetClass; }
 
-    // »ñÈ¡ÎÄ¼şÂ·¾¶
+    // è·å–æ–‡ä»¶è·¯å¾„
     const std::string& GetEditedFileFullPath() const { return m_EditedFileFullPath; }
 
-    // ¼ì²éÊÇ·ñÒÑĞŞ¸Ä
+    // æ£€æŸ¥æ˜¯å¦å·²ä¿®æ”¹
     bool IsModified() const { return m_IsModified; }
 
-    // ±£´æĞŞ¸Ä
+    // ä¿å­˜ä¿®æ”¹
     bool SaveChanges()
     {
         if (!m_TargetClass) return false;
 
-        // ±£´æµ½ÎÄ¼ş
+        // ä¿å­˜åˆ°æ–‡ä»¶
         bool success = m_TargetClass->ExportToJsonFile(m_EditedFileFullPath);
         if (success)
         {
             m_IsModified = false;
-            // ·¢²¼±£´æ³É¹¦ÊÂ¼ş
+            // å‘å¸ƒä¿å­˜æˆåŠŸäº‹ä»¶
             Publish(m_EditedFileFullPath + Events::MainUI::SET_UNDOREDO_STATE, false, false);
         }
         return success;
     }
 
-    // ³·Ïú
+    // æ’¤é”€
     bool Undo()
     {
         if (!m_CommandManager->CanUndo()) return false;
@@ -92,7 +93,7 @@ public:
         return success;
     }
 
-    // ÖØ×ö
+    // é‡åš
     bool Redo()
     {
         if (!m_CommandManager->CanRedo()) return false;
@@ -106,7 +107,7 @@ public:
         return success;
     }
 
-    // ÉèÖÃµ±Ç°Ñ¡Ôñ
+    // è®¾ç½®å½“å‰é€‰æ‹©
     void SetCurrentSelection(const std::string& variableName,
         ImGuiWidget::WidgetClassVariableType variableType,
         ImGuiWidget::ImWidget* widget = nullptr)
@@ -116,20 +117,20 @@ public:
         m_CurrentSelectedWidget = widget;
     }
 
-    // »ñÈ¡µ±Ç°Ñ¡ÔñµÄ±äÁ¿Ãû
+    // è·å–å½“å‰é€‰æ‹©çš„å˜é‡å
     const std::string& GetCurrentSelectedVariableName() const { return m_CurrentSelectedVariableName; }
 
-    // »ñÈ¡µ±Ç°Ñ¡ÔñµÄ±äÁ¿ÀàĞÍ
+    // è·å–å½“å‰é€‰æ‹©çš„å˜é‡ç±»å‹
     ImGuiWidget::WidgetClassVariableType GetCurrentSelectedVariableType() const { return m_CurrentSelectedVariableType; }
 
-    // »ñÈ¡µ±Ç°Ñ¡ÔñµÄ¿Ø¼ş
+    // è·å–å½“å‰é€‰æ‹©çš„æ§ä»¶
     ImGuiWidget::ImWidget* GetCurrentSelectedWidget() const { return m_CurrentSelectedWidget; }
 
 private:
     void InitActions()
     {
         ResetAction();
-        // ¼àÌıÎÄ¼şÖØÃüÃûÊÂ¼ş
+        // ç›‘å¬æ–‡ä»¶é‡å‘½åäº‹ä»¶
         AddSequentialProcessor(Action::ProjectView::RENAME_FILE, [this](const std::string& OldFullPath, const std::string& NewFullPath)
             {
                 if (m_EditedFileFullPath == OldFullPath)
@@ -139,7 +140,7 @@ private:
                 }
             });
     }
-    // ÉèÖÃ¶¯×÷¶©ÔÄ
+    // è®¾ç½®åŠ¨ä½œè®¢é˜…
     void ResetAction()
     {
         for (auto& id : m_FileActions)
@@ -148,7 +149,7 @@ private:
         }
 
         m_FileActions.clear();
-        // ¶©ÔÄOutlineViewµÄ¶¯×÷
+        // è®¢é˜…OutlineViewçš„åŠ¨ä½œ
         m_FileActions.push_back(AddSequentialProcessor(m_EditedFileFullPath + Action::OutlineView::CREATE_BASIC_VARIABLE,
             [this](ImGuiWidget::PropertyType type)
             {
@@ -186,7 +187,7 @@ private:
                 OnDeleteWidget(widgetTreeVarName, widgetPath);
             }));
 
-        // ¶©ÔÄÈ«¾Ö³·Ïú/ÖØ×öÇëÇó
+        // è®¢é˜…å…¨å±€æ’¤é”€/é‡åšè¯·æ±‚
         m_FileActions.push_back(AddValidator(m_EditedFileFullPath + Action::_REQUEST_UNDO,
             [this]()
             {
@@ -211,7 +212,7 @@ private:
 
     void OnDeleteVariable(const std::string& variableName);
 
-    // ¸üĞÂUndo/Redo×´Ì¬
+    // æ›´æ–°Undo/RedoçŠ¶æ€
     void UpdateUndoRedoState()
     {
         bool canUndo = m_CommandManager->CanUndo();
@@ -219,10 +220,10 @@ private:
         Publish(m_EditedFileFullPath + Events::MainUI::SET_UNDOREDO_STATE, canUndo, canRedo);
     }
 
-    // ÖØÃüÃû±äÁ¿£¨´ÓÊÂ¼ş´¦Àí£©
+    // é‡å‘½åå˜é‡ï¼ˆä»äº‹ä»¶å¤„ç†ï¼‰
     void OnVariableRenamed(const std::string& oldName, const std::string& newName);
 
-    // ÖØÃüÃû¿Ø¼ş£¨Í¨¹ıÂ·¾¶£©
+    // é‡å‘½åæ§ä»¶ï¼ˆé€šè¿‡è·¯å¾„ï¼‰
     void OnRenameWidgetByPath(const std::string& widgetTreeVarName,
         const std::string& widgetPath,
         const std::string& newName);
@@ -232,8 +233,26 @@ private:
 
     void OnDeleteWidget(const std::string& widgetTreeVarName, const std::string& widgetPath);
 
+    // ==================== å˜é‡ç²˜è´´æ“ä½œ ====================
+    void OnPasteVariable(const nlohmann::json& serializedData, bool keepOriginalName = false);
+    void OnPasteObjectVariable(const nlohmann::json& objectJson, const std::string& suggestedName = "", bool keepSuggestedName = false);
+    void OnPasteWidgetVariable(const nlohmann::json& widgetJson, const std::string& suggestedName = "", bool keepSuggestedName = false);
+
+    // ==================== é€šè¿‡JSONæ’å…¥å­æ§ä»¶ ====================
+    void OnInsertWidgetByJson(const std::string& widgetTreeVarName, const std::string& parentPath,
+        const nlohmann::json& widgetJson, int insertIndex);
+
+    // ==================== ç±»å­—ç¬¦ä¸²å±æ€§ç¼–è¾‘ ====================
+    void OnEditClassName(const std::string& newName);
+    void OnEditNamespace(const std::string& newName);
+    void OnEditBaseClass(const std::string& newName);
+    void OnEditDefaultRoot(const std::string& newName);
+
+    // ==================== æ¨¡æ¿å±æ€§ç¼–è¾‘å‡½æ•° ====================
+
+
 private:
-    // ¸¨Öúº¯Êı£º´ÓÂ·¾¶ÖĞÌáÈ¡¿Ø¼şÃû
+    // è¾…åŠ©å‡½æ•°ï¼šä»è·¯å¾„ä¸­æå–æ§ä»¶å
     std::string ExtractWidgetNameFromPath(const std::string& path)
     {
         size_t lastSlash = path.find_last_of('/');

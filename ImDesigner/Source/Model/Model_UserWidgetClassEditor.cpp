@@ -12,7 +12,7 @@ void Model_ImUserWidgetClassEditor::OnCreateBasicVariable(ImGuiWidget::PropertyT
 {
     if (!m_TargetClass) return;
 
-    // ´´½¨ÃüÁî²¢Ö´ĞĞ
+    // åˆ›å»ºå‘½ä»¤å¹¶æ‰§è¡Œ
     std::string typeName = ImGuiWidget::PropertyTypeToString(type);
     auto command = std::make_unique<CreateNewVariableCommand>(
         m_TargetClass,this,
@@ -23,9 +23,9 @@ void Model_ImUserWidgetClassEditor::OnCreateBasicVariable(ImGuiWidget::PropertyT
     {
         m_IsModified = true;
 
-        // ·¢²¼¸üĞÂÊÂ¼ş
+        // å‘å¸ƒæ›´æ–°äº‹ä»¶
 
-        // ¸üĞÂUndo/Redo×´Ì¬
+        // æ›´æ–°Undo/RedoçŠ¶æ€
 
     }
 }
@@ -67,7 +67,7 @@ void Model_ImUserWidgetClassEditor::OnDeleteVariable(const std::string& variable
 {
     if (!m_TargetClass) return;
 
-    // »ñÈ¡±äÁ¿ÀàĞÍÒÔ±ã»Ö¸´Ñ¡Ôñ
+    // è·å–å˜é‡ç±»å‹ä»¥ä¾¿æ¢å¤é€‰æ‹©
     auto varType = m_TargetClass->GetVariableType(variableName);
 
     auto command = std::make_unique<RemoveVariableCommand>(m_TargetClass, this, variableName);
@@ -78,7 +78,7 @@ void Model_ImUserWidgetClassEditor::OnDeleteVariable(const std::string& variable
 
 
 
-        // Çå³ıµ±Ç°Ñ¡Ôñ
+        // æ¸…é™¤å½“å‰é€‰æ‹©
         if (m_CurrentSelectedVariableName == variableName)
         {
             m_CurrentSelectedVariableName.clear();
@@ -88,7 +88,7 @@ void Model_ImUserWidgetClassEditor::OnDeleteVariable(const std::string& variable
     }
 }
 
-// ÖØÃüÃû±äÁ¿£¨´ÓÊÂ¼ş´¦Àí£©
+// é‡å‘½åå˜é‡ï¼ˆä»äº‹ä»¶å¤„ç†ï¼‰
 
 void Model_ImUserWidgetClassEditor::OnVariableRenamed(const std::string& oldName, const std::string& newName)
 {
@@ -100,28 +100,28 @@ void Model_ImUserWidgetClassEditor::OnVariableRenamed(const std::string& oldName
     {
         m_IsModified = true;
 
-        // ¸üĞÂµ±Ç°Ñ¡Ôñ
+        // æ›´æ–°å½“å‰é€‰æ‹©
         if (m_CurrentSelectedVariableName == oldName)
         {
             m_CurrentSelectedVariableName = newName;
         }
 
-        // ·¢²¼±äÁ¿ÖØÃüÃûÊÂ¼ş
+        // å‘å¸ƒå˜é‡é‡å‘½åäº‹ä»¶
     }
 }
 
-// ÖØÃüÃû¿Ø¼ş£¨Í¨¹ıÂ·¾¶£©
+// é‡å‘½åæ§ä»¶ï¼ˆé€šè¿‡è·¯å¾„ï¼‰
 
 void Model_ImUserWidgetClassEditor::OnRenameWidgetByPath(const std::string& widgetTreeVarName, const std::string& widgetPath, const std::string& newName)
 {
     if (!m_TargetClass) return;
 
-    // Ê×ÏÈ»ñÈ¡¾ÉÃû³Æ
+    // é¦–å…ˆè·å–æ—§åç§°
     ImGuiWidget::ImWidget* rootWidget = m_TargetClass->GetWidgetVariable(widgetTreeVarName);
     if (!rootWidget) return;
 
-    // ´ÓÂ·¾¶½âÎö³ö¿Ø¼ş
-    // ÕâÀïĞèÒªÂ·¾¶½âÎöº¯Êı£¬ÔİÊ±¼ò»¯´¦Àí
+    // ä»è·¯å¾„è§£æå‡ºæ§ä»¶
+    // è¿™é‡Œéœ€è¦è·¯å¾„è§£æå‡½æ•°ï¼Œæš‚æ—¶ç®€åŒ–å¤„ç†
     std::string oldName = ExtractWidgetNameFromPath(widgetPath);
 
     auto command = std::make_unique<RenameWidgetByPathCommand>(
@@ -131,7 +131,7 @@ void Model_ImUserWidgetClassEditor::OnRenameWidgetByPath(const std::string& widg
     {
         m_IsModified = true;
 
-        // ¸üĞÂµ±Ç°Ñ¡Ôñ
+        // æ›´æ–°å½“å‰é€‰æ‹©
         if (m_CurrentSelectedWidget && m_CurrentSelectedWidget->GetWidgetName() == oldName)
         {
             m_CurrentSelectedWidget->SetWidgetName(newName);
@@ -158,6 +158,121 @@ void Model_ImUserWidgetClassEditor::OnDeleteWidget(const std::string& widgetTree
 
     auto command = std::make_unique<RemoveChildByPathCommand>(
         m_TargetClass, this, widgetTreeVarName, widgetPath);
+
+    if (m_CommandManager->Execute(std::move(command)))
+    {
+        m_IsModified = true;
+    }
+}
+
+// ==================== å˜é‡ç²˜è´´æ“ä½œ ====================
+
+void Model_ImUserWidgetClassEditor::OnPasteVariable(const nlohmann::json& serializedData, bool keepOriginalName)
+{
+    if (!m_TargetClass) return;
+
+    auto command = std::make_unique<PasteVariableCommand>(
+        m_TargetClass, this, serializedData, keepOriginalName);
+
+    if (m_CommandManager->Execute(std::move(command)))
+    {
+        m_IsModified = true;
+    }
+}
+
+void Model_ImUserWidgetClassEditor::OnPasteObjectVariable(const nlohmann::json& objectJson, const std::string& suggestedName, bool keepSuggestedName)
+{
+    if (!m_TargetClass) return;
+
+    auto command = std::make_unique<PasteObjectVariableCommand>(
+        m_TargetClass, this, objectJson, suggestedName, keepSuggestedName);
+
+    if (m_CommandManager->Execute(std::move(command)))
+    {
+        m_IsModified = true;
+    }
+}
+
+void Model_ImUserWidgetClassEditor::OnPasteWidgetVariable(const nlohmann::json& widgetJson, const std::string& suggestedName, bool keepSuggestedName)
+{
+    if (!m_TargetClass) return;
+
+    auto command = std::make_unique<PasteWidgetVariableCommand>(
+        m_TargetClass, this, widgetJson, suggestedName, keepSuggestedName);
+
+    if (m_CommandManager->Execute(std::move(command)))
+    {
+        m_IsModified = true;
+    }
+}
+
+// ==================== é€šè¿‡JSONæ’å…¥å­æ§ä»¶ ====================
+
+void Model_ImUserWidgetClassEditor::OnInsertWidgetByJson(const std::string& widgetTreeVarName, const std::string& parentPath,
+    const nlohmann::json& widgetJson, int insertIndex)
+{
+    if (!m_TargetClass) return;
+
+    auto command = std::make_unique<InsertChildByJsonCommand>(
+        m_TargetClass, this, widgetTreeVarName, parentPath, widgetJson, insertIndex);
+
+    if (m_CommandManager->Execute(std::move(command)))
+    {
+        m_IsModified = true;
+    }
+}
+
+// ==================== ç±»å­—ç¬¦ä¸²å±æ€§ç¼–è¾‘ ====================
+
+void Model_ImUserWidgetClassEditor::OnEditClassName(const std::string& newName)
+{
+    if (!m_TargetClass) return;
+
+    std::string oldName = m_TargetClass->GetClassName();
+    auto command = std::make_unique<EditClassNameCommand>(
+        m_TargetClass, this, oldName, newName);
+
+    if (m_CommandManager->Execute(std::move(command)))
+    {
+        m_IsModified = true;
+    }
+}
+
+void Model_ImUserWidgetClassEditor::OnEditNamespace(const std::string& newName)
+{
+    if (!m_TargetClass) return;
+
+    std::string oldName = m_TargetClass->GetNamespace();
+    auto command = std::make_unique<EditNamespaceCommand>(
+        m_TargetClass, this, oldName, newName);
+
+    if (m_CommandManager->Execute(std::move(command)))
+    {
+        m_IsModified = true;
+    }
+}
+
+void Model_ImUserWidgetClassEditor::OnEditBaseClass(const std::string& newName)
+{
+    if (!m_TargetClass) return;
+
+    std::string oldName = m_TargetClass->GetBaseClass();
+    auto command = std::make_unique<EditBaseClassCommand>(
+        m_TargetClass, this, oldName, newName);
+
+    if (m_CommandManager->Execute(std::move(command)))
+    {
+        m_IsModified = true;
+    }
+}
+
+void Model_ImUserWidgetClassEditor::OnEditDefaultRoot(const std::string& newName)
+{
+    if (!m_TargetClass) return;
+
+    std::string oldName = m_TargetClass->GetDefaultRootVariableName();
+    auto command = std::make_unique<EditDefaultRootCommand>(
+        m_TargetClass, this, oldName, newName);
 
     if (m_CommandManager->Execute(std::move(command)))
     {
