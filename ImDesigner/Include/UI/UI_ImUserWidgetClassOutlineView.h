@@ -1559,6 +1559,18 @@ protected:
 	{
 		ImGuiWidget::ImVerticalBox* content = new ImGuiWidget::ImVerticalBox("VariableMenuContent");
 
+		// 复制变量按钮
+		ImGuiWidget::ImButton* copyBtn = CreateMenuButton(u8"复制变量");
+		copyBtn->OnLeftClicked.Add([this]()
+			{
+				CloseActiveMenu();
+				if (!m_PopupMenus.TargetVarName.empty())
+				{
+					Action_CopyVariable(m_PopupMenus.TargetVarName);
+				}
+			});
+		content->AddChildToVerticalBox(copyBtn)->SetIfAutoSize(false);
+
 		// 删除变量按钮
 		ImGuiWidget::ImButton* deleteBtn = CreateMenuButton(u8"删除变量");
 		deleteBtn->OnLeftClicked.Add([this]()
@@ -1924,6 +1936,11 @@ protected:
 	void Action_DeleteVariable(const std::string& varName)
 	{
 		ExecuteAction(m_EditedFileFullPath + Action::OutlineView::DELETE_VARIABLE, varName);
+	}
+
+	void Action_CopyVariable(const std::string& varName)
+	{
+		ExecuteAction(m_EditedFileFullPath + Action::OutlineView::COPY_VARIABLE, varName);
 	}
 
 	void Action_InsertWidget(const std::string& OperatorVarName, ImGuiWidget::ImWidget* target, int insertIndex, const std::string& widgetRegisterName)

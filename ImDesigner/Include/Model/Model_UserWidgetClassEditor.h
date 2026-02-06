@@ -187,6 +187,12 @@ private:
                 OnDeleteWidget(widgetTreeVarName, widgetPath);
             }));
 
+        m_FileActions.push_back(AddSequentialProcessor(m_EditedFileFullPath + Action::OutlineView::COPY_VARIABLE,
+            [this](const std::string& variableName)
+            {
+                OnCopyVariable(variableName);
+            }));
+
         // 订阅全局撤销/重做请求
         m_FileActions.push_back(AddValidator(m_EditedFileFullPath + Action::_REQUEST_UNDO,
             [this]()
@@ -211,6 +217,8 @@ private:
     void OnCreateWidgetVariable(const std::string& widgetRegisterName);
 
     void OnDeleteVariable(const std::string& variableName);
+
+    void OnCopyVariable(const std::string& variableName);
 
     // 更新Undo/Redo状态
     void UpdateUndoRedoState()

@@ -1,51 +1,52 @@
-#pragma once
+ï»¿#pragma once
 #include <EditorKit/StaticString.h>
 #include "EditorGlobal.h"
-// ±à¼­Æ÷ËùÓĞAction¼ü¶¨Òå
+// ç¼–è¾‘å™¨æ‰€æœ‰Actioné”®å®šä¹‰
 namespace Action
 {
-	//MainUI¶¯×÷
+	//MainUIåŠ¨ä½œ
 	namespace MainUI
 	{
-		extern const KeyStringType UI_FILE_SELECTED;//UIÎÄ¼ş±»Ñ¡ÖĞ£¨µã»÷£©
-		extern const KeyStringType EDITOR_PAGE_CLOSED;//±à¼­Ò³Ãæ±»¹Ø±Õ
-		extern const KeyStringType EDITOR_PAGE_SELECTED;//±à¼­Ò³Ãæ±»Ñ¡ÖĞ£¨Í¨¹ıTab°´Å¥£©
-		extern const KeyStringType _REQUEST_UPDATE_UNDOREDO_STATE;//ÇëÇó¸üĞÂUndoRedo×´Ì¬
+		extern const KeyStringType UI_FILE_SELECTED;//UIæ–‡ä»¶è¢«é€‰ä¸­ï¼ˆç‚¹å‡»ï¼‰
+		extern const KeyStringType EDITOR_PAGE_CLOSED;//ç¼–è¾‘é¡µé¢è¢«å…³é—­
+		extern const KeyStringType EDITOR_PAGE_SELECTED;//ç¼–è¾‘é¡µé¢è¢«é€‰ä¸­ï¼ˆé€šè¿‡TabæŒ‰é’®ï¼‰
+		extern const KeyStringType _REQUEST_UPDATE_UNDOREDO_STATE;//è¯·æ±‚æ›´æ–°UndoRedoçŠ¶æ€
 	}
 
 	namespace ProjectView
 	{
-		extern const KeyStringType UI_FILE_SELECTED;//UIÎÄ¼ş±»Ñ¡ÖĞ£¨µã»÷£©
-		extern const KeyStringType CREATE_NEW_FILE;//ÇëÇó´´½¨ĞÂÎÄ¼ş
-		extern const KeyStringType RENAME_FILE;//ÇëÇóÖØÃüÃûÎÄ¼ş
+		extern const KeyStringType UI_FILE_SELECTED;//UIæ–‡ä»¶è¢«é€‰ä¸­ï¼ˆç‚¹å‡»ï¼‰
+		extern const KeyStringType CREATE_NEW_FILE;//è¯·æ±‚åˆ›å»ºæ–°æ–‡ä»¶
+		extern const KeyStringType RENAME_FILE;//è¯·æ±‚é‡å‘½åæ–‡ä»¶
 	}
 
 	namespace OutlineView
 	{
-		extern const KeyStringType SELECT_VARIABLE;          // Ñ¡ÖĞ±äÁ¿
-		extern const KeyStringType SELECT_WIDGET;            // Ñ¡ÖĞ¿Ø¼ş
-		extern const KeyStringType CREATE_BASIC_VARIABLE;          // ´´½¨»ù±¾±äÁ¿
-		extern const KeyStringType CREATE_OBJECT_VARIABLE;          // ´´½¨Object±äÁ¿
-		extern const KeyStringType CREATE_WIDGET_VARIABLE;          // ´´½¨¿Ø¼şÊ÷±äÁ¿
-		extern const KeyStringType DELETE_VARIABLE;          // É¾³ı±äÁ¿
-		extern const KeyStringType INSERT_WIDGET;            // ²åÈë¿Ø¼ş
-		extern const KeyStringType DELETE_WIDGET;            // É¾³ı¿Ø¼ş
+		extern const KeyStringType SELECT_VARIABLE;          // é€‰ä¸­å˜é‡
+		extern const KeyStringType SELECT_WIDGET;            // é€‰ä¸­æ§ä»¶
+		extern const KeyStringType CREATE_BASIC_VARIABLE;          // åˆ›å»ºåŸºæœ¬å˜é‡
+		extern const KeyStringType CREATE_OBJECT_VARIABLE;          // åˆ›å»ºObjectå˜é‡
+		extern const KeyStringType CREATE_WIDGET_VARIABLE;          // åˆ›å»ºæ§ä»¶æ ‘å˜é‡
+		extern const KeyStringType DELETE_VARIABLE;          // åˆ é™¤å˜é‡
+		extern const KeyStringType INSERT_WIDGET;            // æ’å…¥æ§ä»¶
+		extern const KeyStringType DELETE_WIDGET;            // åˆ é™¤æ§ä»¶
+		extern const KeyStringType COPY_VARIABLE;			//å¤åˆ¶å˜é‡
 	}
 
 	namespace UIFileView
 	{
-		extern const KeyStringType REQUEST_DELETE_WIDGET;//ÇëÇóÉ¾³ı¿Ø¼ş
-		
-		extern const KeyStringType REQUEST_INSERT_WIDGET;//ÇëÇó²åÈë¿Ø¼ş
+		extern const KeyStringType REQUEST_DELETE_WIDGET;//è¯·æ±‚åˆ é™¤æ§ä»¶
+
+		extern const KeyStringType REQUEST_INSERT_WIDGET;//è¯·æ±‚æ’å…¥æ§ä»¶
 	}
 
 	namespace DetailView
 	{
-		extern const KeyStringType _REQUEST_EDIT_PROPERTY;//ÇëÇó±à¼­objectÊôĞÔ
+		extern const KeyStringType _REQUEST_EDIT_PROPERTY;//è¯·æ±‚ç¼–è¾‘objectå±æ€§
 	}
 
-	extern const KeyStringType _REQUEST_UNDO;//ÇëÇó³·Ïú
-	extern const KeyStringType _REQUEST_REDO;//ÇëÇó³·Ïú
-	extern const KeyStringType WIDGET_SELECTED;//¿Ø¼ş±»Ñ¡ÖĞ£¨µã»÷£©
+	extern const KeyStringType _REQUEST_UNDO;//è¯·æ±‚æ’¤é”€
+	extern const KeyStringType _REQUEST_REDO;//è¯·æ±‚æ’¤é”€
+	extern const KeyStringType WIDGET_SELECTED;//æ§ä»¶è¢«é€‰ä¸­ï¼ˆç‚¹å‡»ï¼‰
 }
 

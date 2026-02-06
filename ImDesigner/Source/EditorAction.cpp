@@ -1,21 +1,21 @@
-#include "EditorAction.h"
+ï»¿#include "EditorAction.h"
 
 namespace Action
 {
-	// Action¼ü¶¨Òå
+	// Actioné”®å®šä¹‰
 	namespace MainUI
 	{
 		const KeyStringType UI_FILE_SELECTED = "UIFileSelected";
 		const KeyStringType EDITOR_PAGE_CLOSED = "EditorPageClosed";
 		const KeyStringType EDITOR_PAGE_SELECTED = "EditorPageSelected";
-		const KeyStringType _REQUEST_UPDATE_UNDOREDO_STATE;//ÇëÇó¸üĞÂUndoRedo×´Ì¬
+		const KeyStringType _REQUEST_UPDATE_UNDOREDO_STATE;//è¯·æ±‚æ›´æ–°UndoRedoçŠ¶æ€
 	}
 
 	namespace ProjectView
 	{
 		const KeyStringType UI_FILE_SELECTED = "UIFileSelected";
-		const KeyStringType CREATE_NEW_FILE = "CreateNewFile";//ÇëÇó´´½¨ĞÂÎÄ¼ş
-		const KeyStringType RENAME_FILE = "RenameFile";//ÇëÇóÖØÃüÃûÎÄ¼ş
+		const KeyStringType CREATE_NEW_FILE = "CreateNewFile";//è¯·æ±‚åˆ›å»ºæ–°æ–‡ä»¶
+		const KeyStringType RENAME_FILE = "RenameFile";//è¯·æ±‚é‡å‘½åæ–‡ä»¶
 	}
 
 	namespace OutlineView
@@ -23,25 +23,26 @@ namespace Action
 		const KeyStringType SELECT_VARIABLE = "OutlineViewSelectVariable";
 		const KeyStringType SELECT_WIDGET = "OutlineViewSelectWidget";
 		const KeyStringType CREATE_BASIC_VARIABLE = "OutlineViewCreateBasicVariable";
-		const KeyStringType CREATE_OBJECT_VARIABLE = "OutlineViewCreateObjectVariable";          // ´´½¨Object±äÁ¿
-		const KeyStringType CREATE_WIDGET_VARIABLE = "OutlineViewCreateWidgetVariable";          // ´´½¨¿Ø¼şÊ÷±äÁ¿
+		const KeyStringType CREATE_OBJECT_VARIABLE = "OutlineViewCreateObjectVariable";          // åˆ›å»ºObjectå˜é‡
+		const KeyStringType CREATE_WIDGET_VARIABLE = "OutlineViewCreateWidgetVariable";          // åˆ›å»ºæ§ä»¶æ ‘å˜é‡
 		const KeyStringType DELETE_VARIABLE = "OutlineViewDeleteVariable";
 		const KeyStringType INSERT_WIDGET = "OutlineViewInsertWidget";
 		const KeyStringType DELETE_WIDGET = "OutlineViewDeleteWidget";
+		const KeyStringType COPY_VARIABLE = "OutlineViewCopyVariable";			//å¤åˆ¶å˜é‡
 	}
 
 	namespace UIFileView
 	{
-		const KeyStringType REQUEST_DELETE_WIDGET = "RequestDeleteWidget";//ÇëÇóÉ¾³ı¿Ø¼ş
-		
-		const KeyStringType REQUEST_INSERT_WIDGET = "RequestInsertWidget";//ÇëÇó²åÈë¿Ø¼ş
+		const KeyStringType REQUEST_DELETE_WIDGET = "RequestDeleteWidget";//è¯·æ±‚åˆ é™¤æ§ä»¶
+
+		const KeyStringType REQUEST_INSERT_WIDGET = "RequestInsertWidget";//è¯·æ±‚æ’å…¥æ§ä»¶
 	}
 
 	namespace DetailView
 	{
-		const KeyStringType _REQUEST_EDIT_PROPERTY="_RequestEditProperty";//ÇëÇó±à¼­objectÊôĞÔ
+		const KeyStringType _REQUEST_EDIT_PROPERTY = "_RequestEditProperty";//è¯·æ±‚ç¼–è¾‘objectå±æ€§
 	}
-	const KeyStringType _REQUEST_UNDO = "_RequestUndo";//ÇëÇó³·Ïú
-	const KeyStringType _REQUEST_REDO = "_RequestRedo";//ÇëÇó³·Ïú
-	const KeyStringType WIDGET_SELECTED = "WidgetSelected";//¿Ø¼ş±»Ñ¡ÖĞ£¨µã»÷£©
+	const KeyStringType _REQUEST_UNDO = "_RequestUndo";//è¯·æ±‚æ’¤é”€
+	const KeyStringType _REQUEST_REDO = "_RequestRedo";//è¯·æ±‚æ’¤é”€
+	const KeyStringType WIDGET_SELECTED = "WidgetSelected";//æ§ä»¶è¢«é€‰ä¸­ï¼ˆç‚¹å‡»ï¼‰
 }

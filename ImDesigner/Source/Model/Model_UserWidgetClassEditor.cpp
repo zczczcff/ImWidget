@@ -279,3 +279,52 @@ void Model_ImUserWidgetClassEditor::OnEditDefaultRoot(const std::string& newName
         m_IsModified = true;
     }
 }
+
+// ==================== 复制变量 ====================
+
+void Model_ImUserWidgetClassEditor::OnCopyVariable(const std::string& variableName)
+{
+    if (!m_TargetClass) return;
+
+    // 获取变量类型
+    //auto varType = m_TargetClass->GetVariableType(variableName);
+    //if (varType == ImGuiWidget::WidgetClassVariableType::Widget)
+    //{
+    //    // 获取控件变量
+    //    ImGuiWidget::ImWidget* widget = m_TargetClass->GetWidgetVariable(variableName);
+    //    if (!widget) return;
+
+    //    // 序列化控件为JSON
+    //    nlohmann::json widgetJson = ImGuiWidget::ImUserWidgetSerializer::SerializeWidget(widget);
+    //    std::string jsonString = widgetJson.dump();
+
+    //    // 设置到剪贴板
+    //    ImGui::SetClipboardText(jsonString.c_str());
+    //}
+    //else if (varType == ImGuiWidget::WidgetClassVariableType::Object)
+    //{
+    //    // 获取Object变量
+    //    ImGuiWidget::ImObject* obj = m_TargetClass->GetObjectVariable(variableName);
+    //    if (!obj) return;
+
+    //    // 序列化Object为JSON
+    //    nlohmann::json objJson = ImGuiWidget::ImUserWidgetSerializer::SerializeObject(obj);
+    //    std::string jsonString = objJson.dump();
+
+    //    // 设置到剪贴板
+    //    ImGui::SetClipboardText(jsonString.c_str());
+    //}
+    //else if (varType == ImGuiWidget::WidgetClassVariableType::Basic)
+    //{
+    //    // 获取基本变量
+    //    auto* basicVar = m_TargetClass->GetVariableAs<ImGuiWidget::ImWidgetClassVariable_Basic>(variableName);
+    //    if (!basicVar) return;
+
+    //    // 序列化基本变量为JSON
+    //    nlohmann::json varJson = ImGuiWidget::ImUserWidgetSerializer::SerializeVariable(basicVar);
+    //    std::string jsonString = varJson.dump();
+
+    //    // 设置到剪贴板
+    //    ImGui::SetClipboardText(jsonString.c_str());
+    //}
+}
