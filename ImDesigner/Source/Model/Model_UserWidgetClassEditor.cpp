@@ -7,6 +7,10 @@
 #include "Model/Command/Command_ObjectVarPropertyEdit.h"
 #include "Model/Command/Command_WidgetVarPropertyEdit.h"
 #include "Model/Command/Command_WidgetSlotPropertyEdit.h"
+#include "EditorGlobal.h"
+#include "ImWidget/ImUserWidgetSerializer.h"
+#include <imgui.h>
+#include <sstream>
 
 void Model_ImUserWidgetClassEditor::OnCreateBasicVariable(ImGuiWidget::PropertyType type)
 {
@@ -286,49 +290,36 @@ void Model_ImUserWidgetClassEditor::OnCopyVariable(const std::string& variableNa
 {
     if (!m_TargetClass) return;
 
-    //------------------暂不具体实现-----------------
-
     // 获取变量类型
-    //auto varType = m_TargetClass->GetVariableType(variableName);
-    //if (varType == ImGuiWidget::WidgetClassVariableType::Widget)
-    //{
-    //    // 获取控件变量
-    //    ImGuiWidget::ImWidget* widget = m_TargetClass->GetWidgetVariable(variableName);
-    //    if (!widget) return;
+    auto varType = m_TargetClass->GetVariableType(variableName);
+    nlohmann::json varJson;
+    std::string jsonString;
+    auto var = m_TargetClass->GetVariable(variableName);
+    if (!var) return ;
+    // 序列化控件为JSON
+    varJson = ImGuiWidget::ImUserWidgetClassSerializer::SerializeVariable(var);
+    jsonString = varJson.dump();
 
-    //    // 序列化控件为JSON
-    //    nlohmann::json widgetJson = ImGuiWidget::ImUserWidgetSerializer::SerializeWidget(widget);
-    //    std::string jsonString = widgetJson.dump();
+    // 存入剪贴板系统
+    if (varType == ImGuiWidget::WidgetClassVariableType::Widget)
+    {
+        EditorGlobal::GetClipboardInstance()->PushWidgetVariable(varJson, variableName);
+    }
+    else if (varType == ImGuiWidget::WidgetClassVariableType::Object)
+    {
+        EditorGlobal::GetClipboardInstance()->PushObjectVariable(varJson, variableName);
+    }
+    else if (varType == ImGuiWidget::WidgetClassVariableType::Basic)
+    {
+        EditorGlobal::GetClipboardInstance()->PushBasicVariable(varJson, variableName);
+    }
+    else
+    {
+        return;
+    }
 
-    //    // 设置到剪贴板
-    //    ImGui::SetClipboardText(jsonString.c_str());
-    //}
-    //else if (varType == ImGuiWidget::WidgetClassVariableType::Object)
-    //{
-    //    // 获取Object变量
-    //    ImGuiWidget::ImObject* obj = m_TargetClass->GetObjectVariable(variableName);
-    //    if (!obj) return;
-
-    //    // 序列化Object为JSON
-    //    nlohmann::json objJson = ImGuiWidget::ImUserWidgetSerializer::SerializeObject(obj);
-    //    std::string jsonString = objJson.dump();
-
-    //    // 设置到剪贴板
-    //    ImGui::SetClipboardText(jsonString.c_str());
-    //}
-    //else if (varType == ImGuiWidget::WidgetClassVariableType::Basic)
-    //{
-    //    // 获取基本变量
-    //    auto* basicVar = m_TargetClass->GetVariableAs<ImGuiWidget::ImWidgetClassVariable_Basic>(variableName);
-    //    if (!basicVar) return;
-
-    //    // 序列化基本变量为JSON
-    //    nlohmann::json varJson = ImGuiWidget::ImUserWidgetSerializer::SerializeVariable(basicVar);
-    //    std::string jsonString = varJson.dump();
-
-    //    // 设置到剪贴板
-    //    ImGui::SetClipboardText(jsonString.c_str());
-    //}
+    // 设置到ImGui剪贴板
+    ImGui::SetClipboardText(jsonString.c_str());
 }
 
 // ==================== 复制控件子项 ====================
@@ -337,48 +328,21 @@ void Model_ImUserWidgetClassEditor::OnCopyWidget(const std::string& widgetTreeVa
 {
     if (!m_TargetClass) return;
 
-    //------------------暂不具体实现-----------------
-
     // 获取控件树根
-    //ImGuiWidget::ImWidget* rootWidget = m_TargetClass->GetWidgetVariable(widgetTreeVarName);
-    //if (!rootWidget) return;
+    ImGuiWidget::ImWidget* rootWidget = m_TargetClass->GetWidgetVariable(widgetTreeVarName);
+    if (!rootWidget) return;
 
-    //// 找到目标控件
-    //ImGuiWidget::ImWidget* targetWidget = rootWidget;
-    //if (!widgetPath.empty())
-    //{
-    //    std::vector<std::string> pathParts;
-    //    std::stringstream ss(widgetPath);
-    //    std::string part;
-    //    while (std::getline(ss, part, '/'))
-    //    {
-    //        if (!part.empty())
-    //        {
-    //            pathParts.push_back(part);
-    //        }
-    //    }
+    // 找到目标控件
+    ImGuiWidget::ImWidget* targetWidget = rootWidget->FindChildByPath(widgetPath);
 
-    //    for (const auto& widgetName : pathParts)
-    //    {
-    //        bool found = false;
-    //        for (int i = 0; i < targetWidget->GetChildNum(); ++i)
-    //        {
-    //            ImGuiWidget::ImWidget* child = targetWidget->GetChildAt(i);
-    //            if (child && child->GetWidgetName() == widgetName)
-    //            {
-    //                targetWidget = child;
-    //                found = true;
-    //                break;
-    //            }
-    //        }
-    //        if (!found) return;
-    //    }
-    //}
+    // 序列化控件为JSON
+    nlohmann::json widgetJson = ImGuiWidget::ImUserWidgetClassSerializer::SerializeImWidget(targetWidget);
+    std::string jsonString = widgetJson.dump();
 
-    //// 序列化控件为JSON
-    //nlohmann::json widgetJson = ImGuiWidget::ImUserWidgetSerializer::SerializeWidget(targetWidget);
-    //std::string jsonString = widgetJson.dump();
+    // 存入剪贴板系统
+    EditorGlobal::GetClipboardInstance()->PushWidgetChild(widgetJson, widgetPath);
 
-    //// 设置到剪贴板
-    //ImGui::SetClipboardText(jsonString.c_str());
+    // 设置到ImGui剪贴板
+    ImGui::SetClipboardText(jsonString.c_str());
 }
+

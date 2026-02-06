@@ -3,6 +3,7 @@
 #include <EditorKit/ActionSystem.h>
 #include <EditorKit/StaticString.h>
 #include "Tools/JLog.h"
+#include "EditorClipboard.h"
 using KeyStringType = StaticString;
 using EditorActionID = ActionHandle<KeyStringType>;
 using EditorEventID = ActionHandle<KeyStringType>;
@@ -11,9 +12,11 @@ class EditorGlobal
 private:
 	EventBus<KeyStringType>* m_eventbus;
 	ActionSystem<KeyStringType>* m_ActionSystem;
+	EditorClipboard* m_clipboard;
 	EditorGlobal():
 		m_eventbus(new EventBus<KeyStringType>()),
-		m_ActionSystem(new ActionSystem<KeyStringType>)
+		m_ActionSystem(new ActionSystem<KeyStringType>()),
+		m_clipboard(new EditorClipboard(10))
 	{
 		m_ActionSystem->AddGlobalCompletionListener([](const KeyStringType& actionName, const ActionResult& result)
 			{
@@ -70,5 +73,9 @@ public:
 	static ActionSystem<KeyStringType>* GetActionSystemInstance()
 	{
 		return GetInstance()->m_ActionSystem;
+	}
+	static EditorClipboard* GetClipboardInstance()
+	{
+		return GetInstance()->m_clipboard;
 	}
 };
