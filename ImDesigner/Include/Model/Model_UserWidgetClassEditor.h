@@ -212,6 +212,13 @@ private:
                 return Redo();
             }));
 
+        // 订阅保存文件请求
+        m_FileActions.push_back(AddSequentialProcessor(m_EditedFileFullPath + Action::MainUI::SAVE_FILE,
+            [this]()
+            {
+                SaveChanges();
+            }));
+
 
     }
 

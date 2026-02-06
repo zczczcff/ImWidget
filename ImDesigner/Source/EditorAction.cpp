@@ -9,6 +9,7 @@ namespace Action
 		const KeyStringType EDITOR_PAGE_CLOSED = "EditorPageClosed";
 		const KeyStringType EDITOR_PAGE_SELECTED = "EditorPageSelected";
 		const KeyStringType _REQUEST_UPDATE_UNDOREDO_STATE;//请求更新UndoRedo状态
+		const KeyStringType SAVE_FILE = "SaveFile";//保存文件
 	}
 
 	namespace ProjectView

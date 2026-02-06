@@ -85,6 +85,13 @@ void MainUI::Init2()
 
 	//UndoRedo
 
+	ImButton_Save->OnLeftClicked.Add([this]()
+		{
+			OnSaveFile();
+		});
+	ImButton_Save->SetToolTipEnable(true);
+	ImButton_Save->SetToolTip(u8"保存（Ctrl+S）");
+
 	ImButton_Undo->OnLeftClicked.Add([this]() 
 		{
 			ExecuteAction(CurrentEditedFile + Action::_REQUEST_UNDO);
@@ -408,4 +415,14 @@ void MainUI::UpdateUndoRedoState(bool CanUndo, bool CanRedo)
 	{
 		ImImage_Redo->SetTintcolor(IM_COL32(158, 158, 158, 255));
 	}
+}
+
+void MainUI::OnSaveFile()
+{
+	if (CurrentEditedFile.empty())
+	{
+		AddLogLine(u8"错误：当前没有打开的文件");
+		return;
+	}
+	ExecuteAction(CurrentEditedFile + Action::MainUI::SAVE_FILE);
 }

@@ -11,6 +11,7 @@ namespace Action
 		extern const KeyStringType EDITOR_PAGE_CLOSED;//编辑页面被关闭
 		extern const KeyStringType EDITOR_PAGE_SELECTED;//编辑页面被选中（通过Tab按钮）
 		extern const KeyStringType _REQUEST_UPDATE_UNDOREDO_STATE;//请求更新UndoRedo状态
+		extern const KeyStringType SAVE_FILE;//保存文件
 	}
 
 	namespace ProjectView

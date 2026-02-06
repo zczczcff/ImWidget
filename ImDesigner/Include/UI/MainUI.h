@@ -129,6 +129,7 @@ public:
 
 private:
     void SwitchCurrentEditFile(const std::string& FileFullPath);
+    void OnSaveFile();
     //log更新
 public:
     void UpdateLog(std::vector<std::string>&& Logs);
